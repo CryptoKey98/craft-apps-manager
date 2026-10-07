@@ -218,8 +218,10 @@ fn architectures_and_installer_selection() {
             },
         ],
     };
-    let mut p = Preferences::default();
-    p.release_format = "portable".into();
+    let mut p = Preferences {
+        release_format: "portable".into(),
+        ..Default::default()
+    };
     assert!(updates::select_asset(&r, "filmcraft", &p).is_err());
     p.architecture = "x86".into();
     assert!(updates::select_asset(&r, "filmcraft", &p)
