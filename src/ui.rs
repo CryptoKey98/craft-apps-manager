@@ -547,7 +547,11 @@ impl eframe::App for App {
                         "Craft Apps Updater"
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.label(RichText::new(format!("RUST  ·  {}", env!("CARGO_PKG_VERSION"))).small().color(Color32::GRAY));
+                        ui.label(
+                            RichText::new(format!("RUST  ·  {}", env!("CARGO_PKG_VERSION")))
+                                .small()
+                                .color(Color32::GRAY),
+                        );
                     });
                 });
                 ui.label(
