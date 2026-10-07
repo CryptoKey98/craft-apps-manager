@@ -136,6 +136,8 @@ fn default_arch() -> String {
 pub struct Config {
     pub apps_root: String,
     pub apps: Vec<Installed>,
+    #[serde(default)]
+    pub installations: Vec<Installed>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -186,9 +188,58 @@ impl Paths {
     }
     pub fn config(&self) -> Result<Config> {
         if self.at("settings.json").exists() {
-            let config: Config = crate::files::read_json(&self.at("settings.json"))?;
+            let mut config: Config = crate::files::read_json(&self.at("settings.json"))?;
             if !Path::new(&config.apps_root).eq(&self.root) {
                 bail!("settings.json points to a different data folder. Select that folder in Settings.");
+            }
+            let installer = self.preferences()?.release_format == "installer";
+            for app in &config.apps {
+                if !app.path.is_empty()
+                    && !config.installations.iter().any(|a| {
+                        a.name == app.name
+                            && (a.install_kind == "installer") == (app.install_kind == "installer")
+                    })
+                {
+                    config.installations.push(app.clone());
+                }
+            }
+            for app in &mut config.apps {
+                if let Some(record) = config
+                    .installations
+                    .iter()
+                    .find(|a| a.name == app.name && (a.install_kind == "installer") == installer)
+                {
+                    *app = record.clone();
+                } else if installer {
+                    if let Some(record) = if app.path.is_empty() {
+                        None
+                    } else {
+                        crate::installers::detect(&app.name)?
+                    } {
+                        config.installations.push(record.clone());
+                        *app = record;
+                    } else {
+                        app.path.clear();
+                        app.version.clear();
+                        app.install_kind = "installer".into();
+                    }
+                } else {
+                    let root = self.at(format!("releases/{}", app.name));
+                    if root.join(format!("{}.exe", app.name)).is_file() {
+                        app.path = root.display().to_string();
+                        app.version = crate::platform::executable_version(
+                            &root.join(format!("{}.exe", app.name)),
+                        )
+                        .unwrap_or_else(|| "0.0.0".into());
+                        app.install_kind = "portable".into();
+                        app.product_code.clear();
+                        config.installations.push(app.clone());
+                    } else {
+                        app.path.clear();
+                        app.version.clear();
+                        app.install_kind = "portable".into();
+                    }
+                }
             }
             return Ok(config);
         }
@@ -238,7 +289,21 @@ impl Paths {
         Ok(Config {
             apps_root: self.root.to_string_lossy().into_owned(),
             apps,
+            installations: Vec::new(),
         })
+    }
+    pub fn save_config(&self, config: &Config) -> Result<()> {
+        let mut config = config.clone();
+        let installer = self.preferences()?.release_format == "installer";
+        for app in &config.apps {
+            config
+                .installations
+                .retain(|a| !(a.name == app.name && (a.install_kind == "installer") == installer));
+            if !app.path.is_empty() {
+                config.installations.push(app.clone());
+            }
+        }
+        crate::files::write_json(&self.at("settings.json"), &config)
     }
     pub fn preferences(&self) -> Result<Preferences> {
         let mut p =

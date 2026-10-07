@@ -191,7 +191,7 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                 let mut installed = crate::installers::run(&dest, &app.name)?;
                 installed.architecture = prefs.architecture.clone();
                 config.apps[i] = installed;
-                files::write_json(&paths.at("settings.json"), &config)?;
+                paths.save_config(&config)?;
                 changed.push(app.name.clone());
                 job.log(&format!("{}: installer completed", app.name));
                 return Ok(());
@@ -254,7 +254,7 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                     executables[0].path().parent().unwrap(),
                     &target,
                     backup.as_deref(),
-                    || files::write_json(&paths.at("settings.json"), &config),
+                    || paths.save_config(&config),
                 ) {
                     config.apps[i] = old;
                     return Err(e);

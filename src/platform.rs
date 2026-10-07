@@ -140,6 +140,52 @@ pub fn open(p: &Path) -> Result<()> {
     }
     Ok(())
 }
+pub fn executable_version(path: &Path) -> Option<String> {
+    #[link(name = "version")]
+    extern "system" {
+        fn GetFileVersionInfoSizeW(path: *const u16, handle: *mut u32) -> u32;
+        fn GetFileVersionInfoW(
+            path: *const u16,
+            handle: u32,
+            size: u32,
+            data: *mut std::ffi::c_void,
+        ) -> i32;
+        fn VerQueryValueW(
+            data: *const std::ffi::c_void,
+            key: *const u16,
+            value: *mut *mut std::ffi::c_void,
+            length: *mut u32,
+        ) -> i32;
+    }
+    let path = wide(path);
+    let root = wide(r"\");
+    unsafe {
+        let mut unused = 0;
+        let size = GetFileVersionInfoSizeW(path.as_ptr(), &mut unused);
+        if size == 0 {
+            return None;
+        }
+        let mut data = vec![0u8; size as usize];
+        if GetFileVersionInfoW(path.as_ptr(), 0, size, data.as_mut_ptr().cast()) == 0 {
+            return None;
+        }
+        let mut value = std::ptr::null_mut();
+        let mut length = 0;
+        if VerQueryValueW(data.as_ptr().cast(), root.as_ptr(), &mut value, &mut length) == 0
+            || length < 52
+            || value.is_null()
+        {
+            return None;
+        }
+        let value = value.cast::<u32>();
+        if value.read_unaligned() != 0xfeef04bd {
+            return None;
+        }
+        let high = value.add(2).read_unaligned();
+        let low = value.add(3).read_unaligned();
+        Some(format!("{}.{}.{}", high >> 16, high & 0xffff, low >> 16))
+    }
+}
 pub fn running_app(name: &str) -> Result<bool> {
     let out = output(Command::new("tasklist.exe").args(["/FO", "CSV", "/NH"]))?;
     if !out.status.success() {

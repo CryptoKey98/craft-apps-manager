@@ -87,7 +87,7 @@ pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
             entry.install_kind.clear();
             entry.product_code.clear();
         }
-        return files::write_json(&paths.at("settings.json"), &config);
+        return paths.save_config(&config);
     }
     let root = PathBuf::from(&installed.path);
     let releases = paths.at("releases");
@@ -105,7 +105,7 @@ pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
             a.path.clear();
             a.version.clear();
         });
-    if let Err(error) = files::write_json(&paths.at("settings.json"), &config) {
+    if let Err(error) = paths.save_config(&config) {
         std::fs::rename(&temporary, &root)?;
         return Err(error);
     }

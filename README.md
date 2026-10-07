@@ -8,7 +8,7 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 Download the Windows ZIP from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
 
-The first release is **0.1.0**. It has been tested on Windows x64. Expect some rough edges, especially around installers and building upstream projects.
+The current release is **0.2.0**. It has been tested on Windows x64. Expect some rough edges, especially around installers and building upstream projects.
 
 ## Supported apps
 
@@ -25,7 +25,7 @@ Click an app in the sidebar to open its controls. Clicking the same row again cl
 - **Launch settings** lets you choose the executable and add arguments, one per line.
 - **Uninstall** removes a managed portable copy or opens its MSI uninstaller. Other installer types use Windows Installed apps.
 
-Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Switching formats leaves the other copy in place.
+Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
 The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to automatic updates.
 

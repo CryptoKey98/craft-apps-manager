@@ -44,6 +44,59 @@ fn job(root: &Path) -> Job {
     Job::new(root.join("logs/test.log"), &BuilderPreferences::default())
 }
 #[test]
+fn switching_release_format_remembers_both_installations() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    let mut prefs = Preferences::default();
+    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    let mut config = paths.config().unwrap();
+    let app = config
+        .apps
+        .iter_mut()
+        .find(|a| a.name == "designcraft")
+        .unwrap();
+    app.path = paths.at("system/designcraft").display().to_string();
+    app.version = "2.0.0".into();
+    app.install_kind = "installer".into();
+    paths.save_config(&config).unwrap();
+    prefs.release_format = "portable".into();
+    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    let mut config = paths.config().unwrap();
+    let app = config
+        .apps
+        .iter_mut()
+        .find(|a| a.name == "designcraft")
+        .unwrap();
+    app.path = paths.at("releases/designcraft").display().to_string();
+    app.version = "1.0.0".into();
+    app.install_kind = "portable".into();
+    paths.save_config(&config).unwrap();
+    for (format, expected) in [
+        ("installer", "2.0.0"),
+        ("portable", "1.0.0"),
+        ("installer", "2.0.0"),
+    ] {
+        prefs.release_format = format.into();
+        files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+        let config = paths.config().unwrap();
+        let app = config
+            .apps
+            .iter()
+            .find(|a| a.name == "designcraft")
+            .unwrap();
+        assert_eq!(app.version, expected);
+        assert_eq!(app.install_kind, format);
+        assert_eq!(
+            config
+                .installations
+                .iter()
+                .filter(|a| a.name == "designcraft")
+                .count(),
+            2
+        );
+    }
+}
+#[test]
 fn release_and_source_selections_are_independent() {
     let f = Fixture::new();
     let paths = f.paths();
@@ -79,6 +132,7 @@ fn individual_check_detects_newer_release_without_downloading() {
         .unwrap();
     app.path = paths.at("releases/filmcraft").display().to_string();
     app.version = "1.0.0".into();
+    app.install_kind = "installer".into();
     files::write_json(&paths.at("settings.json"), &config).unwrap();
     let endpoint = "https://api.github.com/repos/storytold/filmcraft/releases/latest";
     let cache = paths.at(format!(
@@ -99,6 +153,14 @@ fn individual_check_detects_newer_release_without_downloading() {
 fn app_management_preserves_other_data_and_launch_settings() {
     let f = Fixture::new();
     let paths = f.paths();
+    files::write_json(
+        &paths.at("updater-settings.json"),
+        &Preferences {
+            release_format: "portable".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let folder = paths.at("releases/filmcraft");
     fs::create_dir_all(&folder).unwrap();
     fs::write(folder.join("filmcraft.exe"), "fixture").unwrap();
