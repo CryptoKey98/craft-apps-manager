@@ -110,7 +110,11 @@ impl App {
         if builder {
             job.state.lock().unwrap().output = builder::history(&paths, &app)
         }
-        let auto = scheduler::enabled(false);
+        let mut auto = scheduler::enabled(false);
+        if preferences.release_format == "installer" && auto {
+            scheduler::set(&paths, false, false)?;
+            auto = false;
+        }
         let auto_source = scheduler::enabled(true);
         Ok(Self {
             root_text: paths.root.display().to_string(),
@@ -238,7 +242,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Use your existing PowerShell data folder to access its sources and builds. Folder changes apply after reopening this window.");});
             });
             ui.separator();ui.horizontal(|ui|{
-                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("updater-settings.json"),&self.settings_draft)?;self.preferences=self.settings_draft.clone();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
+                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("updater-settings.json"),&self.settings_draft)?;self.preferences=self.settings_draft.clone();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
                 if ui.button("Cancel").clicked(){self.settings=false;}
             });
         });
@@ -941,7 +945,7 @@ impl eframe::App for App {
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected releases").fill(BLUE).min_size(egui::vec2(225.0,36.0))).clicked(){self.start("releases")}});
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected sources").min_size(egui::vec2(225.0,36.0))).clicked(){self.start("sources")}});
 if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal(|ui|{ui.spacing_mut().item_spacing.x=3.0;ui.small("Choose apps for release and source updates in");if ui.link(RichText::new("Settings").small().color(BLUE)).clicked(){self.open_settings();}});
-                ui.horizontal(|ui|{if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto,"Automatic app updates")).changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
+                ui.horizontal(|ui|{if ui.add_enabled(!state.busy && self.preferences.release_format == "portable",egui::Checkbox::new(&mut self.auto,"Automatic app updates")).on_disabled_hover_text(if self.preferences.release_format == "installer" { "Automatic app updates are available for portable ZIPs. Installer updates require the Windows installer wizard and may need administrator approval. Install updates manually, or choose Portable ZIP in Settings." } else { "Wait for the current operation to finish." }).changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
 if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic updates run hourly and after sign-in. Opening this window never checks GitHub.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
 if ui.button("Open sources").clicked(){self.result(platform::open(&self.paths.at("sources")));}
 if state.busy&&ui.button("Cancel update").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
