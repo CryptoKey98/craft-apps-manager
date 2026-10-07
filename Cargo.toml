@@ -1,0 +1,27 @@
+[package]
+name = "craft-apps-updater"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Windows release and source manager for the Craft apps"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "accesskit", "__screenshot"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+regex = "1"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+walkdir = "2"
+zip = { version = "2.4", default-features = false, features = ["deflate"] }
+windows = { version = "0.58", features = ["Data_Xml_Dom", "UI_Notifications", "Win32_Foundation", "Win32_System_Com", "Win32_System_Threading", "Win32_System_JobObjects", "Win32_System_LibraryLoader", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Security", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_Security_Cryptography_Catalog", "Win32_Security_Cryptography_Sip", "Win32_System_Registry"] }
+winreg = "0.55"
+
+[profile.release]
+opt-level = "s"
+lto = "thin"
+strip = true
