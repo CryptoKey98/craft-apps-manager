@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.3
+
+- Replace automatic app and source downloads with hourly availability checks.
+- Support hourly checks for both installer and portable apps.
+- Notify once per new app version or downloaded source commit; downloads require confirmation.
+- Show saved app update availability when opening Manager.
+- Keep existing scheduled background commands check-only after upgrading.
+- Forward Cancel update to the installer wizard and wait for its result; show guidance when Windows blocks the request.
+
+
 ## 0.3.2
 
 - Rename the project to Craft Apps Manager and add an engraved up-arrow application icon.

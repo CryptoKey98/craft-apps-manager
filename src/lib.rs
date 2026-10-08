@@ -2,6 +2,7 @@ pub mod apps;
 pub mod backups;
 pub mod builder;
 pub mod files;
+pub mod hourly;
 pub mod installers;
 pub mod jobs;
 pub mod model;

@@ -233,7 +233,7 @@ pub fn notify(exe: &Path, message: &str) -> Result<()> {
         UI::Notifications::{ToastNotification, ToastNotificationManager},
     };
     let xml = XmlDocument::new()?;
-    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>Craft apps updated</text><text>{}</text></binding></visual></toast>",escape(message))))?;
+    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>Craft updates available</text><text>{}</text></binding></visual></toast>",escape(message))))?;
     let toast = ToastNotification::CreateToastNotification(&xml)?;
     ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from("CraftApps.Manager.Rust"))?
         .Show(&toast)?;

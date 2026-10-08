@@ -86,6 +86,12 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
     Ok(None)
 }
 pub fn run(file: &Path, app: &str) -> Result<Installed> {
+    run_with_job(file, app, None)
+}
+pub fn run_with_job(file: &Path, app: &str, job: Option<&crate::jobs::Job>) -> Result<Installed> {
+    if let Some(job) = job {
+        job.check()?;
+    }
     let absolute = std::fs::canonicalize(file)?;
     let text = absolute.to_string_lossy();
     let normalized = if let Some(unc) = text.strip_prefix(r"\\?\UNC\") {
@@ -99,17 +105,18 @@ pub fn run(file: &Path, app: &str) -> Result<Installed> {
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
     {
-        platform::hidden(
+        let mut child = platform::hidden(
             Command::new("msiexec.exe")
                 .arg("/i")
                 .arg(file)
                 .arg("/norestart"),
         )
-        .status()?
-        .code()
-        .unwrap_or(-1)
+        .spawn()?;
+        wait_installer(job, child.id(), || {
+            Ok(child.try_wait()?.map(|status| status.code().unwrap_or(-1)))
+        })?
     } else {
-        run_exe(file)?
+        run_exe(file, job)?
     };
     match code {
         0 | 3010 | 1641 => {}
@@ -118,12 +125,12 @@ pub fn run(file: &Path, app: &str) -> Result<Installed> {
     }
     detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")
 }
-fn run_exe(file: &Path) -> Result<i32> {
+fn run_exe(file: &Path, job: Option<&crate::jobs::Job>) -> Result<i32> {
     use windows::{
         core::PCWSTR,
         Win32::{
             Foundation::{CloseHandle, WAIT_OBJECT_0},
-            System::Threading::{GetExitCodeProcess, WaitForSingleObject},
+            System::Threading::{GetExitCodeProcess, GetProcessId, WaitForSingleObject},
             UI::{
                 Shell::{ShellExecuteExW, SEE_MASK_NOCLOSEPROCESS, SHELLEXECUTEINFOW},
                 WindowsAndMessaging::SW_SHOWNORMAL,
@@ -146,16 +153,70 @@ fn run_exe(file: &Path) -> Result<i32> {
         if process.is_invalid() {
             bail!("Installer did not return a process handle");
         }
-        let result = (|| -> Result<i32> {
-            if WaitForSingleObject(process, u32::MAX) != WAIT_OBJECT_0 {
+        let result = wait_installer(job, GetProcessId(process), || {
+            let status = WaitForSingleObject(process, 0);
+            if status == windows::Win32::Foundation::WAIT_TIMEOUT {
+                return Ok(None);
+            }
+            if status != WAIT_OBJECT_0 {
                 bail!("Could not wait for the installer");
             }
             let mut code = 0;
             GetExitCodeProcess(process, &mut code)?;
-            Ok(code as i32)
-        })();
+            Ok(Some(code as i32))
+        });
         let _ = CloseHandle(process);
         result
+    }
+}
+fn request_installer_close(pid: u32) -> Result<bool> {
+    use windows::Win32::{
+        Foundation::{BOOL, HWND, LPARAM, WPARAM},
+        UI::WindowsAndMessaging::*,
+    };
+    struct Request {
+        pid: u32,
+        sent: bool,
+    }
+    unsafe extern "system" fn visit(hwnd: HWND, data: LPARAM) -> BOOL {
+        let request = &mut *(data.0 as *mut Request);
+        let mut pid = 0;
+        GetWindowThreadProcessId(hwnd, Some(&mut pid));
+        if pid == request.pid && IsWindowVisible(hwnd).as_bool() {
+            request.sent |= PostMessageW(hwnd, WM_CLOSE, WPARAM(0), LPARAM(0)).is_ok();
+        }
+        BOOL(1)
+    }
+    let mut request = Request { pid, sent: false };
+    unsafe {
+        EnumWindows(Some(visit), LPARAM(&mut request as *mut Request as isize))?;
+    }
+    Ok(request.sent)
+}
+fn wait_installer(
+    job: Option<&crate::jobs::Job>,
+    pid: u32,
+    mut poll: impl FnMut() -> Result<Option<i32>>,
+) -> Result<i32> {
+    let mut requested = false;
+    loop {
+        if let Some(code) = poll()? {
+            return Ok(code);
+        }
+        if let Some(job) = job {
+            if !requested && job.cancel.load(std::sync::atomic::Ordering::Relaxed) {
+                requested = true;
+                let sent = request_installer_close(pid).unwrap_or(false);
+                let message = if sent {
+                    "Cancellation requested. Confirm in the installer if prompted; waiting for Windows to finish rollback."
+                } else {
+                    "Windows cannot forward cancellation to this installer. Use Cancel in the installer window; waiting for it to finish safely."
+                };
+                job.stage("Cancel requested", None, message);
+                job.log(message);
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
     }
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
@@ -186,4 +247,24 @@ pub fn uninstall(app: &Installed) -> Result<()> {
         bail!("Windows still reports the app installed");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod cancellation_tests {
+    #[test]
+    fn cancellation_waits_for_the_installer_result() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = crate::jobs::Job::new(root.join("installer.log"), &Default::default());
+        job.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+        let mut polls = 0;
+        let code = super::wait_installer(Some(&job), u32::MAX, || {
+            polls += 1;
+            Ok((polls == 3).then_some(1602))
+        })
+        .unwrap();
+        assert_eq!(polls, 3);
+        assert_eq!(code, 1602);
+        assert_eq!(job.state.lock().unwrap().stage, "Cancel requested");
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

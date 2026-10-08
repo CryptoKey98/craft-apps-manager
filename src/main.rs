@@ -13,7 +13,13 @@ fn main() {
             let _ = fs::create_dir_all(path.parent().unwrap());
             let _ = fs::write(path, &message);
         }
-        if std::env::args().any(|a| a == "--update" || a == "--update-source") {
+        if std::env::args().any(|a| {
+            a == "--update"
+                || a == "--update-source"
+                || a == "--background"
+                || a == "--check-app-updates"
+                || a == "--check-source-updates"
+        }) {
             std::process::exit(1);
         }
         unsafe {
@@ -49,6 +55,28 @@ fn run() -> Result<()> {
     let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
     let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
     let paths = Paths::new(root, arg("--tools").or(saved.tools));
+    // Old scheduled tasks keep their command line after an executable update.
+    // Route both legacy background commands and new commands to checks only.
+    let background = args.iter().any(|s| s == "--background");
+    if args
+        .iter()
+        .any(|s| s == "--check-app-updates" || s == "--check-source-updates")
+        || (background
+            && args
+                .iter()
+                .any(|s| s == "--update" || s == "--update-source"))
+    {
+        let job = Job::new(paths.at("logs/updates.log"), &paths.builder_preferences()?);
+        if args
+            .iter()
+            .any(|s| s == "--check-source-updates" || s == "--update-source")
+        {
+            craft_apps_manager::hourly::sources(&paths, &job)?;
+        } else {
+            craft_apps_manager::hourly::run(&paths, &job)?;
+        }
+        return Ok(());
+    }
     if args.iter().any(|s| s == "--install-shortcuts") {
         let profile = std::env::var("USERPROFILE")?;
         let desktop = PathBuf::from(profile).join("Desktop");

@@ -37,7 +37,7 @@ The video and screenshots use an example library. Music: Prelude in C major, BWV
 
 Download the Windows ZIP matching your system (x64 for 64-bit Windows, x86 for 32-bit Windows) from this repository's Releases page, extract it, and open `CraftApps-Manager.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the manager.
 
-The current release is **0.3.2**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
+The current release is **0.3.3**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
 
 ## Upgrading from Craft Apps Updater
 
@@ -62,9 +62,9 @@ The uninstall confirmation has an optional **Delete app profile data** checkbox,
 
 Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
-The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to automatic updates.
+The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to hourly availability checks.
 
-Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates pulse blue in both the sidebar and app controls. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
+Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates pulse blue in both the sidebar and app controls. Manual checks use a short cache to avoid repeated requests. Enable **Check for app updates hourly** to check selected installed apps, or **Check for source updates hourly** to check selected downloaded source ZIPs. Checks run hourly and after sign-in, send a Windows notification once per new version or source commit, and never download or install automatically. Both installer and portable releases are supported. Turn notifications on or off in Settings.
 
 Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 

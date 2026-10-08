@@ -128,16 +128,19 @@ pub fn replace_transaction(
     Ok(())
 }
 pub fn releases(paths: &Paths, job: &Job, background: bool) -> Result<()> {
-    releases_for(paths, job, background, None)
+    if background {
+        return crate::hourly::run(paths, job);
+    }
+    releases_for(paths, job, None)
 }
 pub fn install_app(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     crate::model::valid_app(app)?;
     if !crate::model::APPS.contains(&app) {
         bail!("This app has no managed release");
     }
-    releases_for(paths, job, false, Some(app))
+    releases_for(paths, job, Some(app))
 }
-fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&str>) -> Result<()> {
+fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     job.log(&format!(
         "\nRelease updates — {}",
@@ -146,7 +149,6 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
     let mut config = paths.config()?;
     let prefs = paths.preferences()?;
     let network = Network::new(&paths.root)?;
-    let mut changed = Vec::new();
     let mut errors = 0;
     for i in 0..config.apps.len() {
         let app = config.apps[i].clone();
@@ -187,9 +189,6 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                     job.log(&format!("{}: installed version is current", app.name));
                     return Ok(());
                 }
-                if background {
-                    bail!("Installer updates require an interactive confirmation. Open the manager to install {}.", app.name);
-                }
                 if platform::running_app(&app.name)? {
                     bail!("Close {} before installing", app.name);
                 }
@@ -200,11 +199,10 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                     network.asset(asset, &dest, job)?;
                 }
                 job.stage("Installing", None, "Complete the Windows installer wizard; Windows may ask for administrator permission.");
-                let mut installed = crate::installers::run(&dest, &app.name)?;
+                let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
                 installed.architecture = prefs.architecture.clone();
                 config.apps[i] = installed;
                 paths.save_config(&config)?;
-                changed.push(app.name.clone());
                 job.log(&format!("{}: installer completed", app.name));
                 return Ok(());
             }
@@ -290,7 +288,6 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                 ) {
                     job.log(&format!("Shortcut warning: {e}"))
                 }
-                changed.push(format!("{} {v}", crate::model::title(&app.name)));
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
             })();
@@ -309,11 +306,6 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
             {
                 break;
             }
-        }
-    }
-    if background && !changed.is_empty() && prefs.notify_updates {
-        if let Err(e) = platform::notify(&std::env::current_exe()?, &changed.join(", ")) {
-            job.log(&format!("Notification warning: {e}"));
         }
     }
     if errors > 0 {

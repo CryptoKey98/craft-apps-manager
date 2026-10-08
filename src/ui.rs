@@ -61,6 +61,7 @@ type CheckMessage = (u64, String, String, ReleaseCheck);
 type DisplaySnapshot = (
     model::Config,
     std::collections::BTreeMap<String, Vec<backups::Backup>>,
+    craft_apps_manager::hourly::Checks,
 );
 #[derive(Default, Serialize, Deserialize)]
 pub struct Locations {
@@ -191,7 +192,7 @@ impl App {
             state.busy = true;
             state.stage = "Working".into();
         }
-        let auto = preferences.release_format == "portable" && scheduler::enabled(false);
+        let auto = scheduler::enabled(false);
         let auto_source = scheduler::enabled(true);
         let manager_startup_pending = !builder && preferences.check_manager_on_startup;
         let apps_startup_pending = !builder && preferences.check_installed_apps_on_startup;
@@ -398,7 +399,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{"Portable ZIP"}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),"Portable ZIP");ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
                 ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
                 ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of 7 apps selected",self.settings_draft.selected_apps.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of 8 sources selected",self.settings_draft.selected_sources.len()));});
-                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when automatic updates install new versions");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
+                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when app or source updates are available");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
                 ui.small("A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard.");if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
                 if ui.add_enabled(self.manager_receiver.is_none() && self.manager_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Manager release").clicked() { self.check_manager(ctx); }
@@ -410,7 +411,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Use your existing PowerShell data folder to access its sources and builds. Folder changes apply after reopening this window.");});
             });
             ui.separator();ui.horizontal(|ui|{
-                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("manager-settings.json"),&self.settings_draft)?;let check_mode_changed=self.preferences.release_format!=self.settings_draft.release_format||self.preferences.architecture!=self.settings_draft.architecture;self.preferences=self.settings_draft.clone();if check_mode_changed{self.check_generation+=1;self.checking_apps.clear();self.release_checks.clear();}self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
+                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("manager-settings.json"),&self.settings_draft)?;let check_mode_changed=self.preferences.release_format!=self.settings_draft.release_format||self.preferences.architecture!=self.settings_draft.architecture;self.preferences=self.settings_draft.clone();if check_mode_changed{self.check_generation+=1;self.checking_apps.clear();self.release_checks.clear();}self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
                 if ui.button("Cancel").clicked(){self.settings=false;}
             });
         });
@@ -850,7 +851,22 @@ impl eframe::App for App {
         if let Some(receiver) = &self.config_receiver {
             if let Ok(result) = receiver.try_recv() {
                 match result {
-                    Ok((config, backups)) => {
+                    Ok((config, backups, checks)) => {
+                        if self.display_config.is_none() {
+                            for app in &config.apps {
+                                if let Some(check) = checks.get(&craft_apps_manager::hourly::key(
+                                    &self.preferences,
+                                    &app.name,
+                                )) {
+                                    if check.installed == app.version && !app.path.is_empty() {
+                                        self.release_checks.entry(app.name.clone()).or_insert((
+                                            check.installed.clone(),
+                                            Ok(check.latest.clone()),
+                                        ));
+                                    }
+                                }
+                            }
+                        }
                         self.display_config = Some(config);
                         self.display_backups = backups;
                     }
@@ -878,7 +894,8 @@ impl eframe::App for App {
                             backups::list(&paths, name).map(|items| (name.to_owned(), items))
                         })
                         .collect::<Result<_>>()?;
-                    Ok((config, backups))
+                    let checks = craft_apps_manager::hourly::read(&paths)?;
+                    Ok((config, backups, checks))
                 })();
                 let _ = tx.send(result.map_err(|e| format!("{e:#}")));
                 ctx.request_repaint();
@@ -1893,10 +1910,10 @@ impl eframe::App for App {
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected releases").fill(BLUE).min_size(egui::vec2(225.0,36.0))).clicked(){self.start("releases")}});
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected sources").min_size(egui::vec2(225.0,36.0))).clicked(){self.start("sources")}});
 if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal(|ui|{ui.spacing_mut().item_spacing.x=3.0;ui.small("Choose apps for release and source updates in");if ui.link(RichText::new("Settings").small().color(BLUE)).clicked(){self.open_settings();}});
-                ui.horizontal(|ui|{if ui.add_enabled(!state.busy && self.preferences.release_format == "portable",egui::Checkbox::new(&mut self.auto,"Automatic app updates")).on_disabled_hover_text(if self.preferences.release_format == "installer" { "Automatic app updates are available for portable ZIPs. Installer updates require the Windows installer wizard and may need administrator approval. Install updates manually, or choose Portable ZIP in Settings." } else { "Wait for the current operation to finish." }).changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
-if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic app and source updates run hourly and after sign-in. Manager startup checks are optional in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
+                ui.horizontal(|ui|{if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto,"Check for app updates hourly")).on_hover_text("Checks selected installed apps and notifies you when a new version is available. Supports installers and portable ZIPs; nothing downloads automatically.").changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
+if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Check for source updates hourly")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Scheduled checks run hourly and after sign-in. Downloads require confirmation. Choose apps and sources in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
 if ui.button("Open sources").clicked(){self.result(platform::open(&self.paths.at("sources")));}
-if state.busy&&ui.button("Cancel update").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
+if state.busy&&ui.add_enabled(!self.job.cancel.load(Ordering::Relaxed),egui::Button::new(if self.job.cancel.load(Ordering::Relaxed){"Cancel requested…"}else{"Cancel update"})).clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
             ui.horizontal(|ui|{if state.busy{ui.spinner();}ui.strong(if state.stage.is_empty(){if state.output.is_some(){"Previous build available"}else{"Ready"}}else{&state.stage});});
             if !state.detail.is_empty(){ui.label(&state.detail);}
 if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel(ui,&state);
