@@ -253,7 +253,8 @@ impl App {
             let shift = (line_height - line(15.0)) / 2.0;
             ui.add_space(shift);
             ui.scope(|ui| {
-                ui.set_max_width(620.0);
+                // Capped at the design's measure, but never wider than the column.
+                ui.set_max_width(ui.available_width().min(620.0));
                 ui.add(
                     egui::Label::new(
                         RichText::new(description)
@@ -598,31 +599,37 @@ impl App {
             ),
         ];
         // A 1-point grid of hairlines: the border colour shows between the cells.
-        let height = 12.0 + line(12.0) + 4.0 + line(14.0) + 12.0 + 2.0;
+        // Four cells in a row, or two by two when the column is too narrow for them.
+        let width = ui.available_width().min(720.0);
+        let columns = if width >= 560.0 { 4 } else { 2 };
+        let rows = cells.len() / columns;
+        let row_height = 12.0 + line(12.0) + 4.0 + line(14.0) + 12.0;
         let (rect, _) = ui.allocate_exact_size(
-            vec2(ui.available_width().min(720.0), height),
+            vec2(width, row_height * rows as f32 + (rows + 1) as f32),
             Sense::hover(),
         );
         ui.painter()
             .rect_filled(rect, CornerRadius::same(10), theme::BORDER);
         let inner = rect.shrink(1.0);
-        let cell = (inner.width() - 3.0) / 4.0;
+        let cell = (inner.width() - (columns - 1) as f32) / columns as f32;
         for (index, (label, value, hover)) in cells.iter().enumerate() {
-            let left = inner.left() + index as f32 * (cell + 1.0);
-            let cell_rect =
-                Rect::from_min_size(pos2(left, inner.top()), vec2(cell, inner.height()));
-            let radius = match index {
-                0 => CornerRadius {
-                    nw: 9,
-                    sw: 9,
-                    ..Default::default()
-                },
-                3 => CornerRadius {
-                    ne: 9,
-                    se: 9,
-                    ..Default::default()
-                },
-                _ => CornerRadius::ZERO,
+            let (row, column) = (index / columns, index % columns);
+            let cell_rect = Rect::from_min_size(
+                pos2(
+                    inner.left() + column as f32 * (cell + 1.0),
+                    inner.top() + row as f32 * (row_height + 1.0),
+                ),
+                vec2(cell, row_height),
+            );
+            // Only the grid's outer corners are rounded.
+            let corner = |at_row: bool, at_column: bool| if at_row && at_column { 9 } else { 0 };
+            let (first_row, last_row) = (row == 0, row == rows - 1);
+            let (first_column, last_column) = (column == 0, column == columns - 1);
+            let radius = CornerRadius {
+                nw: corner(first_row, first_column),
+                ne: corner(first_row, last_column),
+                sw: corner(last_row, first_column),
+                se: corner(last_row, last_column),
             };
             ui.painter().rect_filled(cell_rect, radius, theme::PANEL);
             let mut ui = child(

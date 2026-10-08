@@ -988,14 +988,15 @@ impl App {
                             }
                         ),
                         |ui| {
-                            ui.horizontal_wrapped(|ui| {
+                            theme::text(
+                                ui,
+                                "Close other manager and builder windows first.",
+                                13.0,
+                                theme::MUTED,
+                            );
+                            ui.horizontal(|ui| {
                                 ui.spacing_mut().item_spacing.x = 0.0;
-                                theme::text(
-                                    ui,
-                                    "Close other manager and builder windows first. From ",
-                                    13.0,
-                                    theme::MUTED,
-                                );
+                                theme::text(ui, "From ", 13.0, theme::MUTED);
                                 theme::hyperlink(
                                     ui,
                                     self_update::REPOSITORY_NAME,

@@ -509,13 +509,16 @@ impl<'a> Btn<'a> {
         let (fill, hover_fill, stroke, text_color) = self.colors();
         let (galley, icon_space, size) = self.layout(ui);
         let (width, height) = (size.x, size.y);
-        // Allocate in a disabled scope so egui knows the state: disabled-hover
-        // tooltips then show and plain tooltips do not.
-        let (rect, response) = ui
-            .add_enabled_ui(self.enabled, |ui| {
-                ui.allocate_exact_size(egui::vec2(width, height), Sense::click())
-            })
-            .inner;
+        // Reserve the space in this layout first, so wrapping rows can move the
+        // button to their next line. The click area then goes in a disabled child
+        // when needed, so egui knows the state: disabled-hover tooltips show and
+        // plain tooltips do not.
+        let (rect, placeholder) = ui.allocate_exact_size(egui::vec2(width, height), Sense::hover());
+        let mut area = ui.new_child(egui::UiBuilder::new().max_rect(rect));
+        if !self.enabled {
+            area.disable();
+        }
+        let response = area.interact(rect, placeholder.id.with("button"), Sense::click());
         response.widget_info(|| {
             egui::WidgetInfo::labeled(egui::WidgetType::Button, self.enabled, self.text)
         });
@@ -647,6 +650,9 @@ pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Resp
         .add_enabled_ui(enabled, |ui| {
             let response = ui.add(
                 egui::Label::new(egui::RichText::new(&text).size(13.0).color(LINK))
+                    // One line, so the underline matches the text; a wrapping layout
+                    // moves the whole link to the next line instead.
+                    .extend()
                     .sense(Sense::click()),
             );
             // Painted in the disabled scope so it dims with the text.
@@ -665,7 +671,11 @@ pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Resp
 /// An underlined link of `size` points that opens `url`, like `Ui::hyperlink_to`
 /// with the design's permanent underline in place of egui's hover underline.
 pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size: f32) -> Response {
-    let widgets = ui.visuals().widgets.clone();
+    // Changed in place rather than in a child scope, so that a wrapping row can
+    // still move the whole link to its next line: one line keeps the underline
+    // under the text, and egui's own hover underline is turned off.
+    let style = ui.style().clone();
+    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
     let states = &mut ui.visuals_mut().widgets;
     for state in [
         &mut states.inactive,
@@ -675,7 +685,7 @@ pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size:
         state.fg_stroke.width = 0.0;
     }
     let response = ui.hyperlink_to(egui::RichText::new(text).size(size).color(LINK), url);
-    ui.visuals_mut().widgets = widgets;
+    ui.set_style(style);
     underline(ui, response.rect, size, LINK);
     focus_ring(ui, &response);
     response
