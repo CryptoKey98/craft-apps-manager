@@ -6,9 +6,9 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 ![Craft Apps Updater 0.3.0 with FilmCraft selected](docs/images/main.png)
 
-[Watch the 20-second interface preview](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/interface-tour.mp4) · [Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
+[Watch the interface tour](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/interface-tour.mp4) · [Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
 
-Screenshots and the silent preview use an example library. The preview cycles through the main window, Settings, app selection, and backups.
+Screenshots and the silent tour use an example library. The tour records real mouse clicks through app controls, launch settings, backups, app selection, and the source builder. It shows the interface rather than a full download or compilation.
 
 <details>
 <summary>More screenshots</summary>
