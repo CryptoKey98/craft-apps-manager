@@ -269,7 +269,8 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
                 .collect::<std::result::Result<Vec<_>, _>>()?
                 .into_iter()
                 .filter(|e| {
-                    e.file_type().is_file()
+                    !e.path_is_symlink()
+                        && crate::model::is_executable(e.path())
                         && e.file_name().to_string_lossy() == crate::model::executable_name(app)
                 })
                 .collect();

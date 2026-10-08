@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 
 pub const MANAGER_ARCH: &str = if cfg!(target_arch = "x86") {
     "x86"
+} else if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
+    "arm64"
 } else {
     "x64"
 };
@@ -82,7 +84,7 @@ impl Default for Preferences {
             compress_source_backups: true,
             notify_updates: true,
             backup_versions: 1,
-            release_format: if cfg!(target_os = "windows") {
+            release_format: if cfg!(any(target_os = "windows", target_os = "macos")) {
                 "installer"
             } else {
                 "portable"
@@ -369,11 +371,35 @@ impl Paths {
     }
 }
 
+/// The launchable item a release installs. On macOS this is an `.app` bundle
+/// directory such as `PhotoCraft.app`; elsewhere it is a single executable file.
 pub fn executable_name(app: &str) -> String {
+    if cfg!(target_os = "windows") {
+        format!("{app}.exe")
+    } else if cfg!(target_os = "macos") {
+        format!(
+            "{}{}.app",
+            app[..1].to_uppercase(),
+            app[1..].replace("craft", "Craft")
+        )
+    } else {
+        app.into()
+    }
+}
+/// The bare executable produced by a source build.
+pub fn build_executable_name(app: &str) -> String {
     if cfg!(target_os = "windows") {
         format!("{app}.exe")
     } else {
         app.into()
+    }
+}
+/// Whether a release item exists. macOS app bundles are directories.
+pub fn is_executable(path: &Path) -> bool {
+    if cfg!(target_os = "macos") {
+        path.exists()
+    } else {
+        path.is_file()
     }
 }
 pub fn executable_names(app: &str) -> Vec<String> {
@@ -388,17 +414,22 @@ pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
     executable_names(app)
         .into_iter()
         .map(|name| folder.join(name))
-        .find(|path| path.is_file())
+        .find(|path| is_executable(path))
 }
 pub fn release_os() -> &'static str {
     if cfg!(target_os = "windows") {
         "windows"
+    } else if cfg!(target_os = "macos") {
+        "macos"
     } else {
         "linux"
     }
 }
 pub fn release_arch(architecture: &str) -> &str {
-    if cfg!(target_os = "linux") {
+    if cfg!(target_os = "macos") {
+        // Upstream publishes one universal DMG for Intel and Apple silicon.
+        "universal"
+    } else if cfg!(target_os = "linux") {
         match architecture {
             "x64" => "x86_64",
             "x86" => "i686",

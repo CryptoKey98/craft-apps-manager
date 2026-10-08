@@ -22,7 +22,7 @@ fn main() {
         }) {
             std::process::exit(1);
         }
-        #[cfg(target_os = "linux")]
+        #[cfg(unix)]
         eprintln!("{message}");
         #[cfg(target_os = "windows")]
         unsafe {
@@ -67,6 +67,9 @@ fn run() -> Result<()> {
         .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
         .context("No Linux user data directory")?
         .join("craft-apps-manager");
+    #[cfg(target_os = "macos")]
+    let home = PathBuf::from(std::env::var_os("HOME").context("No macOS home directory")?)
+        .join("Library/Application Support/Craft Apps Manager");
     let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
     let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
     let paths = Paths::new(root, arg("--tools").or(saved.tools));

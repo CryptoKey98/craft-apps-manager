@@ -41,13 +41,14 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     let mut names = Vec::new();
     for entry in std::fs::read_dir(&root)? {
         let entry = entry?;
-        if entry.file_type()?.is_file()
+        if !entry.file_type()?.is_symlink()
+            && crate::model::is_executable(&entry.path())
             && (cfg!(target_os = "windows")
                 && entry
                     .path()
                     .extension()
                     .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
-                || cfg!(target_os = "linux")
+                || cfg!(not(target_os = "windows"))
                     && crate::model::executable_names(app)
                         .contains(&entry.file_name().to_string_lossy().into_owned()))
         {
@@ -71,6 +72,13 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
         bail!("Selected executable is missing. Check launch settings.");
     }
     let root = PathBuf::from(installed.path);
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut command = Command::new("/usr/bin/open");
+        command.arg("-a").arg(root.join(executable)).arg("--args");
+        command
+    };
+    #[cfg(not(target_os = "macos"))]
     let mut command = Command::new(root.join(executable));
     #[cfg(target_os = "linux")]
     if installed.install_kind != "installer" {

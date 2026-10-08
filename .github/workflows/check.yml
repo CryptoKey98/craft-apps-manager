@@ -51,3 +51,16 @@ jobs:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - run: cargo fmt --check
+      - run: cargo test --locked --all-targets -- --test-threads=1
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: ./scripts/package-macos.sh

@@ -44,7 +44,9 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     }
     let version = release.tag_name.trim_start_matches('v').to_owned();
     let arch = crate::model::MANAGER_ARCH;
-    let names = if cfg!(target_os = "linux") {
+    let names = if cfg!(target_os = "macos") {
+        vec![format!("Craft-Apps-Manager-{version}-macos-universal.zip")]
+    } else if cfg!(target_os = "linux") {
         vec![format!("Craft-Apps-Manager-{version}-linux-{arch}.zip")]
     } else if msi {
         vec![format!("Craft-Apps-Manager-{version}-windows-{arch}.msi")]
@@ -90,6 +92,9 @@ pub struct Plan {
     pub tools: PathBuf,
 }
 pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
+    if cfg!(target_os = "macos") {
+        bail!("Automatic manager updates are not available on macOS yet. Download the new version manually.");
+    }
     let target = std::env::current_exe()?.canonicalize()?;
     let home = target.parent().context("No executable folder")?;
     #[cfg(target_os = "linux")]
@@ -218,7 +223,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
             }
         }
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     {
         let deadline = Instant::now() + Duration::from_secs(60);
         while unsafe { libc::kill(i32::try_from(plan.parent_pid)?, 0) } == 0 {
