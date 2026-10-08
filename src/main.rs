@@ -153,14 +153,21 @@ fn run() -> Result<()> {
         height: icon.height(),
         rgba: icon.into_raw(),
     };
+    // Screenshot runs can pick a window size, e.g. CRAFT_SCREENSHOT_SIZE=1280x800.
+    let screenshot_size = std::env::var("CRAFT_SCREENSHOT_SIZE")
+        .ok()
+        .and_then(|size| {
+            let (width, height) = size.split_once('x')?;
+            Some([width.parse::<f32>().ok()?, height.parse::<f32>().ok()?])
+        });
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_icon(icon)
-            .with_inner_size(if builder {
+            .with_inner_size(screenshot_size.unwrap_or(if builder {
                 [1050.0, 740.0]
             } else {
                 [1160.0, 720.0]
-            })
+            }))
             .with_min_inner_size(if builder {
                 [780.0, 580.0]
             } else {

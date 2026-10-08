@@ -4,42 +4,42 @@
 
 A desktop app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
-The interface is written in Rust and uses a compact dark theme. This is an independent project, not an official Storytold or Adobe app.
+The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. This is an independent project, not an official Storytold or Adobe app.
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
-![Craft Apps Manager startup view](docs/images/main.png?v=0.3.3-current)
+![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.5.0)
 
-Screenshots show the Windows 0.3.3 release with a fictional demo library. Paths and build history are examples.
+Screenshots show the macOS 0.5.0 release with a demo library.
 
 <details>
 <summary>More screenshots</summary>
 
-**App controls** — launch an app, check its release, or manage backups.
+**Overview** — update all chosen apps or sources, turn hourly checks on or off, and follow the activity log.
 
-![FilmCraft app controls](docs/images/app-controls.png?v=0.3.3-current)
+![Overview page](docs/images/overview.png?v=0.5.0)
 
-**Settings** — choose release formats, backup preferences, and manager checks.
+**Install** — Install, Update and Get ask for confirmation before downloading.
 
-![Release preferences and backup settings](docs/images/settings.png?v=0.3.3-current)
+![Install confirmation](docs/images/install.png?v=0.5.0)
 
-**App selection** — choose which apps receive release updates. Source updates have their own selection.
+**Settings** — one scrolling page for release format, updates, backups, builds and folders.
 
-![Choose release apps dialog](docs/images/app-selection.png?v=0.3.3-current)
+![Settings](docs/images/settings.png?v=0.5.0)
 
-**Backups** — browse previous versions and choose restore or delete mode.
+**App selection** — choose which apps Update all installs or updates. Sources have their own selection.
 
-![FilmCraft backup management](docs/images/backups.png?v=0.3.3-current)
+![Choose apps for Update all](docs/images/app-selection.png?v=0.5.0)
 
-**Builder** — build upstream source and review the build log and output.
+**Builder** — the separate builder window builds any upstream source, including ArtCraft X.
 
-![Craft Apps Builder](docs/images/builder.png?v=0.3.3-current)
+![Craft Apps Builder](docs/images/builder.png?v=0.5.0)
 
 </details>
 
 ## Getting started
 
-Version **0.4.2** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
+Version **0.5.0** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -79,28 +79,28 @@ PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdf
 
 ## Updating apps
 
-Click an app in the sidebar to open its controls. Clicking the same row again closes the panel.
+The list on the left groups apps into **Installed** and **Not installed**; type in the search field to filter it. **Get** next to an app, or **Update** when a newer release is known, installs it after a confirmation. Click an app to open its page:
 
-- **Install (latest release)** downloads and installs that app using the format selected in Settings.
-- **Check for updates** checks one installed app. If a newer release exists, the button changes to **Update (latest release)**.
-- **Launch settings** lets you choose the executable and add arguments, one per line.
-- **Uninstall** removes a managed portable copy or opens its MSI uninstaller. Other installer types use Windows Installed apps.
+- **Install** downloads and installs that app using the format selected in Settings.
+- **Open** starts the installed app. **Check for updates** checks one installed app; if a newer release exists, the main button becomes **Update to** that version.
+- **Uninstall…** removes a managed portable copy or opens its MSI uninstaller. Other installer types use Windows Installed apps.
+- **Launch options** in the tools column lets you choose the executable and add arguments, one per line.
 
 The uninstall confirmation has an optional **Delete app profile data** checkbox, off by default. It lists the app-specific profile folders that can be removed after uninstall succeeds, including settings, caches, plug-ins and recovery/autosave copies. Some portable and installer copies share the same AppData profile. Custom profile locations outside the listed folders are kept. Portable PhotoCraft profiles are retained in `runtime/app-profiles` when the checkbox is off and restored when that portable app is installed again.
 
 Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
-The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to hourly availability checks.
+The Overview page has **Update all** and **Update all sources**, each with its own selection under **Settings → Updates → Update all**. Update all also installs chosen apps that are missing, and lists every step for you to confirm first. These selections also apply to hourly availability checks.
 
-Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates pulse blue in both the sidebar and app controls. Manual checks use a short cache to avoid repeated requests. Enable **Check for app updates hourly** to check selected installed apps, or **Check for source updates hourly** to check selected downloaded source ZIPs. Checks run hourly and after sign-in, send a Windows notification once per new version or source commit, and never download or install automatically. Both installer and portable releases are supported. Turn notifications on or off in Settings.
+Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates are shown in blue in the app list, on the app's page and as a count next to Overview. Manual checks use a short cache to avoid repeated requests. Under **Hourly checks** on the Overview page, enable **App updates** to check selected installed apps, or **Source updates** to check selected downloaded source ZIPs. Checks run hourly and after sign-in, send a Windows notification once per new version or source commit, and never download or install automatically. Both installer and portable releases are supported. Turn notifications on or off in Settings.
 
-Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
+Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens; an **Update available** button then appears next to the version in the top bar. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 
 ## Building from source
 
-Open **Build from source**, select an app, and use **Set up build tools** before building. The setup installs only the extra tools needed for that app. Source builds currently require 64-bit Windows, even with the x86 manager. App and source updates work with either manager architecture. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
+Open an app's page and use **Set up build tools** in its tools column before building, then **Build**. **Download the latest source first** fetches the newest source ZIP; turn it off to build from the local ZIP. The setup installs only the extra tools needed for that app. To build ArtCraft X or work in a separate window, use **Open builder window** under **Settings → Builds**. Source builds currently require 64-bit Windows, even with the x86 manager. App and source updates work with either manager architecture. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
 
-The builder uses the upstream source and lockfiles without dependency patches. Build output appears in `builds`, and the log remains available when you reopen the builder. Failed or canceled builds keep their cache so you can try again. Successful-build cleanup is configurable.
+The builder uses the upstream source and lockfiles without dependency patches. Build output appears in `builds`; **Open folder** and **View log** in the Build row open the latest build and its log. Failed or canceled builds keep their cache so you can try again. Successful-build cleanup is configurable.
 
 Upstream build failures can still happen. Warnings from an upstream project are shown in the log rather than hidden or patched away.
 
@@ -123,7 +123,7 @@ You can change the library and build-tool locations in Settings. The change appl
 
 Portable and source backups are optional. Compression uses 7-Zip LZMA2; archives are verified before the original backup is removed. Windows installer installations are not backed up by this app. Logs rotate at the configured size instead of creating a new file for every build.
 
-Each app panel has a **Backups** window with Restore and Delete modes. Restore lets you choose one release or source backup by version or commit, date, and format. Delete lets you select individual backups or all of that app's backups. Both actions require confirmation. Restore replaces the current managed copy and keeps the selected backup. To restore a portable release, select Portable ZIP in Settings first. Source backups can be restored in either mode. These controls do not restore or remove Windows installer installations.
+Each app page has **Backups → Manage…** in its tools column, with Restore and Delete modes. Restore lets you choose one release or source backup by version or commit, date, and format. Delete lets you select individual backups or all of that app's backups. Both actions require confirmation. Restore replaces the current managed copy and keeps the selected backup. To restore a portable release, select Portable ZIP in Settings first. Source backups can be restored in either mode. These controls do not restore or remove Windows installer installations.
 
 ## Building this manager
 

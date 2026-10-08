@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+- Redesign the manager window: an app list with search and Installed / Not installed groups, an Overview page for Update all and Update all sources, and a page for each app with its description, actions, details and tools.
+- Build from source, download an app's source, edit launch options and manage backups from the app page; the separate builder window remains for any source, including ArtCraft X.
+- Show available manager updates as a button in the top bar.
+- Combine manager and builder settings in one scrolling Settings window with a section list.
+- Restyle every dialog and use IBM Plex Sans and Plex Mono on all platforms.
+- Keep the app list current while a build runs, label backup restores and deletions correctly, and explain why disabled buttons are unavailable.
+
 ## 0.4.2
 
 - Prefer the newest installed PDFCraft/PrintCraft version on Windows when both names are registered.
