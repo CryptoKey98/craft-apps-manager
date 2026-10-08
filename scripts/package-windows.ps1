@@ -29,7 +29,7 @@ foreach ($name in @('README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES
 }
 $licenses = Join-Path $appFolder 'licenses/app-icons'
 New-Item -ItemType Directory -Path $licenses -Force | Out-Null
-Get-ChildItem -LiteralPath (Join-Path $projectRoot 'assets/app-icons') -Filter '*LICENSE*.txt' | Copy-Item -Destination $licenses
+Get-ChildItem -LiteralPath (Join-Path $projectRoot 'assets/app-icons') -Filter '*.txt' | Copy-Item -Destination $licenses
 Copy-Item -LiteralPath $seven -Destination $toolsFolder
 # License notices can sit in the parent SDK directory for its x64 binary.
 $noticeFolder = if (Test-Path -LiteralPath (Join-Path $SevenZipFolder 'License.txt')) { $SevenZipFolder } else { Split-Path -Parent $SevenZipFolder }
