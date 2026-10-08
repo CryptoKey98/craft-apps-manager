@@ -15,7 +15,11 @@ The library is stored in `~/Library/Application Support/Craft Apps Manager`. Hou
 
 ## Manager updates
 
-Craft Apps Manager.app can update itself. The new ZIP is checked against GitHub's SHA-256 digest, extracted into the library's `runtime/self-update` folder and verified with `codesign`. After the manager closes, the old app bundle is replaced. The previous bundle is kept in that folder as `previous.app`. The app must be in a folder you can write to, such as Applications. Development builds run outside a bundle and cannot update themselves.
+Craft Apps Manager.app can update itself. The new ZIP is checked against GitHub's SHA-256 digest, extracted into a private `.craft-manager-update-<unique id>` folder beside the manager bundle and verified with `codesign`. Staging and rollback stay on the manager's filesystem even when the library is on another volume.
+
+After the manager closes, the old app bundle is moved into that folder as `previous.app` before the replacement is published. Failed swaps restore the previous manager when possible; if restoration fails, the previous bundle stays at that recovery location. The helper checks whether macOS accepts the restart request; this does not confirm that the application finished starting.
+
+A failed update is reported on the next manager startup, with a recovery path, and recorded outside the signed bundle in `~/Library/Application Support/Craft Apps Manager/self-update-result.json` and in the staging folder's `result.json`. Older library-based plans are rejected; reopen the manager and download again. The app must be in a folder you can write to, such as Applications. Development builds run outside a bundle and cannot update themselves.
 
 Updates come from the GitHub repository set by `CRAFT_MANAGER_REPOSITORY` (owner/name) at build time. The default is `CryptoKey98/craft-apps-manager`. CI sets it to the repository being built, so a fork's packages update from the fork's releases.
 

@@ -242,7 +242,7 @@ impl App {
             build_preferences,
             auto,
             auto_source,
-            error: None,
+            error: self_update::startup_message(),
             selection_notice: None,
             confirm_clear: false,
             confirm_clean: false,
