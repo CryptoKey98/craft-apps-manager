@@ -62,6 +62,7 @@ pub struct Preferences {
     pub architecture: String,
     pub selected_apps: Vec<String>,
     pub selected_sources: Vec<String>,
+    pub check_updater_on_startup: bool,
 }
 impl Default for Preferences {
     fn default() -> Self {
@@ -76,6 +77,7 @@ impl Default for Preferences {
             architecture: "x64".into(),
             selected_apps: APPS.iter().map(|s| s.to_string()).collect(),
             selected_sources: SOURCES.iter().map(|s| s.to_string()).collect(),
+            check_updater_on_startup: false,
         }
     }
 }
@@ -204,25 +206,26 @@ impl Paths {
                 }
             }
             for app in &mut config.apps {
-                if let Some(record) = config
-                    .installations
-                    .iter()
-                    .find(|a| a.name == app.name && (a.install_kind == "installer") == installer)
-                {
-                    *app = record.clone();
-                } else if installer {
-                    if let Some(record) = if app.path.is_empty() {
-                        None
-                    } else {
-                        crate::installers::detect(&app.name)?
-                    } {
+                if installer {
+                    let detected = crate::installers::detect(&app.name)?;
+                    config
+                        .installations
+                        .retain(|a| !(a.name == app.name && a.install_kind == "installer"));
+                    if let Some(record) = detected {
                         config.installations.push(record.clone());
                         *app = record;
                     } else {
                         app.path.clear();
                         app.version.clear();
+                        app.product_code.clear();
                         app.install_kind = "installer".into();
                     }
+                } else if let Some(record) = config.installations.iter().find(|a| {
+                    a.name == app.name
+                        && a.install_kind != "installer"
+                        && Path::new(&a.path).join(format!("{}.exe", a.name)).is_file()
+                }) {
+                    *app = record.clone();
                 } else {
                     let root = self.at(format!("releases/{}", app.name));
                     if root.join(format!("{}.exe", app.name)).is_file() {

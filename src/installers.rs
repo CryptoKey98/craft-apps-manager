@@ -2,6 +2,15 @@ use crate::{model::Installed, platform};
 use anyhow::{bail, Context, Result};
 use std::{path::Path, process::Command};
 use winreg::{enums::*, RegKey};
+#[link(name = "msi")]
+unsafe extern "system" {
+    fn MsiQueryProductStateW(product: *const u16) -> i32;
+}
+fn product_installed(code: &str) -> bool {
+    let code = platform::wide(code);
+    // INSTALLSTATE_DEFAULT: registered as installed for the current user/machine.
+    unsafe { MsiQueryProductStateW(code.as_ptr()) == 5 }
+}
 pub fn detect(app: &str) -> Result<Option<Installed>> {
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -55,6 +64,9 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
                     }
                 }
                 let msi: u32 = key.get_value("WindowsInstaller").unwrap_or_default();
+                if msi == 1 && !product_installed(&name) {
+                    continue;
+                }
                 return Ok(Some(Installed {
                     name: app.into(),
                     path: location,
@@ -146,6 +158,9 @@ fn run_exe(file: &Path) -> Result<i32> {
     }
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
+    let current = detect(&app.name)?
+        .context("This app is no longer installed. Refresh its status before uninstalling.")?;
+    let app = &current;
     let code = &app.product_code;
     if code.len() != 38
         || !code.starts_with('{')

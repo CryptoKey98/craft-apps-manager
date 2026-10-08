@@ -1,6 +1,43 @@
 use crate::{model::Paths, platform};
-use anyhow::{bail, Result};
-use std::{fs, process::Command};
+use anyhow::{Context, Result};
+use windows::{
+    core::{BSTR, VARIANT},
+    Win32::System::{
+        Com::{
+            CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER,
+            COINIT_APARTMENTTHREADED,
+        },
+        TaskScheduler::{
+            ITaskFolder, ITaskService, TaskScheduler, TASK_CREATE_OR_UPDATE,
+            TASK_LOGON_INTERACTIVE_TOKEN,
+        },
+    },
+};
+
+struct ComScope(bool);
+impl Drop for ComScope {
+    fn drop(&mut self) {
+        if self.0 {
+            unsafe {
+                CoUninitialize();
+            }
+        }
+    }
+}
+fn with_service<T>(action: impl FnOnce(&ITaskService, &ITaskFolder) -> Result<T>) -> Result<T> {
+    unsafe {
+        let initialized = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        if initialized.is_err() && initialized.0 != 0x80010106_u32 as i32 {
+            initialized.ok()?;
+        }
+        let _scope = ComScope(initialized.is_ok());
+        let service: ITaskService = CoCreateInstance(&TaskScheduler, None, CLSCTX_INPROC_SERVER)?;
+        let empty = VARIANT::default();
+        service.Connect(&empty, &empty, &empty, &empty)?;
+        let folder = service.GetFolder(&BSTR::from("\\"))?;
+        action(&service, &folder)
+    }
+}
 pub fn name(source: bool) -> &'static str {
     if source {
         "Craft Apps Rust Source Updates"
@@ -9,34 +46,38 @@ pub fn name(source: bool) -> &'static str {
     }
 }
 pub fn enabled(source: bool) -> bool {
-    platform::output(Command::new("schtasks.exe").args(["/Query", "/TN", name(source), "/XML"]))
-        .ok()
-        .is_some_and(|o| {
-            o.status.success()
-                && !String::from_utf8_lossy(&o.stdout).contains("<Enabled>false</Enabled>")
-        })
+    status(source).unwrap_or(false)
+}
+pub fn status(source: bool) -> Result<bool> {
+    with_service(|_, folder| unsafe {
+        match folder.GetTask(&BSTR::from(name(source))) {
+            Ok(task) => Ok(task.Enabled()?.as_bool()),
+            Err(error)
+                if [0x80070002_u32 as i32, 0x8004130F_u32 as i32].contains(&error.code().0) =>
+            {
+                Ok(false)
+            }
+            Err(error) => Err(error.into()),
+        }
+    })
 }
 pub fn set(paths: &Paths, source: bool, on: bool) -> Result<()> {
     if !on {
-        if !enabled(source) {
-            return Ok(());
-        }
-        let o = platform::output(Command::new("schtasks.exe").args([
-            "/Delete",
-            "/TN",
-            name(source),
-            "/F",
-        ]))?;
-        if !o.status.success() {
-            bail!(
-                "Could not disable automatic updates: {}",
-                String::from_utf8_lossy(&o.stderr)
-            )
-        }
-        return Ok(());
+        return with_service(|_, folder| unsafe {
+            match folder.DeleteTask(&BSTR::from(name(source)), 0) {
+                Ok(()) => Ok(()),
+                Err(error)
+                    if [0x80070002_u32 as i32, 0x8004130F_u32 as i32].contains(&error.code().0) =>
+                {
+                    Ok(())
+                }
+                Err(error) => Err(error.into()),
+            }
+        })
+        .context("Could not disable automatic updates");
     }
-    let user = platform::output(&mut Command::new("whoami.exe"))?;
-    let user = String::from_utf8_lossy(&user.stdout).trim().to_string();
+    with_service(|service,folder|unsafe {
+    let user=format!("{}\\{}",service.ConnectedDomain()?,service.ConnectedUser()?);
     let exe = std::env::current_exe()?;
     let args = format!(
         "{} --root \"{}\" --tools \"{}\" --background",
@@ -56,24 +97,16 @@ pub fn set(paths: &Paths, source: bool, on: bool) -> Result<()> {
         args = platform::escape(&args),
         root = platform::escape(&paths.root.display().to_string())
     );
-    let path = paths.at("runtime/task.xml");
-    fs::create_dir_all(path.parent().unwrap())?;
-    let mut bytes = vec![0xff, 0xfe];
-    bytes.extend(xml.encode_utf16().flat_map(u16::to_le_bytes));
-    fs::write(&path, bytes)?;
-    let out = platform::output(
-        Command::new("schtasks.exe")
-            .args(["/Create", "/TN", name(source), "/XML"])
-            .arg(&path)
-            .arg("/F"),
-    )?;
-    let _ = fs::remove_file(path);
-    if !out.status.success() {
-        bail!(
-            "Could not enable automatic updates: {} {}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        )
-    }
+    folder.RegisterTask(&BSTR::from(name(source)),&BSTR::from(xml),TASK_CREATE_OR_UPDATE.0,&VARIANT::from(user.as_str()),&VARIANT::default(),TASK_LOGON_INTERACTIVE_TOKEN,&VARIANT::default())?;
     Ok(())
+    }).context("Could not enable automatic updates")
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn native_task_queries_connect_without_command_line_tools() {
+        super::status(false).expect("Release task query failed");
+        super::status(true).expect("Source task query failed");
+    }
 }

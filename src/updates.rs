@@ -264,6 +264,11 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                 {
                     job.log(&format!("Backup cleanup warning: {e:#}"))
                 }
+                if let Err(error) = crate::profiles::restore_portable(paths, &app.name, &target) {
+                    job.log(&format!(
+                        "Retained profile was kept for recovery: {error:#}"
+                    ));
+                }
                 let shortcut = paths.at(format!("releases/{}.lnk", app.name));
                 if let Err(e) = platform::shortcut(
                     &shortcut,

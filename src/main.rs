@@ -31,6 +31,11 @@ fn main() {
 }
 fn run() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
+    if let Some(i) = args.iter().position(|s| s == "--apply-self-update") {
+        return craft_apps_updater::self_update::apply(std::path::Path::new(
+            args.get(i + 1).context("Missing update plan")?,
+        ));
+    }
     let arg = |key: &str| {
         args.iter()
             .position(|s| s == key)

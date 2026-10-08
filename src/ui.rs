@@ -3,12 +3,48 @@ use craft_apps_updater::{
     apps, backups, builder, files,
     jobs::{Job, State},
     model::{self, BuilderPreferences, Paths, Preferences, APPS, SOURCES},
-    platform, scheduler, tools, updates,
+    platform, profiles, scheduler, self_update, tools, updates,
 };
 use eframe::egui::{self, Color32, RichText};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, process::Command, sync::atomic::Ordering, time::Duration};
 const BLUE: Color32 = Color32::from_rgb(70, 150, 245);
+
+fn progress_bar(ui: &mut egui::Ui, progress: Option<f32>) {
+    let (rect, _) =
+        ui.allocate_exact_size(egui::vec2(ui.available_width(), 24.0), egui::Sense::hover());
+    ui.painter()
+        .rect_filled(rect, 4.0, Color32::from_rgb(48, 48, 48));
+    let text = if let Some(progress) = progress {
+        let progress = progress.clamp(0.0, 1.0);
+        if progress > 0.0 {
+            let fill = egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(rect.width() * progress, rect.height()),
+            );
+            ui.painter().rect_filled(fill, 4.0, BLUE);
+        }
+        format!("{:.0}%", progress * 100.0)
+    } else {
+        let time = ui.ctx().input(|i| i.time);
+        let position = ((1.0 - (time * std::f64::consts::TAU / 2.8).cos()) * 0.5) as f32;
+        let width = rect.width() * 0.18;
+        let segment = egui::Rect::from_min_size(
+            rect.min + egui::vec2((rect.width() - width) * position, 0.0),
+            egui::vec2(width, rect.height()),
+        );
+        ui.painter().rect_filled(segment, 4.0, BLUE);
+        ui.ctx().request_repaint_after(Duration::from_millis(16));
+        "Working…".into()
+    };
+    ui.painter().text(
+        rect.center(),
+        egui::Align2::CENTER_CENTER,
+        text,
+        egui::FontId::proportional(13.0),
+        Color32::WHITE,
+    );
+}
 type ReleaseCheck = Result<Option<String>, String>;
 type CheckMessage = (String, String, ReleaseCheck);
 #[derive(Default, Serialize, Deserialize)]
@@ -34,6 +70,7 @@ pub struct App {
     auto: bool,
     auto_source: bool,
     error: Option<String>,
+    selection_notice: Option<String>,
     root_text: String,
     tools_text: String,
     confirm_clear: bool,
@@ -44,10 +81,24 @@ pub struct App {
     launch_draft: apps::LaunchSettings,
     launch_arguments: String,
     confirm_uninstall: bool,
+    delete_profile: bool,
     app_selected: bool,
     confirm_install: Option<String>,
     release_checks: std::collections::BTreeMap<String, (String, ReleaseCheck)>,
     check_receiver: Option<std::sync::mpsc::Receiver<CheckMessage>>,
+    updater_receiver:
+        Option<std::sync::mpsc::Receiver<Result<Option<self_update::Available>, String>>>,
+    updater_available: Option<self_update::Available>,
+    updater_message: String,
+    updater_startup_pending: bool,
+    updater_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, String>>>,
+    confirm_self_update: bool,
+    restore_app: Option<String>,
+    restore_backups: Vec<backups::Backup>,
+    restore_selected: Option<usize>,
+    confirm_restore: bool,
+    backup_delete_mode: bool,
+    backup_delete_selected: std::collections::BTreeSet<usize>,
 }
 impl App {
     pub fn new(
@@ -110,12 +161,21 @@ impl App {
         if builder {
             job.state.lock().unwrap().output = builder::history(&paths, &app)
         }
-        let mut auto = scheduler::enabled(false);
-        if preferences.release_format == "installer" && auto {
-            scheduler::set(&paths, false, false)?;
-            auto = false;
+        if std::env::args().any(|a| a == "--preview-progress") {
+            let mut state = job.state.lock().unwrap();
+            state.busy = true;
+            state.stage = "Working".into();
         }
+        let auto = preferences.release_format == "portable" && scheduler::enabled(false);
         let auto_source = scheduler::enabled(true);
+        let updater_startup_pending = !builder && preferences.check_updater_on_startup;
+        let preview_backups = std::env::args().any(|a| a == "--preview-backups");
+        let restore_backups = if preview_backups {
+            backups::list(&paths, &app)?
+        } else {
+            Vec::new()
+        };
+        let restore_app = preview_backups.then(|| app.clone());
         Ok(Self {
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
@@ -136,6 +196,7 @@ impl App {
             auto,
             auto_source,
             error: None,
+            selection_notice: None,
             confirm_clear: false,
             confirm_clean: false,
             closing: false,
@@ -144,16 +205,42 @@ impl App {
             launch_draft: Default::default(),
             launch_arguments: String::new(),
             confirm_uninstall: false,
+            delete_profile: false,
             app_selected: std::env::args().any(|a| a == "--preview-details"),
             confirm_install: None,
             release_checks: Default::default(),
             check_receiver: None,
+            updater_receiver: None,
+            updater_available: None,
+            updater_message: String::new(),
+            updater_startup_pending,
+            updater_plan: None,
+            confirm_self_update: false,
+            restore_app,
+            restore_backups,
+            restore_selected: None,
+            confirm_restore: false,
+            backup_delete_mode: false,
+            backup_delete_selected: Default::default(),
         })
     }
     fn result(&mut self, result: Result<()>) {
         if let Err(e) = result {
             self.error = Some(format!("{e:#}"));
         }
+    }
+    fn check_updater(&mut self, ctx: &egui::Context) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.updater_receiver = Some(rx);
+        self.updater_available = None;
+        self.updater_message = "Checking for updater updates…".into();
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            let result = self_update::check(&paths).map_err(|e| format!("{e:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
     }
     fn check_selected_app(&mut self, ctx: &egui::Context, installed_version: String) {
         let (tx, rx) = std::sync::mpsc::channel();
@@ -172,9 +259,18 @@ impl App {
         });
     }
     fn start(&mut self, action: &str) {
+        if action == "releases" && self.preferences.selected_apps.is_empty() {
+            self.selection_notice = Some("No release apps are selected. Choose apps in Settings → Choose release apps, then try again.".into());
+            return;
+        }
+        if action == "sources" && self.preferences.selected_sources.is_empty() {
+            self.selection_notice = Some("No source apps are selected. Choose apps in Settings → Choose source apps, then try again.".into());
+            return;
+        }
         let paths = self.paths.clone();
         let app = self.app.clone();
         let latest = self.latest;
+        let delete_profile = self.delete_profile;
         let action = action.to_string();
         let log = if self.builder {
             format!("logs/{app}.log")
@@ -188,11 +284,12 @@ impl App {
         self.job.spawn(move |job| match action.as_str() {
             "releases" => updates::releases(&paths, &job, false),
             "install-app" => updates::install_app(&paths, &app, &job),
-            "uninstall-app" => apps::uninstall(&paths, &app),
+            "uninstall-app" => apps::uninstall_with_profile(&paths, &app, delete_profile),
             "sources" => updates::sources(&paths, &paths.preferences()?.selected_sources, &job),
             "build" => builder::build(&paths, &app, latest, &job),
             "setup" => tools::setup(&paths, &app, &job),
             "clear" => backups::clear(&paths),
+            "clear-app" => backups::clear_app(&paths, &app),
             "clean" => builder::clean(&paths),
             _ => unreachable!(),
         });
@@ -226,7 +323,7 @@ impl App {
         }
         egui::Window::new(if self.builder{"Builder settings"}else{"Updater settings"}).open(&mut show).collapsible(false).resizable(false).default_width(570.0).anchor(egui::Align2::CENTER_CENTER,[0.0,0.0]).vscroll(false).show(ctx,|ui|{
             ui.heading(if self.builder{"Build maintenance"}else{"Release preferences"});ui.separator();
-egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(240.0)).show(ui,|ui|{
+egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(240.0)).show(ui,|ui|{
             if self.builder{
                 ui.checkbox(&mut self.build_draft.delete_cache_after_success,"Delete compilation cache after a successful build");ui.checkbox(&mut self.build_draft.delete_workspace_after_success,"Delete extracted source and node_modules after success");
                 ui.horizontal(|ui|{ui.label("Rotate each app log at (MB)");ui.add(egui::DragValue::new(&mut self.build_draft.log_size_mb).range(1..=100));});ui.horizontal(|ui|{ui.label("Older log files to keep");ui.add(egui::DragValue::new(&mut self.build_draft.log_archives).range(0..=5));});
@@ -235,9 +332,14 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
                 ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{"Portable ZIP"}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),"Portable ZIP");ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
                 ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
                 ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of 7 apps selected",self.settings_draft.selected_apps.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of 8 sources selected",self.settings_draft.selected_sources.len()));});
-                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when automatic updates install new versions");
+                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when automatic updates install new versions");ui.checkbox(&mut self.settings_draft.check_updater_on_startup,"Check for updates on startup").on_hover_text("Checks for a new Craft Apps Updater release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
                 ui.small("A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard.");if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
+                if ui.add_enabled(self.updater_receiver.is_none() && self.updater_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Updater release").clicked() { self.check_updater(ctx); }
+                let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · Windows x64",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE")));
+                if self.updater_receiver.is_some() || self.updater_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
+                if !self.updater_message.is_empty(){ui.small(&self.updater_message);}
+                if self.updater_available.is_some() && ui.add_enabled(!self.job.state.lock().unwrap().busy && self.updater_plan.is_none(),egui::Button::new("Download and restart…")).clicked(){self.confirm_self_update=true;}
             }
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Use your existing PowerShell data folder to access its sources and builds. Folder changes apply after reopening this window.");});
             });
@@ -340,6 +442,20 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
                         ui.label(app.path);
                     }
                     ui.small("Source ZIPs, builds, backups and launch settings will be kept.");
+                    let targets=profiles::targets(&self.paths,&self.app);
+                    ui.add_space(8.0);
+                    ui.add_enabled(targets.is_ok(),egui::Checkbox::new(&mut self.delete_profile,"Delete app profile data"));
+                    ui.small("Removes settings, caches, plug-ins and recovery/autosave copies from the folders below. Other installed copies may share this data.");
+                    match &targets {
+                        Ok(targets)=>{
+                            let existing:Vec<_>=targets.iter().filter(|t|t.path.exists()).collect();
+                            if existing.is_empty(){ui.small("No existing profile folders found.");}
+                            egui::ScrollArea::vertical().max_height(100.0).show(ui,|ui|{for target in existing {ui.small(target.path.display().to_string());}});
+                            ui.small("Custom profile locations outside these folders are kept.");
+                        }
+                        Err(error)=>{ui.small(format!("Could not identify profile folders: {error}"));}
+                    }
+                    ui.add_space(8.0);
                     ui.horizontal(|ui| {
                         if ui.button("Uninstall").clicked() {
                             self.start("uninstall-app");
@@ -413,6 +529,157 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
                 });
             });
         }
+        if let Some(app) = self.restore_app.clone() {
+            let mut show = true;
+            egui::Window::new(format!("{} backups", model::title(&app)))
+                .open(&mut show)
+                .collapsible(false)
+                .resizable(false)
+                .default_width(560.0)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .show(ctx, |ui| {
+                    ui.heading("Available backups");
+                    ui.horizontal(|ui| {
+                        let before=self.backup_delete_mode;
+                        ui.selectable_value(&mut self.backup_delete_mode,false,"Restore");
+                        ui.selectable_value(&mut self.backup_delete_mode,true,"Delete");
+                        if before!=self.backup_delete_mode {self.confirm_restore=false;self.restore_selected=None;self.backup_delete_selected.clear();}
+                    });
+                    ui.small(if self.backup_delete_mode {"Select the backups you want to delete. Installed apps and source files are kept."}else{"Choose one backup to restore. The selected backup will be kept."});
+                    if self.backup_delete_mode {
+                        ui.horizontal(|ui| {
+                            if ui.button("Select all").clicked(){self.backup_delete_selected=(0..self.restore_backups.len()).collect();self.confirm_restore=false;}
+                            if ui.button("Deselect all").clicked(){self.backup_delete_selected.clear();self.confirm_restore=false;}
+                            ui.small(format!("{} selected",self.backup_delete_selected.len()));
+                        });
+                    }
+                    ui.separator();
+                    if self.restore_backups.is_empty() {
+                        ui.label("No backups are available for this app.");
+                    }
+                    egui::ScrollArea::vertical()
+                        .max_height(280.0)
+                        .show(ui, |ui| {
+                            for (i, backup) in self.restore_backups.iter().enumerate() {
+                                let filename = backup.path.file_name().unwrap().to_string_lossy();
+                                let version = filename
+                                    .strip_prefix(&if backup.source {format!("{app}-source-")}else{format!("{app}-")})
+                                    .unwrap_or(&filename)
+                                    .split('-')
+                                    .take(1)
+                                    .collect::<Vec<_>>()
+                                    .join(" ");
+                                let date = std::fs::metadata(&backup.path)
+                                    .and_then(|m| m.modified())
+                                    .ok()
+                                    .map(|t| {
+                                        chrono::DateTime::<chrono::Local>::from(t)
+                                            .format("%b %d, %Y · %I:%M %p")
+                                            .to_string()
+                                    })
+                                    .unwrap_or_default();
+                                let label = format!(
+                                    "{} · {}\n{} · {}",
+                                    if backup.source {
+                                        "Source"
+                                    } else {
+                                        "Portable release"
+                                    },
+                                    version,
+                                    date,
+                                    if backup.path.is_dir() {
+                                        "Folder"
+                                    } else if backup.path.extension().is_some_and(|e| e == "7z") {
+                                        "7-Zip archive"
+                                    } else {
+                                        "ZIP archive"
+                                    }
+                                );
+                                if ui
+                                    .add_sized(
+                                        [ui.available_width(), 56.0],
+                                        egui::Button::new(label)
+                                            .selected(if self.backup_delete_mode {self.backup_delete_selected.contains(&i)}else{self.restore_selected == Some(i)}),
+                                    )
+                                    .clicked()
+                                {
+                                    if self.backup_delete_mode {
+                                        if !self.backup_delete_selected.insert(i){self.backup_delete_selected.remove(&i);}
+                                    }else{self.restore_selected = Some(i);}
+                                    self.confirm_restore = false;
+                                }
+                            }
+                        });
+                    ui.separator();
+                    if self.confirm_restore {
+                        ui.colored_label(
+                            Color32::from_rgb(230, 180, 100),
+                            if self.backup_delete_mode {"Permanently delete the selected backups?"}else{"This replaces the current managed copy. Continue?"},
+                        );
+                    }
+                    ui.horizontal(|ui| {
+                        if ui
+                            .add_enabled(
+                                (if self.backup_delete_mode {!self.backup_delete_selected.is_empty()}else{self.restore_selected.is_some()})
+                                    && !self.job.state.lock().unwrap().busy,
+                                egui::Button::new(if self.backup_delete_mode && self.confirm_restore {"Confirm deletion"}else if self.backup_delete_mode {"Delete selected backups…"}else if self.confirm_restore {
+                                    "Confirm restore"
+                                } else {
+                                    "Restore selected backup…"
+                                })
+                                .fill(BLUE),
+                            )
+                            .clicked()
+                        {
+                            if self.confirm_restore {
+                                let selected:Vec<_>= if self.backup_delete_mode {self.backup_delete_selected.iter().map(|i|self.restore_backups[*i].clone()).collect()}else{vec![self.restore_backups[self.restore_selected.unwrap()].clone()]};
+                                let deleting=self.backup_delete_mode;
+                                let paths = self.paths.clone();
+                                let app = app.clone();
+                                self.release_checks.remove(&app);
+                                self.job =
+                                    Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+                                self.job.spawn(move |job| {
+                                    if deleting {backups::delete_selected(&paths,&app,&selected)?;job.log(&format!("Deleted {} backup(s) for {}",selected.len(),model::title(&app)));Ok(())}else{backups::restore(&paths, &app, &selected[0], &job)}
+                                });
+                                self.restore_app = None;
+                            } else {
+                                self.confirm_restore = true;
+                            }
+                        }
+                        if ui.button("Cancel").clicked() {
+                            self.restore_app = None;
+                        }
+                    });
+                });
+            if !show {
+                self.restore_app = None;
+            }
+        }
+        if self.confirm_self_update {
+            egui::Window::new("Update Craft Apps Updater").collapsible(false).resizable(false).show(ctx, |ui| {
+                ui.label("Download the new updater and restart this window?");
+                ui.small("Close other updater and builder windows first. Your library and settings will be kept.");
+                ui.hyperlink_to("Release source: CryptoKey98/craft-apps-updater", self_update::REPOSITORY);
+                ui.horizontal(|ui| {
+                    if ui.button("Download and restart").clicked() {
+                        if let Some(available)=self.updater_available.clone() {
+                            let paths=self.paths.clone(); let ctx=ctx.clone(); let (tx,rx)=std::sync::mpsc::channel(); self.updater_plan=Some(rx);
+                            self.job=Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
+                            self.job.spawn(move |job| {
+                                let result=self_update::prepare(&paths,&available,&job);
+                                let message=result.as_ref().err().map(|e|format!("{e:#}"));
+                                let _=tx.send(result.map_err(|e|format!("{e:#}")));ctx.request_repaint();
+                                if let Some(message)=message {anyhow::bail!(message);} Ok(())
+                            });
+                            self.updater_message="Downloading and verifying updater…".into();
+                        }
+                        self.confirm_self_update=false;
+                    }
+                    if ui.button("Cancel").clicked(){self.confirm_self_update=false;}
+                });
+            });
+        }
         if self.confirm_clear || self.confirm_clean {
             egui::Window::new("Confirm cleanup")
                 .collapsible(false)
@@ -435,6 +702,20 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
                             self.confirm_clean = false;
                         }
                     });
+                });
+        }
+        if let Some(message) = self.selection_notice.clone() {
+            egui::Window::new("No apps selected")
+                .collapsible(false)
+                .resizable(false)
+                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+                .default_width(410.0)
+                .show(ctx, |ui| {
+                    ui.label(message);
+                    ui.add_space(8.0);
+                    if ui.button("OK").clicked() {
+                        self.selection_notice = None;
+                    }
                 });
         }
         if let Some(error) = self.error.clone() {
@@ -478,7 +759,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
                         ui.add(
                             egui::Label::new(
                                 RichText::new(if state.log.is_empty() {
-                                    "Ready. No update check runs when you open this window."
+                                    "Ready. Craft app checks run only when requested or scheduled."
                                 } else {
                                     &state.log
                                 })
@@ -495,6 +776,44 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-200.0).max(2
 }
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        if self.updater_startup_pending {
+            self.updater_startup_pending = false;
+            self.check_updater(ctx);
+        }
+        if let Some(receiver) = &self.updater_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                match result {
+                    Ok(Some(available)) => {
+                        self.updater_message =
+                            format!("Updater {} is available.", available.version);
+                        self.updater_available = Some(available);
+                        self.settings = true;
+                    }
+                    Ok(None) => {
+                        self.updater_message = "You’re running the latest updater version.".into()
+                    }
+                    Err(error) => {
+                        self.updater_message = format!("Could not check for updates: {error}")
+                    }
+                }
+                self.updater_receiver = None;
+            }
+        }
+        if let Some(receiver) = &self.updater_plan {
+            if let Ok(result) = receiver.try_recv() {
+                self.updater_plan = None;
+                match result {
+                    Ok(plan) => match self_update::launch(&plan) {
+                        Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+                        Err(error) => self.result(Err(error)),
+                    },
+                    Err(error) => {
+                        self.updater_message = "Updater download failed.".into();
+                        self.error = Some(error);
+                    }
+                }
+            }
+        }
         if let Some(receiver) = &self.check_receiver {
             if let Ok((app, version, result)) = receiver.try_recv() {
                 self.release_checks.insert(app, (version, result));
@@ -848,6 +1167,34 @@ impl eframe::App for App {
                     }
                     ui.add_space(22.0);
                     ui.separator();
+                    let app_backups = backups::list(&self.paths, &self.app);
+                    if ui
+                        .add_enabled(
+                            !state.busy
+                                && app_backups.as_ref().is_ok_and(|items| !items.is_empty()),
+                            egui::Button::new("Backups…").min_size(egui::vec2(210.0, 30.0)),
+                        )
+                        .on_disabled_hover_text(if state.busy {
+                            "Wait for the current operation to finish.".into()
+                        } else if let Err(error) = &app_backups {
+                            format!("Could not read backups: {error}")
+                        } else {
+                            "No backups are available for this app.".into()
+                        })
+                        .clicked()
+                    {
+                        match app_backups {
+                            Ok(backups) => {
+                                self.restore_backups = backups;
+                                self.restore_selected = None;
+                                self.confirm_restore = false;
+                                self.backup_delete_mode = false;
+                                self.backup_delete_selected.clear();
+                                self.restore_app = Some(self.app.clone());
+                            }
+                            Err(error) => self.result(Err(error)),
+                        }
+                    }
                     let matching_format = installed.as_ref().is_some_and(|app| {
                         (app.install_kind == "installer")
                             == (self.preferences.release_format == "installer")
@@ -923,6 +1270,7 @@ impl eframe::App for App {
                         .clicked()
                     {
                         self.confirm_uninstall = true;
+                        self.delete_profile = false;
                     }
                     if installed.as_ref().is_some_and(|app| {
                         app.install_kind == "installer" && app.product_code.is_empty()
@@ -946,12 +1294,12 @@ ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button:
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected sources").min_size(egui::vec2(225.0,36.0))).clicked(){self.start("sources")}});
 if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal(|ui|{ui.spacing_mut().item_spacing.x=3.0;ui.small("Choose apps for release and source updates in");if ui.link(RichText::new("Settings").small().color(BLUE)).clicked(){self.open_settings();}});
                 ui.horizontal(|ui|{if ui.add_enabled(!state.busy && self.preferences.release_format == "portable",egui::Checkbox::new(&mut self.auto,"Automatic app updates")).on_disabled_hover_text(if self.preferences.release_format == "installer" { "Automatic app updates are available for portable ZIPs. Installer updates require the Windows installer wizard and may need administrator approval. Install updates manually, or choose Portable ZIP in Settings." } else { "Wait for the current operation to finish." }).changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
-if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic updates run hourly and after sign-in. Opening this window never checks GitHub.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
+if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic app and source updates run hourly and after sign-in. Updater startup checks are optional in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
 if ui.button("Open sources").clicked(){self.result(platform::open(&self.paths.at("sources")));}
 if state.busy&&ui.button("Cancel update").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
             ui.horizontal(|ui|{if state.busy{ui.spinner();}ui.strong(if state.stage.is_empty(){if state.output.is_some(){"Previous build available"}else{"Ready"}}else{&state.stage});});
             if !state.detail.is_empty(){ui.label(&state.detail);}
-if state.busy{ui.add(egui::ProgressBar::new(state.progress.unwrap_or(0.0)).animate(state.progress.is_none()).text(state.progress.map(|p|format!("{:.0}%",p*100.0)).unwrap_or_else(||"Working…".into())));}ui.add_space(10.0);self.log_panel(ui,&state);
+if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel(ui,&state);
         });
         self.settings_ui(ctx);
         self.dialogs(ctx);

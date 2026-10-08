@@ -8,7 +8,7 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 Download the Windows ZIP from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
 
-The current release is **0.2.0**. It has been tested on Windows x64. Expect some rough edges, especially around installers and building upstream projects.
+The current release is **0.3.0**. It has been tested on Windows x64. Expect some rough edges, especially around installers and building upstream projects.
 
 ## Supported apps
 
@@ -25,11 +25,15 @@ Click an app in the sidebar to open its controls. Clicking the same row again cl
 - **Launch settings** lets you choose the executable and add arguments, one per line.
 - **Uninstall** removes a managed portable copy or opens its MSI uninstaller. Other installer types use Windows Installed apps.
 
+The uninstall confirmation has an optional **Delete app profile data** checkbox, off by default. It lists the app-specific profile folders that can be removed after uninstall succeeds, including settings, caches, plug-ins and recovery/autosave copies. Some portable and installer copies share the same AppData profile. Custom profile locations outside the listed folders are kept. Portable PhotoCraft profiles are retained in `runtime/app-profiles` when the checkbox is off and restored when that portable app is installed again.
+
 Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
 The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to automatic updates.
 
-Opening the app or selecting a row does not check GitHub. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
+Opening the app or selecting a row does not check Craft app releases on GitHub. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
+
+Settings also has a separate check for this updater itself. Startup checks are off by default. Enable them to check for a newer stable Windows x64 release when the updater opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other updater and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 
 ## Building from source
 
@@ -57,6 +61,8 @@ runtime/            Download staging and internal state
 You can change the library and build-tool locations in Settings. The change applies when you reopen the window.
 
 Portable and source backups are optional. Compression uses 7-Zip LZMA2; archives are verified before the original backup is removed. Windows installer installations are not backed up by this app. Logs rotate at the configured size instead of creating a new file for every build.
+
+Each app panel has a **Backups** window with Restore and Delete modes. Restore lets you choose one release or source backup by version or commit, date, and format. Delete lets you select individual backups or all of that app's backups. Both actions require confirmation. Restore replaces the current managed copy and keeps the selected backup. To restore a portable release, select Portable ZIP in Settings first. Source backups can be restored in either mode. These controls do not restore or remove Windows installer installations.
 
 ## Building this updater
 

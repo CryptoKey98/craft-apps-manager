@@ -111,3 +111,30 @@ pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     }
     files::remove_managed(&temporary, &releases)
 }
+pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) -> Result<()> {
+    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    if platform::running_app(app)? {
+        bail!("Close the app before uninstalling it.");
+    }
+    let targets = crate::profiles::targets(paths, app)?;
+    if delete_profile {
+        crate::profiles::validate(&targets)?;
+    }
+    let preserved = if delete_profile {
+        None
+    } else {
+        crate::profiles::preserve_portable(paths, app)?
+    };
+    if let Err(error) = uninstall(paths, app) {
+        if let Some((original, kept)) = preserved {
+            std::fs::rename(kept, original)
+                .context("Uninstall failed; could not restore the retained profile")?;
+        }
+        return Err(error);
+    }
+    if delete_profile {
+        crate::profiles::remove(&targets)
+            .context("App was uninstalled, but profile cleanup failed")?;
+    }
+    Ok(())
+}

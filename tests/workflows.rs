@@ -44,18 +44,116 @@ fn job(root: &Path) -> Job {
     Job::new(root.join("logs/test.log"), &BuilderPreferences::default())
 }
 #[test]
+fn portable_photo_profile_survives_uninstall_and_reinstall() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    let prefs = Preferences {
+        release_format: "portable".into(),
+        ..Default::default()
+    };
+    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    let target = paths.at("releases/photocraft");
+    fs::create_dir_all(target.join("PhotoCraftData")).unwrap();
+    fs::write(target.join("photocraft.exe"), "fixture").unwrap();
+    fs::write(
+        target.join("PhotoCraftData/preferences.json"),
+        "saved profile",
+    )
+    .unwrap();
+    let mut config = paths.config().unwrap();
+    let record = config
+        .apps
+        .iter_mut()
+        .find(|a| a.name == "photocraft")
+        .unwrap();
+    record.path = target.to_string_lossy().into_owned();
+    record.version = "0.3.0".into();
+    record.install_kind = "portable".into();
+    paths.save_config(&config).unwrap();
+    let preserved = craft_apps_updater::profiles::preserve_portable(&paths, "photocraft")
+        .unwrap()
+        .unwrap();
+    assert!(preserved.1.join("preferences.json").exists());
+    assert!(!target.join("PhotoCraftData").exists());
+    fs::remove_dir_all(&target).unwrap();
+    fs::create_dir_all(&target).unwrap();
+    craft_apps_updater::profiles::restore_portable(&paths, "photocraft", &target).unwrap();
+    assert_eq!(
+        fs::read_to_string(target.join("PhotoCraftData/preferences.json")).unwrap(),
+        "saved profile"
+    );
+    assert!(!preserved.1.exists());
+}
+#[test]
+fn app_backup_delete_and_restore_are_scoped() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    let prefs = Preferences {
+        release_format: "portable".into(),
+        ..Default::default()
+    };
+    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    let film = paths.at("backups/releases/filmcraft-0.1.0-11111111111111111111111111111111");
+    let other = paths.at("backups/releases/designcraft-0.1.0-22222222222222222222222222222222");
+    fs::create_dir_all(&film).unwrap();
+    fs::create_dir_all(&other).unwrap();
+    fs::write(film.join("filmcraft.exe"), "backup executable").unwrap();
+    let target = paths.at("releases/filmcraft");
+    fs::create_dir_all(&target).unwrap();
+    fs::write(target.join("filmcraft.exe"), "current executable").unwrap();
+    let choices = backups::list(&paths, "filmcraft").unwrap();
+    assert_eq!(choices.len(), 1);
+    backups::restore(&paths, "filmcraft", &choices[0], &job(&f.0)).unwrap();
+    assert_eq!(
+        fs::read_to_string(target.join("filmcraft.exe")).unwrap(),
+        "backup executable"
+    );
+    assert_eq!(
+        paths
+            .config()
+            .unwrap()
+            .apps
+            .iter()
+            .find(|a| a.name == "filmcraft")
+            .unwrap()
+            .version,
+        "0.1.0"
+    );
+    assert!(film.exists());
+    assert!(backups::delete_selected(
+        &paths,
+        "filmcraft",
+        &[backups::Backup {
+            path: other.clone(),
+            source: false
+        }]
+    )
+    .is_err());
+    assert!(other.exists());
+    backups::delete_selected(&paths, "filmcraft", &choices).unwrap();
+    assert!(!film.exists());
+    backups::clear_app(&paths, "filmcraft").unwrap();
+    assert!(!film.exists());
+    assert!(other.exists());
+    assert!(target.exists());
+}
+#[test]
 fn switching_release_format_remembers_both_installations() {
     let f = Fixture::new();
     let paths = f.paths();
     let mut prefs = Preferences::default();
     files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
     let mut config = paths.config().unwrap();
+    config.apps[0].name = "craft-test-missing-app".into();
     let app = config
         .apps
         .iter_mut()
-        .find(|a| a.name == "designcraft")
+        .find(|a| a.name == "craft-test-missing-app")
         .unwrap();
-    app.path = paths.at("system/designcraft").display().to_string();
+    app.path = paths
+        .at("system/craft-test-missing-app")
+        .display()
+        .to_string();
     app.version = "2.0.0".into();
     app.install_kind = "installer".into();
     paths.save_config(&config).unwrap();
@@ -65,24 +163,29 @@ fn switching_release_format_remembers_both_installations() {
     let app = config
         .apps
         .iter_mut()
-        .find(|a| a.name == "designcraft")
+        .find(|a| a.name == "craft-test-missing-app")
         .unwrap();
-    app.path = paths.at("releases/designcraft").display().to_string();
+    app.path = paths
+        .at("releases/craft-test-missing-app")
+        .display()
+        .to_string();
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
+    fs::create_dir_all(&app.path).unwrap();
+    fs::write(
+        Path::new(&app.path).join("craft-test-missing-app.exe"),
+        "fixture",
+    )
+    .unwrap();
     paths.save_config(&config).unwrap();
-    for (format, expected) in [
-        ("installer", "2.0.0"),
-        ("portable", "1.0.0"),
-        ("installer", "2.0.0"),
-    ] {
+    for (format, expected) in [("installer", ""), ("portable", "1.0.0"), ("installer", "")] {
         prefs.release_format = format.into();
         files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
         let config = paths.config().unwrap();
         let app = config
             .apps
             .iter()
-            .find(|a| a.name == "designcraft")
+            .find(|a| a.name == "craft-test-missing-app")
             .unwrap();
         assert_eq!(app.version, expected);
         assert_eq!(app.install_kind, format);
@@ -90,9 +193,9 @@ fn switching_release_format_remembers_both_installations() {
             config
                 .installations
                 .iter()
-                .filter(|a| a.name == "designcraft")
+                .filter(|a| a.name == "craft-test-missing-app")
                 .count(),
-            2
+            if format == "installer" { 1 } else { 2 }
         );
     }
 }
@@ -132,7 +235,17 @@ fn individual_check_detects_newer_release_without_downloading() {
         .unwrap();
     app.path = paths.at("releases/filmcraft").display().to_string();
     app.version = "1.0.0".into();
-    app.install_kind = "installer".into();
+    app.install_kind = "portable".into();
+    fs::create_dir_all(&app.path).unwrap();
+    fs::write(Path::new(&app.path).join("filmcraft.exe"), "fixture").unwrap();
+    files::write_json(
+        &paths.at("updater-settings.json"),
+        &Preferences {
+            release_format: "portable".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     files::write_json(&paths.at("settings.json"), &config).unwrap();
     let endpoint = "https://api.github.com/repos/storytold/filmcraft/releases/latest";
     let cache = paths.at(format!(
@@ -142,12 +255,12 @@ fn individual_check_detects_newer_release_without_downloading() {
     for (version, expected) in [("1.0.0", None), ("1.1.0", Some("1.1.0".to_string()))] {
         files::write_json(&cache, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
             "tag_name":format!("v{version}"), "draft":false,"prerelease":false,
-            "assets":[{"name":format!("filmcraft-{version}-windows-x64.msi"),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
+            "assets":[{"name":format!("filmcraft-{version}-windows-x64-portable.zip"),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
         }})).unwrap();
         assert_eq!(updates::check_app(&paths, "filmcraft").unwrap(), expected);
     }
     assert!(!paths.at("runtime/downloads").exists());
-    assert!(!paths.at("releases/filmcraft").exists());
+    assert!(paths.at("releases/filmcraft/filmcraft.exe").exists());
 }
 #[test]
 fn app_management_preserves_other_data_and_launch_settings() {
@@ -484,11 +597,35 @@ fn source_backup_7zip_roundtrip() {
         "filmcraft-source-aaaaaaa-{}.zip",
         uuid::Uuid::new_v4().simple()
     ));
-    zip(&source, &[("src/main.rs", &"fn main() {}\n".repeat(10000))]);
+    let sha = "a".repeat(40);
+    zip(
+        &source,
+        &[
+            (
+                &format!("filmcraft-{sha}/Cargo.toml"),
+                "[package]\nname='filmcraft'\nversion='0.1.0'\n",
+            ),
+            (
+                &format!("filmcraft-{sha}/src/main.rs"),
+                &"fn main() {}\n".repeat(10000),
+            ),
+        ],
+    );
     let p = Preferences::default();
     backups::finish(&paths, &p, Some(&source), "filmcraft", true, &job(&f.0)).unwrap();
     assert!(!source.exists());
     assert!(PathBuf::from(format!("{}.7z", source.display())).exists());
+    let backups = backups::list(&paths, "filmcraft").unwrap();
+    backups::restore(&paths, "filmcraft", &backups[0], &job(&f.0)).unwrap();
+    let restored = paths.at("sources/filmcraft-source.zip");
+    files::verify_source(&restored, "filmcraft", &sha).unwrap();
+    let index: BTreeMap<String, Source> =
+        files::read_json(&paths.at("sources/source-index.json")).unwrap();
+    assert_eq!(index["filmcraft"].sha, sha);
+    assert_eq!(
+        index["filmcraft"].archive_sha256,
+        files::hash(&restored).unwrap()
+    );
 }
 #[test]
 fn real_rust_fixture_build() -> Result<()> {
@@ -536,4 +673,39 @@ fn real_rust_fixture_build() -> Result<()> {
     assert!(String::from_utf8_lossy(&result.stdout).contains("rust-builder-fixture"));
     assert!(APPS.contains(&"designcraft"));
     Ok(())
+}
+
+#[test]
+fn stale_installation_records_do_not_mark_apps_installed() {
+    use craft_apps_updater::model::{Config, Installed};
+    let f = Fixture::new();
+    let paths = f.paths();
+    let record = Installed {
+        name: "craft-test-missing-app".into(),
+        version: "1.0.0".into(),
+        path: f.0.join("missing").display().to_string(),
+        architecture: "x64".into(),
+        install_kind: "installer".into(),
+        product_code: "{00000000-0000-0000-0000-000000000000}".into(),
+    };
+    let config = Config {
+        apps_root: f.0.display().to_string(),
+        apps: vec![record.clone()],
+        installations: vec![record],
+    };
+    files::write_json(&paths.at("settings.json"), &config).unwrap();
+    let refreshed = paths.config().unwrap();
+    assert!(refreshed.apps[0].path.is_empty());
+    assert!(refreshed.apps[0].product_code.is_empty());
+    assert!(refreshed.installations.is_empty());
+    let prefs = Preferences {
+        release_format: "portable".into(),
+        ..Default::default()
+    };
+    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    let mut config = config;
+    config.apps[0].install_kind = "portable".into();
+    config.installations[0].install_kind = "portable".into();
+    files::write_json(&paths.at("settings.json"), &config).unwrap();
+    assert!(paths.config().unwrap().apps[0].path.is_empty());
 }
