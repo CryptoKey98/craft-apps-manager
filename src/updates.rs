@@ -159,34 +159,121 @@ pub fn install_app(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     }
     releases_for(paths, job, Some(app))
 }
-fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> {
-    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-    job.log(&format!(
-        "\nRelease updates — {}",
-        chrono::Utc::now().to_rfc3339()
-    ));
-    let mut config = paths.config()?;
-    let prefs = paths.preferences()?;
+#[derive(Clone, Debug)]
+pub struct ReleaseEntry {
+    pub app: String,
+    pub action: String,
+    pub version: String,
+    pub asset: Option<Asset>,
+    pub destination: Option<PathBuf>,
+    pub error: Option<String>,
+}
+#[derive(Clone, Debug)]
+pub struct ReleasePlan {
+    pub entries: Vec<ReleaseEntry>,
+    pub preferences: Preferences,
+    snapshot: Vec<u8>,
+}
+impl ReleasePlan {
+    pub fn executable_count(&self) -> usize {
+        self.entries
+            .iter()
+            .filter(|e| e.action == "Install" || e.action == "Update")
+            .count()
+    }
+}
+fn state_snapshot(
+    paths: &Paths,
+    prefs: &Preferences,
+    config: &crate::model::Config,
+) -> Result<Vec<u8>> {
+    let destinations: Vec<_> = config
+        .apps
+        .iter()
+        .filter(|a| prefs.selected_apps.contains(&a.name))
+        .map(|a| {
+            let target = if prefs.release_format == "installer" && !a.path.is_empty() {
+                PathBuf::from(&a.path)
+            } else if a.path.is_empty() || a.install_kind == "installer" {
+                paths.at(format!("releases/{}", a.name))
+            } else {
+                PathBuf::from(&a.path)
+            };
+            let metadata = fs::symlink_metadata(&target).ok();
+            let executable = crate::model::installed_executable(&target, &a.name);
+            let executable_state = executable.as_ref().map(|path| {
+                let metadata = fs::symlink_metadata(path).ok();
+                (
+                    path.clone(),
+                    metadata.map(|m| (m.len(), m.modified().ok())),
+                    crate::platform::executable_version(path),
+                )
+            });
+            (
+                target,
+                executable_state,
+                metadata
+                    .as_ref()
+                    .map(|m| (m.len(), m.modified().ok(), m.file_type().is_symlink())),
+            )
+        })
+        .collect();
+    Ok(serde_json::to_vec(&(prefs, config, destinations))?)
+}
+pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
     let network = Network::new(&paths.root)?;
-    let mut errors = 0;
-    for i in 0..config.apps.len() {
-        let app = config.apps[i].clone();
-        if !selected
-            .map(|name| name == app.name)
-            .unwrap_or_else(|| prefs.selected_apps.contains(&app.name))
-        {
-            continue;
+    plan_with(paths, job, None, |name| {
+        network.json(&format!(
+            "https://api.github.com/repos/storytold/{}/releases/latest",
+            crate::model::repository(name)
+        ))
+    })
+}
+fn plan_with(
+    paths: &Paths,
+    job: &Job,
+    selected: Option<&str>,
+    mut fetch: impl FnMut(&str) -> Result<Release>,
+) -> Result<ReleasePlan> {
+    let prefs = paths.read_preferences()?;
+    let config = paths.config()?;
+    let snapshot = state_snapshot(paths, &prefs, &config)?;
+    let mut entries = Vec::new();
+    for app in config.apps.iter().filter(|a| {
+        selected
+            .map(|name| a.name == name)
+            .unwrap_or_else(|| prefs.selected_apps.contains(&a.name))
+    }) {
+        if let Err(error) = job.check() {
+            let previous: Vec<_> = entries
+                .iter()
+                .filter_map(|entry: &ReleaseEntry| entry.error.as_ref())
+                .collect();
+            if !previous.is_empty() {
+                bail!(
+                    "Planning failed before cancellation: {}",
+                    previous
+                        .iter()
+                        .map(|s| s.as_str())
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                );
+            }
+            return Err(error);
         }
-        crate::model::valid_app(&app.name)?;
-        job.check()?;
-        job.stage("Checking releases", None, crate::model::title(&app.name));
+        job.stage("Planning releases", None, crate::model::title(&app.name));
+        let mut entry = ReleaseEntry {
+            app: app.name.clone(),
+            action: "Error".into(),
+            version: String::new(),
+            asset: None,
+            destination: None,
+            error: None,
+        };
         let result = (|| -> Result<()> {
-            let release: Release = network.json(&format!(
-                "https://api.github.com/repos/storytold/{}/releases/latest",
-                crate::model::repository(&app.name)
-            ))?;
+            let release = fetch(&app.name)?;
             if release.draft || release.prerelease {
-                bail!("Not a stable release")
+                bail!("Not a stable release");
             }
             let asset = select_asset(&release, &app.name, &prefs)?;
             if !asset.browser_download_url.starts_with(&format!(
@@ -196,16 +283,127 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                 bail!("Unexpected asset URL");
             }
             files::safe_relative(&asset.name)?;
-            if prefs.release_format == "installer" {
-                let latest = release.tag_name.trim_start_matches('v');
-                if app.install_kind == "installer"
-                    && !app.version.is_empty()
-                    && version(&app.version)? >= version(latest)?
-                    && crate::model::installed_executable(Path::new(&app.path), &app.name).is_some()
-                {
-                    job.log(&format!("{}: installed version is current", app.name));
-                    return Ok(());
+            let digest = asset
+                .digest
+                .as_deref()
+                .and_then(|digest| digest.strip_prefix("sha256:"))
+                .context("Release asset has no published SHA-256 digest")?;
+            if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                bail!("Release asset has an invalid SHA-256 digest");
+            }
+
+            entry.version = release.tag_name.trim_start_matches('v').into();
+            entry.asset = Some(asset.clone());
+            let installer = prefs.release_format == "installer";
+            let target = if installer {
+                PathBuf::from(&app.path)
+            } else if app.path.is_empty() || app.install_kind == "installer" {
+                paths.at(format!("releases/{}", app.name))
+            } else {
+                PathBuf::from(&app.path)
+            };
+            if !installer {
+                files::inside(&target, &paths.at("releases"))?;
+                entry.destination = Some(target.clone());
+            }
+            let exists = !app.path.is_empty()
+                && (app.install_kind == "installer") == installer
+                && crate::model::installed_executable(&target, &app.name).is_some();
+            entry.action = if exists
+                && !app.version.is_empty()
+                && version(&app.version)? >= version(&entry.version)?
+                && (installer
+                    || crate::model::release_arch(&app.architecture)
+                        == crate::model::release_arch(&prefs.architecture))
+            {
+                "Skip"
+            } else if exists {
+                "Update"
+            } else {
+                "Install"
+            }
+            .into();
+            Ok(())
+        })();
+        if let Err(error) = result {
+            if crate::jobs::is_cancelled(&error) {
+                let previous: Vec<_> = entries
+                    .iter()
+                    .filter_map(|entry: &ReleaseEntry| entry.error.as_deref())
+                    .collect();
+                if !previous.is_empty() {
+                    bail!(
+                        "Planning failed before cancellation: {}",
+                        previous.join("; ")
+                    );
                 }
+                return Err(error);
+            }
+            entry.error = Some(format!("{error:#}"));
+        }
+        entries.push(entry);
+    }
+    if let Err(error) = job.check() {
+        let previous: Vec<_> = entries
+            .iter()
+            .filter_map(|entry| entry.error.as_deref())
+            .collect();
+        if !previous.is_empty() {
+            bail!(
+                "Planning failed before cancellation: {}",
+                previous.join("; ")
+            );
+        }
+        return Err(error);
+    }
+    Ok(ReleasePlan {
+        entries,
+        preferences: prefs,
+        snapshot,
+    })
+}
+pub fn execute_plan(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
+    execute_validated(paths, plan, |config| {
+        execute_entries(paths, plan, config, job)
+    })
+}
+fn execute_validated(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    execute: impl FnOnce(&mut crate::model::Config) -> Result<()>,
+) -> Result<()> {
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    let prefs = paths.read_preferences()?;
+    let mut config = paths.config()?;
+    if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
+        bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
+    }
+    execute(&mut config)
+}
+fn execute_entries(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    config: &mut crate::model::Config,
+    job: &Job,
+) -> Result<()> {
+    let prefs = &plan.preferences;
+    let network = Network::new(&paths.root)?;
+    execute_with(plan, job, |entry| {
+        let i = config
+            .apps
+            .iter()
+            .position(|a| a.name == entry.app)
+            .context("Planned app missing")?;
+        let app = config.apps[i].clone();
+        let asset = entry.asset.as_ref().context("Planned asset missing")?;
+        let release = Release {
+            tag_name: entry.version.clone(),
+            draft: false,
+            prerelease: false,
+            assets: vec![],
+        };
+        let result = (|| -> Result<bool> {
+            if prefs.release_format == "installer" {
                 if platform::running_app(&app.name)? {
                     bail!("Close {} before installing", app.name);
                 }
@@ -217,31 +415,24 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                 }
                 job.stage("Installing", None, "Complete the Windows installer wizard; Windows may ask for administrator permission.");
                 let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
-                installed.architecture = prefs.architecture.clone();
+                installed.architecture = if cfg!(target_os = "macos") {
+                    "universal".into()
+                } else {
+                    prefs.architecture.clone()
+                };
                 config.apps[i] = installed;
-                paths.save_config(&config)?;
+                paths.save_config(config)?;
                 job.log(&format!("{}: installer completed", app.name));
-                return Ok(());
+                return Ok(true);
             }
             let v = release.tag_name.trim_start_matches('v');
-            let target = if app.path.is_empty() || app.install_kind == "installer" {
-                paths.at(format!("releases/{}", app.name))
-            } else {
-                PathBuf::from(&app.path)
-            };
-            files::inside(&target, &paths.at("releases"))?;
-            if !app.version.is_empty()
-                && app.install_kind != "installer"
-                && version(v)? <= version(&app.version)?
-                && app.architecture == prefs.architecture
-                && crate::model::installed_executable(&target, &app.name).is_some()
-            {
-                job.log(&format!("{}: up to date ({})", app.name, app.version));
-                return Ok(());
-            }
+            let target = entry
+                .destination
+                .clone()
+                .context("Missing portable destination")?;
             if platform::running_app(&app.name)? {
                 job.log(&format!("{}: app is open; skipped", app.name));
-                return Ok(());
+                return Ok(false);
             }
             let cache = paths.at("runtime/downloads");
             let archive = cache.join(&asset.name);
@@ -291,20 +482,24 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                 let old = config.apps[i].clone();
                 config.apps[i].path = target.to_string_lossy().into_owned();
                 config.apps[i].version = v.into();
-                config.apps[i].architecture = prefs.architecture.clone();
+                config.apps[i].architecture = if cfg!(target_os = "macos") {
+                    "universal".into()
+                } else {
+                    prefs.architecture.clone()
+                };
                 config.apps[i].install_kind = "portable".into();
                 config.apps[i].product_code.clear();
                 if let Err(e) = replace_transaction(
                     executables[0].path().parent().unwrap(),
                     &target,
                     backup.as_deref(),
-                    || paths.save_config(&config),
+                    || paths.save_config(config),
                 ) {
                     config.apps[i] = old;
                     return Err(e);
                 }
                 if let Err(e) =
-                    backups::finish(paths, &prefs, backup.as_deref(), &app.name, false, job)
+                    backups::finish(paths, prefs, backup.as_deref(), &app.name, false, job)
                 {
                     job.log(&format!("Backup cleanup warning: {e:#}"))
                 }
@@ -335,22 +530,116 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                     let _ = files::remove_managed(p, &cache);
                 }
             }
-            attempt
+            attempt.map(|()| true)
         })();
-        if let Err(e) = result {
-            errors += 1;
-            job.log(&format!("{}: {e:#}", app.name));
-            if e.to_string().contains("API limit")
-                || job.cancel.load(std::sync::atomic::Ordering::Relaxed)
-            {
+        result
+    })
+}
+#[derive(Debug, Default)]
+pub struct ReleaseSummary {
+    pub completed: usize,
+    pub skipped: usize,
+    pub failed: usize,
+    pub remaining: usize,
+    pub current: Option<String>,
+}
+impl std::fmt::Display for ReleaseSummary {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} completed, {} skipped, {} failed, {} remaining{}",
+            self.completed,
+            self.skipped,
+            self.failed,
+            self.remaining,
+            self.current
+                .as_ref()
+                .map(|app| format!("; interrupted: {app}"))
+                .unwrap_or_default()
+        )
+    }
+}
+fn execute_with(
+    plan: &ReleasePlan,
+    job: &Job,
+    mut execute: impl FnMut(&ReleaseEntry) -> Result<bool>,
+) -> Result<()> {
+    let mut summary = ReleaseSummary {
+        skipped: plan
+            .entries
+            .iter()
+            .filter(|e| e.action == "Skip" || e.error.is_some())
+            .count(),
+        ..Default::default()
+    };
+    let executable: Vec<_> = plan
+        .entries
+        .iter()
+        .filter(|e| (e.action == "Install" || e.action == "Update") && e.error.is_none())
+        .collect();
+    let mut cancelled = false;
+    let mut handled = 0;
+    for entry in &executable {
+        if job.check().is_err() {
+            cancelled = true;
+            break;
+        }
+        summary.current = Some(entry.app.clone());
+        let result = execute(entry);
+        match result {
+            Ok(true) => summary.completed += 1,
+            Ok(false) => summary.skipped += 1,
+            Err(error) if crate::jobs::is_cancelled(&error) => {
+                cancelled = true;
                 break;
             }
+            Err(error) => {
+                summary.failed += 1;
+                job.log(&format!("{}: {error:#}", entry.app));
+                if error.to_string().contains("API limit") {
+                    handled += 1;
+                    summary.current = None;
+                    break;
+                }
+            }
         }
+        handled += 1;
+        summary.current = None;
     }
-    if errors > 0 {
-        bail!("{errors} release update(s) failed; see logs/updates.log");
+    summary.remaining = executable.len().saturating_sub(handled);
+    job.log(&summary.to_string());
+    if summary.failed > 0 {
+        bail!("Release operations: {summary}");
+    }
+    if cancelled {
+        return Err(anyhow::Error::new(crate::jobs::Cancelled).context(summary));
     }
     Ok(())
+}
+fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> {
+    // CLI retains its deliberate install/update scope; GUI uses plan + confirmation.
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    let network = Network::new(&paths.root)?;
+    let plan = plan_with(paths, job, selected, |name| {
+        network.json(&format!(
+            "https://api.github.com/repos/storytold/{}/releases/latest",
+            crate::model::repository(name)
+        ))
+    })?;
+    let errors: Vec<_> = plan
+        .entries
+        .iter()
+        .filter_map(|e| e.error.as_ref().map(|error| format!("{}: {error}", e.app)))
+        .collect();
+    for error in &errors {
+        job.log(error);
+    }
+    let mut config = paths.config()?;
+    let result = execute_entries(paths, &plan, &mut config, job);
+    if !errors.is_empty() {
+        bail!("{} release planning error(s); see the log", errors.len());
+    }
+    result
 }
 pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
@@ -365,7 +654,12 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
     let mut errors = 0;
     for name in names {
         crate::model::valid_app(name)?;
-        job.check()?;
+        if let Err(error) = job.check() {
+            if errors > 0 {
+                bail!("{errors} source update(s) failed before cancellation; see the log");
+            }
+            return Err(error);
+        }
         job.stage("Checking source", None, crate::model::title(name));
         let result = (|| -> Result<()> {
             let repository = crate::model::repository(name);
@@ -447,6 +741,15 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
             Ok(())
         })();
         if let Err(e) = result {
+            if crate::jobs::is_cancelled(&e) {
+                if errors == 0 {
+                    return Err(e);
+                }
+                job.log(&format!(
+                    "{name}: cancelled; {errors} earlier source failure(s) retained"
+                ));
+                break;
+            }
             errors += 1;
             job.log(&format!("{name}: {e:#}"));
             if e.to_string().contains("API limit")
@@ -541,5 +844,252 @@ mod tests {
     fn versions() {
         assert!(version("v0.10.0").unwrap() > version("0.9.0").unwrap());
         assert!(version("1.2.3-beta").is_err());
+    }
+}
+#[cfg(test)]
+mod planning_tests {
+    use super::*;
+    use std::sync::atomic::Ordering;
+    fn fixture() -> (Paths, Job) {
+        let root = std::env::temp_dir().join(format!("craft-plan-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root, None);
+        files::write_json(
+            &paths.at("updater-settings.json"),
+            &Preferences {
+                release_format: "portable".into(),
+                selected_apps: vec!["photocraft".into(), "filmcraft".into()],
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let job = Job::new(paths.at("log"), &Default::default());
+        (paths, job)
+    }
+    fn release(app: &str, tag: &str) -> Release {
+        let suffix = if cfg!(target_os = "macos") {
+            ".dmg"
+        } else if cfg!(target_os = "linux") {
+            ".AppImage"
+        } else {
+            "-portable.zip"
+        };
+        let name = format!(
+            "{app}-{tag}-{}-{}{suffix}",
+            crate::model::release_os(),
+            crate::model::release_arch(crate::model::MANAGER_ARCH)
+        );
+        Release {
+            tag_name: tag.into(),
+            draft: false,
+            prerelease: false,
+            assets: vec![Asset {
+                name: name.clone(),
+                size: 1234,
+                digest: Some(format!("sha256:{}", "a".repeat(64))),
+                browser_download_url: format!(
+                    "https://github.com/storytold/{app}/releases/download/v{tag}/{name}"
+                ),
+            }],
+        }
+    }
+    #[test]
+    fn invalid_digest_metadata_is_excluded_before_package_download() {
+        let (paths, job) = fixture();
+        for digest in [None, Some("sha256:invalid".into())] {
+            let plan = plan_with(&paths, &job, None, |app| {
+                let mut release = release(app, "0.4.0");
+                release.assets[0].digest = digest.clone();
+                Ok(release)
+            })
+            .unwrap();
+            assert_eq!(plan.executable_count(), 0);
+            assert!(plan.entries.iter().all(|entry| entry.error.is_some()));
+            execute_validated(&paths, &plan, |_| {
+                execute_with(&plan, &job, |_| {
+                    panic!("invalid metadata must never download")
+                })
+            })
+            .unwrap();
+        }
+        assert!(!paths.at("runtime/downloads").exists());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn legacy_mac_architecture_is_current_for_same_universal_release() {
+        if !cfg!(target_os = "macos") {
+            return;
+        }
+        let (paths, job) = fixture();
+        let folder = paths.at("releases/photocraft");
+        let contents = folder
+            .join(crate::model::executable_name("photocraft"))
+            .join("Contents");
+        fs::create_dir_all(&contents).unwrap();
+        fs::write(contents.join("Info.plist"), "<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.photocraft</string><key>CFBundleShortVersionString</key><string>0.4.0</string></dict></plist>").unwrap();
+        let mut prefs = paths.read_preferences().unwrap();
+        prefs.architecture = "arm64".into();
+        prefs.selected_apps = vec!["photocraft".into()];
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        let record = crate::model::Installed {
+            name: "photocraft".into(),
+            version: "0.4.0".into(),
+            path: folder.display().to_string(),
+            install_kind: "portable".into(),
+            architecture: "x86".into(),
+            ..Default::default()
+        };
+        let config = crate::model::Config {
+            apps_root: paths.root.display().to_string(),
+            apps: vec![record.clone()],
+            installations: vec![record],
+        };
+        files::write_json(&paths.at("settings.json"), &config).unwrap();
+        let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+        assert_eq!(plan.entries[0].action, "Skip");
+        assert_eq!(plan.executable_count(), 0);
+        execute_validated(&paths, &plan, |_| {
+            execute_with(&plan, &job, |_| {
+                panic!("must not reinstall universal release")
+            })
+        })
+        .unwrap();
+        let plist = contents.join("Info.plist");
+        let changed = fs::read_to_string(&plist)
+            .unwrap()
+            .replace("0.4.0", "0.5.0");
+        fs::write(&plist, changed).unwrap();
+        assert!(execute_validated(&paths, &plan, |_| panic!(
+            "actual installed version changed without inventory write"
+        ))
+        .is_err());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn planning_is_read_only_pins_assets_and_excludes_per_app_errors() {
+        let (paths, job) = fixture();
+        let legacy = fs::read(paths.at("updater-settings.json")).unwrap();
+        let plan = plan_with(&paths, &job, None, |app| {
+            if app == "filmcraft" {
+                bail!("Metadata unavailable");
+            } else {
+                Ok(release(app, "0.4.0"))
+            }
+        })
+        .unwrap();
+        assert_eq!(plan.executable_count(), 1);
+        assert!(plan
+            .entries
+            .iter()
+            .any(|e| e.app == "filmcraft" && e.error.is_some()));
+        execute_validated(&paths, &plan, |_| {
+            execute_with(&plan, &job, |entry| {
+                assert_eq!(entry.version, "0.4.0");
+                assert_eq!(entry.asset.as_ref().unwrap().size, 1234);
+                assert_eq!(
+                    entry.asset.as_ref().unwrap().digest.as_deref(),
+                    Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                );
+                Ok(true)
+            })
+        })
+        .unwrap();
+        assert_eq!(fs::read(paths.at("updater-settings.json")).unwrap(), legacy);
+        for name in [
+            "manager-settings.json",
+            "settings.json",
+            "releases",
+            "runtime/downloads",
+        ] {
+            assert!(!paths.at(name).exists(), "{name}");
+        }
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn changed_preferences_destination_and_lock_reject_before_execution() {
+        let (paths, job) = fixture();
+        let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+        let lock = platform::Lock::take("Local\\CraftAppsManager").unwrap();
+        // Windows mutexes are recursive on their owning thread. A competing
+        // worker must acquire on another thread, as real GUI operations do.
+        let blocked = std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    execute_validated(&paths, &plan, |_| panic!("must not execute while locked"))
+                })
+                .join()
+                .unwrap()
+        });
+        assert!(blocked.is_err());
+        drop(lock);
+        fs::create_dir_all(paths.at("releases/photocraft")).unwrap();
+        assert!(execute_validated(&paths, &plan, |_| panic!(
+            "must not execute after destination change"
+        ))
+        .is_err());
+        fs::remove_dir_all(paths.at("releases")).unwrap();
+        let mut prefs = paths.read_preferences().unwrap();
+        prefs.selected_apps.clear();
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        assert!(execute_validated(&paths, &plan, |_| panic!(
+            "must not execute after selection change"
+        ))
+        .is_err());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn cancellation_counts_completed_work_and_keeps_real_errors() {
+        let (paths, job) = fixture();
+        let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+        let result = execute_with(&plan, &job, |_| {
+            job.cancel.store(true, Ordering::Relaxed);
+            Ok(true)
+        })
+        .unwrap_err();
+        assert!(crate::jobs::is_cancelled(&result));
+        assert!(result.to_string().contains("1 completed"));
+        assert!(result.to_string().contains("1 remaining"));
+        job.cancel.store(false, Ordering::Relaxed);
+        let error = execute_with(&plan, &job, |_| {
+            job.cancel.store(true, Ordering::Relaxed);
+            bail!("Actual installer failure");
+        })
+        .unwrap_err();
+        assert!(!crate::jobs::is_cancelled(&error));
+        assert!(error.to_string().contains("1 failed"));
+        job.cancel.store(false, Ordering::Relaxed);
+        let mut single = plan.clone();
+        single.entries.truncate(1);
+        assert!(execute_with(&single, &job, |_| {
+            job.cancel.store(true, Ordering::Relaxed);
+            Ok(true)
+        })
+        .is_ok());
+        job.cancel.store(false, Ordering::Relaxed);
+        execute_with(&single, &job, |_| Ok(false)).unwrap();
+        assert!(job
+            .state
+            .lock()
+            .unwrap()
+            .log
+            .contains("0 completed, 1 skipped"));
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn cancelled_planning_never_fetches_packages_and_preserves_prior_metadata_failure() {
+        let (paths, job) = fixture();
+        job.cancel.store(true, Ordering::Relaxed);
+        let error =
+            plan_with(&paths, &job, None, |_| panic!("must not fetch metadata")).unwrap_err();
+        assert!(crate::jobs::is_cancelled(&error));
+        job.cancel.store(false, Ordering::Relaxed);
+        let error = plan_with(&paths, &job, None, |_| {
+            job.cancel.store(true, Ordering::Relaxed);
+            bail!("Actual metadata error");
+        })
+        .unwrap_err();
+        assert!(!crate::jobs::is_cancelled(&error));
+        assert!(error.to_string().contains("Actual metadata error"));
+        assert!(!paths.at("runtime/downloads").exists());
+        fs::remove_dir_all(paths.root).unwrap();
     }
 }

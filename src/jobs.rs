@@ -10,6 +10,17 @@ use std::{
     },
     time::Duration,
 };
+#[derive(Debug)]
+pub struct Cancelled;
+impl std::fmt::Display for Cancelled {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Cancelled")
+    }
+}
+impl std::error::Error for Cancelled {}
+pub fn is_cancelled(error: &anyhow::Error) -> bool {
+    error.chain().any(|cause| cause.is::<Cancelled>())
+}
 #[derive(Clone, Default)]
 pub struct State {
     pub busy: bool,
@@ -42,7 +53,7 @@ impl Job {
     }
     pub fn check(&self) -> Result<()> {
         if self.cancel.load(Ordering::Relaxed) {
-            bail!("Cancelled");
+            return Err(Cancelled.into());
         }
         Ok(())
     }
@@ -221,6 +232,9 @@ impl Job {
             for line in rx.try_iter() {
                 self.line(&line, cargo);
             }
+            if let Some(status) = child.try_wait()? {
+                break status;
+            }
             if self.cancel.load(Ordering::Relaxed) {
                 drop(group);
                 let _ = child.wait();
@@ -229,10 +243,7 @@ impl Job {
                 for line in rx.try_iter() {
                     self.line(&line, cargo);
                 }
-                bail!("Cancelled");
-            }
-            if let Some(status) = child.try_wait()? {
-                break status;
+                return Err(Cancelled.into());
             }
             std::thread::sleep(Duration::from_millis(100));
         };
@@ -259,29 +270,27 @@ impl Job {
         std::thread::spawn(move || {
             let result =
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(job.clone())));
-            let outcome = match result {
-                Ok(Ok(())) => "Success".to_string(),
+            let (stage, outcome) = match result {
+                Ok(Ok(())) => ("Complete", "Success".to_string()),
+                Ok(Err(e)) if is_cancelled(&e) => {
+                    let message = format!("{e:#}");
+                    job.log(&message);
+                    ("Cancelled", message)
+                }
                 Ok(Err(e)) => {
                     let error = format!("{e:#}");
                     job.log(&format!("ERROR: {error}"));
-                    error
+                    ("Failed", error)
                 }
                 Err(_) => {
                     job.log("ERROR: worker panicked");
-                    "Worker failed unexpectedly".into()
+                    ("Failed", "Worker failed unexpectedly".into())
                 }
             };
             let mut s = job.state.lock().unwrap();
             s.busy = false;
             s.outcome = outcome.clone();
-            s.stage = if outcome == "Success" {
-                "Complete"
-            } else if job.cancel.load(Ordering::Relaxed) {
-                "Cancelled"
-            } else {
-                "Failed"
-            }
-            .into();
+            s.stage = stage.into();
             s.detail = outcome;
             s.progress = if s.stage == "Complete" {
                 Some(1.0)
@@ -295,5 +304,95 @@ impl Job {
             let start = bytes.len().saturating_sub(200_000);
             self.state.lock().unwrap().log = String::from_utf8_lossy(&bytes[start..]).into_owned();
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn finish(work: impl FnOnce(Job) -> Result<()> + Send + 'static) -> State {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(
+            root.join("job.log"),
+            &crate::model::BuilderPreferences::default(),
+        );
+        job.spawn(work);
+        for _ in 0..100 {
+            if !job.state.lock().unwrap().busy {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let state = job.state.lock().unwrap().clone();
+        assert!(!state.busy);
+        let _ = fs::remove_dir_all(root);
+        state
+    }
+    #[test]
+    fn cancellation_during_transfer_removes_partial_and_preserves_typed_marker() {
+        use std::{io::Read, net::TcpListener};
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(
+            root.join("job.log"),
+            &crate::model::BuilderPreferences::default(),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/package", listener.local_addr().unwrap());
+        let cancel = job.cancel.clone();
+        let server = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = [0; 4096];
+            let _ = socket.read(&mut request).unwrap();
+            socket
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 131072\r\nConnection: close\r\n\r\n",
+                )
+                .unwrap();
+            let _ = socket.write_all(&[1; 65536]);
+            cancel.store(true, Ordering::Relaxed);
+        });
+        let destination = root.join("downloads/package");
+        let error = crate::network::Network::new(&root)
+            .unwrap()
+            .download(&url, &destination, &job)
+            .unwrap_err();
+        server.join().unwrap();
+        assert!(is_cancelled(&error));
+        assert!(!destination.exists());
+        assert_eq!(
+            fs::read_dir(destination.parent().unwrap()).unwrap().count(),
+            0
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn cancellation_is_typed_through_context_and_does_not_log_error() {
+        let state = finish(|job| {
+            job.cancel.store(true, Ordering::Relaxed);
+            job.check().map_err(|e| e.context("Download stopped"))
+        });
+        assert_eq!(state.stage, "Cancelled");
+        assert!(!state.log.contains("ERROR"));
+    }
+    #[test]
+    fn late_cancel_preserves_success_failure_and_panic() {
+        let success = finish(|job| {
+            job.cancel.store(true, Ordering::Relaxed);
+            Ok(())
+        });
+        assert_eq!(success.stage, "Complete");
+        let failure = finish(|job| {
+            job.cancel.store(true, Ordering::Relaxed);
+            bail!("Real disk error")
+        });
+        assert_eq!(failure.stage, "Failed");
+        assert!(failure.log.contains("Real disk error"));
+        let panic = finish(|job| {
+            job.cancel.store(true, Ordering::Relaxed);
+            panic!("worker panic");
+        });
+        assert_eq!(panic.stage, "Failed");
     }
 }

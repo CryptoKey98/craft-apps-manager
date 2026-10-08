@@ -1,6 +1,6 @@
 use anyhow::Result;
 use craft_apps_manager::{
-    apps, backups, builder, files,
+    apps, backups, builder,
     jobs::{Job, State},
     model::{self, BuilderPreferences, Paths, Preferences, APPS, SOURCES},
     platform, profiles, scheduler, self_update, tools, updates,
@@ -65,6 +65,7 @@ type ReleaseCheck = Result<Option<String>, String>;
 type CheckMessage = (u64, String, String, ReleaseCheck);
 type DisplaySnapshot = (
     model::Config,
+    Vec<model::Installed>,
     std::collections::BTreeMap<String, Vec<backups::Backup>>,
     craft_apps_manager::hourly::Checks,
 );
@@ -117,7 +118,7 @@ pub struct App {
     manager_available: Option<self_update::Available>,
     manager_message: String,
     manager_startup_pending: bool,
-    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, String>>>,
+    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, (bool, String)>>>,
     confirm_self_update: bool,
     restore_app: Option<String>,
     restore_backups: Vec<backups::Backup>,
@@ -130,6 +131,9 @@ pub struct App {
     display_backups: std::collections::BTreeMap<String, Vec<backups::Backup>>,
     config_refresh_at: std::time::Instant,
     operation_was_busy: bool,
+    alternates: Vec<model::Installed>,
+    release_plan: Option<updates::ReleasePlan>,
+    plan_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, (bool, String)>>>,
 }
 impl App {
     pub fn new(
@@ -278,6 +282,9 @@ impl App {
             display_backups: Default::default(),
             config_refresh_at: std::time::Instant::now(),
             operation_was_busy: false,
+            alternates: Vec::new(),
+            release_plan: None,
+            plan_receiver: None,
         })
     }
     fn result(&mut self, result: Result<()>) {
@@ -329,13 +336,31 @@ impl App {
             }
         });
     }
+    fn release_pending(&self) -> bool {
+        self.plan_receiver.is_some() || self.release_plan.is_some()
+    }
     fn start(&mut self, action: &str) {
+        if self.release_pending() {
+            return;
+        }
         if action == "releases" && self.preferences.selected_apps.is_empty() {
             self.selection_notice = Some("No release apps are selected. Choose apps in Settings → Choose release apps, then try again.".into());
             return;
         }
         if action == "sources" && self.preferences.selected_sources.is_empty() {
             self.selection_notice = Some("No source apps are selected. Choose apps in Settings → Choose source apps, then try again.".into());
+            return;
+        }
+        if action == "releases" {
+            let paths = self.paths.clone();
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.plan_receiver = Some(rx);
+            self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+            self.job.spawn(move |job| {
+                let result = updates::plan_releases(&paths, &job);
+                let _ = tx.send(result_for_display(&result));
+                result.map(|_| ())
+            });
             return;
         }
         let paths = self.paths.clone();
@@ -367,6 +392,9 @@ impl App {
         });
     }
     fn open_settings(&mut self) {
+        if self.release_pending() || self.job.state.lock().unwrap().busy {
+            return;
+        }
         self.settings_draft = self.preferences.clone();
         self.build_draft = self.build_preferences.clone();
         self.root_text = self.paths.root.display().to_string();
@@ -389,20 +417,34 @@ impl App {
         self.result(result)
     }
     fn settings_ui(&mut self, ctx: &egui::Context) {
-        let mut show = self.settings;
+        let show = self.settings;
         if !show {
             return;
         }
-        egui::Window::new(if self.builder{"Builder settings"}else{"Manager settings"}).open(&mut show).collapsible(false).resizable(false).default_width(570.0).anchor(egui::Align2::CENTER_CENTER,[0.0,0.0]).vscroll(false).show(ctx,|ui|{
-            ui.heading(if self.builder{"Build maintenance"}else{"Release preferences"});ui.separator();
-egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(240.0)).show(ui,|ui|{
+        let modal = modal(
+            ctx,
+            if self.builder {
+                "Builder settings"
+            } else {
+                "Manager settings"
+            },
+            |ui| {
+                ui.heading(if self.builder {
+                    "Build maintenance"
+                } else {
+                    "Release preferences"
+                });
+                ui.separator();
+                egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(240.0)).show(ui,|ui|{
             if self.builder{
                 ui.checkbox(&mut self.build_draft.delete_cache_after_success,"Delete compilation cache after a successful build");ui.checkbox(&mut self.build_draft.delete_workspace_after_success,"Delete extracted source and node_modules after success");
                 ui.horizontal(|ui|{ui.label("Rotate each app log at (MB)");ui.add(egui::DragValue::new(&mut self.build_draft.log_size_mb).range(1..=100));});ui.horizontal(|ui|{ui.label("Older log files to keep");ui.add(egui::DragValue::new(&mut self.build_draft.log_archives).range(0..=5));});
                 ui.small("Cancelled and failed builds keep their cache. Completed builds and tools are retained.");if ui.button("Clean temporary files now...").clicked(){self.confirm_clean=true;}
             }else{
                 ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"}}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"});ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
-                ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
+                if cfg!(target_os = "macos") { ui.label("Architecture: Universal (Intel + Apple silicon)"); } else {
+                    ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
+                }
                 ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of {} apps selected",self.settings_draft.selected_apps.len(),APPS.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of {} sources selected",self.settings_draft.selected_sources.len(),SOURCES.len()));});
                 ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when app or source updates are available");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
@@ -415,46 +457,179 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             }
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Folder changes apply after reopening this window.");});
             });
-            ui.separator();ui.horizontal(|ui|{
-                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("manager-settings.json"),&self.settings_draft)?;let check_mode_changed=self.preferences.release_format!=self.settings_draft.release_format||self.preferences.architecture!=self.settings_draft.architecture;self.preferences=self.settings_draft.clone();if check_mode_changed{self.check_generation+=1;self.checking_apps.clear();self.release_checks.clear();}self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
-                if ui.button("Cancel").clicked(){self.settings=false;}
-            });
-        });
+                ui.separator();
+                ui.horizontal(|ui| {
+                    if ui
+                        .add_enabled(
+                            !self.release_pending() && !self.job.state.lock().unwrap().busy,
+                            egui::Button::new("Save"),
+                        )
+                        .clicked()
+                    {
+                        let root = PathBuf::from(self.root_text.trim());
+                        let tools = PathBuf::from(self.tools_text.trim());
+                        let locations = Locations {
+                            root: Some(root.clone()),
+                            tools: Some(tools.clone()),
+                        };
+                        let result = craft_apps_manager::settings::save(
+                            &self.paths,
+                            &self.home.join("data-root.json"),
+                            &locations,
+                            &root,
+                            &tools,
+                            if self.builder {
+                                None
+                            } else {
+                                Some(&self.settings_draft)
+                            },
+                            if self.builder {
+                                Some(&self.build_draft)
+                            } else {
+                                None
+                            },
+                        );
+                        if result.is_ok() {
+                            if self.builder {
+                                self.build_preferences = self.build_draft.clone();
+                            } else {
+                                self.settings_draft.validate().expect("validated settings");
+                                let changed = self.preferences.release_format
+                                    != self.settings_draft.release_format
+                                    || self.preferences.architecture
+                                        != self.settings_draft.architecture;
+                                self.preferences = self.settings_draft.clone();
+                                if changed {
+                                    self.check_generation += 1;
+                                    self.checking_apps.clear();
+                                    self.release_checks.clear();
+                                }
+                                self.display_config = None;
+                                self.config_receiver = None;
+                                self.config_refresh_at = std::time::Instant::now();
+                            }
+                            self.settings = false;
+                        }
+                        self.result(result);
+                    }
+                    if ui.button("Cancel").clicked() {
+                        self.settings = false;
+                    }
+                });
+            },
+        );
+        if !self.selection
+            && !self.confirm_clear
+            && !self.confirm_clean
+            && !self.confirm_self_update
+            && self.error.is_none()
+            && self.selection_notice.is_none()
+            && modal.should_close()
+        {
+            self.settings = false;
+        }
+
         if !show {
             self.settings = false;
         }
     }
     fn dialogs(&mut self, ctx: &egui::Context) {
+        if let Some(plan) = self.release_plan.clone() {
+            let response = modal(ctx, "Review release operations", |ui| {
+                ui.set_width(570.0);
+                ui.label(format!(
+                    "{} · {}",
+                    plan.preferences.release_format,
+                    model::architecture_label(&plan.preferences.architecture)
+                ));
+                ui.small("Only the listed Install and Update entries will run.");
+                egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
+                    for entry in &plan.entries {
+                        ui.separator(); ui.strong(format!("{}: {} {}", model::title(&entry.app), entry.action, entry.version));
+                        if let Some(error) = &entry.error {ui.colored_label(Color32::LIGHT_RED, error);}
+                        else {
+                            ui.small(entry.destination.as_ref().map(|p| format!("Destination: {}", p.display())).unwrap_or_else(|| "Destination: Applications / system installation (installer controlled)".into()));
+                            if let Some(asset) = &entry.asset { ui.hyperlink_to(RichText::new(&asset.name).small(), &asset.browser_download_url); }
+                        }
+                    }
+                });
+                ui.horizontal(|ui| {
+                    if ui
+                        .add_enabled(
+                            plan.executable_count() > 0,
+                            egui::Button::new(format!(
+                                "Confirm {} operations",
+                                plan.executable_count()
+                            )),
+                        )
+                        .clicked()
+                    {
+                        self.release_plan = None;
+                        let paths = self.paths.clone();
+                        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+                        self.operation_was_busy = true;
+                        self.job
+                            .spawn(move |job| updates::execute_plan(&paths, &plan, &job));
+                    }
+                    if ui.button("Cancel").clicked() {
+                        self.release_plan = None;
+                    }
+                });
+            });
+            if response.should_close() {
+                self.release_plan = None;
+            }
+        }
+
         if let Some(app) = self.confirm_install.clone() {
             let installer = self.preferences.release_format == "installer";
-            egui::Window::new("Confirm installation")
-                .collapsible(false).resizable(false).anchor(egui::Align2::CENTER_CENTER, [0.0,0.0])
-                .show(ctx, |ui| {
-                    ui.label(if installer {
-                        format!("Download and install the latest {} {} package?", model::title(&app), craft_apps_manager::installers::installer_label())
-                    } else {
-                        format!("Are you sure you want to download and install {}?", model::title(&app))
-                    });
-                    ui.small(format!("Source: https://github.com/storytold/{}/releases/latest", model::repository(&app)));
-                    ui.small(format!("Latest stable release · {} · {}", self.preferences.architecture, self.preferences.release_format));
-                    if installer { ui.small(if cfg!(target_os = "linux") {"You will be asked to authorize package installation."} else if cfg!(target_os = "macos") {"The app will be copied into your Applications folder."} else {"The Windows installer will open. Follow its wizard; Windows may ask for administrator permission."}); }
-                    ui.horizontal(|ui| {
-                        if ui.button("Yes").clicked() {
-                            self.app = app.clone();
-                            self.confirm_install = None;
-                            self.start("install-app");
-                        }
-                        if ui.button("No").clicked() { self.confirm_install = None; }
-                    });
+            let modal = modal(ctx, "Confirm installation", |ui| {
+                ui.label(if installer {
+                    format!(
+                        "Download and install the latest {} {} package?",
+                        model::title(&app),
+                        craft_apps_manager::installers::installer_label()
+                    )
+                } else {
+                    format!(
+                        "Are you sure you want to download and install {}?",
+                        model::title(&app)
+                    )
                 });
+                ui.small(format!(
+                    "Source: https://github.com/storytold/{}/releases/latest",
+                    model::repository(&app)
+                ));
+                ui.small(format!(
+                    "Latest stable release · {} · {}",
+                    model::architecture_label(&self.preferences.architecture),
+                    self.preferences.release_format
+                ));
+                if installer {
+                    ui.small(if cfg!(target_os = "linux") {"You will be asked to authorize package installation."} else if cfg!(target_os = "macos") {"The app will be copied into your Applications folder."} else {"The Windows installer will open. Follow its wizard; Windows may ask for administrator permission."});
+                }
+                ui.horizontal(|ui| {
+                    if ui.button("Yes").clicked() {
+                        self.app = app.clone();
+                        self.confirm_install = None;
+                        self.start("install-app");
+                    }
+                    if ui.button("No").clicked() {
+                        self.confirm_install = None;
+                    }
+                });
+            });
+            if modal.should_close() {
+                self.confirm_install = None;
+            }
         }
         if self.launch_settings_open {
-            egui::Window::new(format!("{} launch settings", model::title(&self.app)))
-                .collapsible(false)
-                .resizable(false)
-                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-                .show(ctx, |ui| {
+            let modal = modal(
+                ctx,
+                format!("{} launch settings", model::title(&self.app)),
+                |ui| {
                     ui.label("Executable");
+
                     egui::ComboBox::from_id_salt("launch-executable")
                         .selected_text(if self.launch_draft.executable.is_empty() {
                             "Default executable"
@@ -501,31 +676,53 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                             self.launch_settings_open = false;
                         }
                     });
-                });
+                },
+            );
+            if modal.should_close() {
+                self.launch_settings_open = false;
+            }
         }
         if self.confirm_uninstall {
-            egui::Window::new(format!("Uninstall {}?", model::title(&self.app)))
-                .collapsible(false)
-                .resizable(false)
-                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-                .show(ctx, |ui| {
+            let modal = modal(
+                ctx,
+                format!("Uninstall {}?", model::title(&self.app)),
+                |ui| {
                     ui.label("Are you sure you want to uninstall this app?");
-                    if let Some(app) = self.display_config.as_ref().and_then(|c| c.apps.iter().find(|a| a.name == self.app)) {
+
+                    if let Some(app) = self
+                        .display_config
+                        .as_ref()
+                        .and_then(|c| c.apps.iter().find(|a| a.name == self.app))
+                    {
                         ui.label(&app.path);
                     }
                     ui.small("Source ZIPs, builds, backups and launch settings will be kept.");
-                    let targets=profiles::targets(&self.paths,&self.app);
+                    let targets = profiles::targets(&self.paths, &self.app);
                     ui.add_space(8.0);
-                    ui.add_enabled(targets.is_ok(),egui::Checkbox::new(&mut self.delete_profile,"Delete app profile data"));
+                    ui.add_enabled(
+                        targets.is_ok(),
+                        egui::Checkbox::new(&mut self.delete_profile, "Delete app profile data"),
+                    );
                     ui.small("Removes settings, caches, plug-ins and recovery/autosave copies from the folders below. Other installed copies may share this data.");
                     match &targets {
-                        Ok(targets)=>{
-                            let existing:Vec<_>=targets.iter().filter(|t|t.path.exists()).collect();
-                            if existing.is_empty(){ui.small("No existing profile folders found.");}
-                            egui::ScrollArea::vertical().max_height(100.0).show(ui,|ui|{for target in existing {ui.small(target.path.display().to_string());}});
+                        Ok(targets) => {
+                            let existing: Vec<_> =
+                                targets.iter().filter(|t| t.path.exists()).collect();
+                            if existing.is_empty() {
+                                ui.small("No existing profile folders found.");
+                            }
+                            egui::ScrollArea::vertical()
+                                .max_height(100.0)
+                                .show(ui, |ui| {
+                                    for target in existing {
+                                        ui.small(target.path.display().to_string());
+                                    }
+                                });
                             ui.small("Custom profile locations outside these folders are kept.");
                         }
-                        Err(error)=>{ui.small(format!("Could not identify profile folders: {error}"));}
+                        Err(error) => {
+                            ui.small(format!("Could not identify profile folders: {error}"));
+                        }
                     }
                     ui.add_space(8.0);
                     ui.horizontal(|ui| {
@@ -537,7 +734,11 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                             self.confirm_uninstall = false;
                         }
                     });
-                });
+                },
+            );
+            if modal.should_close() {
+                self.confirm_uninstall = false;
+            }
         }
         if self.selection {
             let choices: &[&str] = if self.source_selection {
@@ -545,260 +746,337 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             } else {
                 &APPS
             };
-            egui::Window::new(if self.source_selection {
-                "Choose source apps"
-            } else {
-                "Choose release apps"
-            })
-            .collapsible(false)
-            .resizable(false)
-            .default_width(340.0)
-            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-            .show(ctx, |ui| {
-                ui.label(if self.source_selection {
-                    "Choose which source ZIPs to update. ArtCraft X is source only."
+            let modal = modal(
+                ctx,
+                if self.source_selection {
+                    "Choose source apps"
                 } else {
-                    "Choose which apps receive release updates."
-                });
-                egui::Frame::group(ui.style()).show(ui, |ui| {
-                    ui.set_min_width(320.0);
-                    egui::ScrollArea::vertical()
-                        .max_height(250.0)
-                        .show(ui, |ui| {
-                            for &name in choices {
-                                let mut checked = self.selection_draft.iter().any(|s| s == name);
-                                if ui.checkbox(&mut checked, model::title(name)).changed() {
-                                    if checked {
-                                        self.selection_draft.push(name.into())
-                                    } else {
-                                        self.selection_draft.retain(|s| s != name)
+                    "Choose release apps"
+                },
+                |ui| {
+                    ui.label(if self.source_selection {
+                        "Choose which source ZIPs to update. ArtCraft X is source only."
+                    } else {
+                        "Choose which apps receive release updates."
+                    });
+
+                    egui::Frame::group(ui.style()).show(ui, |ui| {
+                        ui.set_min_width(320.0);
+                        egui::ScrollArea::vertical()
+                            .max_height(250.0)
+                            .show(ui, |ui| {
+                                for &name in choices {
+                                    let mut checked =
+                                        self.selection_draft.iter().any(|s| s == name);
+                                    if ui.checkbox(&mut checked, model::title(name)).changed() {
+                                        if checked {
+                                            self.selection_draft.push(name.into())
+                                        } else {
+                                            self.selection_draft.retain(|s| s != name)
+                                        }
                                     }
                                 }
-                            }
-                        });
-                });
-                ui.horizontal(|ui| {
-                    if ui.button("Select all").clicked() {
-                        self.selection_draft = choices.iter().map(|s| s.to_string()).collect();
-                    }
-                    if ui.button("Deselect all").clicked() {
-                        self.selection_draft.clear();
-                    }
-                });
-                ui.separator();
-                ui.horizontal(|ui| {
-                    if ui.button("OK").clicked() {
-                        if self.source_selection {
-                            self.settings_draft.selected_sources = self.selection_draft.clone();
-                        } else {
-                            self.settings_draft.selected_apps = self.selection_draft.clone();
+                            });
+                    });
+                    ui.horizontal(|ui| {
+                        if ui.button("Select all").clicked() {
+                            self.selection_draft = choices.iter().map(|s| s.to_string()).collect();
                         }
-                        self.selection = false;
+                        if ui.button("Deselect all").clicked() {
+                            self.selection_draft.clear();
+                        }
+                    });
+                    ui.separator();
+                    ui.horizontal(|ui| {
+                        if ui.button("OK").clicked() {
+                            if self.source_selection {
+                                self.settings_draft.selected_sources = self.selection_draft.clone();
+                            } else {
+                                self.settings_draft.selected_apps = self.selection_draft.clone();
+                            }
+                            self.selection = false;
+                        }
+                        if ui.button("Cancel").clicked() {
+                            self.selection = false;
+                        }
+                    });
+                },
+            );
+            if modal.should_close() {
+                self.selection = false;
+            }
+        }
+        if let Some(app) = self.restore_app.clone() {
+            let show = true;
+            let modal = modal(ctx, format!("{} backups", model::title(&app)), |ui| {
+                ui.heading("Available backups");
+
+                ui.horizontal(|ui| {
+                    let before = self.backup_delete_mode;
+                    ui.selectable_value(&mut self.backup_delete_mode, false, "Restore");
+                    ui.selectable_value(&mut self.backup_delete_mode, true, "Delete");
+                    if before != self.backup_delete_mode {
+                        self.confirm_restore = false;
+                        self.restore_selected = None;
+                        self.backup_delete_selected.clear();
+                    }
+                });
+                ui.small(if self.backup_delete_mode {"Select the backups you want to delete. Installed apps and source files are kept."}else{"Choose one backup to restore. The selected backup will be kept."});
+                if self.backup_delete_mode {
+                    ui.horizontal(|ui| {
+                        if ui.button("Select all").clicked() {
+                            self.backup_delete_selected = (0..self.restore_backups.len()).collect();
+                            self.confirm_restore = false;
+                        }
+                        if ui.button("Deselect all").clicked() {
+                            self.backup_delete_selected.clear();
+                            self.confirm_restore = false;
+                        }
+                        ui.small(format!("{} selected", self.backup_delete_selected.len()));
+                    });
+                }
+                ui.separator();
+                if self.restore_backups.is_empty() {
+                    ui.label("No backups are available for this app.");
+                }
+                egui::ScrollArea::vertical()
+                    .max_height(280.0)
+                    .show(ui, |ui| {
+                        for (i, backup) in self.restore_backups.iter().enumerate() {
+                            let filename = backup.path.file_name().unwrap().to_string_lossy();
+                            let version = filename
+                                .strip_prefix(&if backup.source {
+                                    format!("{app}-source-")
+                                } else {
+                                    format!("{app}-")
+                                })
+                                .unwrap_or(&filename)
+                                .split('-')
+                                .take(1)
+                                .collect::<Vec<_>>()
+                                .join(" ");
+                            let date = std::fs::metadata(&backup.path)
+                                .and_then(|m| m.modified())
+                                .ok()
+                                .map(|t| {
+                                    chrono::DateTime::<chrono::Local>::from(t)
+                                        .format("%b %d, %Y · %I:%M %p")
+                                        .to_string()
+                                })
+                                .unwrap_or_default();
+                            let label = format!(
+                                "{} · {}\n{} · {}",
+                                if backup.source {
+                                    "Source"
+                                } else {
+                                    "Portable release"
+                                },
+                                version,
+                                date,
+                                if backup.path.is_dir() {
+                                    "Folder"
+                                } else if backup.path.extension().is_some_and(|e| e == "7z") {
+                                    "7-Zip archive"
+                                } else {
+                                    "ZIP archive"
+                                }
+                            );
+                            if ui
+                                .add_sized(
+                                    [ui.available_width(), 56.0],
+                                    egui::Button::new(label).selected(if self.backup_delete_mode {
+                                        self.backup_delete_selected.contains(&i)
+                                    } else {
+                                        self.restore_selected == Some(i)
+                                    }),
+                                )
+                                .clicked()
+                            {
+                                if self.backup_delete_mode {
+                                    if !self.backup_delete_selected.insert(i) {
+                                        self.backup_delete_selected.remove(&i);
+                                    }
+                                } else {
+                                    self.restore_selected = Some(i);
+                                }
+                                self.confirm_restore = false;
+                            }
+                        }
+                    });
+                ui.separator();
+                if self.confirm_restore {
+                    ui.colored_label(
+                        Color32::from_rgb(230, 180, 100),
+                        if self.backup_delete_mode {
+                            "Permanently delete the selected backups?"
+                        } else {
+                            "This replaces the current managed copy. Continue?"
+                        },
+                    );
+                }
+                ui.horizontal(|ui| {
+                    if ui
+                        .add_enabled(
+                            (if self.backup_delete_mode {
+                                !self.backup_delete_selected.is_empty()
+                            } else {
+                                self.restore_selected.is_some()
+                            }) && !self.job.state.lock().unwrap().busy,
+                            egui::Button::new(if self.backup_delete_mode && self.confirm_restore {
+                                "Confirm deletion"
+                            } else if self.backup_delete_mode {
+                                "Delete selected backups…"
+                            } else if self.confirm_restore {
+                                "Confirm restore"
+                            } else {
+                                "Restore selected backup…"
+                            })
+                            .fill(BLUE),
+                        )
+                        .clicked()
+                    {
+                        if self.confirm_restore {
+                            let selected: Vec<_> = if self.backup_delete_mode {
+                                self.backup_delete_selected
+                                    .iter()
+                                    .map(|i| self.restore_backups[*i].clone())
+                                    .collect()
+                            } else {
+                                vec![self.restore_backups[self.restore_selected.unwrap()].clone()]
+                            };
+                            let deleting = self.backup_delete_mode;
+                            let paths = self.paths.clone();
+                            let app = app.clone();
+                            self.release_checks.remove(&app);
+                            self.job =
+                                Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+                            self.job.spawn(move |job| {
+                                if deleting {
+                                    backups::delete_selected(&paths, &app, &selected)?;
+                                    job.log(&format!(
+                                        "Deleted {} backup(s) for {}",
+                                        selected.len(),
+                                        model::title(&app)
+                                    ));
+                                    Ok(())
+                                } else {
+                                    backups::restore(&paths, &app, &selected[0], &job)
+                                }
+                            });
+                            self.restore_app = None;
+                        } else {
+                            self.confirm_restore = true;
+                        }
                     }
                     if ui.button("Cancel").clicked() {
-                        self.selection = false;
+                        self.restore_app = None;
                     }
                 });
             });
-        }
-        if let Some(app) = self.restore_app.clone() {
-            let mut show = true;
-            egui::Window::new(format!("{} backups", model::title(&app)))
-                .open(&mut show)
-                .collapsible(false)
-                .resizable(false)
-                .default_width(560.0)
-                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-                .show(ctx, |ui| {
-                    ui.heading("Available backups");
-                    ui.horizontal(|ui| {
-                        let before=self.backup_delete_mode;
-                        ui.selectable_value(&mut self.backup_delete_mode,false,"Restore");
-                        ui.selectable_value(&mut self.backup_delete_mode,true,"Delete");
-                        if before!=self.backup_delete_mode {self.confirm_restore=false;self.restore_selected=None;self.backup_delete_selected.clear();}
-                    });
-                    ui.small(if self.backup_delete_mode {"Select the backups you want to delete. Installed apps and source files are kept."}else{"Choose one backup to restore. The selected backup will be kept."});
-                    if self.backup_delete_mode {
-                        ui.horizontal(|ui| {
-                            if ui.button("Select all").clicked(){self.backup_delete_selected=(0..self.restore_backups.len()).collect();self.confirm_restore=false;}
-                            if ui.button("Deselect all").clicked(){self.backup_delete_selected.clear();self.confirm_restore=false;}
-                            ui.small(format!("{} selected",self.backup_delete_selected.len()));
-                        });
-                    }
-                    ui.separator();
-                    if self.restore_backups.is_empty() {
-                        ui.label("No backups are available for this app.");
-                    }
-                    egui::ScrollArea::vertical()
-                        .max_height(280.0)
-                        .show(ui, |ui| {
-                            for (i, backup) in self.restore_backups.iter().enumerate() {
-                                let filename = backup.path.file_name().unwrap().to_string_lossy();
-                                let version = filename
-                                    .strip_prefix(&if backup.source {format!("{app}-source-")}else{format!("{app}-")})
-                                    .unwrap_or(&filename)
-                                    .split('-')
-                                    .take(1)
-                                    .collect::<Vec<_>>()
-                                    .join(" ");
-                                let date = std::fs::metadata(&backup.path)
-                                    .and_then(|m| m.modified())
-                                    .ok()
-                                    .map(|t| {
-                                        chrono::DateTime::<chrono::Local>::from(t)
-                                            .format("%b %d, %Y · %I:%M %p")
-                                            .to_string()
-                                    })
-                                    .unwrap_or_default();
-                                let label = format!(
-                                    "{} · {}\n{} · {}",
-                                    if backup.source {
-                                        "Source"
-                                    } else {
-                                        "Portable release"
-                                    },
-                                    version,
-                                    date,
-                                    if backup.path.is_dir() {
-                                        "Folder"
-                                    } else if backup.path.extension().is_some_and(|e| e == "7z") {
-                                        "7-Zip archive"
-                                    } else {
-                                        "ZIP archive"
-                                    }
-                                );
-                                if ui
-                                    .add_sized(
-                                        [ui.available_width(), 56.0],
-                                        egui::Button::new(label)
-                                            .selected(if self.backup_delete_mode {self.backup_delete_selected.contains(&i)}else{self.restore_selected == Some(i)}),
-                                    )
-                                    .clicked()
-                                {
-                                    if self.backup_delete_mode {
-                                        if !self.backup_delete_selected.insert(i){self.backup_delete_selected.remove(&i);}
-                                    }else{self.restore_selected = Some(i);}
-                                    self.confirm_restore = false;
-                                }
-                            }
-                        });
-                    ui.separator();
-                    if self.confirm_restore {
-                        ui.colored_label(
-                            Color32::from_rgb(230, 180, 100),
-                            if self.backup_delete_mode {"Permanently delete the selected backups?"}else{"This replaces the current managed copy. Continue?"},
-                        );
-                    }
-                    ui.horizontal(|ui| {
-                        if ui
-                            .add_enabled(
-                                (if self.backup_delete_mode {!self.backup_delete_selected.is_empty()}else{self.restore_selected.is_some()})
-                                    && !self.job.state.lock().unwrap().busy,
-                                egui::Button::new(if self.backup_delete_mode && self.confirm_restore {"Confirm deletion"}else if self.backup_delete_mode {"Delete selected backups…"}else if self.confirm_restore {
-                                    "Confirm restore"
-                                } else {
-                                    "Restore selected backup…"
-                                })
-                                .fill(BLUE),
-                            )
-                            .clicked()
-                        {
-                            if self.confirm_restore {
-                                let selected:Vec<_>= if self.backup_delete_mode {self.backup_delete_selected.iter().map(|i|self.restore_backups[*i].clone()).collect()}else{vec![self.restore_backups[self.restore_selected.unwrap()].clone()]};
-                                let deleting=self.backup_delete_mode;
-                                let paths = self.paths.clone();
-                                let app = app.clone();
-                                self.release_checks.remove(&app);
-                                self.job =
-                                    Job::new(paths.at("logs/updates.log"), &self.build_preferences);
-                                self.job.spawn(move |job| {
-                                    if deleting {backups::delete_selected(&paths,&app,&selected)?;job.log(&format!("Deleted {} backup(s) for {}",selected.len(),model::title(&app)));Ok(())}else{backups::restore(&paths, &app, &selected[0], &job)}
-                                });
-                                self.restore_app = None;
-                            } else {
-                                self.confirm_restore = true;
-                            }
-                        }
-                        if ui.button("Cancel").clicked() {
-                            self.restore_app = None;
-                        }
-                    });
-                });
+            if modal.should_close() {
+                self.restore_app = None;
+            }
+
             if !show {
                 self.restore_app = None;
             }
         }
         if self.confirm_self_update {
-            egui::Window::new("Update Craft Apps Manager").collapsible(false).resizable(false).show(ctx, |ui| {
-                ui.label(if self_update::installed_with_msi() {"Download and install the new manager version?"} else {"Download the new manager and restart this window?"});
+            let modal = modal(ctx, "Update Craft Apps Manager", |ui| {
+                ui.label(if self_update::installed_with_msi() {
+                    "Download and install the new manager version?"
+                } else {
+                    "Download the new manager and restart this window?"
+                });
                 ui.small("Close other manager and builder windows first. Your library and settings will be kept.");
-                ui.hyperlink_to(format!("Release source: {}", self_update::REPOSITORY_NAME), self_update::REPOSITORY);
+                ui.hyperlink_to(
+                    format!("Release source: {}", self_update::REPOSITORY_NAME),
+                    self_update::REPOSITORY,
+                );
                 ui.horizontal(|ui| {
-                    if ui.button(if self_update::installed_with_msi() {"Download and install"} else {"Download and restart"}).clicked() {
-                        if let Some(available)=self.manager_available.clone() {
-                            let paths=self.paths.clone(); let ctx=ctx.clone(); let (tx,rx)=std::sync::mpsc::channel(); self.manager_plan=Some(rx);
-                            self.job=Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
+                    if ui
+                        .button(if self_update::installed_with_msi() {
+                            "Download and install"
+                        } else {
+                            "Download and restart"
+                        })
+                        .clicked()
+                    {
+                        if let Some(available) = self.manager_available.clone() {
+                            let paths = self.paths.clone();
+                            let ctx = ctx.clone();
+                            let (tx, rx) = std::sync::mpsc::channel();
+                            self.manager_plan = Some(rx);
+                            self.job = Job::new(
+                                self.paths.at("logs/updates.log"),
+                                &self.build_preferences,
+                            );
                             self.job.spawn(move |job| {
-                                let result=self_update::prepare(&paths,&available,&job);
-                                let message=result.as_ref().err().map(|e|format!("{e:#}"));
-                                let _=tx.send(result.map_err(|e|format!("{e:#}")));ctx.request_repaint();
-                                if let Some(message)=message {anyhow::bail!(message);} Ok(())
+                                let result = self_update::prepare(&paths, &available, &job);
+                                let _ = tx.send(result_for_display(&result));
+                                ctx.request_repaint();
+                                result.map(|_| ())
                             });
-                            self.manager_message="Downloading and verifying manager…".into();
+                            self.manager_message = "Downloading and verifying manager…".into();
                         }
-                        self.confirm_self_update=false;
+                        self.confirm_self_update = false;
                     }
-                    if ui.button("Cancel").clicked(){self.confirm_self_update=false;}
+                    if ui.button("Cancel").clicked() {
+                        self.confirm_self_update = false;
+                    }
                 });
             });
+            if modal.should_close() {
+                self.confirm_self_update = false;
+            }
         }
         if self.confirm_clear || self.confirm_clean {
-            egui::Window::new("Confirm cleanup")
-                .collapsible(false)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    ui.label(if self.confirm_clear {
-                        "Delete managed release and source backups?"
-                    } else {
-                        "Delete compilation caches and extracted source workspaces?"
-                    });
-                    ui.small("Installed apps, finished builds, source ZIPs and tools will remain.");
-                    ui.horizontal(|ui| {
-                        if ui.button("Delete").clicked() {
-                            self.start(if self.confirm_clear { "clear" } else { "clean" });
-                            self.confirm_clear = false;
-                            self.confirm_clean = false;
-                        }
-                        if ui.button("Cancel").clicked() {
-                            self.confirm_clear = false;
-                            self.confirm_clean = false;
-                        }
-                    });
+            let modal = modal(ctx, "Confirm cleanup", |ui| {
+                ui.label(if self.confirm_clear {
+                    "Delete managed release and source backups?"
+                } else {
+                    "Delete compilation caches and extracted source workspaces?"
                 });
+                ui.small("Installed apps, finished builds, source ZIPs and tools will remain.");
+                ui.horizontal(|ui| {
+                    if ui.button("Delete").clicked() {
+                        self.start(if self.confirm_clear { "clear" } else { "clean" });
+                        self.confirm_clear = false;
+                        self.confirm_clean = false;
+                    }
+                    if ui.button("Cancel").clicked() {
+                        self.confirm_clear = false;
+                        self.confirm_clean = false;
+                    }
+                });
+            });
+            if modal.should_close() {
+                self.confirm_clear = false;
+                self.confirm_clean = false;
+            }
         }
         if let Some(message) = self.selection_notice.clone() {
-            egui::Window::new("No apps selected")
-                .collapsible(false)
-                .resizable(false)
-                .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-                .default_width(410.0)
-                .show(ctx, |ui| {
-                    ui.label(message);
-                    ui.add_space(8.0);
-                    if ui.button("OK").clicked() {
-                        self.selection_notice = None;
-                    }
-                });
+            let modal = modal(ctx, "No apps selected", |ui| {
+                ui.label(message);
+                ui.add_space(8.0);
+                if ui.button("OK").clicked() {
+                    self.selection_notice = None;
+                }
+            });
+            if modal.should_close() {
+                self.selection_notice = None;
+            }
         }
         if let Some(error) = self.error.clone() {
-            egui::Window::new("Craft Apps Manager")
-                .collapsible(false)
-                .show(ctx, |ui| {
-                    ui.colored_label(Color32::from_rgb(240, 130, 120), error);
-                    if ui.button("OK").clicked() {
-                        self.error = None;
-                    }
-                });
+            let modal = modal(ctx, "Craft Apps Manager", |ui| {
+                ui.colored_label(Color32::from_rgb(240, 130, 120), error);
+                if ui.button("OK").clicked() {
+                    self.error = None;
+                }
+            });
+            if modal.should_close() {
+                self.error = None;
+            }
         }
     }
     fn log_panel(&mut self, ui: &mut egui::Ui, state: &State) {
@@ -860,6 +1138,34 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
 }
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        ctx.data_mut(|data| {
+            data.insert_temp(egui::Id::new("active-dialogs"), Vec::<egui::Id>::new())
+        });
+        if let Some(receiver) = &self.plan_receiver {
+            match receiver.try_recv() {
+                Ok(result) => {
+                    self.plan_receiver = None;
+                    match result {
+                        Ok(plan) => {
+                            if !self.closing {
+                                self.release_plan = Some(plan);
+                            }
+                        }
+                        Err((cancelled, error)) => {
+                            if !cancelled {
+                                self.error = Some(error);
+                            }
+                        }
+                    }
+                }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.plan_receiver = None;
+                    self.error =
+                        Some("Release planner stopped unexpectedly. See the activity log.".into());
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            }
+        }
         let busy = self.job.state.lock().unwrap().busy;
         if self.operation_was_busy && !busy {
             self.config_refresh_at = std::time::Instant::now();
@@ -868,7 +1174,7 @@ impl eframe::App for App {
         if let Some(receiver) = &self.config_receiver {
             if let Ok(result) = receiver.try_recv() {
                 match result {
-                    Ok((config, backups, checks)) => {
+                    Ok((config, alternates, backups, checks)) => {
                         if self.display_config.is_none() {
                             for app in &config.apps {
                                 if let Some(check) = checks.get(&craft_apps_manager::hourly::key(
@@ -884,6 +1190,7 @@ impl eframe::App for App {
                                 }
                             }
                         }
+                        self.alternates = alternates;
                         self.display_config = Some(config);
                         self.display_backups = backups;
                     }
@@ -905,6 +1212,7 @@ impl eframe::App for App {
             std::thread::spawn(move || {
                 let result = (|| -> Result<DisplaySnapshot> {
                     let config = paths.config()?;
+                    let alternates = paths.alternate_installations(&config)?;
                     let backups = APPS
                         .into_iter()
                         .map(|name| {
@@ -912,7 +1220,7 @@ impl eframe::App for App {
                         })
                         .collect::<Result<_>>()?;
                     let checks = craft_apps_manager::hourly::read(&paths)?;
-                    Ok((config, backups, checks))
+                    Ok((config, alternates, backups, checks))
                 })();
                 let _ = tx.send(result.map_err(|e| format!("{e:#}")));
                 ctx.request_repaint();
@@ -959,9 +1267,13 @@ impl eframe::App for App {
                         Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                         Err(error) => self.result(Err(error)),
                     },
-                    Err(error) => {
-                        self.manager_message = "Manager download failed.".into();
-                        self.error = Some(error);
+                    Err((cancelled, error)) => {
+                        if cancelled {
+                            self.manager_message = "Manager download cancelled.".into();
+                        } else {
+                            self.manager_message = "Manager download failed.".into();
+                            self.error = Some(error);
+                        }
                     }
                 }
             }
@@ -999,10 +1311,12 @@ impl eframe::App for App {
             });
             ctx.request_repaint_after(Duration::from_millis(50));
         }
-        let state = self.job.state.lock().unwrap().clone();
+        let mut state = self.job.state.lock().unwrap().clone();
+        state.busy |= self.release_pending();
         if ctx.input(|i| i.viewport().close_requested()) && state.busy {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.closing = true;
+            self.release_plan = None;
             self.job.cancel.store(true, Ordering::Relaxed);
         }
         if self.closing && !state.busy {
@@ -1172,16 +1486,58 @@ impl eframe::App for App {
                                                 && matches!(result, Ok(Some(_)))
                                         },
                                     );
+                                let alternate = self.alternates.iter().find(|a| a.name == name);
+                                let other_label = alternate.map(|a| {
+                                    if a.install_kind == "installer" {
+                                        if cfg!(target_os = "macos") {
+                                            "Applications"
+                                        } else {
+                                            "System install"
+                                        }
+                                    } else {
+                                        "Portable"
+                                    }
+                                });
                                 let status_text = if is_installed {
-                                    format!("Installed · {version}")
+                                    format!(
+                                        "Installed · {version} · {}{}",
+                                        self.preferences.release_format,
+                                        alternate
+                                            .map(|a| format!(
+                                                " · also {} {}",
+                                                other_label.unwrap_or("Alternate"),
+                                                a.version
+                                            ))
+                                            .unwrap_or_default()
+                                    )
+                                } else if let Some(alternate) = alternate {
+                                    format!(
+                                        "{} {} · no {} copy",
+                                        other_label.unwrap_or("Alternate"),
+                                        alternate.version,
+                                        self.preferences.release_format
+                                    )
                                 } else {
                                     version.to_owned()
                                 };
                                 let selected = self.app_selected && self.app == name;
                                 let (rect, response) = ui.allocate_exact_size(
                                     egui::vec2(ui.available_width(), 56.0),
-                                    egui::Sense::click_and_drag(),
+                                    if state.busy {
+                                        egui::Sense::hover()
+                                    } else {
+                                        egui::Sense::click_and_drag()
+                                    },
                                 );
+                                let response = response.on_hover_text(&status_text);
+                                response.widget_info(|| {
+                                    egui::WidgetInfo::selected(
+                                        egui::WidgetType::SelectableLabel,
+                                        !state.busy,
+                                        selected,
+                                        format!("{} · {}", model::title(name), status_text),
+                                    )
+                                });
                                 response.dnd_set_drag_payload(app_name.clone());
                                 if response.dragged() {
                                     ctx.set_cursor_icon(egui::CursorIcon::Grabbing);
@@ -1259,11 +1615,17 @@ impl eframe::App for App {
                                     egui::FontId::proportional(14.0),
                                     Color32::from_gray(220),
                                 );
-                                ui.painter().text(
-                                    rect.min + egui::vec2(52.0, 32.0),
-                                    egui::Align2::LEFT_TOP,
-                                    &status_text,
+                                let mut status_job = egui::text::LayoutJob::simple_singleline(
+                                    status_text.clone(),
                                     egui::FontId::proportional(11.0),
+                                    Color32::from_gray(160),
+                                );
+                                status_job.wrap.max_width = (rect.width() - 88.0).max(1.0);
+                                status_job.wrap.max_rows = 1;
+                                let status_galley = ui.painter().layout_job(status_job);
+                                ui.painter().galley(
+                                    rect.min + egui::vec2(52.0, 32.0),
+                                    status_galley,
                                     if is_installed {
                                         Color32::from_rgb(130, 195, 155)
                                     } else {
@@ -1272,17 +1634,8 @@ impl eframe::App for App {
                                 );
                                 let mut install_clicked = false;
                                 if (!is_installed && config.is_some()) || update_available {
-                                    let text_width = ui
-                                        .painter()
-                                        .layout_no_wrap(
-                                            status_text.clone(),
-                                            egui::FontId::proportional(11.0),
-                                            Color32::from_gray(125),
-                                        )
-                                        .size()
-                                        .x;
                                     let button_rect = egui::Rect::from_min_size(
-                                        rect.min + egui::vec2(52.0 + text_width + 8.0, 29.0),
+                                        egui::pos2(rect.right() - 28.0, rect.top() + 29.0),
                                         egui::vec2(20.0, 20.0),
                                     );
                                     let mut button_ui =
@@ -1545,6 +1898,7 @@ impl eframe::App for App {
                                 if install_clicked {
                                     self.confirm_install = Some(name.into());
                                 } else if response.clicked() {
+                                    response.request_focus();
                                     self.app_selected = !selected;
                                     self.app = name.into();
                                     self.launch_settings_open = false;
@@ -1563,29 +1917,31 @@ impl eframe::App for App {
                                 }
                             }
                             if let Some((dragged, target, before)) = reorder {
-                                let mut preferences = self.preferences.clone();
-                                preferences.app_order.retain(|name| name != &dragged);
-                                if let Some(index) = preferences
-                                    .app_order
-                                    .iter()
-                                    .position(|name| name == &target)
-                                {
-                                    preferences
-                                        .app_order
-                                        .insert(index + usize::from(!before), dragged);
-                                    match files::write_json(
-                                        &self.paths.at("manager-settings.json"),
-                                        &preferences,
-                                    ) {
-                                        Ok(()) => {
-                                            self.settings_draft.app_order =
-                                                preferences.app_order.clone();
-                                            self.preferences = preferences;
+                                match craft_apps_manager::settings::reorder(
+                                    &self.paths,
+                                    &dragged,
+                                    &target,
+                                    before,
+                                ) {
+                                    Ok(preferences) => {
+                                        if self.preferences.release_format
+                                            != preferences.release_format
+                                            || self.preferences.architecture
+                                                != preferences.architecture
+                                        {
+                                            self.check_generation += 1;
+                                            self.checking_apps.clear();
+                                            self.release_checks.clear();
+                                            self.display_config = None;
+                                            self.config_receiver = None;
+                                            self.config_refresh_at = std::time::Instant::now();
                                         }
-                                        Err(error) => {
-                                            self.error =
-                                                Some(format!("Could not save app order: {error:#}"))
-                                        }
+                                        self.settings_draft = preferences.clone();
+                                        self.preferences = preferences;
+                                    }
+                                    Err(error) => {
+                                        self.error =
+                                            Some(format!("Could not save app order: {error:#}"))
                                     }
                                 }
                             }
@@ -1711,7 +2067,11 @@ impl eframe::App for App {
                                 Color32::from_rgb(130, 195, 155)
                             }),
                         );
-                        ui.label(format!("Version {} · {}", app.version, app.architecture));
+                        ui.label(format!(
+                            "Version {} · {}",
+                            app.version,
+                            model::architecture_label(&app.architecture)
+                        ));
                         ui.small(if app.install_kind == "installer" {
                             if cfg!(target_os = "linux") {
                                 "Installed Linux package"
@@ -1725,10 +2085,38 @@ impl eframe::App for App {
                         });
                     } else {
                         ui.label(
-                            RichText::new("Not installed")
-                                .size(12.0)
-                                .color(Color32::from_gray(165)),
+                            RichText::new(
+                                if self.alternates.iter().any(|app| app.name == self.app) {
+                                    format!("No {} copy", self.preferences.release_format)
+                                } else {
+                                    "Not installed".into()
+                                },
+                            )
+                            .size(12.0)
+                            .color(Color32::from_gray(165)),
                         );
+                    }
+                    if let Some(alternate) = self.alternates.iter().find(|app| app.name == self.app)
+                    {
+                        let location = if alternate.install_kind == "installer" {
+                            if cfg!(target_os = "macos") {
+                                "Applications"
+                            } else {
+                                "system installation"
+                            }
+                        } else {
+                            "the portable library"
+                        };
+                        ui.label(format!(
+                            "Installed in {location} ({}){}",
+                            alternate.version,
+                            if installed.is_none() {
+                                format!("; no {} copy", self.preferences.release_format)
+                            } else {
+                                String::new()
+                            }
+                        ));
+                        ui.small(&alternate.path);
                     }
                     ui.add_space(12.0);
                     if ui
@@ -1932,8 +2320,8 @@ impl eframe::App for App {
                 });
         }
         egui::CentralPanel::default().show(ctx,|ui|{ui.add_space(12.0);
-            if !self.builder{ui.horizontal_top(|ui|{
-ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected releases").fill(BLUE).min_size(egui::vec2(225.0,36.0))).clicked(){self.start("releases")}});
+            if !self.builder{ui.label(format!("Active release format: {} · {}", self.preferences.release_format, model::architecture_label(&self.preferences.architecture)));ui.horizontal_top(|ui|{
+ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Install / update selected").fill(BLUE).min_size(egui::vec2(225.0,36.0))).clicked(){self.start("releases")}});
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected sources").min_size(egui::vec2(225.0,36.0))).clicked(){self.start("sources")}});
 if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal(|ui|{ui.spacing_mut().item_spacing.x=3.0;ui.small("Choose apps for release and source updates in");if ui.link(RichText::new("Settings").small().color(BLUE)).clicked(){self.open_settings();}});
                 ui.horizontal(|ui|{if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto,"Check for app updates hourly")).on_hover_text("Checks selected installed apps and notifies you when a new version is available. Supports installers and portable ZIPs; nothing downloads automatically.").changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
@@ -1946,6 +2334,7 @@ if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel
         });
         self.settings_ui(ctx);
         self.dialogs(ctx);
+        restore_dialog_focus(ctx);
         if state.busy {
             ctx.request_repaint_after(Duration::from_millis(100));
         } else {
@@ -1956,4 +2345,82 @@ if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel
 /// Linux package installs wait on a PolicyKit prompt and cannot be cancelled.
 fn authorizing_package(stage: &str) -> bool {
     cfg!(target_os = "linux") && stage == "Installing package"
+}
+
+#[derive(Clone, Default)]
+struct DialogFocus(Vec<(egui::Id, Option<egui::Id>)>);
+fn modal(
+    ctx: &egui::Context,
+    title: impl Into<String>,
+    content: impl FnOnce(&mut egui::Ui),
+) -> egui::ModalResponse<()> {
+    let title = title.into();
+    let id = egui::Id::new(&title);
+    let focused = ctx.memory(|memory| memory.focused());
+    ctx.data_mut(|data| {
+        let stack = data.get_temp_mut_or_default::<DialogFocus>(egui::Id::new("dialog-focus"));
+        if !stack.0.iter().any(|(open, _)| *open == id) {
+            stack.0.push((id, focused));
+        }
+        data.get_temp_mut_or_default::<Vec<egui::Id>>(egui::Id::new("active-dialogs"))
+            .push(id);
+    });
+    egui::Modal::new(id).show(ctx, |ui| {
+        ui.set_max_width(570.0);
+        ui.heading(&title);
+        content(ui);
+    })
+}
+fn restore_dialog_focus(ctx: &egui::Context) {
+    let focus = ctx.data_mut(|data| {
+        let active = data
+            .get_temp::<Vec<egui::Id>>(egui::Id::new("active-dialogs"))
+            .unwrap_or_default();
+        let stack = data.get_temp_mut_or_default::<DialogFocus>(egui::Id::new("dialog-focus"));
+        let mut focus = None;
+        // When several nested dialogs close together, restore the outer opener.
+        for (id, opener) in stack.0.iter().rev() {
+            if !active.contains(id) {
+                focus = *opener;
+            }
+        }
+        stack.0.retain(|(id, _)| active.contains(id));
+        focus
+    });
+    if let Some(id) = focus {
+        ctx.memory_mut(|memory| memory.request_focus(id));
+    }
+}
+
+fn result_for_display<T: Clone>(result: &Result<T>) -> Result<T, (bool, String)> {
+    match result {
+        Ok(value) => Ok(value.clone()),
+        Err(error) => Err((
+            craft_apps_manager::jobs::is_cancelled(error),
+            format!("{error:#}"),
+        )),
+    }
+}
+#[cfg(test)]
+mod outcome_tests {
+    use super::*;
+    #[test]
+    fn display_copy_retains_cancellation_and_real_failure_distinction() {
+        let cancelled: Result<PathBuf> =
+            Err(anyhow::Error::new(craft_apps_manager::jobs::Cancelled)
+                .context("Manager download interrupted"));
+        let copy = result_for_display(&cancelled).unwrap_err();
+        assert!(copy.0);
+        assert!(copy.1.contains("Manager download interrupted"));
+        if let Err(error) = &cancelled {
+            assert!(craft_apps_manager::jobs::is_cancelled(error));
+        }
+        let failure: Result<PathBuf> = Err(anyhow::anyhow!("Digest mismatch"));
+        assert!(!result_for_display(&failure).unwrap_err().0);
+        let success = Ok(PathBuf::from("prepared-update"));
+        assert_eq!(
+            result_for_display(&success).unwrap(),
+            PathBuf::from("prepared-update")
+        );
+    }
 }
