@@ -43,6 +43,7 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
         let entry = entry?;
         if !entry.file_type()?.is_symlink()
             && crate::model::is_executable(&entry.path())
+            && valid_launch_item(&entry.path(), app)
             && (cfg!(target_os = "windows")
                 && entry
                     .path()
@@ -58,16 +59,43 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     names.sort();
     Ok(names)
 }
+fn valid_launch_item(item: &std::path::Path, app: &str) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        crate::installers::is_owned_bundle(item, app)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (item, app);
+        true
+    }
+}
+fn launch_executable(root: &std::path::Path, app: &str, selected: &str) -> Result<String> {
+    let default = || {
+        crate::model::installed_executable(root, app)
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+            .context("App executable is missing")
+    };
+    if selected.is_empty() {
+        return default();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let aliases = crate::model::executable_names(app);
+        let chosen = std::path::Path::new(selected);
+        let recognized = aliases
+            .iter()
+            .any(|name| chosen == std::path::Path::new(name) || chosen == root.join(name));
+        if aliases.len() > 1 && recognized {
+            return default();
+        }
+    }
+    Ok(selected.into())
+}
 pub fn launch(paths: &Paths, app: &str) -> Result<()> {
     let installed = installed(paths, app)?;
     let settings = settings(paths, app)?;
-    let executable = if settings.executable.is_empty() {
-        crate::model::installed_executable(&PathBuf::from(&installed.path), app)
-            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
-            .context("App executable is missing")?
-    } else {
-        settings.executable
-    };
+    let executable = launch_executable(&PathBuf::from(&installed.path), app, &settings.executable)?;
     if !executables(paths, app)?.contains(&executable) {
         bail!("Selected executable is missing. Check launch settings.");
     }
@@ -198,4 +226,63 @@ pub fn repair_linux_shortcuts(paths: &Paths) -> Result<()> {
         std::fs::remove_file(old)?;
     }
     Ok(())
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod macos_launch_tests {
+    use super::*;
+    #[test]
+    fn renamed_bundle_selection_follows_current_app_without_changing_arguments() {
+        let root = std::env::temp_dir().join(format!("craft-launch-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let folder = paths.at("releases/printcraft");
+        std::fs::create_dir_all(&folder).unwrap();
+        files::write_json(
+            &paths.at("manager-settings.json"),
+            &crate::model::Preferences {
+                release_format: "portable".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        for (name, id) in [
+            ("PrintCraft.app", "ai.storyteller.printcraft"),
+            ("PdfCraft.app", "ai.storyteller.pdfcraft"),
+        ] {
+            let contents = folder.join(name).join("Contents");
+            std::fs::create_dir_all(&contents).unwrap();
+            std::fs::write(contents.join("Info.plist"), format!(r#"<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>{id}</string><key>CFBundleShortVersionString</key><string>0.4.0</string></dict></plist>"#)).unwrap();
+        }
+        for selected in [
+            String::new(),
+            "PrintCraft.app".into(),
+            folder.join("PrintCraft.app").display().to_string(),
+        ] {
+            let value = LaunchSettings {
+                executable: selected.clone(),
+                arguments: vec!["--profile".into(), "a folder with spaces".into()],
+            };
+            save(&paths, "printcraft", &value).unwrap();
+            let loaded = settings(&paths, "printcraft").unwrap();
+            assert_eq!(
+                launch_executable(&folder, "printcraft", &loaded.executable).unwrap(),
+                "PdfCraft.app"
+            );
+            assert_eq!(loaded.executable, selected);
+            assert_eq!(loaded.arguments, value.arguments);
+        }
+        std::fs::remove_dir_all(folder.join("PrintCraft.app")).unwrap();
+        assert_eq!(
+            launch_executable(&folder, "printcraft", "PrintCraft.app").unwrap(),
+            "PdfCraft.app"
+        );
+        assert_eq!(executables(&paths, "printcraft").unwrap(), ["PdfCraft.app"]);
+        for custom in ["custom-tool", "/elsewhere/PrintCraft.app"] {
+            assert_eq!(
+                launch_executable(&folder, "printcraft", custom).unwrap(),
+                custom
+            );
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

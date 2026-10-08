@@ -160,6 +160,26 @@ fn zip(path: &Path, fileset: &[(&str, &str)]) {
     }
     w.finish().unwrap();
 }
+fn fixture_payload(folder: &Path, app: &str) -> PathBuf {
+    let executable = folder.join(craft_apps_manager::model::executable_name(app));
+    if cfg!(target_os = "macos") {
+        executable.join("payload")
+    } else {
+        executable
+    }
+}
+fn write_release_fixture(folder: &Path, app: &str, payload: &str) {
+    #[cfg(target_os = "macos")]
+    {
+        let contents = folder
+            .join(craft_apps_manager::model::executable_name(app))
+            .join("Contents");
+        fs::create_dir_all(&contents).unwrap();
+        let id = craft_apps_manager::model::repository(app);
+        fs::write(contents.join("Info.plist"), format!(r#"<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{id}</string><key>CFBundleShortVersionString</key><string>0.1.0</string></dict></plist>"#)).unwrap();
+    }
+    fs::write(fixture_payload(folder, app), payload).unwrap();
+}
 fn job(root: &Path) -> Job {
     Job::new(root.join("logs/test.log"), &BuilderPreferences::default())
 }
@@ -174,11 +194,7 @@ fn portable_photo_profile_survives_uninstall_and_reinstall() {
     files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     let target = paths.at("releases/photocraft");
     fs::create_dir_all(target.join("PhotoCraftData")).unwrap();
-    fs::write(
-        target.join(craft_apps_manager::model::executable_name("photocraft")),
-        "fixture",
-    )
-    .unwrap();
+    write_release_fixture(&target, "photocraft", "fixture");
     fs::write(
         target.join("PhotoCraftData/preferences.json"),
         "saved profile",
@@ -221,24 +237,15 @@ fn app_backup_delete_and_restore_are_scoped() {
     let other = paths.at("backups/releases/designcraft-0.1.0-22222222222222222222222222222222");
     fs::create_dir_all(&film).unwrap();
     fs::create_dir_all(&other).unwrap();
-    fs::write(
-        film.join(craft_apps_manager::model::executable_name("filmcraft")),
-        "backup executable",
-    )
-    .unwrap();
+    write_release_fixture(&film, "filmcraft", "backup executable");
     let target = paths.at("releases/filmcraft");
     fs::create_dir_all(&target).unwrap();
-    fs::write(
-        target.join(craft_apps_manager::model::executable_name("filmcraft")),
-        "current executable",
-    )
-    .unwrap();
+    write_release_fixture(&target, "filmcraft", "current executable");
     let choices = backups::list(&paths, "filmcraft").unwrap();
     assert_eq!(choices.len(), 1);
     backups::restore(&paths, "filmcraft", &choices[0], &job(&f.0)).unwrap();
     assert_eq!(
-        fs::read_to_string(target.join(craft_apps_manager::model::executable_name("filmcraft")))
-            .unwrap(),
+        fs::read_to_string(fixture_payload(&target, "filmcraft")).unwrap(),
         "backup executable"
     );
     assert_eq!(
@@ -305,13 +312,7 @@ fn switching_release_format_remembers_both_installations() {
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
     fs::create_dir_all(&app.path).unwrap();
-    fs::write(
-        Path::new(&app.path).join(craft_apps_manager::model::executable_name(
-            "craft-test-missing-app",
-        )),
-        "fixture",
-    )
-    .unwrap();
+    write_release_fixture(Path::new(&app.path), "craft-test-missing-app", "fixture");
     paths.save_config(&config).unwrap();
     for (format, expected) in [("installer", ""), ("portable", "1.0.0"), ("installer", "")] {
         prefs.release_format = format.into();
@@ -375,11 +376,7 @@ fn individual_check_detects_newer_release_without_downloading() {
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
     fs::create_dir_all(&app.path).unwrap();
-    fs::write(
-        Path::new(&app.path).join(craft_apps_manager::model::executable_name("filmcraft")),
-        "fixture",
-    )
-    .unwrap();
+    write_release_fixture(Path::new(&app.path), "filmcraft", "fixture");
     files::write_json(
         &paths.at("manager-settings.json"),
         &Preferences {
@@ -421,11 +418,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     .unwrap();
     let folder = paths.at("releases/filmcraft");
     fs::create_dir_all(&folder).unwrap();
-    fs::write(
-        folder.join(craft_apps_manager::model::executable_name("filmcraft")),
-        "fixture",
-    )
-    .unwrap();
+    write_release_fixture(&folder, "filmcraft", "fixture");
     fs::create_dir_all(paths.at("sources")).unwrap();
     fs::write(paths.at("sources/filmcraft-source.zip"), "keep").unwrap();
     let mut config = paths.config().unwrap();
