@@ -4,11 +4,15 @@ A Windows app for downloading, updating, and building the Craft apps from Storyt
 
 The interface is written in Rust and uses a compact dark theme. This is an independent project, not an official Storytold or Adobe app.
 
-![Craft Apps Updater 0.3.0 with FilmCraft selected](docs/images/main.png)
+## Video tour
+
+[![Watch the Craft Apps Updater video tour](docs/images/main.png)](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/craft-apps-updater-tour.mp4)
+
+**[Watch the video tour](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/craft-apps-updater-tour.mp4)** — a short look at app controls, backups, settings, and the source builder. Click the preview above to open the video.
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
 
-Screenshots use an example library.
+The video and screenshots use an example library. Music: Prelude in C major, BWV 846, by Bach, performed by Kimiko Ishizaka ([CC0 recording and credit](docs/media/music-credit.txt)).
 
 <details>
 <summary>More screenshots</summary>
