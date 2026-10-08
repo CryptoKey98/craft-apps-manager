@@ -1,5 +1,4 @@
 //! The separate builder window (`--builder`): build any source, including ArtCraft X.
-use super::overview::log_view;
 use super::theme::{self, btn, Icon};
 use super::App;
 use craft_apps_manager::{
@@ -224,13 +223,14 @@ impl App {
                         }
                     });
                 });
-                log_view(
+                theme::log_view(
                     ui,
                     if state.log.is_empty() {
                         "Ready. Craft app checks run only when requested or scheduled."
                     } else {
                         &state.log
                     },
+                    false,
                 );
             });
     }

@@ -124,10 +124,22 @@ pub enum Icon {
 
 /// Strokes an icon drawn on the 24-unit grid the mockups use, scaled into `rect`.
 pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color32) {
+    paint_icon_weight(painter, rect, icon, color, 2.0);
+}
+
+/// Like `paint_icon` with a stroke of `weight` grid units (the mockups use 2, and
+/// 2.5 for the small arrow in the update pill).
+pub fn paint_icon_weight(
+    painter: &egui::Painter,
+    rect: Rect,
+    icon: Icon,
+    color: Color32,
+    weight: f32,
+) {
     let scale = rect.width().min(rect.height()) / 24.0;
     let origin = rect.center() - Vec2::splat(12.0 * scale);
     let p = |x: f32, y: f32| origin + egui::vec2(x, y) * scale;
-    let stroke = Stroke::new((2.0 * scale).max(1.2), color);
+    let stroke = Stroke::new((weight * scale).max(1.2), color);
     let line = |points: Vec<Pos2>| {
         painter.add(egui::Shape::line(points, stroke));
     };
@@ -143,14 +155,8 @@ pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color3
     match icon {
         Icon::Gear => {
             painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
-            painter.circle_stroke(p(12.0, 12.0), 7.0 * scale, stroke);
-            for i in 0..8 {
-                let a = (i as f32 * 45.0).to_radians();
-                line(vec![
-                    p(12.0 + 7.0 * a.cos(), 12.0 + 7.0 * a.sin()),
-                    p(12.0 + 10.0 * a.cos(), 12.0 + 10.0 * a.sin()),
-                ]);
-            }
+            let outline = GEAR.chunks_exact(2).map(|xy| p(xy[0], xy[1])).collect();
+            painter.add(egui::Shape::closed_line(outline, stroke));
         }
         Icon::Search => {
             painter.circle_stroke(p(11.0, 11.0), 7.5 * scale, stroke);
@@ -277,21 +283,67 @@ pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color3
     }
 }
 
+/// The outline of Feather's "settings" path on its 24-unit grid, sampled as x, y pairs.
+#[rustfmt::skip]
+const GEAR: [f32; 288] = [
+    19.40, 15.00, 19.27, 15.47, 19.29, 15.96, 19.44, 16.42, 19.73, 16.82, 19.79, 16.88,
+    20.19, 17.45, 20.37, 18.12, 20.31, 18.81, 20.01, 19.44, 19.52, 19.93, 18.89, 20.23,
+    18.20, 20.29, 17.53, 20.11, 16.96, 19.71, 16.90, 19.65, 16.50, 19.36, 16.04, 19.21,
+    15.55, 19.19, 15.08, 19.32, 14.56, 19.68, 14.20, 20.21, 14.08, 20.83, 14.08, 21.00,
+    13.96, 21.68, 13.61, 22.29, 13.08, 22.73, 12.43, 22.97, 11.73, 22.97, 11.08, 22.73,
+    10.55, 22.29, 10.20, 21.68, 10.08, 21.00, 10.08, 20.91, 10.00, 20.43, 9.77, 19.99,
+    9.43, 19.64, 9.00, 19.40, 8.53, 19.27, 8.04, 19.29, 7.58, 19.44, 7.18, 19.73,
+    7.12, 19.79, 6.47, 20.22, 5.70, 20.38, 4.94, 20.22, 4.29, 19.79, 3.86, 19.14,
+    3.70, 18.37, 3.86, 17.61, 4.29, 16.96, 4.35, 16.90, 4.66, 16.49, 4.82, 16.00,
+    4.83, 15.49, 4.68, 15.00, 4.32, 14.48, 3.79, 14.12, 3.17, 14.00, 3.00, 14.00,
+    2.32, 13.88, 1.71, 13.53, 1.27, 13.00, 1.03, 12.35, 1.03, 11.65, 1.27, 11.00,
+    1.71, 10.47, 2.32, 10.12, 3.00, 10.00, 3.09, 10.00, 3.71, 9.88, 4.24, 9.52,
+    4.60, 9.00, 4.73, 8.53, 4.71, 8.04, 4.56, 7.58, 4.27, 7.18, 4.21, 7.12,
+    3.81, 6.55, 3.63, 5.88, 3.69, 5.19, 3.99, 4.56, 4.48, 4.07, 5.11, 3.77,
+    5.80, 3.71, 6.47, 3.89, 7.04, 4.29, 7.10, 4.35, 7.51, 4.66, 8.00, 4.82,
+    8.51, 4.83, 9.00, 4.68, 9.52, 4.32, 9.88, 3.79, 10.00, 3.17, 10.00, 3.00,
+    10.12, 2.32, 10.47, 1.71, 11.00, 1.27, 11.65, 1.03, 12.35, 1.03, 13.00, 1.27,
+    13.53, 1.71, 13.88, 2.32, 14.00, 3.00, 14.00, 3.09, 14.12, 3.71, 14.48, 4.24,
+    15.00, 4.60, 15.47, 4.73, 15.96, 4.71, 16.42, 4.56, 16.82, 4.27, 16.88, 4.21,
+    17.45, 3.81, 18.12, 3.63, 18.81, 3.69, 19.44, 3.99, 19.93, 4.48, 20.23, 5.11,
+    20.29, 5.80, 20.11, 6.47, 19.71, 7.04, 19.65, 7.10, 19.36, 7.52, 19.22, 8.01,
+    19.23, 8.52, 19.40, 9.00, 19.76, 9.52, 20.29, 9.88, 20.91, 10.00, 21.00, 10.00,
+    21.68, 10.12, 22.29, 10.47, 22.73, 11.00, 22.97, 11.65, 22.97, 12.35, 22.73, 13.00,
+    22.29, 13.53, 21.68, 13.88, 21.00, 14.00, 20.91, 14.00, 20.29, 14.12, 19.76, 14.48,
+];
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
+    /// Accent fill, semibold white text.
     Primary,
+    /// Dark fill with a hairline border.
     Secondary,
+    /// Red fill, semibold white text.
     Danger,
+    /// Red outline and text on no fill, for destructive actions that open a confirmation.
+    DangerOutline,
+    /// Blue-tinted, medium weight: the manager "Update available" pill.
     Soft,
+    /// Dark-blue tinted, medium weight: the Build button.
+    Tinted,
+    /// No fill until hovered.
     Ghost,
 }
 
+/// Button sizes from the mockups.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Size {
-    Large,
+    /// 40pt actions on the Overview cards and the app page, 14pt text.
+    Card,
+    /// 36pt dialog and window actions, 14pt text.
     Medium,
+    /// 36pt top-bar button, 13pt text.
+    Toolbar,
+    /// 32pt row buttons, 13pt text.
     Small,
+    /// 24pt rounded pill, 12pt text.
     Pill,
+    /// 24pt rounded chip, 11pt text.
     Chip,
 }
 
@@ -299,7 +351,9 @@ pub struct Btn<'a> {
     text: &'a str,
     kind: Kind,
     size: Size,
+    height: Option<f32>,
     icon: Option<(Icon, Option<Color32>)>,
+    icon_weight: f32,
     enabled: bool,
     min_width: f32,
 }
@@ -309,7 +363,9 @@ pub fn btn(text: &str) -> Btn<'_> {
         text,
         kind: Kind::Secondary,
         size: Size::Small,
+        height: None,
         icon: None,
+        icon_weight: 2.0,
         enabled: true,
         min_width: 0.0,
     }
@@ -327,11 +383,13 @@ impl<'a> Btn<'a> {
         self.size = size;
         self
     }
-    pub fn large(self) -> Self {
-        self.size(Size::Large)
-    }
     pub fn medium(self) -> Self {
         self.size(Size::Medium)
+    }
+    /// Overrides the size's height, keeping its padding and text.
+    pub fn height(mut self, height: f32) -> Self {
+        self.height = Some(height);
+        self
     }
     pub fn icon(mut self, icon: Icon) -> Self {
         self.icon = Some((icon, None));
@@ -339,6 +397,10 @@ impl<'a> Btn<'a> {
     }
     pub fn icon_colored(mut self, icon: Icon, color: Color32) -> Self {
         self.icon = Some((icon, Some(color)));
+        self
+    }
+    pub fn icon_weight(mut self, weight: f32) -> Self {
+        self.icon_weight = weight;
         self
     }
     pub fn enabled(mut self, enabled: bool) -> Self {
@@ -349,36 +411,104 @@ impl<'a> Btn<'a> {
         self.min_width = width;
         self
     }
-    pub fn show(self, ui: &mut Ui) -> Response {
-        let (height, font, pad, radius, icon_size) = match self.size {
-            Size::Large => (44.0, 15.0, 20.0, 8, 18.0),
-            Size::Medium => (38.0, 14.0, 16.0, 8, 16.0),
-            Size::Small => (32.0, 13.0, 12.0, 8, 14.0),
-            Size::Pill => (24.0, 12.0, 10.0, 12, 12.0),
-            Size::Chip => (24.0, 11.0, 10.0, 12, 11.0),
+
+    /// Height, side padding, text size, icon size, icon gap and corner radius.
+    fn metrics(&self) -> (f32, f32, f32, f32, f32, u8) {
+        let filled = matches!(self.kind, Kind::Primary | Kind::Danger);
+        let (height, pad, text, icon, gap, radius) = match self.size {
+            Size::Card => (40.0, if filled { 18.0 } else { 16.0 }, 14.0, 16.0, 8.0, 8),
+            Size::Medium => (36.0, if filled { 18.0 } else { 16.0 }, 14.0, 16.0, 8.0, 8),
+            Size::Toolbar => (36.0, 14.0, 13.0, 16.0, 8.0, 8),
+            Size::Small => (32.0, 12.0, 13.0, 14.0, 8.0, 8),
+            Size::Pill => (24.0, 10.0, 12.0, 12.0, 5.0, 12),
+            Size::Chip => (24.0, 10.0, 11.0, 11.0, 5.0, 12),
         };
+        (self.height.unwrap_or(height), pad, text, icon, gap, radius)
+    }
+
+    /// Fill, hovered fill, border and text colour.
+    fn colors(&self) -> (Color32, Color32, Stroke, Color32) {
+        let hairline = |color| Stroke::new(1.0, color);
+        let outline = if self.size == Size::Card {
+            Color32::from_rgb(0x3a, 0x3d, 0x44)
+        } else {
+            BORDER_STRONG
+        };
+        match self.kind {
+            Kind::Primary => (ACCENT, ACCENT_HOVER, Stroke::NONE, Color32::WHITE),
+            Kind::Danger => (
+                DANGER,
+                Color32::from_rgb(0xc4, 0x44, 0x49),
+                Stroke::NONE,
+                Color32::WHITE,
+            ),
+            Kind::Soft => (
+                ACCENT_SOFT,
+                Color32::from_rgb(0x24, 0x38, 0x61),
+                hairline(ACCENT_BORDER),
+                Color32::from_rgb(0xcf, 0xe0, 0xff),
+            ),
+            Kind::Tinted => (
+                Color32::from_rgb(0x1d, 0x24, 0x33),
+                Color32::from_rgb(0x25, 0x2e, 0x42),
+                hairline(Color32::from_rgb(0x3a, 0x4a, 0x6b)),
+                TEXT,
+            ),
+            Kind::Secondary => (BUTTON, BUTTON_HOVER, hairline(outline), TEXT),
+            Kind::DangerOutline => (
+                Color32::TRANSPARENT,
+                RED_BG,
+                hairline(Color32::from_rgb(0x4a, 0x2a, 0x2d)),
+                Color32::from_rgb(0xf2, 0xa0, 0xa4),
+            ),
+            Kind::Ghost => (
+                Color32::TRANSPARENT,
+                BUTTON_HOVER,
+                if self.size == Size::Chip {
+                    hairline(Color32::from_rgb(0x3a, 0x3d, 0x44))
+                } else {
+                    Stroke::NONE
+                },
+                TEXT,
+            ),
+        }
+    }
+
+    /// The text laid out, the icon's width with its gap, and the button's size.
+    fn layout(&self, ui: &Ui) -> (std::sync::Arc<egui::Galley>, f32, Vec2) {
+        let (height, pad, text_size, icon_size, gap, _) = self.metrics();
         // Weights follow the designs: filled actions and chips are semibold,
-        // soft (tinted) buttons medium, outlined buttons regular.
+        // tinted buttons medium, outlined buttons regular.
         let font = match (self.kind, self.size) {
-            (Kind::Primary | Kind::Danger, _) | (_, Size::Chip) => bold(font),
-            (Kind::Soft, _) => medium(font),
-            _ => FontId::proportional(font),
+            (Kind::Primary | Kind::Danger, _) | (_, Size::Chip) => bold(text_size),
+            (Kind::Soft | Kind::Tinted, _) => medium(text_size),
+            _ => FontId::proportional(text_size),
         };
-        let text_color = match self.kind {
-            Kind::Primary | Kind::Danger => Color32::WHITE,
-            Kind::Soft => Color32::from_rgb(0xcf, 0xe0, 0xff),
-            _ => TEXT,
-        };
+        // Placeholder colour lets the paint call dim disabled text.
         let galley = ui
             .painter()
-            // Placeholder colour lets the paint call dim disabled text.
             .layout_no_wrap(self.text.to_owned(), font, Color32::PLACEHOLDER);
-        let icon_space = if self.icon.is_some() {
-            icon_size + if self.text.is_empty() { 0.0 } else { 7.0 }
-        } else {
-            0.0
+        let icon_space = match self.icon {
+            Some(_) if self.text.is_empty() => icon_size,
+            Some(_) => icon_size + gap,
+            None => 0.0,
         };
-        let width = (galley.size().x + icon_space + pad * 2.0).max(self.min_width);
+        // As in the browser, a border adds to the padded width.
+        let border = if self.colors().2.is_empty() { 0.0 } else { 2.0 };
+        let width = (galley.size().x + icon_space + pad * 2.0 + border).max(self.min_width);
+        (galley, icon_space, egui::vec2(width, height))
+    }
+
+    /// The size the button will take, for layouts that place it themselves.
+    pub fn desired_size(&self, ui: &Ui) -> Vec2 {
+        self.layout(ui).2
+    }
+
+    pub fn show(self, ui: &mut Ui) -> Response {
+        let (_, _, _, icon_size, _, radius) = self.metrics();
+        let (fill, hover_fill, stroke, text_color) = self.colors();
+        let (galley, icon_space, size) = self.layout(ui);
+        let (width, height) = (size.x, size.y);
         // Allocate in a disabled scope so egui knows the state: disabled-hover
         // tooltips then show and plain tooltips do not.
         let (rect, response) = ui
@@ -392,52 +522,14 @@ impl<'a> Btn<'a> {
         if ui.is_rect_visible(rect) {
             let hovered = self.enabled && response.hovered();
             let pressed = self.enabled && response.is_pointer_button_down_on();
-            let (fill, stroke) = match self.kind {
-                Kind::Primary => (if hovered { ACCENT_HOVER } else { ACCENT }, Stroke::NONE),
-                Kind::Danger => (
-                    if hovered {
-                        Color32::from_rgb(0xc4, 0x44, 0x49)
-                    } else {
-                        DANGER
-                    },
-                    Stroke::NONE,
-                ),
-                Kind::Soft => (
-                    if hovered {
-                        Color32::from_rgb(0x24, 0x38, 0x61)
-                    } else {
-                        ACCENT_SOFT
-                    },
-                    Stroke::new(1.0, ACCENT_BORDER),
-                ),
-                Kind::Secondary => (
-                    if hovered { BUTTON_HOVER } else { BUTTON },
-                    Stroke::new(
-                        1.0,
-                        if self.size == Size::Large || self.size == Size::Medium {
-                            Color32::from_rgb(0x3a, 0x3d, 0x44)
-                        } else {
-                            BORDER_STRONG
-                        },
-                    ),
-                ),
-                Kind::Ghost => (
-                    if hovered {
-                        BUTTON_HOVER
-                    } else {
-                        Color32::TRANSPARENT
-                    },
-                    if self.size == Size::Chip {
-                        Stroke::new(1.0, Color32::from_rgb(0x3a, 0x3d, 0x44))
-                    } else {
-                        Stroke::NONE
-                    },
-                ),
-            };
+            let fill = if hovered { hover_fill } else { fill };
             let fill = if pressed {
                 fill.gamma_multiply(0.85)
             } else if !self.enabled
-                && matches!(self.kind, Kind::Primary | Kind::Danger | Kind::Soft)
+                && matches!(
+                    self.kind,
+                    Kind::Primary | Kind::Danger | Kind::Soft | Kind::Tinted
+                )
             {
                 fill.gamma_multiply(0.45)
             } else {
@@ -459,19 +551,19 @@ impl<'a> Btn<'a> {
                     StrokeKind::Outside,
                 );
             }
-            let content = icon_space + galley.size().x;
-            let mut x = rect.center().x - content / 2.0;
             let alpha = if self.enabled { 1.0 } else { 0.4 };
+            let mut x = rect.center().x - (icon_space + galley.size().x) / 2.0;
             if let Some((icon, color)) = self.icon {
                 let icon_rect = Rect::from_center_size(
                     egui::pos2(x + icon_size / 2.0, rect.center().y),
                     Vec2::splat(icon_size),
                 );
-                paint_icon(
+                paint_icon_weight(
                     painter,
                     icon_rect,
                     icon,
                     color.unwrap_or(text_color).gamma_multiply(alpha),
+                    self.icon_weight,
                 );
                 x += icon_space;
             }
@@ -488,7 +580,6 @@ impl<'a> Btn<'a> {
     }
 }
 
-/// A square icon-only button, used for close and dismiss controls.
 pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::splat(32.0), Sense::click());
     response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
@@ -523,23 +614,17 @@ pub fn section_label(ui: &mut Ui, text: &str) -> Response {
     )
 }
 
-pub fn link(ui: &mut Ui, text: impl Into<String>) -> Response {
-    link_enabled(ui, text, true)
+/// Underlines link text at `rect` the way the browser does: just below the
+/// baseline rather than at the bottom of the line.
+fn underline(ui: &Ui, rect: Rect, size: f32, color: Color32) {
+    ui.painter().hline(
+        rect.x_range(),
+        rect.top() + size + 2.0,
+        Stroke::new(1.0, color),
+    );
 }
 
-/// A text link that acts like a button: focusable, announced as a link, and dimmed
-/// with a disabled-hover reason when it cannot be used.
-pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Response {
-    let text = text.into();
-    let response = ui
-        .add_enabled_ui(enabled, |ui| {
-            ui.add(
-                egui::Label::new(egui::RichText::new(&text).size(13.0).color(LINK))
-                    .sense(Sense::click()),
-            )
-        })
-        .inner;
-    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Link, enabled, &text));
+fn focus_ring(ui: &Ui, response: &Response) {
     if response.has_focus() {
         ui.painter().rect_stroke(
             response.rect.expand(2.0),
@@ -548,9 +633,51 @@ pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Resp
             StrokeKind::Outside,
         );
     }
+}
+
+pub fn link(ui: &mut Ui, text: impl Into<String>) -> Response {
+    link_enabled(ui, text, true)
+}
+
+/// An underlined 13pt text link that acts like a button: focusable, announced as a
+/// link, and dimmed with a disabled-hover reason when it cannot be used.
+pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Response {
+    let text = text.into();
+    let response = ui
+        .add_enabled_ui(enabled, |ui| {
+            let response = ui.add(
+                egui::Label::new(egui::RichText::new(&text).size(13.0).color(LINK))
+                    .sense(Sense::click()),
+            );
+            // Painted in the disabled scope so it dims with the text.
+            underline(ui, response.rect, 13.0, LINK);
+            response
+        })
+        .inner;
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Link, enabled, &text));
+    focus_ring(ui, &response);
     if enabled && response.hovered() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
+    response
+}
+
+/// An underlined link of `size` points that opens `url`, like `Ui::hyperlink_to`
+/// with the design's permanent underline in place of egui's hover underline.
+pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size: f32) -> Response {
+    let widgets = ui.visuals().widgets.clone();
+    let states = &mut ui.visuals_mut().widgets;
+    for state in [
+        &mut states.inactive,
+        &mut states.hovered,
+        &mut states.active,
+    ] {
+        state.fg_stroke.width = 0.0;
+    }
+    let response = ui.hyperlink_to(egui::RichText::new(text).size(size).color(LINK), url);
+    ui.visuals_mut().widgets = widgets;
+    underline(ui, response.rect, size, LINK);
+    focus_ring(ui, &response);
     response
 }
 
@@ -619,110 +746,278 @@ pub fn badge(ui: &mut Ui, text: &str, fill: Color32, color: Color32) -> Response
     response
 }
 
-/// Two-option segmented control. Returns true when the value changed.
-pub fn segmented<T: PartialEq + Clone>(ui: &mut Ui, value: &mut T, options: &[(T, &str)]) -> bool {
+/// Unchecked checkbox and radio outline, as the mockups render native inputs.
+pub const CONTROL_BORDER: Color32 = Color32::from_rgb(0x76, 0x76, 0x76);
+
+/// Two-option segmented control: `height` segments with `pad` side padding in a
+/// 3pt-padded field. Keeps the option order in right-to-left layouts too.
+/// Returns true when the value changed.
+pub fn segmented<T: PartialEq + Clone>(
+    ui: &mut egui::Ui,
+    height: f32,
+    pad: f32,
+    value: &mut T,
+    options: &[(T, &str)],
+) -> bool {
+    let galleys: Vec<_> = options
+        .iter()
+        .map(|(_, label)| {
+            ui.painter().layout_no_wrap(
+                (*label).to_owned(),
+                FontId::proportional(13.0),
+                Color32::PLACEHOLDER,
+            )
+        })
+        .collect();
+    let width: f32 = galleys.iter().map(|g| g.size().x + pad * 2.0).sum::<f32>() + 8.0;
     let mut changed = false;
-    egui::Frame::new()
-        .fill(FIELD)
-        .stroke(Stroke::new(1.0, Color32::from_rgb(0x2f, 0x32, 0x38)))
-        .corner_radius(CornerRadius::same(8))
-        .inner_margin(egui::Margin::same(3))
-        .show(ui, |ui| {
-            ui.spacing_mut().item_spacing.x = 0.0;
-            ui.horizontal(|ui| {
-                for (option, label) in options {
-                    let selected = value == option;
-                    let galley = ui.painter().layout_no_wrap(
-                        (*label).to_owned(),
-                        FontId::proportional(13.0),
-                        Color32::PLACEHOLDER,
-                    );
-                    let (rect, response) = ui.allocate_exact_size(
-                        egui::vec2(galley.size().x + 24.0, 28.0),
-                        Sense::click(),
-                    );
-                    response.widget_info(|| {
-                        egui::WidgetInfo::selected(
-                            egui::WidgetType::SelectableLabel,
-                            true,
-                            selected,
-                            *label,
-                        )
-                    });
-                    if selected || response.hovered() {
-                        ui.painter().rect_filled(
-                            rect,
-                            CornerRadius::same(6),
-                            if selected {
-                                Color32::from_rgb(0x2b, 0x2f, 0x37)
-                            } else {
-                                HOVER
-                            },
+    ui.allocate_ui_with_layout(
+        egui::vec2(width, height + 8.0),
+        egui::Layout::left_to_right(egui::Align::Center),
+        |ui| {
+            egui::Frame::new()
+                .fill(FIELD)
+                .stroke(Stroke::new(1.0, Color32::from_rgb(0x2f, 0x32, 0x38)))
+                .corner_radius(CornerRadius::same(8))
+                .inner_margin(egui::Margin::same(3))
+                .show(ui, |ui| {
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    for ((option, label), galley) in options.iter().zip(galleys) {
+                        let selected = value == option;
+                        let (rect, response) = ui.allocate_exact_size(
+                            egui::vec2(galley.size().x + pad * 2.0, height),
+                            Sense::click(),
                         );
+                        response.widget_info(|| {
+                            egui::WidgetInfo::selected(
+                                egui::WidgetType::SelectableLabel,
+                                true,
+                                selected,
+                                *label,
+                            )
+                        });
+                        if selected || response.hovered() {
+                            ui.painter().rect_filled(
+                                rect,
+                                CornerRadius::same(6),
+                                if selected {
+                                    Color32::from_rgb(0x2b, 0x2f, 0x37)
+                                } else {
+                                    HOVER
+                                },
+                            );
+                        }
+                        if response.has_focus() {
+                            ui.painter().rect_stroke(
+                                rect,
+                                CornerRadius::same(6),
+                                Stroke::new(1.5, LINK),
+                                StrokeKind::Inside,
+                            );
+                        }
+                        ui.painter()
+                            .galley(rect.center() - galley.size() / 2.0, galley, TEXT);
+                        if response.clicked() && !selected {
+                            *value = option.clone();
+                            changed = true;
+                        }
                     }
-                    ui.painter().galley(
-                        rect.center() - galley.size() / 2.0,
-                        galley,
-                        if selected { TEXT } else { TEXT_3 },
-                    );
-                    if response.clicked() && !selected {
-                        *value = option.clone();
-                        changed = true;
-                    }
-                }
-            });
-        });
+                });
+        },
+    );
     changed
 }
 
-/// One row of a settings or tools group: title and optional detail on the left,
-/// the control on the right.
-pub fn row<R>(
-    ui: &mut Ui,
-    title: &str,
-    detail: Option<&str>,
-    control: impl FnOnce(&mut Ui) -> R,
-) -> R {
-    let mut out = None;
-    egui::Frame::new()
-        .inner_margin(egui::Margin::symmetric(14, 10))
-        .show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            ui.horizontal(|ui| {
-                ui.set_min_height(32.0);
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    out = Some(control(ui));
-                    ui.add_space(12.0);
-                    // A lone title is one widget, so the row centres it beside the control.
-                    ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                        match detail {
-                            Some(detail) => {
-                                ui.vertical(|ui| {
-                                    ui.spacing_mut().item_spacing.y = 2.0;
-                                    text(ui, title, 14.0, TEXT);
-                                    text(ui, detail, 12.0, MUTED);
-                                });
-                            }
-                            None => {
-                                text(ui, title, 14.0, TEXT);
-                            }
-                        }
-                    });
-                });
-            });
-        });
-    out.expect("row control rendered")
+/// Paints a checkbox the way the mockups render a native one: a white box with a
+/// grey outline, or the accent colour with a white tick.
+pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, enabled: bool) {
+    let alpha = if enabled { 1.0 } else { 0.5 };
+    let painter = ui.painter();
+    if on {
+        painter.rect_filled(rect, CornerRadius::same(2), accent.gamma_multiply(alpha));
+        paint_icon(
+            painter,
+            rect.shrink(rect.width() * 0.12),
+            Icon::Check,
+            Color32::WHITE.gamma_multiply(alpha),
+        );
+    } else {
+        painter.rect(
+            rect,
+            CornerRadius::same(2),
+            Color32::WHITE.gamma_multiply(alpha),
+            Stroke::new(1.0, CONTROL_BORDER),
+            StrokeKind::Inside,
+        );
+    }
 }
 
-/// A checkbox that lives on the right side of a settings row.
-pub fn switch(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Response {
-    let response = ui.add_enabled(enabled, egui::Checkbox::without_text(on));
-    // Read the state after the click so the announcement is current.
+/// Paints a radio button the way the mockups render a native one.
+pub fn paint_radio(ui: &egui::Ui, center: egui::Pos2, on: bool) {
+    let painter = ui.painter();
+    if on {
+        painter.circle_filled(center, 8.0, ACCENT);
+        painter.circle_filled(center, 6.5, Color32::WHITE);
+        painter.circle_filled(center, 4.5, ACCENT);
+    } else {
+        painter.circle(
+            center,
+            7.5,
+            Color32::WHITE,
+            Stroke::new(1.0, CONTROL_BORDER),
+        );
+    }
+}
+
+/// A square checkbox of `size` points. Toggles `on` when clicked and announces
+/// itself as a checkbox named `label`.
+pub fn checkbox(
+    ui: &mut egui::Ui,
+    on: &mut bool,
+    size: f32,
+    accent: Color32,
+    label: &str,
+    enabled: bool,
+) -> egui::Response {
+    let (rect, mut response) = ui
+        .add_enabled_ui(enabled, |ui| {
+            ui.allocate_exact_size(egui::Vec2::splat(size), Sense::click())
+        })
+        .inner;
+    if enabled && response.clicked() {
+        *on = !*on;
+        response.mark_changed();
+    }
     let checked = *on;
     response.widget_info(|| {
         egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, checked, label)
     });
+    paint_check(ui, rect, checked, accent, enabled);
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect.expand(2.0),
+            CornerRadius::same(4),
+            Stroke::new(2.0, LINK),
+            StrokeKind::Outside,
+        );
+    }
+    if enabled && response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
     response
+}
+
+/// A 16pt checkbox with its label, drawn like the mockup's native checkbox: accent fill and
+/// a white tick when on, white with a grey border when off. The whole row toggles it.
+pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Response {
+    let font = FontId::proportional(14.0);
+    let galley = ui
+        .painter()
+        .layout_no_wrap(label.to_owned(), font, Color32::PLACEHOLDER);
+    // 4pt and 3pt margins around the box, then a 10pt gap to the label.
+    let size = egui::vec2(4.0 + 16.0 + 3.0 + 10.0 + galley.size().x, 22.0);
+    let (rect, mut response) = ui
+        .add_enabled_ui(enabled, |ui| ui.allocate_exact_size(size, Sense::click()))
+        .inner;
+    if response.clicked() {
+        *on = !*on;
+        response.mark_changed();
+    }
+    let checked = *on;
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, checked, label)
+    });
+    if ui.is_rect_visible(rect) {
+        let alpha = if enabled { 1.0 } else { 0.45 };
+        let painter = ui.painter();
+        let tick_box = Rect::from_min_size(
+            egui::pos2(rect.left() + 4.0, rect.center().y - 8.0),
+            Vec2::splat(16.0),
+        );
+        if checked {
+            let fill = if enabled && response.hovered() {
+                ACCENT_HOVER
+            } else {
+                ACCENT
+            };
+            painter.rect_filled(tick_box, CornerRadius::same(2), fill.gamma_multiply(alpha));
+            let p = |x: f32, y: f32| tick_box.min + egui::vec2(x, y) * 16.0;
+            painter.add(egui::Shape::line(
+                vec![p(0.24, 0.52), p(0.42, 0.70), p(0.77, 0.32)],
+                Stroke::new(2.2, Color32::WHITE.gamma_multiply(alpha)),
+            ));
+        } else {
+            painter.rect(
+                tick_box,
+                CornerRadius::same(2),
+                Color32::WHITE.gamma_multiply(alpha),
+                Stroke::new(1.0, CONTROL_BORDER.gamma_multiply(alpha)),
+                StrokeKind::Inside,
+            );
+        }
+        if response.has_focus() {
+            painter.rect_stroke(
+                tick_box.expand(2.0),
+                CornerRadius::same(4),
+                Stroke::new(2.0, LINK),
+                StrokeKind::Outside,
+            );
+        }
+        painter.galley(
+            egui::pos2(
+                tick_box.right() + 3.0 + 10.0,
+                rect.center().y - galley.size().y / 2.0,
+            ),
+            galley,
+            TEXT_2.gamma_multiply(if enabled { 1.0 } else { 0.5 }),
+        );
+    }
+    if enabled && response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response
+}
+
+/// A log on the dark log background: monospace lines 1.7 apart, as tall as its text
+/// up to the space left, then scrolling and following new lines. `wrap` breaks long
+/// lines; otherwise they scroll sideways.
+pub fn log_view(ui: &mut Ui, text: &str, wrap: bool) {
+    let line_height = 12.0 * 1.7;
+    let available = ui.available_height();
+    egui::Frame::new()
+        .fill(LOG)
+        .corner_radius(CornerRadius::same(8))
+        .inner_margin(egui::Margin::same(12))
+        .show(ui, |ui| {
+            ui.set_min_width(ui.available_width());
+            let scroll = if wrap {
+                egui::ScrollArea::vertical()
+            } else {
+                egui::ScrollArea::both()
+            };
+            scroll
+                .auto_shrink([false, true])
+                .stick_to_bottom(true)
+                .max_height((available - 28.0).max(80.0))
+                .show(ui, |ui| {
+                    // As in CSS, half the extra line height goes above each line.
+                    let row = ui.fonts(|f| f.row_height(&FontId::monospace(12.0)));
+                    ui.add_space((line_height - row) / 2.0);
+                    let label = egui::Label::new(
+                        egui::RichText::new(text.trim_end_matches('\n'))
+                            .monospace()
+                            .size(12.0)
+                            .line_height(Some(line_height))
+                            .color(TEXT_3),
+                    )
+                    .selectable(true);
+                    ui.add(if wrap {
+                        label.wrap()
+                    } else {
+                        label.wrap_mode(egui::TextWrapMode::Extend)
+                    });
+                });
+        });
 }
 
 pub fn painter_text(

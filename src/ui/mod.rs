@@ -891,14 +891,19 @@ fn modal(
             .push(id);
     });
     let width = width.min(ctx.screen_rect().width() - 48.0);
+    // No inner margin: each dialog draws its own header, body and footer bands,
+    // with their own padding and hairlines, edge to edge inside the 1pt border.
     egui::Modal::new(id)
         .backdrop_color(egui::Color32::from_black_alpha(150))
         .frame(
             egui::Frame::new()
                 .fill(theme::PANEL)
-                .stroke(egui::Stroke::new(1.0, theme::BORDER_STRONG))
+                .stroke(egui::Stroke::new(
+                    1.0,
+                    egui::Color32::from_rgb(0x2f, 0x32, 0x38),
+                ))
                 .corner_radius(egui::CornerRadius::same(12))
-                .inner_margin(egui::Margin::same(24))
+                .inner_margin(egui::Margin::ZERO)
                 .shadow(egui::Shadow {
                     offset: [0, 12],
                     blur: 32,
@@ -907,7 +912,8 @@ fn modal(
                 }),
         )
         .show(ctx, |ui| {
-            ui.set_width(width - 48.0);
+            ui.set_width(width - 2.0);
+            ui.spacing_mut().item_spacing.y = 0.0;
             content(ui);
         })
 }
