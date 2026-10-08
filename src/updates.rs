@@ -200,8 +200,18 @@ fn state_snapshot(
                 PathBuf::from(&a.path)
             };
             let metadata = fs::symlink_metadata(&target).ok();
+            let executable = crate::model::installed_executable(&target, &a.name);
+            let executable_state = executable.as_ref().map(|path| {
+                let metadata = fs::symlink_metadata(path).ok();
+                (
+                    path.clone(),
+                    metadata.map(|m| (m.len(), m.modified().ok())),
+                    crate::platform::executable_version(path),
+                )
+            });
             (
                 target,
+                executable_state,
                 metadata
                     .as_ref()
                     .map(|m| (m.len(), m.modified().ok(), m.file_type().is_symlink())),
@@ -273,6 +283,15 @@ fn plan_with(
                 bail!("Unexpected asset URL");
             }
             files::safe_relative(&asset.name)?;
+            let digest = asset
+                .digest
+                .as_deref()
+                .and_then(|digest| digest.strip_prefix("sha256:"))
+                .context("Release asset has no published SHA-256 digest")?;
+            if digest.len() != 64 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                bail!("Release asset has an invalid SHA-256 digest");
+            }
+
             entry.version = release.tag_name.trim_start_matches('v').into();
             entry.asset = Some(asset.clone());
             let installer = prefs.release_format == "installer";
@@ -860,12 +879,34 @@ mod planning_tests {
             assets: vec![Asset {
                 name: name.clone(),
                 size: 1234,
-                digest: Some("sha256:reviewed".into()),
+                digest: Some(format!("sha256:{}", "a".repeat(64))),
                 browser_download_url: format!(
                     "https://github.com/storytold/{app}/releases/download/v{tag}/{name}"
                 ),
             }],
         }
+    }
+    #[test]
+    fn invalid_digest_metadata_is_excluded_before_package_download() {
+        let (paths, job) = fixture();
+        for digest in [None, Some("sha256:invalid".into())] {
+            let plan = plan_with(&paths, &job, None, |app| {
+                let mut release = release(app, "0.4.0");
+                release.assets[0].digest = digest.clone();
+                Ok(release)
+            })
+            .unwrap();
+            assert_eq!(plan.executable_count(), 0);
+            assert!(plan.entries.iter().all(|entry| entry.error.is_some()));
+            execute_validated(&paths, &plan, |_| {
+                execute_with(&plan, &job, |_| {
+                    panic!("invalid metadata must never download")
+                })
+            })
+            .unwrap();
+        }
+        assert!(!paths.at("runtime/downloads").exists());
+        fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
     fn legacy_mac_architecture_is_current_for_same_universal_release() {
@@ -906,6 +947,15 @@ mod planning_tests {
             })
         })
         .unwrap();
+        let plist = contents.join("Info.plist");
+        let changed = fs::read_to_string(&plist)
+            .unwrap()
+            .replace("0.4.0", "0.5.0");
+        fs::write(&plist, changed).unwrap();
+        assert!(execute_validated(&paths, &plan, |_| panic!(
+            "actual installed version changed without inventory write"
+        ))
+        .is_err());
         fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
@@ -931,7 +981,7 @@ mod planning_tests {
                 assert_eq!(entry.asset.as_ref().unwrap().size, 1234);
                 assert_eq!(
                     entry.asset.as_ref().unwrap().digest.as_deref(),
-                    Some("sha256:reviewed")
+                    Some("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                 );
                 Ok(true)
             })

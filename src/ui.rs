@@ -1,6 +1,6 @@
 use anyhow::Result;
 use craft_apps_manager::{
-    apps, backups, builder, files,
+    apps, backups, builder,
     jobs::{Job, State},
     model::{self, BuilderPreferences, Paths, Preferences, APPS, SOURCES},
     platform, profiles, scheduler, self_update, tools, updates,
@@ -1017,13 +1017,14 @@ impl App {
                             );
                             self.job.spawn(move |job| {
                                 let result = self_update::prepare(&paths, &available, &job);
-                                let message = result.as_ref().err().map(|e| format!("{e:#}"));
-                                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
+                                let _ = tx.send(
+                                    result
+                                        .as_ref()
+                                        .map(Clone::clone)
+                                        .map_err(|e| format!("{e:#}")),
+                                );
                                 ctx.request_repaint();
-                                if let Some(message) = message {
-                                    anyhow::bail!(message);
-                                }
-                                Ok(())
+                                result.map(|_| ())
                             });
                             self.manager_message = "Downloading and verifying manager…".into();
                         }
@@ -1921,29 +1922,31 @@ impl eframe::App for App {
                                 }
                             }
                             if let Some((dragged, target, before)) = reorder {
-                                let mut preferences = self.preferences.clone();
-                                preferences.app_order.retain(|name| name != &dragged);
-                                if let Some(index) = preferences
-                                    .app_order
-                                    .iter()
-                                    .position(|name| name == &target)
-                                {
-                                    preferences
-                                        .app_order
-                                        .insert(index + usize::from(!before), dragged);
-                                    match files::write_json(
-                                        &self.paths.at("manager-settings.json"),
-                                        &preferences,
-                                    ) {
-                                        Ok(()) => {
-                                            self.settings_draft.app_order =
-                                                preferences.app_order.clone();
-                                            self.preferences = preferences;
+                                match craft_apps_manager::settings::reorder(
+                                    &self.paths,
+                                    &dragged,
+                                    &target,
+                                    before,
+                                ) {
+                                    Ok(preferences) => {
+                                        if self.preferences.release_format
+                                            != preferences.release_format
+                                            || self.preferences.architecture
+                                                != preferences.architecture
+                                        {
+                                            self.check_generation += 1;
+                                            self.checking_apps.clear();
+                                            self.release_checks.clear();
+                                            self.display_config = None;
+                                            self.config_receiver = None;
+                                            self.config_refresh_at = std::time::Instant::now();
                                         }
-                                        Err(error) => {
-                                            self.error =
-                                                Some(format!("Could not save app order: {error:#}"))
-                                        }
+                                        self.settings_draft = preferences.clone();
+                                        self.preferences = preferences;
+                                    }
+                                    Err(error) => {
+                                        self.error =
+                                            Some(format!("Could not save app order: {error:#}"))
                                     }
                                 }
                             }
@@ -2087,10 +2090,38 @@ impl eframe::App for App {
                         });
                     } else {
                         ui.label(
-                            RichText::new("Not installed")
-                                .size(12.0)
-                                .color(Color32::from_gray(165)),
+                            RichText::new(
+                                if self.alternates.iter().any(|app| app.name == self.app) {
+                                    format!("No {} copy", self.preferences.release_format)
+                                } else {
+                                    "Not installed".into()
+                                },
+                            )
+                            .size(12.0)
+                            .color(Color32::from_gray(165)),
                         );
+                    }
+                    if let Some(alternate) = self.alternates.iter().find(|app| app.name == self.app)
+                    {
+                        let location = if alternate.install_kind == "installer" {
+                            if cfg!(target_os = "macos") {
+                                "Applications"
+                            } else {
+                                "system installation"
+                            }
+                        } else {
+                            "the portable library"
+                        };
+                        ui.label(format!(
+                            "Installed in {location} ({}){}",
+                            alternate.version,
+                            if installed.is_none() {
+                                format!("; no {} copy", self.preferences.release_format)
+                            } else {
+                                String::new()
+                            }
+                        ));
+                        ui.small(&alternate.path);
                     }
                     ui.add_space(12.0);
                     if ui

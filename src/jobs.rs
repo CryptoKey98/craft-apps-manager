@@ -328,6 +328,46 @@ mod tests {
         state
     }
     #[test]
+    fn cancellation_during_transfer_removes_partial_and_preserves_typed_marker() {
+        use std::{io::Read, net::TcpListener};
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(
+            root.join("job.log"),
+            &crate::model::BuilderPreferences::default(),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/package", listener.local_addr().unwrap());
+        let cancel = job.cancel.clone();
+        let server = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut request = [0; 4096];
+            let _ = socket.read(&mut request).unwrap();
+            socket
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 131072\r\nConnection: close\r\n\r\n",
+                )
+                .unwrap();
+            let _ = socket.write_all(&[1; 65536]);
+            cancel.store(true, Ordering::Relaxed);
+        });
+        let destination = root.join("downloads/package");
+        let error = crate::network::Network::new(&root)
+            .unwrap()
+            .download(&url, &destination, &job)
+            .unwrap_err();
+        server.join().unwrap();
+        assert!(is_cancelled(&error));
+        assert!(!destination.exists());
+        assert_eq!(
+            fs::read_dir(destination.parent().unwrap()).unwrap().count(),
+            0
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
     fn cancellation_is_typed_through_context_and_does_not_log_error() {
         let state = finish(|job| {
             job.cancel.store(true, Ordering::Relaxed);

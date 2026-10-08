@@ -167,12 +167,16 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&crate::jobs::Job>) -> R
     } else {
         run_exe(file, job)?
     };
+    installer_result(code)?;
+    detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")
+}
+fn installer_result(code: i32) -> Result<()> {
     match code {
-        0 | 3010 | 1641 => {}
-        1602 => bail!("Installation was canceled"),
+        0 | 3010 | 1641 => Ok(()),
+        1602 => Err(anyhow::Error::new(crate::jobs::Cancelled)
+            .context("Windows installer cancelled and finished rollback")),
         _ => bail!("Installer failed ({code})"),
     }
-    detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")
 }
 fn run_exe(file: &Path, job: Option<&crate::jobs::Job>) -> Result<i32> {
     use windows::{
@@ -306,6 +310,18 @@ pub fn installer_extension() -> Result<&'static str> {
 }
 #[cfg(test)]
 mod cancellation_tests {
+    #[test]
+    fn explicit_windows_cancel_is_typed_but_failures_and_success_stay_distinct() {
+        assert!(crate::jobs::is_cancelled(
+            &super::installer_result(1602).unwrap_err()
+        ));
+        assert!(!crate::jobs::is_cancelled(
+            &super::installer_result(5).unwrap_err()
+        ));
+        for code in [0, 3010, 1641] {
+            super::installer_result(code).unwrap();
+        }
+    }
     #[test]
     fn cancellation_waits_for_the_installer_result() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
