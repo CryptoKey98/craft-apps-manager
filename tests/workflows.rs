@@ -74,6 +74,15 @@ fn startup_checks_only_target_active_installed_apps_and_are_opt_in() {
     let legacy: Preferences = serde_json::from_str(r#"{"selectedApps":[]}"#).unwrap();
     assert!(!legacy.check_installed_apps_on_startup);
     assert!(!legacy.check_manager_on_startup);
+    // Portable mode keeps this check independent of apps installed on the machine.
+    files::write_json(
+        &paths.at("manager-settings.json"),
+        &Preferences {
+            release_format: "portable".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let mut config = paths.config().unwrap();
     config.apps[0].path = "installed/designcraft".into();
     config.apps[0].version = "0.2.0".into();
@@ -385,7 +394,7 @@ fn individual_check_detects_newer_release_without_downloading() {
     for (version, expected) in [("1.0.0", None), ("1.1.0", Some("1.1.0".to_string()))] {
         files::write_json(&cache, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
             "tag_name":format!("v{version}"), "draft":false,"prerelease":false,
-            "assets":[{"name":format!("filmcraft-{version}-{}-{}{}", craft_apps_manager::model::release_os(),craft_apps_manager::model::release_arch(craft_apps_manager::model::MANAGER_ARCH),if cfg!(target_os = "windows") {"-portable.zip"} else {".AppImage"}),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
+            "assets":[{"name":format!("filmcraft-{version}-{}-{}{}", craft_apps_manager::model::release_os(),craft_apps_manager::model::release_arch(craft_apps_manager::model::MANAGER_ARCH),if cfg!(target_os = "windows") {"-portable.zip"} else if cfg!(target_os = "macos") {".dmg"} else {".AppImage"}),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
         }})).unwrap();
         assert_eq!(updates::check_app(&paths, "filmcraft").unwrap(), expected);
     }
@@ -672,7 +681,7 @@ fn cleanup_boundary_and_junction_target() {
     .unwrap();
     #[cfg(target_os = "windows")]
     assert!(out.status.success());
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     std::os::unix::fs::symlink(&outside, &link).unwrap();
     files::remove_managed(&managed, &root).unwrap();
     assert!(outside.join("keep.txt").exists());

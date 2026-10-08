@@ -14,7 +14,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub const REPOSITORY: &str = "https://github.com/CryptoKey98/craft-apps-manager";
+/// The GitHub repository (owner/name) manager updates come from; set at build time.
+pub const REPOSITORY_NAME: &str = env!("CRAFT_MANAGER_REPOSITORY");
+pub const REPOSITORY: &str = concat!("https://github.com/", env!("CRAFT_MANAGER_REPOSITORY"));
+/// Bundle identifier of the macOS app, as set by scripts/package-macos.sh.
+#[cfg(target_os = "macos")]
+const BUNDLE_ID: &str = "io.github.craft-apps-manager";
 /// MSI installs keep their data outside the directory owned by Windows Installer.
 pub fn installed_with_msi() -> bool {
     #[cfg(target_os = "windows")]
@@ -44,7 +49,9 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     }
     let version = release.tag_name.trim_start_matches('v').to_owned();
     let arch = crate::model::MANAGER_ARCH;
-    let names = if cfg!(target_os = "linux") {
+    let names = if cfg!(target_os = "macos") {
+        vec![format!("Craft-Apps-Manager-{version}-macos-universal.zip")]
+    } else if cfg!(target_os = "linux") {
         vec![format!("Craft-Apps-Manager-{version}-linux-{arch}.zip")]
     } else if msi {
         vec![format!("Craft-Apps-Manager-{version}-windows-{arch}.msi")]
@@ -74,8 +81,9 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     Ok(Some(Available { version, asset }))
 }
 pub fn check(paths: &Paths) -> Result<Option<Available>> {
-    let release = Network::new(&paths.root)?
-        .json("https://api.github.com/repos/CryptoKey98/craft-apps-manager/releases/latest")?;
+    let release = Network::new(&paths.root)?.json(&format!(
+        "https://api.github.com/repos/{REPOSITORY_NAME}/releases/latest"
+    ))?;
     select(release, env!("CARGO_PKG_VERSION"))
 }
 #[derive(Serialize, Deserialize)]
@@ -90,15 +98,24 @@ pub struct Plan {
     pub tools: PathBuf,
 }
 pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
-    let target = std::env::current_exe()?.canonicalize()?;
+    let executable = std::env::current_exe()?.canonicalize()?;
+    let target = executable.clone();
+    // On macOS the whole app bundle is replaced, not just the executable.
+    #[cfg(target_os = "macos")]
+    let target = app_bundle(&target)?;
     let home = target.parent().context("No executable folder")?;
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     check_update_directory(home)?;
     let msi = installed_with_msi();
     if available.asset.name.ends_with(".msi") != msi {
         bail!("Update package does not match this installation type");
     }
-    let stage_home = if msi { paths.root.as_path() } else { home };
+    // Stage outside a macOS bundle, since the bundle itself is replaced.
+    let stage_home = if msi || cfg!(target_os = "macos") {
+        paths.root.as_path()
+    } else {
+        home
+    };
     let stage = stage_home
         .join("runtime/self-update")
         .join(uuid::Uuid::new_v4().simple().to_string());
@@ -120,26 +137,30 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
                     tools: paths.tools.clone(),
                 },
             )?;
-            fs::copy(&target, stage.join(helper_name()))?;
+            fs::copy(&executable, stage.join(helper_name()))?;
             return Ok(plan);
         }
         let extracted = stage.join("package");
         files::extract_zip(&zip, &extracted, job)?;
-        let manager = extracted.join(if cfg!(target_os = "linux") {
+        let manager = extracted.join(if cfg!(target_os = "macos") {
+            "Craft Apps Manager.app"
+        } else if cfg!(target_os = "linux") {
             "Craft Apps Manager Linux/craft-apps-manager"
         } else {
             "Craft Apps Manager/CraftApps-Manager.exe"
         });
-        let staged = if manager.is_file() {
+        let staged = if crate::model::is_executable(&manager) {
             manager
         } else {
             extracted.join("Craft Apps Updater/CraftApps-Updater.exe")
         };
         files::no_links(&staged)?;
-        if !staged.is_file() {
+        if !staged_executable(&staged).is_file() {
             bail!("Release does not contain the manager executable");
         }
-        let hash = files::hash(&staged)?;
+        #[cfg(target_os = "macos")]
+        verify_bundle(&staged)?;
+        let hash = files::hash(&staged_executable(&staged))?;
         let plan = stage.join("plan.json");
         files::write_json(
             &plan,
@@ -153,7 +174,7 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
                 tools: paths.tools.clone(),
             },
         )?;
-        fs::copy(&target, stage.join(helper_name()))?;
+        fs::copy(&executable, stage.join(helper_name()))?;
         fs::remove_file(zip)?;
         Ok(plan)
     })();
@@ -162,11 +183,15 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
     }
     result
 }
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 fn check_update_directory(home: &Path) -> Result<()> {
     let probe = home.join(format!(".craft-manager-update-{}", uuid::Uuid::new_v4()));
     let file = fs::OpenOptions::new().write(true).create_new(true).open(&probe)
-        .context("This installation is managed by the system package manager. Install a newer DEB or RPM package to update Craft Apps Manager")?;
+        .context(if cfg!(target_os = "macos") {
+            "Craft Apps Manager.app is in a folder you cannot write to. Move it to Applications or download the new version manually"
+        } else {
+            "This installation is managed by the system package manager. Install a newer DEB or RPM package to update Craft Apps Manager"
+        })?;
     drop(file);
     fs::remove_file(probe)?;
     Ok(())
@@ -192,7 +217,11 @@ pub fn apply(plan_path: &Path) -> Result<()> {
         .context("Missing update folder")?
         .canonicalize()?;
     let home = plan.target.parent().context("Missing application folder")?;
-    let stage_home = if plan.msi { plan.root.as_path() } else { home };
+    let stage_home = if plan.msi || cfg!(target_os = "macos") {
+        plan.root.as_path()
+    } else {
+        home
+    };
     let stage_root = stage_home.join("runtime/self-update");
     files::no_links(&stage_root)?;
     files::inside(&stage, &stage_root.canonicalize()?)?;
@@ -201,9 +230,11 @@ pub fn apply(plan_path: &Path) -> Result<()> {
     if std::env::current_exe()?.canonicalize()? != stage.join(helper_name()).canonicalize()? {
         bail!("Update helper location mismatch");
     }
-    if files::hash(&plan.staged)? != plan.hash {
+    if files::hash(&staged_executable(&plan.staged))? != plan.hash {
         bail!("Staged manager checksum mismatch");
     }
+    #[cfg(target_os = "macos")]
+    verify_bundle(&plan.staged)?;
     #[cfg(target_os = "windows")]
     unsafe {
         use windows::Win32::{
@@ -218,7 +249,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
             }
         }
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     {
         let deadline = Instant::now() + Duration::from_secs(60);
         while unsafe { libc::kill(i32::try_from(plan.parent_pid)?, 0) } == 0 {
@@ -269,7 +300,11 @@ pub fn apply(plan_path: &Path) -> Result<()> {
         #[cfg(not(target_os = "windows"))]
         bail!("MSI updates are only supported on Windows");
     }
-    let backup = stage.join("previous.exe");
+    let backup = stage.join(if cfg!(target_os = "macos") {
+        "previous.app"
+    } else {
+        "previous.exe"
+    });
     let deadline = Instant::now() + Duration::from_secs(60);
     loop {
         match fs::rename(&plan.target, &backup) {
@@ -283,7 +318,15 @@ pub fn apply(plan_path: &Path) -> Result<()> {
     }
     let result = (|| -> Result<()> {
         fs::rename(&plan.staged, &plan.target)?;
-        Command::new(&plan.target)
+        #[cfg(target_os = "macos")]
+        let mut command = {
+            let mut command = Command::new("/usr/bin/open");
+            command.arg("-n").arg(&plan.target).arg("--args");
+            command
+        };
+        #[cfg(not(target_os = "macos"))]
+        let mut command = Command::new(&plan.target);
+        command
             .arg("--root")
             .arg(&plan.root)
             .arg("--tools")
@@ -292,7 +335,9 @@ pub fn apply(plan_path: &Path) -> Result<()> {
         Ok(())
     })();
     if result.is_err() {
-        if plan.target.exists() {
+        if plan.target.is_dir() {
+            fs::remove_dir_all(&plan.target)?;
+        } else if plan.target.exists() {
             fs::remove_file(&plan.target)?;
         }
         fs::rename(&backup, &plan.target).context("Could not restore previous manager")?;
@@ -300,6 +345,44 @@ pub fn apply(plan_path: &Path) -> Result<()> {
     result
 }
 
+/// The file whose checksum the update plan records.
+fn staged_executable(staged: &Path) -> PathBuf {
+    if cfg!(target_os = "macos") {
+        staged.join("Contents/MacOS/craft-apps-manager")
+    } else {
+        staged.to_path_buf()
+    }
+}
+/// The `.app` bundle that contains the running executable.
+#[cfg(target_os = "macos")]
+fn app_bundle(executable: &Path) -> Result<PathBuf> {
+    executable
+        .ancestors()
+        .nth(3)
+        .filter(|bundle| {
+            bundle.extension().is_some_and(|e| e == "app")
+                && staged_executable(bundle) == executable
+        })
+        .map(Path::to_path_buf)
+        .context("Only Craft Apps Manager.app can update itself. Development builds cannot.")
+}
+#[cfg(target_os = "macos")]
+fn verify_bundle(bundle: &Path) -> Result<()> {
+    if crate::platform::bundle_value(bundle, "CFBundleIdentifier").as_deref() != Some(BUNDLE_ID) {
+        bail!("Update package is not Craft Apps Manager");
+    }
+    let out = Command::new("/usr/bin/codesign")
+        .args(["--verify", "--deep", "--strict"])
+        .arg(bundle)
+        .output()?;
+    if !out.status.success() {
+        bail!(
+            "Update package signature is invalid: {}",
+            String::from_utf8_lossy(&out.stderr).trim()
+        );
+    }
+    Ok(())
+}
 fn helper_name() -> &'static str {
     if cfg!(target_os = "windows") {
         "update-helper.exe"
@@ -433,5 +516,54 @@ mod tests {
             "0.2.1"
         )
         .is_err());
+    }
+}
+#[cfg(all(test, target_os = "macos"))]
+mod macos_tests {
+    use super::*;
+    #[test]
+    fn selects_universal_zip_from_configured_repository() {
+        let release = |name: &str, url: &str| Release {
+            tag_name: "v0.5.0".into(),
+            draft: false,
+            prerelease: false,
+            assets: vec![Asset {
+                name: name.into(),
+                size: 1,
+                digest: None,
+                browser_download_url: url.into(),
+            }],
+        };
+        let url = format!("{REPOSITORY}/releases/download/v0.5.0/package.zip");
+        let selected = select(
+            release("Craft-Apps-Manager-0.5.0-macos-universal.zip", &url),
+            "0.4.0",
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(selected.version, "0.5.0");
+        assert!(select(
+            release("Craft-Apps-Manager-0.5.0-linux-x64.zip", &url),
+            "0.4.0"
+        )
+        .is_err());
+        assert!(select(
+            release(
+                "Craft-Apps-Manager-0.5.0-macos-universal.zip",
+                "https://example.com/package.zip"
+            ),
+            "0.4.0"
+        )
+        .is_err());
+    }
+    #[test]
+    fn only_app_bundles_update_themselves() {
+        let bundle = Path::new("/Applications/Craft Apps Manager.app");
+        assert_eq!(
+            app_bundle(&bundle.join("Contents/MacOS/craft-apps-manager")).unwrap(),
+            bundle
+        );
+        assert!(app_bundle(Path::new("/repo/target/release/craft-apps-manager")).is_err());
+        assert!(app_bundle(&bundle.join("Contents/MacOS/other")).is_err());
     }
 }

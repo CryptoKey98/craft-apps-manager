@@ -19,6 +19,24 @@ fn main() {
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
+    // GitHub repository (owner/name) that manager self-updates come from.
+    // Forks can build against their own releases.
+    println!("cargo:rerun-if-env-changed=CRAFT_MANAGER_REPOSITORY");
+    let repository = std::env::var("CRAFT_MANAGER_REPOSITORY")
+        .ok()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "CryptoKey98/craft-apps-manager".into());
+    let valid = |part: &str| {
+        !part.is_empty()
+            && part
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || b"-_.".contains(&c))
+    };
+    match repository.split_once('/') {
+        Some((owner, name)) if valid(owner) && valid(name) => {}
+        _ => panic!("CRAFT_MANAGER_REPOSITORY must be owner/name"),
+    }
+    println!("cargo:rustc-env=CRAFT_MANAGER_REPOSITORY={repository}");
     let timestamp = std::env::var("SOURCE_DATE_EPOCH")
         .ok()
         .and_then(|s| s.parse::<u64>().ok())

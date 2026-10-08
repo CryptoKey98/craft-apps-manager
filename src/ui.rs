@@ -396,12 +396,12 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 ui.horizontal(|ui|{ui.label("Rotate each app log at (MB)");ui.add(egui::DragValue::new(&mut self.build_draft.log_size_mb).range(1..=100));});ui.horizontal(|ui|{ui.label("Older log files to keep");ui.add(egui::DragValue::new(&mut self.build_draft.log_archives).range(0..=5));});
                 ui.small("Cancelled and failed builds keep their cache. Completed builds and tools are retained.");if ui.button("Clean temporary files now...").clicked(){self.confirm_clean=true;}
             }else{
-                ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{if cfg!(target_os = "linux") {"AppImage"} else {"Portable ZIP"}}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),if cfg!(target_os = "linux") {"AppImage"} else {"Portable ZIP"});ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
+                ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"}}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"});ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
                 ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
                 ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of 7 apps selected",self.settings_draft.selected_apps.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of 8 sources selected",self.settings_draft.selected_sources.len()));});
                 ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when app or source updates are available");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
-                ui.small(if cfg!(target_os = "linux") {"AppImage updates retain a rollback copy until successful. System packages require administrator authorization."} else {"A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."});if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
+                ui.small(if cfg!(target_os = "linux") {"AppImage updates retain a rollback copy until successful. System packages require administrator authorization."} else if cfg!(target_os = "macos") {"A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."} else {"A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."});if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
                 if ui.add_enabled(self.manager_receiver.is_none() && self.manager_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Manager release").clicked() { self.check_manager(ctx); }
                 let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · {} {}",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE"),model::release_os(),model::MANAGER_ARCH));
                 if self.manager_receiver.is_some() || self.manager_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
@@ -432,7 +432,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                     });
                     ui.small(format!("Source: https://github.com/storytold/{}/releases/latest", model::repository(&app)));
                     ui.small(format!("Latest stable release · {} · {}", self.preferences.architecture, self.preferences.release_format));
-                    if installer { ui.small(if cfg!(target_os = "linux") {"You will be asked to authorize package installation."} else {"The Windows installer will open. Follow its wizard; Windows may ask for administrator permission."}); }
+                    if installer { ui.small(if cfg!(target_os = "linux") {"You will be asked to authorize package installation."} else if cfg!(target_os = "macos") {"The app will be copied into your Applications folder."} else {"The Windows installer will open. Follow its wizard; Windows may ask for administrator permission."}); }
                     ui.horizontal(|ui| {
                         if ui.button("Yes").clicked() {
                             self.app = app.clone();
@@ -727,7 +727,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             egui::Window::new("Update Craft Apps Manager").collapsible(false).resizable(false).show(ctx, |ui| {
                 ui.label(if self_update::installed_with_msi() {"Download and install the new manager version?"} else {"Download the new manager and restart this window?"});
                 ui.small("Close other manager and builder windows first. Your library and settings will be kept.");
-                ui.hyperlink_to("Release source: CryptoKey98/craft-apps-manager", self_update::REPOSITORY);
+                ui.hyperlink_to(format!("Release source: {}", self_update::REPOSITORY_NAME), self_update::REPOSITORY);
                 ui.horizontal(|ui| {
                     if ui.button(if self_update::installed_with_msi() {"Download and install"} else {"Download and restart"}).clicked() {
                         if let Some(available)=self.manager_available.clone() {
@@ -1709,6 +1709,8 @@ impl eframe::App for App {
                         ui.small(if app.install_kind == "installer" {
                             if cfg!(target_os = "linux") {
                                 "Installed Linux package"
+                            } else if cfg!(target_os = "macos") {
+                                "Installed in Applications"
                             } else {
                                 "Installed with Windows installer"
                             }
@@ -1931,7 +1933,7 @@ if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal
                 ui.horizontal(|ui|{if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto,"Check for app updates hourly")).on_hover_text("Checks selected installed apps and notifies you when a new version is available. Supports installers and portable ZIPs; nothing downloads automatically.").changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
 if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Check for source updates hourly")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Scheduled checks run hourly and after sign-in. Downloads require confirmation. Choose apps and sources in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
 if ui.button("Open sources").clicked(){self.result(platform::open(&self.paths.at("sources")));}
-if state.busy&&ui.add_enabled(!self.job.cancel.load(Ordering::Relaxed) && !(cfg!(target_os = "linux") && state.stage == "Installing package"),egui::Button::new(if self.job.cancel.load(Ordering::Relaxed){"Cancel requested…"}else{"Cancel update"})).on_hover_text("Downloads can be cancelled. An authorized Linux package transaction must finish to keep the package database consistent.").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
+if state.busy&&ui.add_enabled(!self.job.cancel.load(Ordering::Relaxed) && !authorizing_package(&state.stage),egui::Button::new(if self.job.cancel.load(Ordering::Relaxed){"Cancel requested…"}else{"Cancel update"})).on_hover_text("Downloads can be cancelled. An authorized Linux package transaction must finish to keep the package database consistent.").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
             ui.horizontal(|ui|{if state.busy{ui.spinner();}ui.strong(if state.stage.is_empty(){if state.output.is_some(){"Previous build available"}else{"Ready"}}else{&state.stage});});
             if !state.detail.is_empty(){ui.label(&state.detail);}
 if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel(ui,&state);
@@ -1944,4 +1946,8 @@ if state.busy{progress_bar(ui,state.progress);}ui.add_space(10.0);self.log_panel
             ctx.request_repaint_after(Duration::from_secs(1));
         }
     }
+}
+/// Linux package installs wait on a PolicyKit prompt and cannot be cancelled.
+fn authorizing_package(stage: &str) -> bool {
+    cfg!(target_os = "linux") && stage == "Installing package"
 }

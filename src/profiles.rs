@@ -134,6 +134,12 @@ pub fn targets(_: &Paths, _: &str) -> Result<Vec<Target>> {
         "Linux profile deletion is unavailable until each upstream app's paths have been verified"
     )
 }
+#[cfg(target_os = "macos")]
+pub fn targets(_: &Paths, _: &str) -> Result<Vec<Target>> {
+    bail!(
+        "macOS profile deletion is unavailable until each upstream app's paths have been verified"
+    )
+}
 #[cfg(test)]
 mod tests {
     use super::*;

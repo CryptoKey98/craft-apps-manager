@@ -137,7 +137,7 @@ cargo clippy --all-targets -- -D warnings
 
 Some integration tests require local build tools and 7-Zip. Set `CRAFT_TEST_TOOLS` to their parent folder to run those checks. The tests don't install or uninstall your real apps.
 
-For Linux build commands, native prerequisites and RPM packaging, see [docs/linux.md](docs/linux.md). A system-installed Linux manager is updated through a newer DEB or RPM package rather than the portable ZIP replacement helper.
+For Linux build commands, native prerequisites and RPM packaging, see [docs/linux.md](docs/linux.md). For the experimental macOS version, see [docs/macos.md](docs/macos.md). A system-installed Linux manager is updated through a newer DEB or RPM package rather than the portable ZIP replacement helper.
 
 ## Reporting problems
 

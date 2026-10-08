@@ -61,7 +61,11 @@ pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&
             crate::model::release_os(),
             crate::model::release_arch(&p.architecture)
         );
-        let package_names = if cfg!(target_os = "linux") {
+        let package_names = if cfg!(target_os = "macos") {
+            // The same DMG serves both formats: portable copies its app bundle
+            // into the library, installer copies it into Applications.
+            vec![format!("{prefix}.dmg")]
+        } else if cfg!(target_os = "linux") {
             vec![format!(
                 "{prefix}{}",
                 if p.release_format == "installer" {
@@ -244,7 +248,10 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
             let stage = cache.join(uuid::Uuid::new_v4().simple().to_string());
             let attempt = (|| -> Result<()> {
                 network.asset(asset, &archive, job)?;
-                if cfg!(target_os = "linux") {
+                if cfg!(target_os = "macos") {
+                    #[cfg(target_os = "macos")]
+                    crate::installers::extract_app(&archive, &stage, &app.name, job)?;
+                } else if cfg!(target_os = "linux") {
                     fs::create_dir_all(&stage)?;
                     let executable = stage.join(crate::model::executable_name(&app.name));
                     fs::copy(&archive, &executable)?;
@@ -261,7 +268,8 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                     .collect::<std::result::Result<Vec<_>, _>>()?
                     .into_iter()
                     .filter(|e| {
-                        e.file_type().is_file()
+                        !e.path_is_symlink()
+                            && crate::model::is_executable(e.path())
                             && crate::model::executable_names(&app.name)
                                 .iter()
                                 .any(|name| e.file_name().to_string_lossy() == *name)
