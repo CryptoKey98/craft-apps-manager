@@ -255,7 +255,7 @@ fn individual_check_detects_newer_release_without_downloading() {
     for (version, expected) in [("1.0.0", None), ("1.1.0", Some("1.1.0".to_string()))] {
         files::write_json(&cache, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
             "tag_name":format!("v{version}"), "draft":false,"prerelease":false,
-            "assets":[{"name":format!("filmcraft-{version}-windows-x64-portable.zip"),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
+            "assets":[{"name":format!("filmcraft-{version}-windows-{}-portable.zip", craft_apps_updater::model::UPDATER_ARCH),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
         }})).unwrap();
         assert_eq!(updates::check_app(&paths, "filmcraft").unwrap(), expected);
     }
@@ -348,6 +348,7 @@ fn pdfcraft_repository_rename_preserves_existing_app_identity() {
     };
     let prefs = Preferences {
         release_format: "portable".into(),
+        architecture: "x64".into(),
         ..Default::default()
     };
     assert!(updates::select_asset(&release, "printcraft", &prefs).is_ok());
@@ -395,6 +396,7 @@ fn architectures_and_installer_selection() {
     };
     let mut p = Preferences {
         release_format: "portable".into(),
+        architecture: "x64".into(),
         ..Default::default()
     };
     assert!(updates::select_asset(&r, "filmcraft", &p).is_err());

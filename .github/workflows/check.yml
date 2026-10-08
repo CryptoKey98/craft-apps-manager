@@ -5,12 +5,16 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+          targets: ${{ matrix.target }}
       - run: cargo fmt --check
-      - run: cargo test --locked -- --test-threads=1
-      - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo build --release --locked
+      - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
+      - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
+      - run: cargo build --release --locked --target ${{ matrix.target }}

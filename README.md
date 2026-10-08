@@ -33,9 +33,9 @@ The video and screenshots use an example library. Music: Prelude in C major, BWV
 
 ## Getting started
 
-Download the Windows ZIP from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
+Download the Windows ZIP matching your system (x64 for 64-bit Windows, x86 for 32-bit Windows) from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
 
-The current release is **0.3.0**. It has been tested on Windows x64. Expect some rough edges, especially around installers and building upstream projects.
+The current release is **0.3.1**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
 
 ## Supported apps
 
@@ -60,11 +60,11 @@ The two main update buttons have separate selections: use **Settings → Choose 
 
 Opening the app or selecting a row does not check Craft app releases on GitHub. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
 
-Settings also has a separate check for this updater itself. Startup checks are off by default. Enable them to check for a newer stable Windows x64 release when the updater opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other updater and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
+Settings also has a separate check for this updater itself. Startup checks are off by default. Enable them to check for a newer stable release matching the updater's architecture when it opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other updater and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 
 ## Building from source
 
-Open **Build from source**, select an app, and use **Set up build tools** before building. The setup installs only the extra tools needed for that app. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
+Open **Build from source**, select an app, and use **Set up build tools** before building. The setup installs only the extra tools needed for that app. Source builds currently require 64-bit Windows, even with the x86 updater. App and source updates work with either updater architecture. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
 
 The builder uses the upstream source and lockfiles without dependency patches. Build output appears in `builds`, and the log remains available when you reopen the builder. Failed or canceled builds keep their cache so you can try again. Successful-build cleanup is configurable.
 
@@ -93,13 +93,15 @@ Each app panel has a **Backups** window with Restore and Delete modes. Restore l
 
 ## Building this updater
 
-Install stable Rust for `x86_64-pc-windows-msvc` and Microsoft's **Desktop development with C++** workload. From the repository root:
+Install stable Rust and Microsoft's **Desktop development with C++** workload, including its x86 and x64 tools. Keep one source checkout and build each target separately:
 
 ```text
-cargo build --release --locked
+rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
+cargo build --release --locked --target x86_64-pc-windows-msvc
+cargo build --release --locked --target i686-pc-windows-msvc
 ```
 
-The executable is `target/release/craft-apps-updater.exe`. Rename it to `CraftApps-Updater.exe` for a portable distribution. The builder uses the same executable with `--builder`.
+Executables are under `target/<target>/release`. Distribution folders are `dist/windows-x64` and `dist/windows-x86`; each contains its matching executable and portable 7-Zip. The builder uses the same executable with `--builder`. An x86 updater defaults to x86 Craft app releases and only accepts x86 self-update packages. A saved release architecture preference still takes precedence.
 
 ```text
 cargo test --locked

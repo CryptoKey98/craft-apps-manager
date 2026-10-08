@@ -142,18 +142,19 @@ fn run_exe(file: &Path) -> Result<i32> {
     };
     unsafe {
         ShellExecuteExW(&mut info)?;
-        if info.hProcess.is_invalid() {
+        let process = info.hProcess;
+        if process.is_invalid() {
             bail!("Installer did not return a process handle");
         }
         let result = (|| -> Result<i32> {
-            if WaitForSingleObject(info.hProcess, u32::MAX) != WAIT_OBJECT_0 {
+            if WaitForSingleObject(process, u32::MAX) != WAIT_OBJECT_0 {
                 bail!("Could not wait for the installer");
             }
             let mut code = 0;
-            GetExitCodeProcess(info.hProcess, &mut code)?;
+            GetExitCodeProcess(process, &mut code)?;
             Ok(code as i32)
         })();
-        let _ = CloseHandle(info.hProcess);
+        let _ = CloseHandle(process);
         result
     }
 }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.1
+
+### Added
+
+- Windows x86 package with matching portable 7-Zip.
+- Architecture-specific updater downloads and x86 release defaults.
+- Automated checks for both Windows architectures.
+
+### Fixed
+
+- Installation status and backup discovery run in the background instead of blocking window repaints.
+- App status refreshes after install/uninstall and release-format changes.
+- Windows installer process-handle access works on x86.
+- An embedded Windows manifest prevents unexpected installer-detection elevation prompts when opening the updater.
+
+Source builds still require 64-bit Windows. The x86 app was tested on 64-bit Windows; native 32-bit Windows has not yet been tested.
+
 ## 0.3.0
 
 ### Added

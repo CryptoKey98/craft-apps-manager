@@ -1,4 +1,5 @@
 /target/
+/dist/
 /*.exe
 /runtime/
 /logs/
@@ -11,8 +12,5 @@
 /updater-settings.json
 /builder-settings.json
 /data-root.txt
-
-
 /data-root.json
 /verification/
-/dist/

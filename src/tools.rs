@@ -44,11 +44,17 @@ pub fn cargo(paths: &Paths) -> Option<PathBuf> {
     }
 }
 pub fn seven(paths: &Paths) -> Option<PathBuf> {
-    let x64 = paths.tools.join("7zip/x64/7za.exe");
-    if x64.exists() {
-        return Some(x64);
+    let native = paths
+        .tools
+        .join(format!("7zip/{}/7za.exe", crate::model::UPDATER_ARCH));
+    if native.exists() {
+        return Some(native);
     }
-    find(paths, "7zip", "7za.exe")
+    paths
+        .tools
+        .join("7zip/7za.exe")
+        .is_file()
+        .then(|| paths.tools.join("7zip/7za.exe"))
         .or_else(|| {
             let p = PathBuf::from("C:/Program Files/7-Zip/7z.exe");
             p.exists().then_some(p)
@@ -154,6 +160,7 @@ pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
     Ok(env)
 }
 pub fn preflight(paths: &Paths, app: &str) -> Result<()> {
+    require_build_host()?;
     cargo(paths).context("Rust is missing. Click Set up build tools first.")?;
     visual_cpp()?.context("Microsoft C++ tools are missing. Click Set up build tools first.")?;
     if app == "artcraftx" {
@@ -219,8 +226,15 @@ fn asset(network: &Network, repo: &str, pattern: &str) -> Result<Asset> {
     files::safe_relative(&a.name)?;
     Ok(a)
 }
+fn require_build_host() -> Result<()> {
+    if cfg!(target_arch = "x86") && std::env::var_os("PROCESSOR_ARCHITEW6432").is_none() {
+        bail!("Source builds currently require 64-bit Windows. App and source updates remain available on 32-bit Windows.");
+    }
+    Ok(())
+}
 pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     crate::model::valid_app(app)?;
+    require_build_host()?;
     let _lock = platform::Lock::take("Local\\CraftAppsSourceBuilder")?;
     let network = Network::new(&paths.root)?;
     let cache = paths.at("runtime/downloads/tools");

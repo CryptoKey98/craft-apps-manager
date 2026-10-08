@@ -2,6 +2,12 @@ use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+pub const UPDATER_ARCH: &str = if cfg!(target_arch = "x86") {
+    "x86"
+} else {
+    "x64"
+};
+
 pub const APPS: [&str; 7] = [
     "designcraft",
     "effectcraft",
@@ -74,7 +80,7 @@ impl Default for Preferences {
             notify_updates: true,
             backup_versions: 1,
             release_format: "installer".into(),
-            architecture: "x64".into(),
+            architecture: UPDATER_ARCH.into(),
             selected_apps: APPS.iter().map(|s| s.to_string()).collect(),
             selected_sources: SOURCES.iter().map(|s| s.to_string()).collect(),
             check_updater_on_startup: false,
@@ -131,7 +137,7 @@ pub struct Installed {
     pub product_code: String,
 }
 fn default_arch() -> String {
-    "x64".into()
+    UPDATER_ARCH.into()
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

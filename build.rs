@@ -1,4 +1,10 @@
 fn main() {
+    if std::env::var("TARGET").is_ok_and(|target| target.ends_with("windows-msvc")) {
+        // Declare normal user privileges so Windows does not mistake the
+        // 32-bit updater (or its test binaries) for an installer by name.
+        println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
+        println!("cargo:rustc-link-arg=/MANIFESTUAC:level='asInvoker' uiAccess='false'");
+    }
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");

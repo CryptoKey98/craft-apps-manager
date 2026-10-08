@@ -47,6 +47,10 @@ fn progress_bar(ui: &mut egui::Ui, progress: Option<f32>) {
 }
 type ReleaseCheck = Result<Option<String>, String>;
 type CheckMessage = (String, String, ReleaseCheck);
+type DisplaySnapshot = (
+    model::Config,
+    std::collections::BTreeMap<String, Vec<backups::Backup>>,
+);
 #[derive(Default, Serialize, Deserialize)]
 pub struct Locations {
     pub root: Option<PathBuf>,
@@ -99,6 +103,11 @@ pub struct App {
     confirm_restore: bool,
     backup_delete_mode: bool,
     backup_delete_selected: std::collections::BTreeSet<usize>,
+    display_config: Option<model::Config>,
+    config_receiver: Option<std::sync::mpsc::Receiver<Result<DisplaySnapshot, String>>>,
+    display_backups: std::collections::BTreeMap<String, Vec<backups::Backup>>,
+    config_refresh_at: std::time::Instant,
+    operation_was_busy: bool,
 }
 impl App {
     pub fn new(
@@ -222,6 +231,11 @@ impl App {
             confirm_restore: false,
             backup_delete_mode: false,
             backup_delete_selected: Default::default(),
+            display_config: None,
+            config_receiver: None,
+            display_backups: Default::default(),
+            config_refresh_at: std::time::Instant::now(),
+            operation_was_busy: false,
         })
     }
     fn result(&mut self, result: Result<()>) {
@@ -281,6 +295,7 @@ impl App {
         self.job = Job::new(paths.at(log), &self.build_preferences);
         self.job.history(&self.job.log_path);
         self.job.state.lock().unwrap().output = previous;
+        self.operation_was_busy = true;
         self.job.spawn(move |job| match action.as_str() {
             "releases" => updates::releases(&paths, &job, false),
             "install-app" => updates::install_app(&paths, &app, &job),
@@ -336,7 +351,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
                 ui.small("A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard.");if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
                 if ui.add_enabled(self.updater_receiver.is_none() && self.updater_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Updater release").clicked() { self.check_updater(ctx); }
-                let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · Windows x64",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE")));
+                let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · Windows {}",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE"),model::UPDATER_ARCH));
                 if self.updater_receiver.is_some() || self.updater_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
                 if !self.updater_message.is_empty(){ui.small(&self.updater_message);}
                 if self.updater_available.is_some() && ui.add_enabled(!self.job.state.lock().unwrap().busy && self.updater_plan.is_none(),egui::Button::new("Download and restart…")).clicked(){self.confirm_self_update=true;}
@@ -344,7 +359,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Use your existing PowerShell data folder to access its sources and builds. Folder changes apply after reopening this window.");});
             });
             ui.separator();ui.horizontal(|ui|{
-                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("updater-settings.json"),&self.settings_draft)?;self.preferences=self.settings_draft.clone();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
+                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("updater-settings.json"),&self.settings_draft)?;self.preferences=self.settings_draft.clone();self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
                 if ui.button("Cancel").clicked(){self.settings=false;}
             });
         });
@@ -438,8 +453,8 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
                 .show(ctx, |ui| {
                     ui.label("Are you sure you want to uninstall this app?");
-                    if let Ok(app) = apps::installed(&self.paths, &self.app) {
-                        ui.label(app.path);
+                    if let Some(app) = self.display_config.as_ref().and_then(|c| c.apps.iter().find(|a| a.name == self.app)) {
+                        ui.label(&app.path);
                     }
                     ui.small("Source ZIPs, builds, backups and launch settings will be kept.");
                     let targets=profiles::targets(&self.paths,&self.app);
@@ -776,6 +791,48 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
 }
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        let busy = self.job.state.lock().unwrap().busy;
+        if self.operation_was_busy && !busy {
+            self.config_refresh_at = std::time::Instant::now();
+        }
+        self.operation_was_busy = busy;
+        if let Some(receiver) = &self.config_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                match result {
+                    Ok((config, backups)) => {
+                        self.display_config = Some(config);
+                        self.display_backups = backups;
+                    }
+                    Err(error) => self.error = Some(error),
+                }
+                self.config_receiver = None;
+            }
+        }
+        if !self.builder
+            && !busy
+            && self.config_receiver.is_none()
+            && std::time::Instant::now() >= self.config_refresh_at
+        {
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.config_receiver = Some(rx);
+            self.config_refresh_at = std::time::Instant::now() + Duration::from_secs(10);
+            let paths = self.paths.clone();
+            let ctx = ctx.clone();
+            std::thread::spawn(move || {
+                let result = (|| -> Result<DisplaySnapshot> {
+                    let config = paths.config()?;
+                    let backups = APPS
+                        .into_iter()
+                        .map(|name| {
+                            backups::list(&paths, name).map(|items| (name.to_owned(), items))
+                        })
+                        .collect::<Result<_>>()?;
+                    Ok((config, backups))
+                })();
+                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
+                ctx.request_repaint();
+            });
+        }
         if self.updater_startup_pending {
             self.updater_startup_pending = false;
             self.check_updater(ctx);
@@ -986,11 +1043,10 @@ impl eframe::App for App {
                         }
                     }
                 } else {
-                    let config = self.paths.config();
+                    let config = &self.display_config;
                     for name in APPS {
                         let version = config
                             .as_ref()
-                            .ok()
                             .and_then(|c| c.apps.iter().find(|a| a.name == name))
                             .filter(|a| !a.version.is_empty())
                             .map(|a| a.version.as_str())
@@ -1092,9 +1148,15 @@ impl eframe::App for App {
                             }
                         });
                     });
-                    let installed = apps::installed(&self.paths, &self.app)
-                        .ok()
-                        .filter(|a| !a.version.is_empty());
+                    let installed = self
+                        .display_config
+                        .as_ref()
+                        .and_then(|config| {
+                            config.apps.iter().find(|a| {
+                                a.name == self.app && !a.path.is_empty() && !a.version.is_empty()
+                            })
+                        })
+                        .cloned();
                     if let Some(app) = &installed {
                         ui.label(format!("Version {} · {}", app.version, app.architecture));
                         ui.small(if app.install_kind == "installer" {
@@ -1167,7 +1229,11 @@ impl eframe::App for App {
                     }
                     ui.add_space(22.0);
                     ui.separator();
-                    let app_backups = backups::list(&self.paths, &self.app);
+                    let app_backups: Result<Vec<backups::Backup>> = Ok(self
+                        .display_backups
+                        .get(&self.app)
+                        .cloned()
+                        .unwrap_or_default());
                     if ui
                         .add_enabled(
                             !state.busy

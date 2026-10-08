@@ -28,12 +28,13 @@ pub fn select(release: Release, current: &str) -> Result<Option<Available>> {
         return Ok(None);
     }
     let version = release.tag_name.trim_start_matches('v').to_owned();
-    let name = format!("Craft-Apps-Updater-{version}-windows-x64.zip");
+    let arch = crate::model::UPDATER_ARCH;
+    let name = format!("Craft-Apps-Updater-{version}-windows-{arch}.zip");
     let asset = release
         .assets
         .into_iter()
         .find(|a| a.name == name)
-        .context("This release has no supported Windows x64 package")?;
+        .with_context(|| format!("This release has no supported Windows {arch} package"))?;
     if !asset
         .browser_download_url
         .starts_with(&format!("{REPOSITORY}/releases/download/"))
@@ -173,6 +174,33 @@ pub fn apply(plan_path: &Path) -> Result<()> {
 mod tests {
     use super::*;
     #[test]
+    fn self_update_never_switches_architecture() {
+        let other = if crate::model::UPDATER_ARCH == "x86" {
+            "x64"
+        } else {
+            "x86"
+        };
+        let asset = |arch: &str| Asset {
+            name: format!("Craft-Apps-Updater-0.4.0-windows-{arch}.zip"),
+            size: 1,
+            digest: None,
+            browser_download_url: format!("{REPOSITORY}/releases/download/v0.4.0/{arch}.zip"),
+        };
+        let mut release = Release {
+            tag_name: "v0.4.0".into(),
+            draft: false,
+            prerelease: false,
+            assets: vec![asset(other)],
+        };
+        assert!(select(release.clone(), "0.3.0").is_err());
+        release.assets.push(asset(crate::model::UPDATER_ARCH));
+        let selected = select(release, "0.3.0").unwrap().unwrap();
+        assert!(selected
+            .asset
+            .browser_download_url
+            .ends_with(&format!("/{}.zip", crate::model::UPDATER_ARCH)));
+    }
+    #[test]
     fn only_new_stable_release_from_our_repository() {
         let release = |tag: &str, prerelease, url: &str| Release {
             tag_name: tag.into(),
@@ -180,8 +208,9 @@ mod tests {
             prerelease,
             assets: vec![Asset {
                 name: format!(
-                    "Craft-Apps-Updater-{}-windows-x64.zip",
-                    tag.trim_start_matches('v')
+                    "Craft-Apps-Updater-{}-windows-{}.zip",
+                    tag.trim_start_matches('v'),
+                    crate::model::UPDATER_ARCH
                 ),
                 size: 1,
                 digest: None,
