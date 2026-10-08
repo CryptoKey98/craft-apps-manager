@@ -1,4 +1,6 @@
-# Craft Apps Updater
+# Craft Apps Manager
+
+<img src="assets/icon.png" width="80" alt="Craft Apps Manager icon">
 
 A Windows app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
@@ -10,14 +12,14 @@ https://github.com/user-attachments/assets/9d39928a-3c10-43dd-a813-40183dcaeb27
 
 A short look at app controls, backups, settings, and the source builder.
 
-[Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
+[Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
 The video and screenshots use an example library. Music: Prelude in C major, BWV 846, by Bach, performed by Kimiko Ishizaka ([CC0 recording and credit](docs/media/music-credit.txt)).
 
 <details>
 <summary>More screenshots</summary>
 
-**Settings** — choose release formats, backup preferences, and updater checks.
+**Settings** — choose release formats, backup preferences, and manager checks.
 
 ![Release preferences and backup settings](docs/images/settings.png)
 
@@ -33,15 +35,19 @@ The video and screenshots use an example library. Music: Prelude in C major, BWV
 
 ## Getting started
 
-Download the Windows ZIP matching your system (x64 for 64-bit Windows, x86 for 32-bit Windows) from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
+Download the Windows ZIP matching your system (x64 for 64-bit Windows, x86 for 32-bit Windows) from this repository's Releases page, extract it, and open `CraftApps-Manager.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the manager.
 
-The current release is **0.3.1**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
+The current release is **0.3.2**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
+
+## Upgrading from Craft Apps Updater
+
+Version 0.3.2 renames the app to Craft Apps Manager. Download this release manually: older versions may reject the renamed repository or package during their built-in update check. Extract the new package into your existing library folder to retain apps, sources, builds and settings. Open `CraftApps-Manager.exe`; the old startup preferences are migrated automatically. Close the old Updater first. If you used automatic app or source updates, disable those tasks in the old app before switching and enable them again in Manager.
 
 ## Supported apps
 
 DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, and VectorCraft are available for release and source updates. ArtCraft X is available for source updates and builds.
 
-PDFCraft's repository was renamed from PrintCraft. Some of its release files and executable names still use `printcraft`; the updater handles that difference.
+PDFCraft's repository was renamed from PrintCraft. Some of its release files and executable names still use `printcraft`; the manager handles that difference.
 
 ## Updating apps
 
@@ -58,13 +64,13 @@ Installer is the default release format. Windows installer wizards may ask for a
 
 The two main update buttons have separate selections: use **Settings → Choose release apps** and **Settings → Choose source apps** to decide what each one updates. These selections also apply to automatic updates.
 
-Opening the app or selecting a row does not check Craft app releases on GitHub. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
+Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates pulse blue in both the sidebar and app controls. Manual checks use a short cache to avoid repeated requests. Optional automatic updates run hourly and after sign-in. Installer updates require an interactive session; background tasks do not open installer wizards.
 
-Settings also has a separate check for this updater itself. Startup checks are off by default. Enable them to check for a newer stable release matching the updater's architecture when it opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other updater and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
+Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 
 ## Building from source
 
-Open **Build from source**, select an app, and use **Set up build tools** before building. The setup installs only the extra tools needed for that app. Source builds currently require 64-bit Windows, even with the x86 updater. App and source updates work with either updater architecture. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
+Open **Build from source**, select an app, and use **Set up build tools** before building. The setup installs only the extra tools needed for that app. Source builds currently require 64-bit Windows, even with the x86 manager. App and source updates work with either manager architecture. Rust builds require Microsoft's C++ build tools; ArtCraft X also needs its frontend tools.
 
 The builder uses the upstream source and lockfiles without dependency patches. Build output appears in `builds`, and the log remains available when you reopen the builder. Failed or canceled builds keep their cache so you can try again. Successful-build cleanup is configurable.
 
@@ -91,7 +97,7 @@ Portable and source backups are optional. Compression uses 7-Zip LZMA2; archives
 
 Each app panel has a **Backups** window with Restore and Delete modes. Restore lets you choose one release or source backup by version or commit, date, and format. Delete lets you select individual backups or all of that app's backups. Both actions require confirmation. Restore replaces the current managed copy and keeps the selected backup. To restore a portable release, select Portable ZIP in Settings first. Source backups can be restored in either mode. These controls do not restore or remove Windows installer installations.
 
-## Building this updater
+## Building this manager
 
 Install stable Rust and Microsoft's **Desktop development with C++** workload, including its x86 and x64 tools. Keep one source checkout and build each target separately:
 
@@ -101,7 +107,7 @@ cargo build --release --locked --target x86_64-pc-windows-msvc
 cargo build --release --locked --target i686-pc-windows-msvc
 ```
 
-Executables are under `target/<target>/release`. Distribution folders are `dist/windows-x64` and `dist/windows-x86`; each contains its matching executable and portable 7-Zip. The builder uses the same executable with `--builder`. An x86 updater defaults to x86 Craft app releases and only accepts x86 self-update packages. A saved release architecture preference still takes precedence.
+Executables are under `target/<target>/release`. Distribution folders are `dist/windows-x64` and `dist/windows-x86`; each contains its matching executable and portable 7-Zip. The builder uses the same executable with `--builder`. An x86 manager defaults to x86 Craft app releases and only accepts x86 self-update packages. A saved release architecture preference still takes precedence.
 
 ```text
 cargo test --locked

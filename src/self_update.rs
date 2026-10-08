@@ -14,7 +14,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub const REPOSITORY: &str = "https://github.com/CryptoKey98/craft-apps-updater";
+pub const REPOSITORY: &str = "https://github.com/CryptoKey98/craft-apps-manager";
 #[derive(Clone)]
 pub struct Available {
     pub version: String,
@@ -28,24 +28,28 @@ pub fn select(release: Release, current: &str) -> Result<Option<Available>> {
         return Ok(None);
     }
     let version = release.tag_name.trim_start_matches('v').to_owned();
-    let arch = crate::model::UPDATER_ARCH;
-    let name = format!("Craft-Apps-Updater-{version}-windows-{arch}.zip");
-    let asset = release
-        .assets
-        .into_iter()
-        .find(|a| a.name == name)
+    let arch = crate::model::MANAGER_ARCH;
+    let names = [
+        format!("Craft-Apps-Manager-{version}-windows-{arch}.zip"),
+        format!("Craft-Apps-Updater-{version}-windows-{arch}.zip"),
+    ];
+    let mut assets = release.assets;
+    let index = names
+        .iter()
+        .find_map(|name| assets.iter().position(|a| &a.name == name))
         .with_context(|| format!("This release has no supported Windows {arch} package"))?;
+    let asset = assets.swap_remove(index);
     if !asset
         .browser_download_url
         .starts_with(&format!("{REPOSITORY}/releases/download/"))
     {
-        bail!("Unexpected updater download location");
+        bail!("Unexpected manager download location");
     }
     Ok(Some(Available { version, asset }))
 }
 pub fn check(paths: &Paths) -> Result<Option<Available>> {
     let release = Network::new(&paths.root)?
-        .json("https://api.github.com/repos/CryptoKey98/craft-apps-updater/releases/latest")?;
+        .json("https://api.github.com/repos/CryptoKey98/craft-apps-manager/releases/latest")?;
     select(release, env!("CARGO_PKG_VERSION"))
 }
 #[derive(Serialize, Deserialize)]
@@ -69,10 +73,15 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
         Network::new(&paths.root)?.asset(&available.asset, &zip, job)?;
         let extracted = stage.join("package");
         files::extract_zip(&zip, &extracted, job)?;
-        let staged = extracted.join("Craft Apps Updater/CraftApps-Updater.exe");
+        let manager = extracted.join("Craft Apps Manager/CraftApps-Manager.exe");
+        let staged = if manager.is_file() {
+            manager
+        } else {
+            extracted.join("Craft Apps Updater/CraftApps-Updater.exe")
+        };
         files::no_links(&staged)?;
         if !staged.is_file() {
-            bail!("Release does not contain the updater executable");
+            bail!("Release does not contain the manager executable");
         }
         let hash = files::hash(&staged)?;
         let plan = stage.join("plan.json");
@@ -124,7 +133,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
         bail!("Update helper location mismatch");
     }
     if files::hash(&plan.staged)? != plan.hash {
-        bail!("Staged updater checksum mismatch");
+        bail!("Staged manager checksum mismatch");
     }
     unsafe {
         use windows::Win32::{
@@ -135,7 +144,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
             let status = WaitForSingleObject(handle, 60_000);
             let _ = CloseHandle(handle);
             if status != WAIT_OBJECT_0 {
-                bail!("Updater did not close; update was not applied");
+                bail!("Manager did not close; update was not applied");
             }
         }
     }
@@ -146,7 +155,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
             Ok(()) => break,
             Err(e) if Instant::now() >= deadline => {
                 return Err(e)
-                    .context("Close all updater and builder windows, then retry the update")
+                    .context("Close all manager and builder windows, then retry the update")
             }
             Err(_) => std::thread::sleep(Duration::from_millis(250)),
         }
@@ -165,7 +174,7 @@ pub fn apply(plan_path: &Path) -> Result<()> {
         if plan.target.exists() {
             fs::remove_file(&plan.target)?;
         }
-        fs::rename(&backup, &plan.target).context("Could not restore previous updater")?;
+        fs::rename(&backup, &plan.target).context("Could not restore previous manager")?;
     }
     result
 }
@@ -175,13 +184,13 @@ mod tests {
     use super::*;
     #[test]
     fn self_update_never_switches_architecture() {
-        let other = if crate::model::UPDATER_ARCH == "x86" {
+        let other = if crate::model::MANAGER_ARCH == "x86" {
             "x64"
         } else {
             "x86"
         };
         let asset = |arch: &str| Asset {
-            name: format!("Craft-Apps-Updater-0.4.0-windows-{arch}.zip"),
+            name: format!("Craft-Apps-Manager-0.4.0-windows-{arch}.zip"),
             size: 1,
             digest: None,
             browser_download_url: format!("{REPOSITORY}/releases/download/v0.4.0/{arch}.zip"),
@@ -193,12 +202,12 @@ mod tests {
             assets: vec![asset(other)],
         };
         assert!(select(release.clone(), "0.3.0").is_err());
-        release.assets.push(asset(crate::model::UPDATER_ARCH));
+        release.assets.push(asset(crate::model::MANAGER_ARCH));
         let selected = select(release, "0.3.0").unwrap().unwrap();
         assert!(selected
             .asset
             .browser_download_url
-            .ends_with(&format!("/{}.zip", crate::model::UPDATER_ARCH)));
+            .ends_with(&format!("/{}.zip", crate::model::MANAGER_ARCH)));
     }
     #[test]
     fn only_new_stable_release_from_our_repository() {
@@ -208,9 +217,9 @@ mod tests {
             prerelease,
             assets: vec![Asset {
                 name: format!(
-                    "Craft-Apps-Updater-{}-windows-{}.zip",
+                    "Craft-Apps-Manager-{}-windows-{}.zip",
                     tag.trim_start_matches('v'),
-                    crate::model::UPDATER_ARCH
+                    crate::model::MANAGER_ARCH
                 ),
                 size: 1,
                 digest: None,

@@ -46,7 +46,7 @@ pub fn cargo(paths: &Paths) -> Option<PathBuf> {
 pub fn seven(paths: &Paths) -> Option<PathBuf> {
     let native = paths
         .tools
-        .join(format!("7zip/{}/7za.exe", crate::model::UPDATER_ARCH));
+        .join(format!("7zip/{}/7za.exe", crate::model::MANAGER_ARCH));
     if native.exists() {
         return Some(native);
     }

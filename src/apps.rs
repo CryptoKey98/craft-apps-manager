@@ -73,7 +73,7 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
 }
 pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     crate::model::valid_app(app)?;
-    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     if platform::running_app(app)? {
         bail!("Close the app before uninstalling it.");
     }
@@ -112,7 +112,7 @@ pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     files::remove_managed(&temporary, &releases)
 }
 pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) -> Result<()> {
-    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     if platform::running_app(app)? {
         bail!("Close the app before uninstalling it.");
     }

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use craft_apps_updater::{
+use craft_apps_manager::{
     apps, backups, builder, files,
     jobs::{Job, State},
     model::{self, BuilderPreferences, Paths, Preferences, APPS, SOURCES},
@@ -9,6 +9,17 @@ use eframe::egui::{self, Color32, RichText};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, process::Command, sync::atomic::Ordering, time::Duration};
 const BLUE: Color32 = Color32::from_rgb(70, 150, 245);
+fn app_icon(name: &str) -> &'static [u8] {
+    match name {
+        "designcraft" => include_bytes!("../assets/app-icons/designcraft.png"),
+        "effectcraft" => include_bytes!("../assets/app-icons/effectcraft.png"),
+        "filmcraft" => include_bytes!("../assets/app-icons/filmcraft.png"),
+        "lightcraft" => include_bytes!("../assets/app-icons/lightcraft.png"),
+        "photocraft" => include_bytes!("../assets/app-icons/photocraft.png"),
+        "vectorcraft" => include_bytes!("../assets/app-icons/vectorcraft.png"),
+        _ => include_bytes!("../assets/app-icons/pdfcraft.png"),
+    }
+}
 
 fn progress_bar(ui: &mut egui::Ui, progress: Option<f32>) {
     let (rect, _) =
@@ -46,7 +57,7 @@ fn progress_bar(ui: &mut egui::Ui, progress: Option<f32>) {
     );
 }
 type ReleaseCheck = Result<Option<String>, String>;
-type CheckMessage = (String, String, ReleaseCheck);
+type CheckMessage = (u64, String, String, ReleaseCheck);
 type DisplaySnapshot = (
     model::Config,
     std::collections::BTreeMap<String, Vec<backups::Backup>>,
@@ -57,6 +68,7 @@ pub struct Locations {
     pub tools: Option<PathBuf>,
 }
 pub struct App {
+    icons: std::collections::BTreeMap<String, egui::TextureHandle>,
     paths: Paths,
     home: PathBuf,
     builder: bool,
@@ -89,13 +101,17 @@ pub struct App {
     app_selected: bool,
     confirm_install: Option<String>,
     release_checks: std::collections::BTreeMap<String, (String, ReleaseCheck)>,
-    check_receiver: Option<std::sync::mpsc::Receiver<CheckMessage>>,
-    updater_receiver:
+    check_receiver: std::sync::mpsc::Receiver<CheckMessage>,
+    check_sender: std::sync::mpsc::Sender<CheckMessage>,
+    checking_apps: std::collections::BTreeSet<String>,
+    check_generation: u64,
+    apps_startup_pending: bool,
+    manager_receiver:
         Option<std::sync::mpsc::Receiver<Result<Option<self_update::Available>, String>>>,
-    updater_available: Option<self_update::Available>,
-    updater_message: String,
-    updater_startup_pending: bool,
-    updater_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, String>>>,
+    manager_available: Option<self_update::Available>,
+    manager_message: String,
+    manager_startup_pending: bool,
+    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, String>>>,
     confirm_self_update: bool,
     restore_app: Option<String>,
     restore_backups: Vec<backups::Backup>,
@@ -127,7 +143,7 @@ impl App {
         style.visuals.widgets.inactive.bg_fill = Color32::from_rgb(58, 58, 58);
         style.visuals.widgets.inactive.fg_stroke.color = Color32::from_gray(210);
         style.visuals.widgets.noninteractive.fg_stroke.color = Color32::from_gray(210);
-        style.spacing.item_spacing = egui::vec2(10.0, 10.0);
+        style.spacing.item_spacing = egui::vec2(10.0, 8.0);
         style.spacing.button_padding = egui::vec2(14.0, 7.0);
         style
             .text_styles
@@ -177,7 +193,9 @@ impl App {
         }
         let auto = preferences.release_format == "portable" && scheduler::enabled(false);
         let auto_source = scheduler::enabled(true);
-        let updater_startup_pending = !builder && preferences.check_updater_on_startup;
+        let manager_startup_pending = !builder && preferences.check_manager_on_startup;
+        let apps_startup_pending = !builder && preferences.check_installed_apps_on_startup;
+        let (check_sender, check_receiver) = std::sync::mpsc::channel();
         let preview_backups = std::env::args().any(|a| a == "--preview-backups");
         let restore_backups = if preview_backups {
             backups::list(&paths, &app)?
@@ -185,7 +203,21 @@ impl App {
             Vec::new()
         };
         let restore_app = preview_backups.then(|| app.clone());
+        let icons = APPS
+            .into_iter()
+            .map(|name| -> Result<_> {
+                let image = image::load_from_memory(app_icon(name))?.into_rgba8();
+                let size = [image.width() as usize, image.height() as usize];
+                let pixels = egui::ColorImage::from_rgba_unmultiplied(size, image.as_raw());
+                Ok((
+                    name.to_owned(),
+                    cc.egui_ctx
+                        .load_texture(name, pixels, egui::TextureOptions::LINEAR),
+                ))
+            })
+            .collect::<Result<_>>()?;
         Ok(Self {
+            icons,
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
             paths,
@@ -218,12 +250,16 @@ impl App {
             app_selected: std::env::args().any(|a| a == "--preview-details"),
             confirm_install: None,
             release_checks: Default::default(),
-            check_receiver: None,
-            updater_receiver: None,
-            updater_available: None,
-            updater_message: String::new(),
-            updater_startup_pending,
-            updater_plan: None,
+            check_receiver,
+            check_sender,
+            checking_apps: Default::default(),
+            check_generation: 0,
+            apps_startup_pending,
+            manager_receiver: None,
+            manager_available: None,
+            manager_message: String::new(),
+            manager_startup_pending,
+            manager_plan: None,
             confirm_self_update: false,
             restore_app,
             restore_backups,
@@ -243,11 +279,11 @@ impl App {
             self.error = Some(format!("{e:#}"));
         }
     }
-    fn check_updater(&mut self, ctx: &egui::Context) {
+    fn check_manager(&mut self, ctx: &egui::Context) {
         let (tx, rx) = std::sync::mpsc::channel();
-        self.updater_receiver = Some(rx);
-        self.updater_available = None;
-        self.updater_message = "Checking for updater updates…".into();
+        self.manager_receiver = Some(rx);
+        self.manager_available = None;
+        self.manager_message = "Checking for manager updates…".into();
         let paths = self.paths.clone();
         let ctx = ctx.clone();
         std::thread::spawn(move || {
@@ -257,19 +293,34 @@ impl App {
         });
     }
     fn check_selected_app(&mut self, ctx: &egui::Context, installed_version: String) {
-        let (tx, rx) = std::sync::mpsc::channel();
-        self.check_receiver = Some(rx);
-        self.release_checks.remove(&self.app);
-        let app = self.app.clone();
+        self.check_apps(ctx, vec![(self.app.clone(), installed_version)]);
+    }
+    fn check_apps(&mut self, ctx: &egui::Context, apps: Vec<(String, String)>) {
+        let apps: Vec<_> = apps
+            .into_iter()
+            .filter(|(app, _)| self.checking_apps.insert(app.clone()))
+            .collect();
+        for (app, _) in &apps {
+            self.release_checks.remove(app);
+        }
+        let tx = self.check_sender.clone();
+        let generation = self.check_generation;
         let paths = self.paths.clone();
         let ctx = ctx.clone();
         std::thread::spawn(move || {
-            let started = std::time::Instant::now();
-            let result = updates::check_app(&paths, &app).map_err(|e| format!("{e:#}"));
-            // Keep fast cached checks visible long enough to acknowledge the click.
-            std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
-            let _ = tx.send((app, installed_version, result));
-            ctx.request_repaint();
+            for (app, installed_version) in apps {
+                let started = std::time::Instant::now();
+                let result = updates::check_app(&paths, &app).map_err(|e| format!("{e:#}"));
+                // Keep fast cached checks visible long enough to acknowledge the click.
+                std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
+                if tx
+                    .send((generation, app, installed_version, result))
+                    .is_err()
+                {
+                    break;
+                }
+                ctx.request_repaint();
+            }
         });
     }
     fn start(&mut self, action: &str) {
@@ -336,7 +387,7 @@ impl App {
         if !show {
             return;
         }
-        egui::Window::new(if self.builder{"Builder settings"}else{"Updater settings"}).open(&mut show).collapsible(false).resizable(false).default_width(570.0).anchor(egui::Align2::CENTER_CENTER,[0.0,0.0]).vscroll(false).show(ctx,|ui|{
+        egui::Window::new(if self.builder{"Builder settings"}else{"Manager settings"}).open(&mut show).collapsible(false).resizable(false).default_width(570.0).anchor(egui::Align2::CENTER_CENTER,[0.0,0.0]).vscroll(false).show(ctx,|ui|{
             ui.heading(if self.builder{"Build maintenance"}else{"Release preferences"});ui.separator();
 egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(240.0)).show(ui,|ui|{
             if self.builder{
@@ -347,19 +398,19 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{"Portable ZIP"}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),"Portable ZIP");ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
                 ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
                 ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of 7 apps selected",self.settings_draft.selected_apps.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of 8 sources selected",self.settings_draft.selected_sources.len()));});
-                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when automatic updates install new versions");ui.checkbox(&mut self.settings_draft.check_updater_on_startup,"Check for updates on startup").on_hover_text("Checks for a new Craft Apps Updater release. Downloads require your confirmation.");
+                ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable ZIP releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when automatic updates install new versions");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
                 ui.small("A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard.");if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
-                if ui.add_enabled(self.updater_receiver.is_none() && self.updater_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Updater release").clicked() { self.check_updater(ctx); }
-                let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · Windows {}",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE"),model::UPDATER_ARCH));
-                if self.updater_receiver.is_some() || self.updater_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
-                if !self.updater_message.is_empty(){ui.small(&self.updater_message);}
-                if self.updater_available.is_some() && ui.add_enabled(!self.job.state.lock().unwrap().busy && self.updater_plan.is_none(),egui::Button::new("Download and restart…")).clicked(){self.confirm_self_update=true;}
+                if ui.add_enabled(self.manager_receiver.is_none() && self.manager_plan.is_none(), egui::Button::new("Check for updates...")).on_hover_text("Check for a newer Craft Apps Manager release").clicked() { self.check_manager(ctx); }
+                let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · Windows {}",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE"),model::MANAGER_ARCH));
+                if self.manager_receiver.is_some() || self.manager_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
+                if !self.manager_message.is_empty(){ui.small(&self.manager_message);}
+                if self.manager_available.is_some() && ui.add_enabled(!self.job.state.lock().unwrap().busy && self.manager_plan.is_none(),egui::Button::new("Download and restart…")).clicked(){self.confirm_self_update=true;}
             }
             ui.separator();ui.collapsing("Folders",|ui|{ui.label("Data folder (releases, sources, builds, logs, backups)");ui.add(egui::TextEdit::singleline(&mut self.root_text).desired_width(520.0));ui.label("Build tools folder");ui.add(egui::TextEdit::singleline(&mut self.tools_text).desired_width(520.0));ui.small("Use your existing PowerShell data folder to access its sources and builds. Folder changes apply after reopening this window.");});
             });
             ui.separator();ui.horizontal(|ui|{
-                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("updater-settings.json"),&self.settings_draft)?;self.preferences=self.settings_draft.clone();self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
+                if ui.button("Save").clicked(){let result=(||->Result<()>{self.settings_draft.validate()?;if self.builder{files::write_json(&self.paths.at("builder-settings.json"),&self.build_draft)?;self.build_preferences=self.build_draft.clone();}else{if self.settings_draft.release_format=="installer" && self.auto {scheduler::set(&self.paths,false,false)?;self.auto=false;}let config=self.paths.config()?;self.paths.save_config(&config)?;files::write_json(&self.paths.at("manager-settings.json"),&self.settings_draft)?;let check_mode_changed=self.preferences.release_format!=self.settings_draft.release_format||self.preferences.architecture!=self.settings_draft.architecture;self.preferences=self.settings_draft.clone();if check_mode_changed{self.check_generation+=1;self.checking_apps.clear();self.release_checks.clear();}self.display_config=None;self.config_receiver=None;self.config_refresh_at=std::time::Instant::now();}let root=PathBuf::from(self.root_text.trim());let tools=PathBuf::from(self.tools_text.trim());if !root.is_absolute()||!tools.is_absolute(){anyhow::bail!("Folder paths must be absolute");}files::write_json(&self.home.join("data-root.json"),&Locations{root:Some(root),tools:Some(tools)})?;self.settings=false;Ok(())})();self.result(result);}
                 if ui.button("Cancel").clicked(){self.settings=false;}
             });
         });
@@ -672,14 +723,14 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             }
         }
         if self.confirm_self_update {
-            egui::Window::new("Update Craft Apps Updater").collapsible(false).resizable(false).show(ctx, |ui| {
-                ui.label("Download the new updater and restart this window?");
-                ui.small("Close other updater and builder windows first. Your library and settings will be kept.");
-                ui.hyperlink_to("Release source: CryptoKey98/craft-apps-updater", self_update::REPOSITORY);
+            egui::Window::new("Update Craft Apps Manager").collapsible(false).resizable(false).show(ctx, |ui| {
+                ui.label("Download the new manager and restart this window?");
+                ui.small("Close other manager and builder windows first. Your library and settings will be kept.");
+                ui.hyperlink_to("Release source: CryptoKey98/craft-apps-manager", self_update::REPOSITORY);
                 ui.horizontal(|ui| {
                     if ui.button("Download and restart").clicked() {
-                        if let Some(available)=self.updater_available.clone() {
-                            let paths=self.paths.clone(); let ctx=ctx.clone(); let (tx,rx)=std::sync::mpsc::channel(); self.updater_plan=Some(rx);
+                        if let Some(available)=self.manager_available.clone() {
+                            let paths=self.paths.clone(); let ctx=ctx.clone(); let (tx,rx)=std::sync::mpsc::channel(); self.manager_plan=Some(rx);
                             self.job=Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
                             self.job.spawn(move |job| {
                                 let result=self_update::prepare(&paths,&available,&job);
@@ -687,7 +738,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                                 let _=tx.send(result.map_err(|e|format!("{e:#}")));ctx.request_repaint();
                                 if let Some(message)=message {anyhow::bail!(message);} Ok(())
                             });
-                            self.updater_message="Downloading and verifying updater…".into();
+                            self.manager_message="Downloading and verifying manager…".into();
                         }
                         self.confirm_self_update=false;
                     }
@@ -734,7 +785,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
                 });
         }
         if let Some(error) = self.error.clone() {
-            egui::Window::new("Craft Apps Updater")
+            egui::Window::new("Craft Apps Manager")
                 .collapsible(false)
                 .show(ctx, |ui| {
                     ui.colored_label(Color32::from_rgb(240, 130, 120), error);
@@ -833,48 +884,58 @@ impl eframe::App for App {
                 ctx.request_repaint();
             });
         }
-        if self.updater_startup_pending {
-            self.updater_startup_pending = false;
-            self.check_updater(ctx);
+        if self.apps_startup_pending && !busy {
+            if let Some(config) = &self.display_config {
+                let apps = updates::installed_check_targets(config)
+                    .into_iter()
+                    .map(|app| (app.name, app.version))
+                    .collect();
+                self.apps_startup_pending = false;
+                self.check_apps(ctx, apps);
+            }
         }
-        if let Some(receiver) = &self.updater_receiver {
+        if self.manager_startup_pending {
+            self.manager_startup_pending = false;
+            self.check_manager(ctx);
+        }
+        if let Some(receiver) = &self.manager_receiver {
             if let Ok(result) = receiver.try_recv() {
                 match result {
                     Ok(Some(available)) => {
-                        self.updater_message =
-                            format!("Updater {} is available.", available.version);
-                        self.updater_available = Some(available);
+                        self.manager_message =
+                            format!("Manager {} is available.", available.version);
+                        self.manager_available = Some(available);
                         self.settings = true;
                     }
                     Ok(None) => {
-                        self.updater_message = "You’re running the latest updater version.".into()
+                        self.manager_message = "You’re running the latest manager version.".into()
                     }
                     Err(error) => {
-                        self.updater_message = format!("Could not check for updates: {error}")
+                        self.manager_message = format!("Could not check for updates: {error}")
                     }
                 }
-                self.updater_receiver = None;
+                self.manager_receiver = None;
             }
         }
-        if let Some(receiver) = &self.updater_plan {
+        if let Some(receiver) = &self.manager_plan {
             if let Ok(result) = receiver.try_recv() {
-                self.updater_plan = None;
+                self.manager_plan = None;
                 match result {
                     Ok(plan) => match self_update::launch(&plan) {
                         Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                         Err(error) => self.result(Err(error)),
                     },
                     Err(error) => {
-                        self.updater_message = "Updater download failed.".into();
+                        self.manager_message = "Manager download failed.".into();
                         self.error = Some(error);
                     }
                 }
             }
         }
-        if let Some(receiver) = &self.check_receiver {
-            if let Ok((app, version, result)) = receiver.try_recv() {
+        while let Ok((generation, app, version, result)) = self.check_receiver.try_recv() {
+            if generation == self.check_generation {
+                self.checking_apps.remove(&app);
                 self.release_checks.insert(app, (version, result));
-                self.check_receiver = None;
             }
         }
         if let Ok(path) = std::env::var("CRAFT_SCREENSHOT_TO") {
@@ -924,7 +985,7 @@ impl eframe::App for App {
                     ui.heading(if self.builder {
                         "Craft Apps Builder"
                     } else {
-                        "Craft Apps Updater"
+                        "Craft Apps Manager"
                     });
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.label(
@@ -954,7 +1015,12 @@ impl eframe::App for App {
         egui::SidePanel::left("sidebar")
             .resizable(false)
             .exact_width(220.0)
-            .show(ctx, |ui| {
+            .frame(egui::Frame::side_top_panel(&ctx.style()).fill(Color32::from_rgb(29, 29, 29)))
+            .show(ctx, |sidebar_ui| {
+                let viewport = sidebar_ui.max_rect();
+                let mut content = sidebar_ui.new_child(egui::UiBuilder::new().max_rect(viewport));
+                content.set_clip_rect(sidebar_ui.clip_rect().intersect(viewport));
+                let ui = &mut content;
                 ui.add_space(16.0);
                 ui.label(
                     RichText::new(if self.builder {
@@ -1043,98 +1109,531 @@ impl eframe::App for App {
                         }
                     }
                 } else {
-                    let config = &self.display_config;
-                    for name in APPS {
-                        let version = config
-                            .as_ref()
-                            .and_then(|c| c.apps.iter().find(|a| a.name == name))
-                            .filter(|a| !a.version.is_empty())
-                            .map(|a| a.version.as_str())
-                            .unwrap_or("Not installed");
-                        let selected = self.app_selected && self.app == name;
-                        let (rect, response) = ui.allocate_exact_size(
-                            egui::vec2(ui.available_width(), 56.0),
-                            egui::Sense::click(),
-                        );
-                        if selected || response.hovered() {
-                            ui.painter().rect_filled(
-                                rect,
-                                3.0,
-                                if selected {
-                                    Color32::from_rgb(36, 72, 110)
+                    egui::ScrollArea::vertical()
+                        .id_salt("creative-app-list")
+                        .auto_shrink([false, false])
+                        .max_height((ui.available_height() - 100.0).max(0.0))
+                        .show(ui, |ui| {
+                            let config = &self.display_config;
+                            let app_order = self.preferences.app_order.clone();
+                            let mut reorder = None;
+                            for app_name in &app_order {
+                                let name = app_name.as_str();
+                                let version = config
+                                    .as_ref()
+                                    .and_then(|c| c.apps.iter().find(|a| a.name == name))
+                                    .filter(|a| !a.version.is_empty())
+                                    .map(|a| a.version.as_str())
+                                    .unwrap_or(if config.is_some() {
+                                        "Not installed"
+                                    } else {
+                                        "Checking…"
+                                    });
+                                let is_installed =
+                                    version != "Not installed" && version != "Checking…";
+                                let update_available = is_installed
+                                    && self.release_checks.get(name).is_some_and(
+                                        |(checked_version, result)| {
+                                            checked_version == version
+                                                && matches!(result, Ok(Some(_)))
+                                        },
+                                    );
+                                let status_text = if is_installed {
+                                    format!("Installed · {version}")
                                 } else {
-                                    Color32::from_gray(48)
-                                },
-                            );
-                        }
-                        if selected {
-                            ui.painter().rect_filled(
-                                egui::Rect::from_min_size(rect.min, egui::vec2(3.0, rect.height())),
-                                0.0,
-                                BLUE,
-                            );
-                        }
-                        let enabled = self.preferences.selected_apps.iter().any(|s| s == name);
-                        ui.painter().circle_filled(
-                            rect.min + egui::vec2(12.0, 19.0),
-                            3.0,
-                            if enabled { BLUE } else { Color32::GRAY },
+                                    version.to_owned()
+                                };
+                                let selected = self.app_selected && self.app == name;
+                                let (rect, response) = ui.allocate_exact_size(
+                                    egui::vec2(ui.available_width(), 56.0),
+                                    egui::Sense::click_and_drag(),
+                                );
+                                response.dnd_set_drag_payload(app_name.clone());
+                                if response.dragged() {
+                                    ctx.set_cursor_icon(egui::CursorIcon::Grabbing);
+                                    ui.painter().rect_stroke(
+                                        rect.shrink(1.0),
+                                        3.0,
+                                        egui::Stroke::new(1.0_f32, BLUE),
+                                        egui::StrokeKind::Inside,
+                                    );
+                                }
+                                let before = ctx
+                                    .input(|i| i.pointer.interact_pos())
+                                    .is_none_or(|pos| pos.y < rect.center().y);
+                                if let Some(dragged) = response.dnd_hover_payload::<String>() {
+                                    if dragged.as_str() != name {
+                                        let y = if before { rect.top() } else { rect.bottom() };
+                                        ui.painter().line_segment(
+                                            [
+                                                egui::pos2(rect.left() + 4.0, y),
+                                                egui::pos2(rect.right() - 4.0, y),
+                                            ],
+                                            egui::Stroke::new(2.0_f32, BLUE),
+                                        );
+                                    }
+                                }
+                                if let Some(dragged) = response.dnd_release_payload::<String>() {
+                                    if dragged.as_str() != name {
+                                        reorder = Some((
+                                            dragged.as_ref().clone(),
+                                            app_name.clone(),
+                                            before,
+                                        ));
+                                    }
+                                }
+                                if selected || response.hovered() {
+                                    ui.painter().rect_filled(
+                                        rect,
+                                        3.0,
+                                        if selected {
+                                            Color32::from_rgb(36, 72, 110)
+                                        } else {
+                                            Color32::from_gray(48)
+                                        },
+                                    );
+                                }
+                                if selected {
+                                    ui.painter().rect_filled(
+                                        egui::Rect::from_min_size(
+                                            rect.min,
+                                            egui::vec2(3.0, rect.height()),
+                                        ),
+                                        0.0,
+                                        BLUE,
+                                    );
+                                }
+                                let icon = egui::Rect::from_min_size(
+                                    rect.min + egui::vec2(10.0, 12.0),
+                                    egui::vec2(32.0, 32.0),
+                                );
+                                if let Some(texture) = self.icons.get(name) {
+                                    ui.painter().image(
+                                        texture.id(),
+                                        icon,
+                                        egui::Rect::from_min_max(
+                                            egui::Pos2::ZERO,
+                                            egui::pos2(1.0, 1.0),
+                                        ),
+                                        Color32::WHITE,
+                                    );
+                                }
+                                ui.painter().text(
+                                    rect.min + egui::vec2(52.0, 9.0),
+                                    egui::Align2::LEFT_TOP,
+                                    model::title(name),
+                                    egui::FontId::proportional(14.0),
+                                    Color32::from_gray(220),
+                                );
+                                ui.painter().text(
+                                    rect.min + egui::vec2(52.0, 32.0),
+                                    egui::Align2::LEFT_TOP,
+                                    &status_text,
+                                    egui::FontId::proportional(11.0),
+                                    if is_installed {
+                                        Color32::from_rgb(130, 195, 155)
+                                    } else {
+                                        Color32::from_gray(125)
+                                    },
+                                );
+                                let mut install_clicked = false;
+                                if (!is_installed && config.is_some()) || update_available {
+                                    let text_width = ui
+                                        .painter()
+                                        .layout_no_wrap(
+                                            status_text.clone(),
+                                            egui::FontId::proportional(11.0),
+                                            Color32::from_gray(125),
+                                        )
+                                        .size()
+                                        .x;
+                                    let button_rect = egui::Rect::from_min_size(
+                                        rect.min + egui::vec2(52.0 + text_width + 8.0, 29.0),
+                                        egui::vec2(20.0, 20.0),
+                                    );
+                                    let mut button_ui =
+                                        ui.new_child(egui::UiBuilder::new().max_rect(button_rect));
+                                    if state.busy {
+                                        button_ui.disable();
+                                    }
+                                    let install_response = button_ui
+                                        .interact(
+                                            button_rect,
+                                            ui.id().with(("install-app", name)),
+                                            egui::Sense::click(),
+                                        )
+                                        .on_hover_text(format!(
+                                            "{} {} (latest release)",
+                                            if update_available {
+                                                "Update available for"
+                                            } else {
+                                                "Install"
+                                            },
+                                            model::title(name),
+                                        ));
+                                    install_response.widget_info(|| {
+                                        egui::WidgetInfo::labeled(
+                                            egui::WidgetType::Button,
+                                            !state.busy,
+                                            format!(
+                                                "{} {} (latest release)",
+                                                if update_available {
+                                                    "Update"
+                                                } else {
+                                                    "Install"
+                                                },
+                                                model::title(name)
+                                            ),
+                                        )
+                                    });
+                                    let center = button_rect.center();
+                                    let face = if state.busy {
+                                        44
+                                    } else if install_response.is_pointer_button_down_on() {
+                                        52
+                                    } else if install_response.hovered() {
+                                        76
+                                    } else {
+                                        62
+                                    };
+                                    ui.painter().circle_filled(
+                                        center + egui::vec2(0.0, 1.0),
+                                        9.0,
+                                        Color32::from_gray(20),
+                                    );
+                                    ui.painter().circle_filled(
+                                        center,
+                                        9.0,
+                                        Color32::from_gray(face),
+                                    );
+                                    let paint_arrow =
+                                        |origin: egui::Pos2, fill: Color32, outline: bool| {
+                                            ui.painter().rect_filled(
+                                                egui::Rect::from_min_max(
+                                                    origin
+                                                        + egui::vec2(
+                                                            if update_available {
+                                                                -0.9
+                                                            } else {
+                                                                -1.5
+                                                            },
+                                                            if update_available {
+                                                                0.0
+                                                            } else {
+                                                                -4.5
+                                                            },
+                                                        ),
+                                                    origin
+                                                        + egui::vec2(
+                                                            if update_available {
+                                                                0.9
+                                                            } else {
+                                                                1.5
+                                                            },
+                                                            if update_available {
+                                                                4.5
+                                                            } else {
+                                                                0.0
+                                                            },
+                                                        ),
+                                                ),
+                                                1.0,
+                                                fill,
+                                            );
+                                            let direction =
+                                                if update_available { -1.0 } else { 1.0 };
+                                            let corners = [
+                                                egui::vec2(
+                                                    if update_available { -3.0 } else { -4.0 },
+                                                    -0.5 * direction,
+                                                ),
+                                                egui::vec2(
+                                                    if update_available { 3.0 } else { 4.0 },
+                                                    -0.5 * direction,
+                                                ),
+                                                egui::vec2(0.0, 4.5 * direction),
+                                            ];
+                                            let mut rounded = Vec::with_capacity(15);
+                                            for index in 0..3 {
+                                                let corner = corners[index];
+                                                let entry = corner
+                                                    + (corners[(index + 2) % 3] - corner)
+                                                        .normalized()
+                                                        * 0.9;
+                                                let exit = corner
+                                                    + (corners[(index + 1) % 3] - corner)
+                                                        .normalized()
+                                                        * 0.9;
+                                                for step in 0..=4 {
+                                                    let t = step as f32 / 4.0;
+                                                    rounded.push(
+                                                        origin
+                                                            + entry * (1.0 - t).powi(2)
+                                                            + corner * (2.0 * t * (1.0 - t))
+                                                            + exit * t.powi(2),
+                                                    );
+                                                }
+                                            }
+                                            if update_available {
+                                                rounded.reverse();
+                                            }
+                                            ui.painter().add(egui::Shape::convex_polygon(
+                                                rounded,
+                                                fill,
+                                                egui::Stroke::NONE,
+                                            ));
+                                            if outline {
+                                                let corners = [
+                                                    egui::vec2(-0.9, 4.5),
+                                                    egui::vec2(0.9, 4.5),
+                                                    egui::vec2(0.9, 0.5),
+                                                    egui::vec2(3.0, 0.5),
+                                                    egui::vec2(0.0, -4.5),
+                                                    egui::vec2(-3.0, 0.5),
+                                                    egui::vec2(-0.9, 0.5),
+                                                ];
+                                                let mut contour = Vec::new();
+                                                for index in 0..corners.len() {
+                                                    let corner = corners[index];
+                                                    let entry = corner
+                                                        + (corners[(index + corners.len() - 1)
+                                                            % corners.len()]
+                                                            - corner)
+                                                            .normalized()
+                                                            * 0.45;
+                                                    let exit = corner
+                                                        + (corners[(index + 1) % corners.len()]
+                                                            - corner)
+                                                            .normalized()
+                                                            * 0.45;
+                                                    for step in 0..=4 {
+                                                        let t = step as f32 / 4.0;
+                                                        contour.push(
+                                                            origin
+                                                                + entry * (1.0 - t).powi(2)
+                                                                + corner * (2.0 * t * (1.0 - t))
+                                                                + exit * t.powi(2),
+                                                        );
+                                                    }
+                                                }
+                                                contour.push(contour[0]);
+                                                ui.painter().add(egui::Shape::line(
+                                                    contour,
+                                                    egui::Stroke::new(
+                                                        0.55_f32,
+                                                        Color32::from_rgb(195, 235, 255),
+                                                    ),
+                                                ));
+                                            }
+                                        };
+                                    if update_available {
+                                        let pulse =
+                                            (ctx.input(|i| i.time) * 3.0).sin() as f32 * 0.5 + 0.5;
+                                        let color = Color32::from_rgb(
+                                            70,
+                                            (130.0 + 60.0 * pulse) as u8,
+                                            245,
+                                        );
+                                        ui.painter().circle_filled(
+                                            center,
+                                            9.0,
+                                            Color32::from_rgb(30, 48, (65.0 + 20.0 * pulse) as u8),
+                                        );
+                                        ui.painter().circle_stroke(
+                                            center,
+                                            9.0,
+                                            egui::Stroke::new(1.0_f32 + pulse * 0.5, color),
+                                        );
+                                        let hovered = install_response.hovered() && !state.busy;
+                                        if hovered {
+                                            for (radius, alpha) in
+                                                [(12.0, 18), (11.0, 32), (10.0, 65)]
+                                            {
+                                                ui.painter().circle_stroke(
+                                                    center,
+                                                    radius,
+                                                    egui::Stroke::new(
+                                                        1.5_f32,
+                                                        Color32::from_rgba_unmultiplied(
+                                                            85, 175, 255, alpha,
+                                                        ),
+                                                    ),
+                                                );
+                                            }
+                                            ui.painter().circle_stroke(
+                                                center,
+                                                9.0,
+                                                egui::Stroke::new(
+                                                    1.8_f32,
+                                                    Color32::from_rgb(125, 205, 255),
+                                                ),
+                                            );
+                                        }
+                                        ctx.request_repaint_after(Duration::from_millis(33));
+                                    }
+                                    // Both directions share the same rounded, filled recessed arrow.
+                                    if update_available {
+                                        for offset in [
+                                            egui::vec2(-0.35, 0.0),
+                                            egui::vec2(0.35, 0.0),
+                                            egui::vec2(0.0, -0.35),
+                                            egui::vec2(0.0, 0.35),
+                                        ] {
+                                            paint_arrow(
+                                                center + offset,
+                                                Color32::from_rgba_unmultiplied(65, 165, 255, 22),
+                                                false,
+                                            );
+                                        }
+                                    }
+                                    if !update_available {
+                                        paint_arrow(
+                                            center + egui::vec2(0.0, 0.75),
+                                            Color32::from_gray(if state.busy { 54 } else { 80 }),
+                                            false,
+                                        );
+                                    }
+                                    paint_arrow(
+                                        center,
+                                        if update_available {
+                                            if install_response.hovered() {
+                                                Color32::from_rgb(40, 135, 220)
+                                            } else {
+                                                Color32::from_rgb(25, 100, 180)
+                                            }
+                                        } else {
+                                            Color32::from_gray(32)
+                                        },
+                                        update_available,
+                                    );
+                                    install_clicked = install_response.clicked();
+                                }
+                                if install_clicked {
+                                    self.confirm_install = Some(name.into());
+                                } else if response.clicked() {
+                                    self.app_selected = !selected;
+                                    self.app = name.into();
+                                    self.launch_settings_open = false;
+                                    self.confirm_uninstall = false;
+                                }
+                                if self.checking_apps.contains(name) {
+                                    let spinner_rect = egui::Rect::from_min_size(
+                                        egui::pos2(rect.right() - 22.0, rect.top() + 30.0),
+                                        egui::vec2(16.0, 16.0),
+                                    );
+                                    let mut spinner_ui =
+                                        ui.new_child(egui::UiBuilder::new().max_rect(spinner_rect));
+                                    spinner_ui
+                                        .add(egui::Spinner::new().size(12.0))
+                                        .on_hover_text("Checking for updates…");
+                                }
+                            }
+                            if let Some((dragged, target, before)) = reorder {
+                                let mut preferences = self.preferences.clone();
+                                preferences.app_order.retain(|name| name != &dragged);
+                                if let Some(index) = preferences
+                                    .app_order
+                                    .iter()
+                                    .position(|name| name == &target)
+                                {
+                                    preferences
+                                        .app_order
+                                        .insert(index + usize::from(!before), dragged);
+                                    match files::write_json(
+                                        &self.paths.at("manager-settings.json"),
+                                        &preferences,
+                                    ) {
+                                        Ok(()) => {
+                                            self.settings_draft.app_order =
+                                                preferences.app_order.clone();
+                                            self.preferences = preferences;
+                                        }
+                                        Err(error) => {
+                                            self.error =
+                                                Some(format!("Could not save app order: {error:#}"))
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    let footer = egui::Rect::from_min_max(
+                        egui::pos2(viewport.left(), viewport.bottom() - 96.0),
+                        viewport.right_bottom(),
+                    );
+                    let separator = egui::Stroke::new(1.0_f32, Color32::from_gray(58));
+                    for offset in [2.0, 38.0] {
+                        ui.painter().line_segment(
+                            [
+                                egui::pos2(footer.left(), footer.top() + offset),
+                                egui::pos2(footer.right(), footer.top() + offset),
+                            ],
+                            separator,
                         );
-                        ui.painter().text(
-                            rect.min + egui::vec2(25.0, 10.0),
-                            egui::Align2::LEFT_TOP,
-                            model::title(name),
-                            egui::FontId::proportional(14.0),
-                            Color32::from_gray(220),
-                        );
-                        ui.painter().text(
-                            rect.min + egui::vec2(25.0, 34.0),
-                            egui::Align2::LEFT_TOP,
-                            version,
-                            egui::FontId::proportional(11.0),
-                            Color32::from_gray(165),
-                        );
-                        if response.clicked() {
-                            self.app_selected = !selected;
-                            self.app = name.into();
-                            self.launch_settings_open = false;
-                            self.confirm_uninstall = false;
-                        }
                     }
-                    ui.separator();
-                    ui.label(
-                        RichText::new(format!(
+                    ui.painter().text(
+                        egui::pos2(footer.left() + 4.0, footer.top() + 20.0),
+                        egui::Align2::LEFT_CENTER,
+                        format!(
                             "{} of 7 apps selected",
                             self.preferences.selected_apps.len()
-                        ))
-                        .size(13.0)
-                        .color(Color32::from_gray(190)),
+                        ),
+                        egui::FontId::proportional(13.0),
+                        Color32::from_gray(190),
+                    );
+                    let button_rect = egui::Rect::from_center_size(
+                        egui::pos2(footer.center().x, footer.top() + 68.0),
+                        egui::vec2(190.0_f32.min(footer.width()), 32.0),
+                    );
+                    if ui
+                        .add_enabled_ui(!state.busy, |ui| {
+                            ui.put(button_rect, egui::Button::new("Settings"))
+                        })
+                        .inner
+                        .clicked()
+                    {
+                        self.open_settings();
+                    }
+                }
+                if self.builder {
+                    ui.allocate_ui_with_layout(
+                        ui.available_size(),
+                        egui::Layout::bottom_up(egui::Align::Center),
+                        |ui| {
+                            ui.add_space(12.0);
+                            if ui
+                                .add_enabled(
+                                    !state.busy,
+                                    egui::Button::new("Settings").min_size(egui::vec2(190.0, 32.0)),
+                                )
+                                .clicked()
+                            {
+                                self.open_settings()
+                            }
+                            ui.add_space(4.0);
+                            ui.separator();
+                        },
                     );
                 }
-                ui.allocate_ui_with_layout(
-                    ui.available_size(),
-                    egui::Layout::bottom_up(egui::Align::Center),
-                    |ui| {
-                        ui.add_space(12.0);
-                        if ui
-                            .add_enabled(
-                                !state.busy,
-                                egui::Button::new("Settings").min_size(egui::vec2(190.0, 32.0)),
-                            )
-                            .clicked()
-                        {
-                            self.open_settings()
-                        }
-                        ui.add_space(4.0);
-                        ui.separator();
-                    },
-                );
             });
-        if !self.builder {
-            egui::SidePanel::right("app-details")
-                .default_width(250.0)
-                .min_width(220.0)
-                .show_animated(ctx, self.app_selected, |ui| {
+        let expansion =
+            ctx.animate_bool_with_time(egui::Id::new("app-details-slide"), self.app_selected, 0.18);
+        if !self.builder && expansion > 0.001 {
+            egui::SidePanel::left("app-details")
+                .resizable(false)
+                .exact_width(260.0 * expansion)
+                .frame(egui::Frame::NONE.fill(Color32::from_rgb(40, 40, 40)))
+                .show(ctx, |panel_ui| {
+                    // Fixed-size controls are clipped to the animated viewport;
+                    // padding cannot impose a minimum width at the closing edge.
+                    let viewport = panel_ui.max_rect();
+                    let mut content = panel_ui.new_child(egui::UiBuilder::new().max_rect(
+                        egui::Rect::from_min_size(
+                            viewport.min + egui::vec2(12.0, 0.0),
+                            egui::vec2(236.0, viewport.height()),
+                        ),
+                    ));
+                    content.set_clip_rect(panel_ui.clip_rect().intersect(viewport));
+                    let ui = &mut content;
                     ui.add_space(14.0);
                     ui.horizontal(|ui| {
                         ui.heading(model::title(&self.app));
@@ -1158,6 +1657,25 @@ impl eframe::App for App {
                         })
                         .cloned();
                     if let Some(app) = &installed {
+                        let update_available =
+                            self.release_checks
+                                .get(&self.app)
+                                .is_some_and(|(version, result)| {
+                                    version == &app.version && matches!(result, Ok(Some(_)))
+                                });
+                        ui.label(
+                            RichText::new(if update_available {
+                                "Update available"
+                            } else {
+                                "Installed"
+                            })
+                            .size(12.0)
+                            .color(if update_available {
+                                BLUE
+                            } else {
+                                Color32::from_rgb(130, 195, 155)
+                            }),
+                        );
                         ui.label(format!("Version {} · {}", app.version, app.architecture));
                         ui.small(if app.install_kind == "installer" {
                             "Installed with Windows installer"
@@ -1165,7 +1683,11 @@ impl eframe::App for App {
                             "Installed portable release"
                         });
                     } else {
-                        ui.label("Not installed");
+                        ui.label(
+                            RichText::new("Not installed")
+                                .size(12.0)
+                                .color(Color32::from_gray(165)),
+                        );
                     }
                     ui.add_space(12.0);
                     if ui
@@ -1173,7 +1695,7 @@ impl eframe::App for App {
                             installed.is_some(),
                             egui::Button::new("Launch")
                                 .fill(BLUE)
-                                .min_size(egui::vec2(210.0, 36.0)),
+                                .min_size(egui::vec2(ui.available_width(), 36.0)),
                         )
                         .clicked()
                     {
@@ -1183,7 +1705,8 @@ impl eframe::App for App {
                     if ui
                         .add_enabled(
                             installed.is_some(),
-                            egui::Button::new("Launch settings…").min_size(egui::vec2(210.0, 30.0)),
+                            egui::Button::new("Launch settings…")
+                                .min_size(egui::vec2(ui.available_width(), 30.0)),
                         )
                         .clicked()
                     {
@@ -1199,7 +1722,8 @@ impl eframe::App for App {
                     if ui
                         .add_enabled(
                             installed.is_some(),
-                            egui::Button::new("Open app folder").min_size(egui::vec2(210.0, 30.0)),
+                            egui::Button::new("Open app folder")
+                                .min_size(egui::vec2(ui.available_width(), 30.0)),
                         )
                         .clicked()
                     {
@@ -1213,7 +1737,13 @@ impl eframe::App for App {
                             self.result(platform::open(folder));
                         }
                     }
-                    if ui.button("Build from source").clicked() {
+                    if ui
+                        .add(
+                            egui::Button::new("Build from source")
+                                .min_size(egui::vec2(ui.available_width(), 30.0)),
+                        )
+                        .clicked()
+                    {
                         self.open_builder();
                     }
                     ui.hyperlink_to(
@@ -1238,7 +1768,8 @@ impl eframe::App for App {
                         .add_enabled(
                             !state.busy
                                 && app_backups.as_ref().is_ok_and(|items| !items.is_empty()),
-                            egui::Button::new("Backups…").min_size(egui::vec2(210.0, 30.0)),
+                            egui::Button::new("Backups…")
+                                .min_size(egui::vec2(ui.available_width(), 30.0)),
                         )
                         .on_disabled_hover_text(if state.busy {
                             "Wait for the current operation to finish.".into()
@@ -1270,7 +1801,7 @@ impl eframe::App for App {
                     });
                     let available =
                         checked.is_some_and(|(_, result)| matches!(result, Ok(Some(_))));
-                    let install_label = if self.check_receiver.is_some() {
+                    let install_label = if self.checking_apps.contains(&self.app) {
                         "Checking…"
                     } else if matching_format && !available {
                         "Check for updates"
@@ -1279,8 +1810,8 @@ impl eframe::App for App {
                     } else {
                         "Install (latest release)"
                     };
-                    let mut button =
-                        egui::Button::new(install_label).min_size(egui::vec2(210.0, 36.0));
+                    let mut button = egui::Button::new(install_label)
+                        .min_size(egui::vec2(ui.available_width(), 36.0));
                     if available {
                         let pulse = (ctx.input(|i| i.time) * 3.0).sin() as f32 * 0.5 + 0.5;
                         button = button.stroke(egui::Stroke::new(
@@ -1290,9 +1821,12 @@ impl eframe::App for App {
                         ctx.request_repaint_after(Duration::from_millis(33));
                     }
                     let clicked = ui
-                        .add_enabled(!state.busy && self.check_receiver.is_none(), button)
+                        .add_enabled(
+                            !state.busy && !self.checking_apps.contains(&self.app),
+                            button,
+                        )
                         .clicked();
-                    if self.check_receiver.is_some() {
+                    if self.checking_apps.contains(&self.app) {
                         ui.horizontal(|ui| {
                             ui.spinner();
                             ui.small("Checking for updates…");
@@ -1331,7 +1865,7 @@ impl eframe::App for App {
                             egui::Button::new(
                                 RichText::new("Uninstall…").color(Color32::from_rgb(230, 130, 130)),
                             )
-                            .min_size(egui::vec2(210.0, 30.0)),
+                            .min_size(egui::vec2(ui.available_width(), 30.0)),
                         )
                         .clicked()
                     {
@@ -1360,7 +1894,7 @@ ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button:
 ui.vertical(|ui|{ui.set_width(225.0);if ui.add_enabled(!state.busy,egui::Button::new("Update selected sources").min_size(egui::vec2(225.0,36.0))).clicked(){self.start("sources")}});
 if ui.button("Build from source").clicked(){self.open_builder()}});ui.horizontal(|ui|{ui.spacing_mut().item_spacing.x=3.0;ui.small("Choose apps for release and source updates in");if ui.link(RichText::new("Settings").small().color(BLUE)).clicked(){self.open_settings();}});
                 ui.horizontal(|ui|{if ui.add_enabled(!state.busy && self.preferences.release_format == "portable",egui::Checkbox::new(&mut self.auto,"Automatic app updates")).on_disabled_hover_text(if self.preferences.release_format == "installer" { "Automatic app updates are available for portable ZIPs. Installer updates require the Windows installer wizard and may need administrator approval. Install updates manually, or choose Portable ZIP in Settings." } else { "Wait for the current operation to finish." }).changed(){let result=scheduler::set(&self.paths,false,self.auto);if result.is_err(){self.auto= !self.auto;}self.result(result)}
-if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic app and source updates run hourly and after sign-in. Updater startup checks are optional in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
+if ui.add_enabled(!state.busy,egui::Checkbox::new(&mut self.auto_source,"Automatic source updates")).changed(){let result=scheduler::set(&self.paths,true,self.auto_source);if result.is_err(){self.auto_source= !self.auto_source;}self.result(result)}});ui.small("Automatic app and source updates run hourly and after sign-in. Manager startup checks are optional in Settings.");ui.horizontal(|ui|{if ui.button("Open releases").clicked(){self.result(platform::open(&self.paths.at("releases")));}
 if ui.button("Open sources").clicked(){self.result(platform::open(&self.paths.at("sources")));}
 if state.busy&&ui.button("Cancel update").clicked(){self.job.cancel.store(true,Ordering::Relaxed);}});ui.separator();}
             ui.horizontal(|ui|{if state.busy{ui.spinner();}ui.strong(if state.stage.is_empty(){if state.output.is_some(){"Previous build available"}else{"Ready"}}else{&state.stage});});

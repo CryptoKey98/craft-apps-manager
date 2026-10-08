@@ -220,10 +220,10 @@ pub fn notify(exe: &Path, message: &str) -> Result<()> {
     use winreg::{enums::HKEY_CURRENT_USER, RegKey};
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let (key, _) =
-        hkcu.create_subkey("Software\\Classes\\AppUserModelId\\CraftApps.Updater.Rust")?;
-    key.set_value("DisplayName", &"Craft Apps Updater")?;
-    let (protocol, _) = hkcu.create_subkey("Software\\Classes\\craft-apps-updater-rust")?;
-    protocol.set_value("", &"URL:Craft Apps Updater")?;
+        hkcu.create_subkey("Software\\Classes\\AppUserModelId\\CraftApps.Manager.Rust")?;
+    key.set_value("DisplayName", &"Craft Apps Manager")?;
+    let (protocol, _) = hkcu.create_subkey("Software\\Classes\\craft-apps-manager-rust")?;
+    protocol.set_value("", &"URL:Craft Apps Manager")?;
     protocol.set_value("URL Protocol", &"")?;
     let (command, _) = protocol.create_subkey("shell\\open\\command")?;
     command.set_value("", &format!("\"{}\"", exe.display()))?;
@@ -233,9 +233,9 @@ pub fn notify(exe: &Path, message: &str) -> Result<()> {
         UI::Notifications::{ToastNotification, ToastNotificationManager},
     };
     let xml = XmlDocument::new()?;
-    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-updater-rust:'><visual><binding template='ToastGeneric'><text>Craft apps updated</text><text>{}</text></binding></visual></toast>",escape(message))))?;
+    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>Craft apps updated</text><text>{}</text></binding></visual></toast>",escape(message))))?;
     let toast = ToastNotification::CreateToastNotification(&xml)?;
-    ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from("CraftApps.Updater.Rust"))?
+    ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from("CraftApps.Manager.Rust"))?
         .Show(&toast)?;
     Ok(())
 }

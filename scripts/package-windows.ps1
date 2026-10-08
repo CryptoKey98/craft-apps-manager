@@ -13,27 +13,30 @@ function Assert-Machine([string]$Path) {
         throw "Wrong architecture for $Path; expected $Architecture"
     }
 }
-$exe = Join-Path $projectRoot "target/$target/release/craft-apps-updater.exe"
+$exe = Join-Path $projectRoot "target/$target/release/craft-apps-manager.exe"
 $seven = Join-Path $SevenZipFolder '7za.exe'
 Assert-Machine $exe
 Assert-Machine $seven
 $version = [regex]::Match((Get-Content (Join-Path $projectRoot 'Cargo.toml') -Raw), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
 $output = Join-Path $projectRoot "dist/windows-$Architecture"
-$appFolder = Join-Path $output 'Craft Apps Updater'
+$appFolder = Join-Path $output 'Craft Apps Manager'
 if (Test-Path -LiteralPath $appFolder) { throw "Package folder already exists: $appFolder" }
 $toolsFolder = Join-Path $appFolder "workspace/tools/7zip/$Architecture"
 New-Item -ItemType Directory -Path $toolsFolder -Force | Out-Null
-Copy-Item -LiteralPath $exe -Destination (Join-Path $appFolder 'CraftApps-Updater.exe')
-foreach ($name in @('README.md', 'CHANGELOG.md', 'LICENSE')) {
+Copy-Item -LiteralPath $exe -Destination (Join-Path $appFolder 'CraftApps-Manager.exe')
+foreach ($name in @('README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.txt')) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $appFolder
 }
+$licenses = Join-Path $appFolder 'licenses/app-icons'
+New-Item -ItemType Directory -Path $licenses -Force | Out-Null
+Get-ChildItem -LiteralPath (Join-Path $projectRoot 'assets/app-icons') -Filter '*LICENSE*.txt' | Copy-Item -Destination $licenses
 Copy-Item -LiteralPath $seven -Destination $toolsFolder
 # License notices can sit in the parent SDK directory for its x64 binary.
 $noticeFolder = if (Test-Path -LiteralPath (Join-Path $SevenZipFolder 'License.txt')) { $SevenZipFolder } else { Split-Path -Parent $SevenZipFolder }
 foreach ($name in @('License.txt', 'readme.txt', 'history.txt')) {
     Copy-Item -LiteralPath (Join-Path $noticeFolder $name) -Destination $toolsFolder
 }
-$archive = Join-Path $output "Craft-Apps-Updater-$version-windows-$Architecture.zip"
+$archive = Join-Path $output "Craft-Apps-Manager-$version-windows-$Architecture.zip"
 Compress-Archive -LiteralPath $appFolder -DestinationPath $archive
 $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -LiteralPath (Join-Path $output 'SHA256SUMS.txt') -Value "$hash  $(Split-Path -Leaf $archive)" -Encoding ascii

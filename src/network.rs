@@ -22,7 +22,7 @@ impl Network {
     pub fn new(root: &Path) -> Result<Self> {
         Ok(Self {
             client: Client::builder()
-                .user_agent(concat!("CraftApps-Updater/", env!("CARGO_PKG_VERSION")))
+                .user_agent(concat!("CraftApps-Manager/", env!("CARGO_PKG_VERSION")))
                 .connect_timeout(Duration::from_secs(20))
                 .timeout(Duration::from_secs(300))
                 .build()?,

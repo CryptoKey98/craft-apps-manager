@@ -39,6 +39,18 @@ pub fn check_app(paths: &Paths, app: &str) -> Result<Option<String>> {
         Ok(None)
     }
 }
+pub fn installed_check_targets(config: &crate::model::Config) -> Vec<crate::model::Installed> {
+    config
+        .apps
+        .iter()
+        .filter(|app| {
+            crate::model::APPS.contains(&app.name.as_str())
+                && !app.path.is_empty()
+                && !app.version.is_empty()
+        })
+        .cloned()
+        .collect()
+}
 pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&'a Asset> {
     version(&r.tag_name)?;
     let prefix = format!(
@@ -126,7 +138,7 @@ pub fn install_app(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     releases_for(paths, job, false, Some(app))
 }
 fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&str>) -> Result<()> {
-    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     job.log(&format!(
         "\nRelease updates — {}",
         chrono::Utc::now().to_rfc3339()
@@ -176,7 +188,7 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
                     return Ok(());
                 }
                 if background {
-                    bail!("Installer updates require an interactive confirmation. Open the updater to install {}.", app.name);
+                    bail!("Installer updates require an interactive confirmation. Open the manager to install {}.", app.name);
                 }
                 if platform::running_app(&app.name)? {
                     bail!("Close {} before installing", app.name);
@@ -310,7 +322,7 @@ fn releases_for(paths: &Paths, job: &Job, background: bool, selected: Option<&st
     Ok(())
 }
 pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
-    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     job.log(&format!(
         "\nSource updates — {}",
         chrono::Utc::now().to_rfc3339()

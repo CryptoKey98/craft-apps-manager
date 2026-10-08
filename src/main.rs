@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 mod ui;
 use anyhow::{Context, Result};
-use craft_apps_updater::{builder, files, jobs::Job, model::Paths, platform, tools, updates};
+use craft_apps_manager::{builder, files, jobs::Job, model::Paths, platform, tools, updates};
 use std::{fs, path::PathBuf};
 fn main() {
     if let Err(e) = run() {
@@ -18,7 +18,7 @@ fn main() {
         }
         unsafe {
             let text = platform::wide(&message);
-            let title = platform::wide("Craft Apps Updater");
+            let title = platform::wide("Craft Apps Manager");
             windows::Win32::UI::WindowsAndMessaging::MessageBoxW(
                 None,
                 windows::core::PCWSTR(text.as_ptr()),
@@ -32,7 +32,7 @@ fn main() {
 fn run() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
     if let Some(i) = args.iter().position(|s| s == "--apply-self-update") {
-        return craft_apps_updater::self_update::apply(std::path::Path::new(
+        return craft_apps_manager::self_update::apply(std::path::Path::new(
             args.get(i + 1).context("Missing update plan")?,
         ));
     }
@@ -53,14 +53,9 @@ fn run() -> Result<()> {
         let profile = std::env::var("USERPROFILE")?;
         let desktop = PathBuf::from(profile).join("Desktop");
         let exe = std::env::current_exe()?;
+        platform::shortcut(&desktop.join("Craft Apps Manager.lnk"), &exe, "", &home)?;
         platform::shortcut(
-            &desktop.join("Craft Apps Updater Rust.lnk"),
-            &exe,
-            "",
-            &home,
-        )?;
-        platform::shortcut(
-            &desktop.join("Craft Apps Builder Rust.lnk"),
+            &desktop.join("Craft Apps Builder.lnk"),
             &exe,
             "--builder",
             &home,
@@ -88,8 +83,15 @@ fn run() -> Result<()> {
         return Ok(());
     }
     let builder = args.iter().any(|s| s == "--builder");
+    let icon = image::load_from_memory(include_bytes!("../assets/icon.png"))?.into_rgba8();
+    let icon = eframe::egui::IconData {
+        width: icon.width(),
+        height: icon.height(),
+        rgba: icon.into_raw(),
+    };
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
+            .with_icon(icon)
             .with_inner_size(if builder {
                 [1050.0, 740.0]
             } else {
@@ -98,7 +100,7 @@ fn run() -> Result<()> {
             .with_min_inner_size(if builder {
                 [780.0, 580.0]
             } else {
-                [1100.0, 660.0]
+                [1100.0, 480.0]
             }),
         ..Default::default()
     };
@@ -106,7 +108,7 @@ fn run() -> Result<()> {
         if builder {
             "Craft Apps Builder"
         } else {
-            "Craft Apps Updater"
+            "Craft Apps Manager"
         },
         options,
         Box::new(move |cc| Ok(Box::new(ui::App::new(cc, paths, home, builder)?))),

@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-pub const UPDATER_ARCH: &str = if cfg!(target_arch = "x86") {
+pub const MANAGER_ARCH: &str = if cfg!(target_arch = "x86") {
     "x86"
 } else {
     "x64"
@@ -68,7 +68,10 @@ pub struct Preferences {
     pub architecture: String,
     pub selected_apps: Vec<String>,
     pub selected_sources: Vec<String>,
-    pub check_updater_on_startup: bool,
+    pub app_order: Vec<String>,
+    #[serde(alias = "checkUpdaterOnStartup")]
+    pub check_manager_on_startup: bool,
+    pub check_installed_apps_on_startup: bool,
 }
 impl Default for Preferences {
     fn default() -> Self {
@@ -80,10 +83,12 @@ impl Default for Preferences {
             notify_updates: true,
             backup_versions: 1,
             release_format: "installer".into(),
-            architecture: UPDATER_ARCH.into(),
+            architecture: MANAGER_ARCH.into(),
             selected_apps: APPS.iter().map(|s| s.to_string()).collect(),
             selected_sources: SOURCES.iter().map(|s| s.to_string()).collect(),
-            check_updater_on_startup: false,
+            app_order: APPS.iter().map(|s| s.to_string()).collect(),
+            check_manager_on_startup: false,
+            check_installed_apps_on_startup: false,
         }
     }
 }
@@ -102,6 +107,14 @@ impl Preferences {
             .retain(|s| SOURCES.contains(&s.as_str()));
         self.selected_sources.sort();
         self.selected_sources.dedup();
+        let mut seen = std::collections::BTreeSet::new();
+        self.app_order
+            .retain(|s| APPS.contains(&s.as_str()) && seen.insert(s.clone()));
+        for name in APPS {
+            if seen.insert(name.to_owned()) {
+                self.app_order.push(name.to_owned());
+            }
+        }
         Ok(())
     }
 }
@@ -137,7 +150,7 @@ pub struct Installed {
     pub product_code: String,
 }
 fn default_arch() -> String {
-    UPDATER_ARCH.into()
+    MANAGER_ARCH.into()
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -315,9 +328,16 @@ impl Paths {
         crate::files::write_json(&self.at("settings.json"), &config)
     }
     pub fn preferences(&self) -> Result<Preferences> {
+        let target = self.at("manager-settings.json");
+        let legacy = self.at("updater-settings.json");
+        let migrate = !target.exists() && legacy.exists();
         let mut p =
-            crate::files::read_or_default::<Preferences>(&self.at("updater-settings.json"))?;
+            crate::files::read_or_default::<Preferences>(if migrate { &legacy } else { &target })?;
         p.validate()?;
+        if migrate {
+            crate::files::write_json(&target, &p)?;
+            std::fs::remove_file(legacy)?;
+        }
         Ok(p)
     }
     pub fn builder_preferences(&self) -> Result<BuilderPreferences> {

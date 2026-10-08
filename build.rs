@@ -1,7 +1,18 @@
 fn main() {
+    if std::env::var("CARGO_CFG_TARGET_OS").is_ok_and(|os| os == "windows") {
+        winresource::WindowsResource::new()
+            .set_icon("assets/icon.ico")
+            .set("ProductName", "Craft Apps Manager")
+            .set("FileDescription", "Craft Apps Manager")
+            .set("OriginalFilename", "CraftApps-Manager.exe")
+            .compile()
+            .expect("Failed to embed the application icon");
+    }
+    println!("cargo:rerun-if-changed=assets/icon.ico");
+    println!("cargo:rerun-if-changed=assets/icon.png");
     if std::env::var("TARGET").is_ok_and(|target| target.ends_with("windows-msvc")) {
         // Declare normal user privileges so Windows does not mistake the
-        // 32-bit updater (or its test binaries) for an installer by name.
+        // 32-bit manager (or its test binaries) for an installer by name.
         println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
         println!("cargo:rustc-link-arg=/MANIFESTUAC:level='asInvoker' uiAccess='false'");
     }

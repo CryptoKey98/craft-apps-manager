@@ -103,7 +103,7 @@ pub fn list(paths: &Paths, app: &str) -> Result<Vec<Backup>> {
     Ok(found)
 }
 pub fn delete_selected(paths: &Paths, app: &str, selected: &[Backup]) -> Result<()> {
-    let _lock = crate::platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
     crate::model::valid_app(app)?;
     for backup in selected {
         let root = paths.at(if backup.source {
@@ -138,7 +138,7 @@ pub fn delete_selected(paths: &Paths, app: &str, selected: &[Backup]) -> Result<
 }
 pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<()> {
     use crate::{model::Source, platform, updates};
-    let _lock = platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     crate::model::valid_app(app)?;
     let root = paths.at(if backup.source {
         "backups/sources"
@@ -329,7 +329,7 @@ pub fn clear_app(paths: &Paths, app: &str) -> Result<()> {
     clear_selected(paths, Some(app))
 }
 fn clear_selected(paths: &Paths, app: Option<&str>) -> Result<()> {
-    let _lock = crate::platform::Lock::take("Local\\CraftAppsUpdater")?;
+    let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
     for source in [false, true] {
         let root = paths.at(if source {
             "backups/sources"
