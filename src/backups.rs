@@ -270,7 +270,7 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
                 .into_iter()
                 .filter(|e| {
                     e.file_type().is_file()
-                        && e.file_name().to_string_lossy() == format!("{app}.exe")
+                        && e.file_name().to_string_lossy() == crate::model::executable_name(app)
                 })
                 .collect();
             if matches.len() != 1 {

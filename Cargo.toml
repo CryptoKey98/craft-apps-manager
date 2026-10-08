@@ -1,14 +1,16 @@
 [package]
 name = "craft-apps-manager"
-version = "0.3.3"
+version = "0.4.0"
 edition = "2021"
 license = "MIT"
-description = "Windows release and source manager for the Craft apps"
+description = "Release and source manager for the Craft apps"
+repository = "https://github.com/CryptoKey98/craft-apps-manager"
+readme = "README.md"
 
 [dependencies]
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
-eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "accesskit", "__screenshot"] }
+eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "x11", "wayland", "accesskit", "__screenshot"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 regex = "1"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
@@ -18,6 +20,10 @@ sha2 = "0.10"
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 zip = { version = "2.4", default-features = false, features = ["deflate"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.58", features = ["Data_Xml_Dom", "UI_Notifications", "Win32_Foundation", "Win32_System_Com", "Win32_System_Threading", "Win32_System_TaskScheduler", "Win32_System_JobObjects", "Win32_System_LibraryLoader", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Security", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_Security_Cryptography_Catalog", "Win32_Security_Cryptography_Sip", "Win32_System_Registry"] }
 winreg = "0.55"
 

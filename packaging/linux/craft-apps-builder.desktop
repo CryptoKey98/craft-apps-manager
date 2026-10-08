@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Craft Apps Builder
+Comment=Build Craft apps from source
+Exec=craft-apps-manager --builder
+Icon=craft-apps-manager
+Terminal=false
+Categories=Development;

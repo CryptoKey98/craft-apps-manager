@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod ui;
 use anyhow::{Context, Result};
 use craft_apps_manager::{builder, files, jobs::Job, model::Paths, platform, tools, updates};
@@ -22,6 +22,9 @@ fn main() {
         }) {
             std::process::exit(1);
         }
+        #[cfg(target_os = "linux")]
+        eprintln!("{message}");
+        #[cfg(target_os = "windows")]
         unsafe {
             let text = platform::wide(&message);
             let title = platform::wide("Craft Apps Manager");
@@ -48,13 +51,27 @@ fn run() -> Result<()> {
             .and_then(|i| args.get(i + 1))
             .map(PathBuf::from)
     };
-    let home = std::env::current_exe()?
-        .parent()
-        .context("Executable has no parent")?
-        .to_path_buf();
+    #[cfg(target_os = "windows")]
+    let home = if craft_apps_manager::self_update::installed_with_msi() {
+        PathBuf::from(std::env::var_os("LOCALAPPDATA").context("No Windows user data directory")?)
+            .join("Craft Apps Manager")
+    } else {
+        std::env::current_exe()?
+            .parent()
+            .context("Executable has no parent")?
+            .to_path_buf()
+    };
+    #[cfg(target_os = "linux")]
+    let home = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
+        .context("No Linux user data directory")?
+        .join("craft-apps-manager");
     let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
     let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
     let paths = Paths::new(root, arg("--tools").or(saved.tools));
+    #[cfg(target_os = "linux")]
+    craft_apps_manager::apps::repair_linux_shortcuts(&paths)?;
     // Old scheduled tasks keep their command line after an executable update.
     // Route both legacy background commands and new commands to checks only.
     let background = args.iter().any(|s| s == "--background");
@@ -78,12 +95,29 @@ fn run() -> Result<()> {
         return Ok(());
     }
     if args.iter().any(|s| s == "--install-shortcuts") {
-        let profile = std::env::var("USERPROFILE")?;
+        let profile = std::env::var(if cfg!(target_os = "windows") {
+            "USERPROFILE"
+        } else {
+            "HOME"
+        })?;
         let desktop = PathBuf::from(profile).join("Desktop");
         let exe = std::env::current_exe()?;
-        platform::shortcut(&desktop.join("Craft Apps Manager.lnk"), &exe, "", &home)?;
         platform::shortcut(
-            &desktop.join("Craft Apps Builder.lnk"),
+            &desktop.join(if cfg!(target_os = "windows") {
+                "Craft Apps Manager.lnk"
+            } else {
+                "craft-apps-manager.desktop"
+            }),
+            &exe,
+            "",
+            &home,
+        )?;
+        platform::shortcut(
+            &desktop.join(if cfg!(target_os = "windows") {
+                "Craft Apps Builder.lnk"
+            } else {
+                "craft-apps-builder.desktop"
+            }),
             &exe,
             "--builder",
             &home,

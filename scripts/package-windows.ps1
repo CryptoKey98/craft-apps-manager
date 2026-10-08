@@ -1,6 +1,8 @@
 param(
     [Parameter(Mandatory)][ValidateSet('x64', 'x86')][string]$Architecture,
-    [Parameter(Mandatory)][string]$SevenZipFolder
+    [Parameter(Mandatory)][string]$SevenZipFolder,
+    [string]$TargetFolder = $env:CARGO_TARGET_DIR,
+    [string]$OutputFolder
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -13,12 +15,13 @@ function Assert-Machine([string]$Path) {
         throw "Wrong architecture for $Path; expected $Architecture"
     }
 }
-$exe = Join-Path $projectRoot "target/$target/release/craft-apps-manager.exe"
+if (!$TargetFolder) { $TargetFolder = Join-Path $projectRoot 'target' }
+$exe = Join-Path $TargetFolder "$target/release/craft-apps-manager.exe"
 $seven = Join-Path $SevenZipFolder '7za.exe'
 Assert-Machine $exe
 Assert-Machine $seven
 $version = [regex]::Match((Get-Content (Join-Path $projectRoot 'Cargo.toml') -Raw), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
-$output = Join-Path $projectRoot "dist/windows-$Architecture"
+$output = if ($OutputFolder) { $OutputFolder } else { Join-Path $projectRoot "dist/windows-$Architecture" }
 $appFolder = Join-Path $output 'Craft Apps Manager'
 if (Test-Path -LiteralPath $appFolder) { throw "Package folder already exists: $appFolder" }
 $toolsFolder = Join-Path $appFolder "workspace/tools/7zip/$Architecture"

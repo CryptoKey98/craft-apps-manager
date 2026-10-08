@@ -61,10 +61,13 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
         env.insert("SQLX_OFFLINE".into(), "true".into());
         env.insert("NX_DAEMON".into(), "false".into());
         let node = tools::find(paths, "node", "node.exe").unwrap();
+        #[cfg(target_os = "windows")]
         let npm = node
             .parent()
             .unwrap()
             .join("node_modules/npm/bin/npm-cli.js");
+        #[cfg(target_os = "linux")]
+        let npm = std::fs::canonicalize(tools::system("npm").context("npm is missing")?)?;
         let frontend = project.join("frontend");
         job.stage(
             "Frontend dependencies",
@@ -129,7 +132,7 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
     ));
     fs::create_dir_all(&out)?;
     job.stage("Packaging", None, "Saving the executable and runtime files");
-    fs::copy(&executable, out.join(format!("{app}.exe")))?;
+    fs::copy(&executable, out.join(crate::model::executable_name(app)))?;
     for folder in [executable.parent().unwrap(), project.as_path()] {
         for e in fs::read_dir(folder)? {
             let e = e?;
@@ -185,7 +188,7 @@ pub fn history(paths: &Paths, app: &str) -> Option<PathBuf> {
     let mut builds: Vec<_> = fs::read_dir(root)
         .ok()?
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().join(format!("{app}.exe")).exists())
+        .filter(|e| e.path().join(crate::model::executable_name(app)).exists())
         .filter_map(|e| {
             if files::linked(&e.path()).ok()? {
                 return None;

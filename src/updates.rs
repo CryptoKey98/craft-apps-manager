@@ -53,16 +53,31 @@ pub fn installed_check_targets(config: &crate::model::Config) -> Vec<crate::mode
 }
 pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&'a Asset> {
     version(&r.tag_name)?;
-    let prefix = format!(
-        "{name}-{}-windows-{}",
-        r.tag_name.trim_start_matches('v'),
-        p.architecture
-    );
-    let names = if p.release_format == "installer" {
-        vec![format!("{prefix}.msi"), format!("{prefix}.exe")]
-    } else {
-        vec![format!("{prefix}-portable.zip")]
-    };
+    let mut names = Vec::new();
+    for asset_name in [crate::model::repository(name), name] {
+        let prefix = format!(
+            "{asset_name}-{}-{}-{}",
+            r.tag_name.trim_start_matches('v'),
+            crate::model::release_os(),
+            crate::model::release_arch(&p.architecture)
+        );
+        let package_names = if cfg!(target_os = "linux") {
+            vec![format!(
+                "{prefix}{}",
+                if p.release_format == "installer" {
+                    crate::installers::installer_extension()?
+                } else {
+                    ".AppImage"
+                }
+            )]
+        } else if p.release_format == "installer" {
+            vec![format!("{prefix}.msi"), format!("{prefix}.exe")]
+        } else {
+            vec![format!("{prefix}-portable.zip")]
+        };
+        names.extend(package_names);
+    }
+    names.dedup();
     for n in names {
         let assets: Vec<_> = r.assets.iter().filter(|a| a.name == n).collect();
         if assets.len() > 1 {
@@ -182,9 +197,7 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                 if app.install_kind == "installer"
                     && !app.version.is_empty()
                     && version(&app.version)? >= version(latest)?
-                    && Path::new(&app.path)
-                        .join(format!("{}.exe", app.name))
-                        .exists()
+                    && crate::model::installed_executable(Path::new(&app.path), &app.name).is_some()
                 {
                     job.log(&format!("{}: installed version is current", app.name));
                     return Ok(());
@@ -217,7 +230,7 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                 && app.install_kind != "installer"
                 && version(v)? <= version(&app.version)?
                 && app.architecture == prefs.architecture
-                && target.join(format!("{}.exe", app.name)).exists()
+                && crate::model::installed_executable(&target, &app.name).is_some()
             {
                 job.log(&format!("{}: up to date ({})", app.name, app.version));
                 return Ok(());
@@ -231,14 +244,27 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
             let stage = cache.join(uuid::Uuid::new_v4().simple().to_string());
             let attempt = (|| -> Result<()> {
                 network.asset(asset, &archive, job)?;
-                files::extract_zip(&archive, &stage, job)?;
+                if cfg!(target_os = "linux") {
+                    fs::create_dir_all(&stage)?;
+                    let executable = stage.join(crate::model::executable_name(&app.name));
+                    fs::copy(&archive, &executable)?;
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        fs::set_permissions(&executable, fs::Permissions::from_mode(0o755))?;
+                    }
+                } else {
+                    files::extract_zip(&archive, &stage, job)?;
+                }
                 let executables: Vec<_> = walkdir::WalkDir::new(&stage)
                     .into_iter()
                     .collect::<std::result::Result<Vec<_>, _>>()?
                     .into_iter()
                     .filter(|e| {
                         e.file_type().is_file()
-                            && e.file_name().to_string_lossy() == format!("{}.exe", app.name)
+                            && crate::model::executable_names(&app.name)
+                                .iter()
+                                .any(|name| e.file_name().to_string_lossy() == *name)
                     })
                     .collect();
                 if executables.len() != 1 {
@@ -279,10 +305,15 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
                         "Retained profile was kept for recovery: {error:#}"
                     ));
                 }
-                let shortcut = paths.at(format!("releases/{}.lnk", app.name));
+                let shortcut = paths.at(format!(
+                    "releases/{}.{}",
+                    app.name,
+                    crate::platform::shortcut_extension()
+                ));
                 if let Err(e) = platform::shortcut(
                     &shortcut,
-                    &target.join(format!("{}.exe", app.name)),
+                    &crate::model::installed_executable(&target, &app.name)
+                        .context("Installed executable is missing")?,
                     "",
                     &target,
                 ) {

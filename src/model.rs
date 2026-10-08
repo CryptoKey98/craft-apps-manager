@@ -82,7 +82,12 @@ impl Default for Preferences {
             compress_source_backups: true,
             notify_updates: true,
             backup_versions: 1,
-            release_format: "installer".into(),
+            release_format: if cfg!(target_os = "windows") {
+                "installer"
+            } else {
+                "portable"
+            }
+            .into(),
             architecture: MANAGER_ARCH.into(),
             selected_apps: APPS.iter().map(|s| s.to_string()).collect(),
             selected_sources: SOURCES.iter().map(|s| s.to_string()).collect(),
@@ -208,62 +213,18 @@ impl Paths {
         self.root.join(name)
     }
     pub fn config(&self) -> Result<Config> {
+        self.config_with_detector(crate::installers::detect)
+    }
+    fn config_with_detector(
+        &self,
+        detect: impl Fn(&str) -> Result<Option<Installed>>,
+    ) -> Result<Config> {
         if self.at("settings.json").exists() {
-            let mut config: Config = crate::files::read_json(&self.at("settings.json"))?;
+            let config: Config = crate::files::read_json(&self.at("settings.json"))?;
             if !Path::new(&config.apps_root).eq(&self.root) {
                 bail!("settings.json points to a different data folder. Select that folder in Settings.");
             }
-            let installer = self.preferences()?.release_format == "installer";
-            for app in &config.apps {
-                if !app.path.is_empty()
-                    && !config.installations.iter().any(|a| {
-                        a.name == app.name
-                            && (a.install_kind == "installer") == (app.install_kind == "installer")
-                    })
-                {
-                    config.installations.push(app.clone());
-                }
-            }
-            for app in &mut config.apps {
-                if installer {
-                    let detected = crate::installers::detect(&app.name)?;
-                    config
-                        .installations
-                        .retain(|a| !(a.name == app.name && a.install_kind == "installer"));
-                    if let Some(record) = detected {
-                        config.installations.push(record.clone());
-                        *app = record;
-                    } else {
-                        app.path.clear();
-                        app.version.clear();
-                        app.product_code.clear();
-                        app.install_kind = "installer".into();
-                    }
-                } else if let Some(record) = config.installations.iter().find(|a| {
-                    a.name == app.name
-                        && a.install_kind != "installer"
-                        && Path::new(&a.path).join(format!("{}.exe", a.name)).is_file()
-                }) {
-                    *app = record.clone();
-                } else {
-                    let root = self.at(format!("releases/{}", app.name));
-                    if root.join(format!("{}.exe", app.name)).is_file() {
-                        app.path = root.display().to_string();
-                        app.version = crate::platform::executable_version(
-                            &root.join(format!("{}.exe", app.name)),
-                        )
-                        .unwrap_or_else(|| "0.0.0".into());
-                        app.install_kind = "portable".into();
-                        app.product_code.clear();
-                        config.installations.push(app.clone());
-                    } else {
-                        app.path.clear();
-                        app.version.clear();
-                        app.install_kind = "portable".into();
-                    }
-                }
-            }
-            return Ok(config);
+            return self.refresh_config(config, &detect);
         }
         let mut apps = Vec::new();
         for name in APPS {
@@ -298,7 +259,7 @@ impl Paths {
             apps.push(Installed {
                 name: name.into(),
                 version,
-                path: if path.is_empty() && direct.join(format!("{name}.exe")).exists() {
+                path: if path.is_empty() && installed_executable(&direct, name).is_some() {
                     direct.to_string_lossy().into_owned()
                 } else {
                     path
@@ -308,11 +269,70 @@ impl Paths {
                 product_code: String::new(),
             });
         }
-        Ok(Config {
-            apps_root: self.root.to_string_lossy().into_owned(),
-            apps,
-            installations: Vec::new(),
-        })
+        self.refresh_config(
+            Config {
+                apps_root: self.root.to_string_lossy().into_owned(),
+                apps,
+                installations: Vec::new(),
+            },
+            &detect,
+        )
+    }
+    fn refresh_config(
+        &self,
+        mut config: Config,
+        detect: &impl Fn(&str) -> Result<Option<Installed>>,
+    ) -> Result<Config> {
+        let installer = self.preferences()?.release_format == "installer";
+        for app in &config.apps {
+            if !app.path.is_empty()
+                && !config.installations.iter().any(|a| {
+                    a.name == app.name
+                        && (a.install_kind == "installer") == (app.install_kind == "installer")
+                })
+            {
+                config.installations.push(app.clone());
+            }
+        }
+        for app in &mut config.apps {
+            if installer {
+                let detected = detect(&app.name)?;
+                config
+                    .installations
+                    .retain(|a| !(a.name == app.name && a.install_kind == "installer"));
+                if let Some(record) = detected {
+                    config.installations.push(record.clone());
+                    *app = record;
+                } else {
+                    app.path.clear();
+                    app.version.clear();
+                    app.product_code.clear();
+                    app.install_kind = "installer".into();
+                }
+            } else if let Some(record) = config.installations.iter().find(|a| {
+                a.name == app.name
+                    && a.install_kind != "installer"
+                    && installed_executable(Path::new(&a.path), &a.name).is_some()
+            }) {
+                *app = record.clone();
+            } else {
+                let root = self.at(format!("releases/{}", app.name));
+                if let Some(executable) = installed_executable(&root, &app.name) {
+                    app.path = root.display().to_string();
+                    app.version = crate::platform::executable_version(&executable)
+                        .unwrap_or_else(|| "0.0.0".into());
+                    app.install_kind = "portable".into();
+                    app.product_code.clear();
+                    config.installations.push(app.clone());
+                } else {
+                    app.path.clear();
+                    app.version.clear();
+                    app.install_kind = "portable".into();
+                    app.product_code.clear();
+                }
+            }
+        }
+        Ok(config)
     }
     pub fn save_config(&self, config: &Config) -> Result<()> {
         let mut config = config.clone();
@@ -346,5 +366,128 @@ impl Paths {
         p.log_size_mb = p.log_size_mb.clamp(1, 100);
         p.log_archives = p.log_archives.min(5);
         Ok(p)
+    }
+}
+
+pub fn executable_name(app: &str) -> String {
+    if cfg!(target_os = "windows") {
+        format!("{app}.exe")
+    } else {
+        app.into()
+    }
+}
+pub fn executable_names(app: &str) -> Vec<String> {
+    let mut names = vec![executable_name(app)];
+    let renamed = repository(app);
+    if renamed != app {
+        names.push(executable_name(renamed));
+    }
+    names
+}
+pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
+    executable_names(app)
+        .into_iter()
+        .map(|name| folder.join(name))
+        .find(|path| path.is_file())
+}
+pub fn release_os() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "windows"
+    } else {
+        "linux"
+    }
+}
+pub fn release_arch(architecture: &str) -> &str {
+    if cfg!(target_os = "linux") {
+        match architecture {
+            "x64" => "x86_64",
+            "x86" => "i686",
+            "arm64" => "aarch64",
+            other => other,
+        }
+    } else {
+        architecture
+    }
+}
+
+#[cfg(test)]
+mod detection_tests {
+    use super::*;
+    #[test]
+    fn first_launch_detects_preexisting_installers_and_keeps_portable_inventory() {
+        let root =
+            std::env::temp_dir().join(format!("craft-first-launch-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let portable = paths.at("releases/photocraft");
+        std::fs::create_dir_all(&portable).unwrap();
+        std::fs::write(portable.join(executable_name("photocraft")), b"portable").unwrap();
+        crate::files::write_json(
+            &paths.at("manager-settings.json"),
+            &Preferences {
+                release_format: "installer".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let detect = |name: &str| -> Result<Option<Installed>> {
+            Ok(["photocraft", "printcraft"]
+                .contains(&name)
+                .then(|| Installed {
+                    name: name.into(),
+                    path: root.join("system").join(name).display().to_string(),
+                    version: "0.2.1".into(),
+                    architecture: "x64".into(),
+                    install_kind: "installer".into(),
+                    product_code: "existing-product".into(),
+                }))
+        };
+        assert!(!paths.at("settings.json").exists());
+        let first = paths.config_with_detector(detect).unwrap();
+        for name in ["photocraft", "printcraft"] {
+            let app = first.apps.iter().find(|a| a.name == name).unwrap();
+            assert_eq!(app.install_kind, "installer");
+            assert_eq!(app.version, "0.2.1");
+            assert!(first
+                .installations
+                .iter()
+                .any(|a| a.name == name && a.install_kind == "installer"));
+        }
+        paths.save_config(&first).unwrap();
+        let reopened = paths.config_with_detector(detect).unwrap();
+        assert_eq!(
+            reopened
+                .apps
+                .iter()
+                .find(|a| a.name == "photocraft")
+                .unwrap()
+                .path,
+            first
+                .apps
+                .iter()
+                .find(|a| a.name == "photocraft")
+                .unwrap()
+                .path
+        );
+        crate::files::write_json(
+            &paths.at("manager-settings.json"),
+            &Preferences {
+                release_format: "portable".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let switched = paths
+            .config_with_detector(|_| panic!("Portable mode must not query installer records"))
+            .unwrap();
+        assert_eq!(
+            switched
+                .apps
+                .iter()
+                .find(|a| a.name == "photocraft")
+                .unwrap()
+                .path,
+            portable.display().to_string()
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

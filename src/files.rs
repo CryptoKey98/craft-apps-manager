@@ -77,8 +77,15 @@ pub fn safe_relative(name: &str) -> Result<()> {
     Ok(())
 }
 pub fn linked(p: &Path) -> Result<bool> {
-    use std::os::windows::fs::MetadataExt;
-    Ok(fs::symlink_metadata(p)?.file_attributes() & 0x400 != 0)
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::fs::MetadataExt;
+        Ok(fs::symlink_metadata(p)?.file_attributes() & 0x400 != 0)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(fs::symlink_metadata(p)?.file_type().is_symlink())
+    }
 }
 pub fn inside(p: &Path, root: &Path) -> Result<()> {
     let root = std::path::absolute(root)?;
@@ -149,6 +156,11 @@ pub fn extract_zip(archive: &Path, dest: &Path, job: &crate::jobs::Job) -> Resul
                 .create_new(true)
                 .open(&target)?;
             std::io::copy(&mut e, &mut f)?;
+            #[cfg(unix)]
+            if let Some(mode) = e.unix_mode() {
+                use std::os::unix::fs::PermissionsExt;
+                f.set_permissions(fs::Permissions::from_mode(mode & 0o777))?;
+            }
         }
         if i % 100 == 0 || i + 1 == n {
             job.stage(

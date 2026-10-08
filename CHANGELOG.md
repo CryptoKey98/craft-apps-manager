@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.4.0
+
+- Detect previously installed apps on the first launch of a fresh library.
+- Accept installer names with version or architecture suffixes.
+- Support renamed PDFCraft release assets and executables alongside older PrintCraft names.
+- Disable Open Log until a log exists and show errors when opening it fails.
+
+- Add Windows x64 and x86 MSI installers alongside portable ZIPs.
+- Keep MSI user data outside the installation folder and preserve it during upgrades and uninstall.
+- Select MSI or ZIP manager updates according to installation type.
+- Add Linux x86 builds, architecture-aware RPM dependencies, and portable ZIP packaging.
+- Add a Linux platform layer shared with the Windows application.
+- Support AppImage releases and native DEB/RPM installation and removal.
+- Add systemd user timers for hourly availability checks and desktop notifications.
+- Support Linux source building, including prerequisite setup through apt or DNF.
+- Add Ubuntu DEB and Fedora RPM packaging with desktop launchers and license notices.
+- Fix Linux shortcut names, portable uninstallation and builder launch after executable replacement.
+- Explain how to update a system-installed Linux manager before attempting a portable self-update.
+
+Linux testing covers Ubuntu 26.04 and Fedora 44 on x86_64, with x86 manager and builder launch checks on both multilib hosts. Native 32-bit operating systems have not been tested. Linux packages are experimental and require glibc 2.43 or newer; older distributions and ARM64 are not verified.
+
 ## 0.3.3
 
 - Replace automatic app and source downloads with hourly availability checks.

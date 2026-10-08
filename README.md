@@ -2,7 +2,7 @@
 
 <img src="assets/icon.png" width="80" alt="Craft Apps Manager icon">
 
-A Windows app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
+A desktop app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
 The interface is written in Rust and uses a compact dark theme. This is an independent project, not an official Storytold or Adobe app.
 
@@ -10,7 +10,7 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 ![Craft Apps Manager startup view](docs/images/main.png?v=0.3.3-current)
 
-Screenshots show version 0.3.3 with a fictional demo library. Paths and build history are examples.
+Screenshots show the Windows 0.3.3 release with a fictional demo library. Paths and build history are examples.
 
 <details>
 <summary>More screenshots</summary>
@@ -39,9 +39,24 @@ Screenshots show version 0.3.3 with a fictional demo library. Paths and build hi
 
 ## Getting started
 
-Download the Windows ZIP matching your system (x64 for 64-bit Windows, x86 for 32-bit Windows) from this repository's Releases page, extract it, and open `CraftApps-Manager.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the manager.
+Version **0.4.0** includes Windows x64/x86 packages and experimental Linux x64/x86 packages. Download the format for your system from the Releases page:
 
-The current release is **0.3.3**, available for Windows x64 and x86. Both packages have been tested on 64-bit Windows; native 32-bit Windows testing is still pending. Expect some rough edges, especially around installers and building upstream projects.
+| System | Installation | Portable |
+| --- | --- | --- |
+| Windows 64-bit | x64 MSI | x64 ZIP |
+| Windows 32-bit | x86 MSI | x86 ZIP |
+| Ubuntu 26.04 / Debian family, 64-bit | amd64 DEB | linux-x64 ZIP |
+| Ubuntu 26.04 / Debian family, 32-bit | i386 DEB | linux-x86 ZIP |
+| Fedora 44 / RPM family, 64-bit | x86_64 RPM | linux-x64 ZIP |
+| Fedora 44 / RPM family, 32-bit | i686 RPM | linux-x86 ZIP |
+
+For Windows, run the MSI or extract the ZIP and open `CraftApps-Manager.exe`. Keep the portable package's `workspace/tools/7zip` folder with the app. Rust and a separate 7-Zip installation are not needed to run Manager.
+
+The Windows MSI stores settings and the app library in `%LOCALAPPDATA%\Craft Apps Manager`, separate from program files. Portable builds use their own folder. Manager updates choose the matching MSI or ZIP, and uninstalling the manager keeps its library and settings. See [Windows packaging](docs/windows-packaging.md).
+
+Linux packages were built on Ubuntu 26.04 and require glibc 2.43 or newer. They have been tested on Ubuntu 26.04 and Fedora 44. They are not intended for older Ubuntu/Fedora versions yet. x86 launch tests used 64-bit VMs with 32-bit libraries; native 32-bit systems and ARM64 are not verified. See [Linux setup and packaging](docs/linux.md). Both Windows packages were tested on 64-bit Windows; native 32-bit Windows testing remains pending.
+
+Changes are listed in [CHANGELOG.md](CHANGELOG.md). The source is shared across Windows and Linux.
 
 ## Upgrading from Craft Apps Updater
 
@@ -51,7 +66,7 @@ Version 0.3.2 renames the app to Craft Apps Manager. Download this release manua
 
 DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, and VectorCraft are available for release and source updates. ArtCraft X is available for source updates and builds.
 
-PDFCraft's repository was renamed from PrintCraft. Some of its release files and executable names still use `printcraft`; the manager handles that difference.
+PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 
 ## Updating apps
 
@@ -82,7 +97,7 @@ Upstream build failures can still happen. Warnings from an upstream project are 
 
 ## Files and backups
 
-The app keeps its library beside the executable by default:
+On Windows, the app keeps its library beside the executable by default. On Linux, it uses `$XDG_DATA_HOME/craft-apps-manager`, or `~/.local/share/craft-apps-manager` when that variable is unset:
 
 ```text
 releases/           Portable apps and downloaded installers
@@ -103,7 +118,9 @@ Each app panel has a **Backups** window with Restore and Delete modes. Restore l
 
 ## Building this manager
 
-Install stable Rust and Microsoft's **Desktop development with C++** workload, including its x86 and x64 tools. Keep one source checkout and build each target separately:
+Windows and Linux share one source checkout. Platform-specific code lives in `src/platform`, `src/installers`, `src/scheduler`, and `src/tools`; generated executables and packages are not part of the source repository.
+
+For Windows, install stable Rust and Microsoft's **Desktop development with C++** workload, including its x86 and x64 tools. Build each target separately:
 
 ```text
 rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
@@ -119,6 +136,8 @@ cargo clippy --all-targets -- -D warnings
 ```
 
 Some integration tests require local build tools and 7-Zip. Set `CRAFT_TEST_TOOLS` to their parent folder to run those checks. The tests don't install or uninstall your real apps.
+
+For Linux build commands, native prerequisites and RPM packaging, see [docs/linux.md](docs/linux.md). A system-installed Linux manager is updated through a newer DEB or RPM package rather than the portable ZIP replacement helper.
 
 ## Reporting problems
 

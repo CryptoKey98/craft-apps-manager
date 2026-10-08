@@ -1,8 +1,10 @@
 use anyhow::{bail, Result};
+#[cfg(target_os = "windows")]
+use craft_apps_manager::model::Release;
 use craft_apps_manager::{
     backups, builder, files,
     jobs::Job,
-    model::{Asset, BuilderPreferences, Paths, Preferences, Release, Source, APPS},
+    model::{Asset, BuilderPreferences, Paths, Preferences, Source, APPS},
     network::{verify_asset, Network},
     platform, updates,
 };
@@ -15,6 +17,56 @@ use std::{
     process::Command,
     sync::atomic::Ordering,
 };
+#[cfg(target_os = "windows")]
+#[test]
+fn renamed_pdfcraft_assets_and_executable_keep_legacy_library_identity() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    let mut prefs = Preferences {
+        release_format: "portable".into(),
+        architecture: "x64".into(),
+        ..Default::default()
+    };
+    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+    let folder = paths.at("releases/printcraft");
+    fs::create_dir_all(&folder).unwrap();
+    fs::write(folder.join("pdfcraft.exe"), b"fixture").unwrap();
+    let config = paths.config().unwrap();
+    let pdf = config.apps.iter().find(|a| a.name == "printcraft").unwrap();
+    assert_eq!(pdf.path, folder.display().to_string());
+    assert_eq!(
+        craft_apps_manager::apps::executables(&paths, "printcraft").unwrap(),
+        vec!["pdfcraft.exe"]
+    );
+    let release = Release {
+        tag_name: "v0.4.0".into(),
+        draft: false,
+        prerelease: false,
+        assets: [
+            "pdfcraft-0.4.0-windows-x64-portable.zip",
+            "pdfcraft-0.4.0-windows-x64.msi",
+        ]
+        .iter()
+        .map(|name| Asset {
+            name: (*name).into(),
+            size: 1,
+            digest: None,
+            browser_download_url: format!(
+                "https://github.com/storytold/pdfcraft/releases/download/v0.4.0/{name}"
+            ),
+        })
+        .collect(),
+    };
+    assert!(updates::select_asset(&release, "printcraft", &prefs)
+        .unwrap()
+        .name
+        .ends_with("-portable.zip"));
+    prefs.release_format = "installer".into();
+    assert!(updates::select_asset(&release, "printcraft", &prefs)
+        .unwrap()
+        .name
+        .ends_with(".msi"));
+}
 #[test]
 fn startup_checks_only_target_active_installed_apps_and_are_opt_in() {
     let f = Fixture::new();
@@ -113,7 +165,11 @@ fn portable_photo_profile_survives_uninstall_and_reinstall() {
     files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     let target = paths.at("releases/photocraft");
     fs::create_dir_all(target.join("PhotoCraftData")).unwrap();
-    fs::write(target.join("photocraft.exe"), "fixture").unwrap();
+    fs::write(
+        target.join(craft_apps_manager::model::executable_name("photocraft")),
+        "fixture",
+    )
+    .unwrap();
     fs::write(
         target.join("PhotoCraftData/preferences.json"),
         "saved profile",
@@ -156,15 +212,24 @@ fn app_backup_delete_and_restore_are_scoped() {
     let other = paths.at("backups/releases/designcraft-0.1.0-22222222222222222222222222222222");
     fs::create_dir_all(&film).unwrap();
     fs::create_dir_all(&other).unwrap();
-    fs::write(film.join("filmcraft.exe"), "backup executable").unwrap();
+    fs::write(
+        film.join(craft_apps_manager::model::executable_name("filmcraft")),
+        "backup executable",
+    )
+    .unwrap();
     let target = paths.at("releases/filmcraft");
     fs::create_dir_all(&target).unwrap();
-    fs::write(target.join("filmcraft.exe"), "current executable").unwrap();
+    fs::write(
+        target.join(craft_apps_manager::model::executable_name("filmcraft")),
+        "current executable",
+    )
+    .unwrap();
     let choices = backups::list(&paths, "filmcraft").unwrap();
     assert_eq!(choices.len(), 1);
     backups::restore(&paths, "filmcraft", &choices[0], &job(&f.0)).unwrap();
     assert_eq!(
-        fs::read_to_string(target.join("filmcraft.exe")).unwrap(),
+        fs::read_to_string(target.join(craft_apps_manager::model::executable_name("filmcraft")))
+            .unwrap(),
         "backup executable"
     );
     assert_eq!(
@@ -232,7 +297,9 @@ fn switching_release_format_remembers_both_installations() {
     app.install_kind = "portable".into();
     fs::create_dir_all(&app.path).unwrap();
     fs::write(
-        Path::new(&app.path).join("craft-test-missing-app.exe"),
+        Path::new(&app.path).join(craft_apps_manager::model::executable_name(
+            "craft-test-missing-app",
+        )),
         "fixture",
     )
     .unwrap();
@@ -296,7 +363,11 @@ fn individual_check_detects_newer_release_without_downloading() {
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
     fs::create_dir_all(&app.path).unwrap();
-    fs::write(Path::new(&app.path).join("filmcraft.exe"), "fixture").unwrap();
+    fs::write(
+        Path::new(&app.path).join(craft_apps_manager::model::executable_name("filmcraft")),
+        "fixture",
+    )
+    .unwrap();
     files::write_json(
         &paths.at("manager-settings.json"),
         &Preferences {
@@ -314,12 +385,15 @@ fn individual_check_detects_newer_release_without_downloading() {
     for (version, expected) in [("1.0.0", None), ("1.1.0", Some("1.1.0".to_string()))] {
         files::write_json(&cache, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
             "tag_name":format!("v{version}"), "draft":false,"prerelease":false,
-            "assets":[{"name":format!("filmcraft-{version}-windows-{}-portable.zip", craft_apps_manager::model::MANAGER_ARCH),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
+            "assets":[{"name":format!("filmcraft-{version}-{}-{}{}", craft_apps_manager::model::release_os(),craft_apps_manager::model::release_arch(craft_apps_manager::model::MANAGER_ARCH),if cfg!(target_os = "windows") {"-portable.zip"} else {".AppImage"}),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
         }})).unwrap();
         assert_eq!(updates::check_app(&paths, "filmcraft").unwrap(), expected);
     }
     assert!(!paths.at("runtime/downloads").exists());
-    assert!(paths.at("releases/filmcraft/filmcraft.exe").exists());
+    assert!(paths
+        .at("releases/filmcraft")
+        .join(craft_apps_manager::model::executable_name("filmcraft"))
+        .exists());
 }
 #[test]
 fn app_management_preserves_other_data_and_launch_settings() {
@@ -335,7 +409,11 @@ fn app_management_preserves_other_data_and_launch_settings() {
     .unwrap();
     let folder = paths.at("releases/filmcraft");
     fs::create_dir_all(&folder).unwrap();
-    fs::write(folder.join("filmcraft.exe"), "fixture").unwrap();
+    fs::write(
+        folder.join(craft_apps_manager::model::executable_name("filmcraft")),
+        "fixture",
+    )
+    .unwrap();
     fs::create_dir_all(paths.at("sources")).unwrap();
     fs::write(paths.at("sources/filmcraft-source.zip"), "keep").unwrap();
     let mut config = paths.config().unwrap();
@@ -348,7 +426,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     app.version = "1.0.0".into();
     files::write_json(&paths.at("settings.json"), &config).unwrap();
     let value = craft_apps_manager::apps::LaunchSettings {
-        executable: "filmcraft.exe".into(),
+        executable: craft_apps_manager::model::executable_name("filmcraft"),
         arguments: vec!["file with spaces.mov".into(), "--test".into()],
     };
     craft_apps_manager::apps::save(&paths, "filmcraft", &value).unwrap();
@@ -360,7 +438,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     );
     assert_eq!(
         craft_apps_manager::apps::executables(&paths, "filmcraft").unwrap(),
-        ["filmcraft.exe"]
+        [craft_apps_manager::model::executable_name("filmcraft")]
     );
     craft_apps_manager::apps::uninstall(&paths, "filmcraft").unwrap();
     assert!(!folder.exists());
@@ -374,6 +452,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     );
 }
 #[test]
+#[cfg(target_os = "windows")]
 fn pdfcraft_repository_rename_preserves_existing_app_identity() {
     assert_eq!(
         craft_apps_manager::model::repository("printcraft"),
@@ -433,6 +512,7 @@ fn settings_compatible_with_powershell_and_empty_selection() {
     assert_eq!(paths.preferences().unwrap().selected_apps, ["filmcraft"]);
 }
 #[test]
+#[cfg(target_os = "windows")]
 fn architectures_and_installer_selection() {
     let r = Release {
         tag_name: "v1.2.3".into(),
@@ -582,6 +662,7 @@ fn cleanup_boundary_and_junction_target() {
     assert!(files::remove_managed(&outside, &root).is_err());
     assert!(files::remove_managed(&root, &root).is_err());
     let link = managed.join("external");
+    #[cfg(target_os = "windows")]
     let out = platform::output(
         Command::new("cmd.exe")
             .args(["/d", "/c", "mklink", "/J"])
@@ -589,7 +670,10 @@ fn cleanup_boundary_and_junction_target() {
             .arg(&outside),
     )
     .unwrap();
+    #[cfg(target_os = "windows")]
     assert!(out.status.success());
+    #[cfg(target_os = "linux")]
+    std::os::unix::fs::symlink(&outside, &link).unwrap();
     files::remove_managed(&managed, &root).unwrap();
     assert!(outside.join("keep.txt").exists());
 }
@@ -624,11 +708,16 @@ fn empty_selection_does_not_contact_github() {
 fn child_process_capture_and_cancellation() {
     let f = Fixture::new();
     let j = job(&f.0);
-    j.run(
-        Command::new("cmd.exe").args(["/d", "/c", "echo fixture-output"]),
-        false,
-    )
-    .unwrap();
+    let mut echo = if cfg!(target_os = "windows") {
+        let mut c = Command::new("cmd.exe");
+        c.args(["/d", "/c", "echo fixture-output"]);
+        c
+    } else {
+        let mut c = Command::new("sh");
+        c.args(["-c", "echo fixture-output"]);
+        c
+    };
+    j.run(&mut echo, false).unwrap();
     assert!(j.state.lock().unwrap().log.contains("fixture-output"));
     let cancel = j.cancel.clone();
     let t = std::thread::spawn(move || {
@@ -636,12 +725,16 @@ fn child_process_capture_and_cancellation() {
         cancel.store(true, Ordering::Relaxed);
     });
     let start = std::time::Instant::now();
-    assert!(j
-        .run(
-            Command::new("cmd.exe").args(["/d", "/c", "ping -n 30 127.0.0.1 >nul"]),
-            false
-        )
-        .is_err());
+    let mut wait = if cfg!(target_os = "windows") {
+        let mut c = Command::new("cmd.exe");
+        c.args(["/d", "/c", "ping -n 30 127.0.0.1 >nul"]);
+        c
+    } else {
+        let mut c = Command::new("sh");
+        c.args(["-c", "sleep 30 & wait"]);
+        c
+    };
+    assert!(j.run(&mut wait, false).is_err());
     t.join().unwrap();
     assert!(start.elapsed().as_secs() < 10);
 }
@@ -730,7 +823,9 @@ fn real_rust_fixture_build() -> Result<()> {
     assert_eq!(builder::history(&paths, "designcraft"), Some(out.clone()));
     assert!(!paths.at("workspace/cache/designcraft").exists());
     assert!(!paths.at("workspace/designcraft").exists());
-    let result = platform::output(&mut Command::new(out.join("designcraft.exe")))?;
+    let result = platform::output(&mut Command::new(
+        out.join(craft_apps_manager::model::executable_name("designcraft")),
+    ))?;
     assert!(String::from_utf8_lossy(&result.stdout).contains("rust-builder-fixture"));
     assert!(APPS.contains(&"designcraft"));
     Ok(())
@@ -741,6 +836,14 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     use craft_apps_manager::model::{Config, Installed};
     let f = Fixture::new();
     let paths = f.paths();
+    files::write_json(
+        &paths.at("manager-settings.json"),
+        &Preferences {
+            release_format: "installer".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
     let record = Installed {
         name: "craft-test-missing-app".into(),
         version: "1.0.0".into(),

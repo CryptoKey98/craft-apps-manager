@@ -42,10 +42,14 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     for entry in std::fs::read_dir(&root)? {
         let entry = entry?;
         if entry.file_type()?.is_file()
-            && entry
-                .path()
-                .extension()
-                .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+            && (cfg!(target_os = "windows")
+                && entry
+                    .path()
+                    .extension()
+                    .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+                || cfg!(target_os = "linux")
+                    && crate::model::executable_names(app)
+                        .contains(&entry.file_name().to_string_lossy().into_owned()))
         {
             names.push(entry.file_name().to_string_lossy().into_owned());
         }
@@ -57,7 +61,9 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
     let installed = installed(paths, app)?;
     let settings = settings(paths, app)?;
     let executable = if settings.executable.is_empty() {
-        format!("{app}.exe")
+        crate::model::installed_executable(&PathBuf::from(&installed.path), app)
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+            .context("App executable is missing")?
     } else {
         settings.executable
     };
@@ -65,15 +71,20 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
         bail!("Selected executable is missing. Check launch settings.");
     }
     let root = PathBuf::from(installed.path);
-    Command::new(root.join(executable))
-        .args(settings.arguments)
-        .current_dir(root)
-        .spawn()?;
+    let mut command = Command::new(root.join(executable));
+    #[cfg(target_os = "linux")]
+    if installed.install_kind != "installer" {
+        command.env("APPIMAGE_EXTRACT_AND_RUN", "1");
+    }
+    command.args(settings.arguments).current_dir(root).spawn()?;
     Ok(())
 }
 pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     crate::model::valid_app(app)?;
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    uninstall_locked(paths, app)
+}
+fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     if platform::running_app(app)? {
         bail!("Close the app before uninstalling it.");
     }
@@ -112,11 +123,17 @@ pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     files::remove_managed(&temporary, &releases)
 }
 pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) -> Result<()> {
+    crate::model::valid_app(app)?;
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+
     if platform::running_app(app)? {
         bail!("Close the app before uninstalling it.");
     }
-    let targets = crate::profiles::targets(paths, app)?;
+    let targets = if delete_profile {
+        crate::profiles::targets(paths, app)?
+    } else {
+        Vec::new()
+    };
     if delete_profile {
         crate::profiles::validate(&targets)?;
     }
@@ -125,7 +142,7 @@ pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) ->
     } else {
         crate::profiles::preserve_portable(paths, app)?
     };
-    if let Err(error) = uninstall(paths, app) {
+    if let Err(error) = uninstall_locked(paths, app) {
         if let Some((original, kept)) = preserved {
             std::fs::rename(kept, original)
                 .context("Uninstall failed; could not restore the retained profile")?;
@@ -135,6 +152,42 @@ pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) ->
     if delete_profile {
         crate::profiles::remove(&targets)
             .context("App was uninstalled, but profile cleanup failed")?;
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+pub fn repair_linux_shortcuts(paths: &Paths) -> Result<()> {
+    for app in crate::model::APPS {
+        let old = paths.at(format!("releases/{app}.lnk"));
+        if !old.is_file() {
+            continue;
+        }
+        files::inside(&old, &paths.at("releases"))?;
+        let target = paths.at(format!("releases/{app}/{app}"));
+        if !target.is_file() {
+            continue;
+        }
+        files::inside(&target, &paths.at("releases"))?;
+        let expected = format!("Exec=\"{}\" ", target.display());
+        if std::fs::metadata(&old)?.len() > 65536 {
+            continue;
+        }
+        let Ok(contents) = std::fs::read_to_string(&old) else {
+            continue;
+        };
+        if !contents.starts_with("[Desktop Entry]\n")
+            || !contents.lines().any(|line| line == expected)
+        {
+            continue;
+        }
+        platform::shortcut(
+            &paths.at(format!("releases/{app}.desktop")),
+            &target,
+            "",
+            target.parent().unwrap(),
+        )?;
+        std::fs::remove_file(old)?;
     }
     Ok(())
 }

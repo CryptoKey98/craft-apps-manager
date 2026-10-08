@@ -7,6 +7,7 @@ pub struct Target {
     pub path: PathBuf,
     pub root: PathBuf,
 }
+#[cfg(target_os = "windows")]
 fn known_folder(id: &windows::core::GUID) -> Result<PathBuf> {
     use windows::Win32::{
         System::Com::CoTaskMemFree,
@@ -19,6 +20,7 @@ fn known_folder(id: &windows::core::GUID) -> Result<PathBuf> {
         Ok(PathBuf::from(text?))
     }
 }
+#[cfg(any(target_os = "windows", test))]
 fn mapped(app: &str, roaming: &Path, local: &Path) -> Result<Vec<Target>> {
     // Verified against each upstream app's settings, cache and recovery directory code.
     let (roaming_names, local_names): (&[&str], &[&str]) = match app {
@@ -43,6 +45,7 @@ fn mapped(app: &str, roaming: &Path, local: &Path) -> Result<Vec<Target>> {
         }))
         .collect())
 }
+#[cfg(target_os = "windows")]
 pub fn targets(paths: &Paths, app: &str) -> Result<Vec<Target>> {
     use windows::Win32::UI::Shell::{FOLDERID_LocalAppData, FOLDERID_RoamingAppData};
     let mut targets = mapped(
@@ -125,6 +128,12 @@ pub fn restore_portable(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
+pub fn targets(_: &Paths, _: &str) -> Result<Vec<Target>> {
+    bail!(
+        "Linux profile deletion is unavailable until each upstream app's paths have been verified"
+    )
+}
 #[cfg(test)]
 mod tests {
     use super::*;

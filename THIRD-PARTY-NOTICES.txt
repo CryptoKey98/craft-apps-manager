@@ -11,6 +11,6 @@ PDFCraft: https://github.com/storytold/PDFCraft/blob/6974c6550d9dbcfdada41bc902c
 VectorCraft: https://github.com/storytold/VectorCraft/blob/48cfb414ca77536f034b55c9bd34d1c0c502219a/assets/app-icon/hicolor/64x64/apps/ai.storyteller.vectorcraft.png
 
 
-The upstream icons are distributed under their repositories' MIT / Apache-2.0 licenses. Full copyright and license texts are included in licenses/app-icons/.
+The upstream icons are distributed under their repositories' MIT / Apache-2.0 licenses. Full copyright and license texts are in assets/app-icons/ in the source checkout and licenses/app-icons/ in distribution packages.
 
-7-Zip is bundled for archive handling. Its complete license is included beside 7za.exe in workspace/tools/7zip/.
+Windows packages bundle 7-Zip for archive handling. Its complete license is included beside 7za.exe in workspace/tools/7zip/. Linux packages use the system's 7-Zip installation.
