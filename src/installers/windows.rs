@@ -33,6 +33,61 @@ fn matches_display_name(app: &str, display: &str) -> bool {
 #[cfg(test)]
 mod detection_tests {
     #[test]
+    fn renamed_installations_select_newest_across_registry_roots() {
+        use super::*;
+        let id = uuid::Uuid::new_v4();
+        let key_path = format!("Software\\CraftAppsManagerTests\\{id}");
+        let folder = std::env::temp_dir().join(format!("craft-detection-{id}"));
+        struct Cleanup(String, std::path::PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = RegKey::predef(HKEY_CURRENT_USER).delete_subkey_all(&self.0);
+                let _ = std::fs::remove_dir_all(&self.1);
+            }
+        }
+        let _cleanup = Cleanup(key_path.clone(), folder.clone());
+        let (root, _) = RegKey::predef(HKEY_CURRENT_USER)
+            .create_subkey(&key_path)
+            .unwrap();
+        for (key, display, version, exe) in [
+            ("old", "PrintCraft", "0.2.1", "printcraft.exe"),
+            ("new", "PdfCraft", "0.4.1", "pdfcraft.exe"),
+        ] {
+            let dir = folder.join(key);
+            std::fs::create_dir_all(&dir).unwrap();
+            std::fs::write(dir.join(exe), b"fixture").unwrap();
+            let (entry, _) = root.create_subkey(format!("{key}\\product")).unwrap();
+            entry.set_value("DisplayName", &display).unwrap();
+            entry.set_value("DisplayVersion", &version).unwrap();
+            entry
+                .set_value("InstallLocation", &dir.to_string_lossy().as_ref())
+                .unwrap();
+        }
+        for order in [["old", "new"], ["new", "old"]] {
+            let roots = order.map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+            let detected = detect_in_roots("printcraft", roots).unwrap().unwrap();
+            assert_eq!(detected.version, "0.4.1");
+            assert_eq!(detected.path, folder.join("new").display().to_string());
+        }
+        root.delete_subkey_all(r"new\product").unwrap();
+        let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+        assert_eq!(
+            detect_in_roots("printcraft", roots)
+                .unwrap()
+                .unwrap()
+                .version,
+            "0.2.1"
+        );
+    }
+    #[test]
+    fn installed_versions_compare_numerically() {
+        use super::installation_version as version;
+        assert!(version("0.10.0") > version("0.9.0"));
+        assert!(version("0.4.1.1") > version("0.4.1"));
+        assert!(version("0.4.1") > version("unknown"));
+        assert_eq!(version("v0.4.1"), version("0.4.1.0"));
+    }
+    #[test]
     fn names_allow_version_and_architecture_but_reject_other_products() {
         for name in [
             "PhotoCraft",
@@ -57,82 +112,113 @@ mod detection_tests {
     }
 }
 pub fn detect(app: &str) -> Result<Option<Installed>> {
+    let mut roots = Vec::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
-            let Ok(root) = RegKey::predef(hive).open_subkey_with_flags(
+            if let Ok(root) = RegKey::predef(hive).open_subkey_with_flags(
                 "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
                 KEY_READ | view,
-            ) else {
-                continue;
-            };
-            for name in root.enum_keys().flatten() {
-                let Ok(key) = root.open_subkey(&name) else {
-                    continue;
-                };
-                let display: String = key.get_value("DisplayName").unwrap_or_default();
-                if !matches_display_name(app, &display) {
-                    continue;
-                }
-                let mut location: String = key.get_value("InstallLocation").unwrap_or_default();
-                location = location.trim().trim_matches('"').to_owned();
-                if location.is_empty() {
-                    let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
-                    let icon = icon.split(',').next().unwrap_or("").trim_matches('"');
-                    if let Some(parent) = Path::new(icon).parent() {
-                        location = parent.display().to_string();
-                    }
-                }
-                if crate::model::installed_executable(Path::new(&location), app).is_none() {
-                    let mut candidates = Vec::new();
-                    for variable in ["ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"] {
-                        if let Some(base) = std::env::var_os(variable) {
-                            for folder in [
-                                &display,
-                                &crate::model::title(app),
-                                &app.to_string(),
-                                &crate::model::repository(app).to_string(),
-                            ] {
-                                candidates.push(std::path::PathBuf::from(&base).join(folder));
-                            }
-                        }
-                    }
-                    if let Some(base) = std::env::var_os("LOCALAPPDATA") {
-                        candidates.push(
-                            std::path::PathBuf::from(base)
-                                .join("Programs")
-                                .join(&display),
-                        );
-                    }
-                    if let Some(folder) = candidates
-                        .into_iter()
-                        .find(|p| crate::model::installed_executable(p, app).is_some())
-                    {
-                        location = folder.display().to_string();
-                    } else {
-                        continue;
-                    }
-                }
-                let msi: u32 = key.get_value("WindowsInstaller").unwrap_or_default();
-                if msi == 1 && !product_installed(&name) {
-                    continue;
-                }
-                return Ok(Some(Installed {
-                    name: app.into(),
-                    path: location,
-                    version: key.get_value("DisplayVersion").unwrap_or_default(),
-                    architecture: if view == KEY_WOW64_32KEY {
-                        "x86"
-                    } else {
-                        "x64"
-                    }
-                    .into(),
-                    install_kind: "installer".into(),
-                    product_code: if msi == 1 { name } else { String::new() },
-                }));
+            ) {
+                roots.push((root, view));
             }
         }
     }
-    Ok(None)
+    detect_in_roots(app, roots)
+}
+// MSI versions can have a fourth numeric component. Compare numbers, not text.
+fn installation_version(value: &str) -> Option<[u64; 4]> {
+    let parts = value
+        .trim()
+        .trim_start_matches('v')
+        .split('.')
+        .collect::<Vec<_>>();
+    if !(3..=4).contains(&parts.len()) {
+        return None;
+    }
+    let mut version = [0; 4];
+    for (index, part) in parts.iter().enumerate() {
+        version[index] = part.parse().ok()?;
+    }
+    Some(version)
+}
+fn detect_in_roots(
+    app: &str,
+    roots: impl IntoIterator<Item = (RegKey, u32)>,
+) -> Result<Option<Installed>> {
+    let mut best: Option<Installed> = None;
+    for (root, view) in roots {
+        for name in root.enum_keys().flatten() {
+            let Ok(key) = root.open_subkey(&name) else {
+                continue;
+            };
+            let display: String = key.get_value("DisplayName").unwrap_or_default();
+            if !matches_display_name(app, &display) {
+                continue;
+            }
+            let mut location: String = key.get_value("InstallLocation").unwrap_or_default();
+            location = location.trim().trim_matches('"').to_owned();
+            if location.is_empty() {
+                let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
+                let icon = icon.split(',').next().unwrap_or("").trim_matches('"');
+                if let Some(parent) = Path::new(icon).parent() {
+                    location = parent.display().to_string();
+                }
+            }
+            if crate::model::installed_executable(Path::new(&location), app).is_none() {
+                let mut candidates = Vec::new();
+                for variable in ["ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"] {
+                    if let Some(base) = std::env::var_os(variable) {
+                        for folder in [
+                            &display,
+                            &crate::model::title(app),
+                            &app.to_string(),
+                            &crate::model::repository(app).to_string(),
+                        ] {
+                            candidates.push(std::path::PathBuf::from(&base).join(folder));
+                        }
+                    }
+                }
+                if let Some(base) = std::env::var_os("LOCALAPPDATA") {
+                    candidates.push(
+                        std::path::PathBuf::from(base)
+                            .join("Programs")
+                            .join(&display),
+                    );
+                }
+                if let Some(folder) = candidates
+                    .into_iter()
+                    .find(|p| crate::model::installed_executable(p, app).is_some())
+                {
+                    location = folder.display().to_string();
+                } else {
+                    continue;
+                }
+            }
+            let msi: u32 = key.get_value("WindowsInstaller").unwrap_or_default();
+            if msi == 1 && !product_installed(&name) {
+                continue;
+            }
+            let candidate = Installed {
+                name: app.into(),
+                path: location,
+                version: key.get_value("DisplayVersion").unwrap_or_default(),
+                architecture: if view == KEY_WOW64_32KEY {
+                    "x86"
+                } else {
+                    "x64"
+                }
+                .into(),
+                install_kind: "installer".into(),
+                product_code: if msi == 1 { name } else { String::new() },
+            };
+            if best.as_ref().is_none_or(|current| {
+                installation_version(&candidate.version) > installation_version(&current.version)
+            }) {
+                best = Some(candidate);
+            }
+        }
+    }
+    Ok(best)
 }
 pub fn run(file: &Path, app: &str) -> Result<Installed> {
     run_with_job(file, app, None)
