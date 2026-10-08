@@ -81,7 +81,7 @@ fn launch_executable(root: &std::path::Path, app: &str, selected: &str) -> Resul
     if selected.is_empty() {
         return default();
     }
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
         let aliases = crate::model::executable_names(app);
         let chosen = std::path::Path::new(selected);
@@ -286,5 +286,60 @@ mod macos_launch_tests {
             );
         }
         std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod linux_launch_tests {
+    use super::*;
+    #[test]
+    fn renamed_linux_launch_uses_current_binary_and_falls_back_to_legacy() {
+        let root = std::env::temp_dir().join(format!(
+            "craft-linux-alias-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        struct Cleanup(PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(root.clone());
+        std::fs::create_dir(&root).unwrap();
+        std::fs::write(root.join("printcraft"), b"legacy").unwrap();
+        assert_eq!(
+            launch_executable(&root, "printcraft", "").unwrap(),
+            "printcraft"
+        );
+        std::fs::write(root.join("pdfcraft"), b"current").unwrap();
+        assert_eq!(
+            crate::model::installed_executable(&root, "printcraft"),
+            Some(root.join("pdfcraft"))
+        );
+        for selected in [
+            String::new(),
+            "printcraft".into(),
+            "pdfcraft".into(),
+            root.join("printcraft").display().to_string(),
+        ] {
+            assert_eq!(
+                launch_executable(&root, "printcraft", &selected).unwrap(),
+                "pdfcraft"
+            );
+        }
+        for selected in ["custom-tool", "/elsewhere/printcraft"] {
+            assert_eq!(
+                launch_executable(&root, "printcraft", selected).unwrap(),
+                selected
+            );
+        }
+        std::fs::remove_file(root.join("pdfcraft")).unwrap();
+        assert_eq!(
+            launch_executable(&root, "printcraft", "pdfcraft").unwrap(),
+            "printcraft"
+        );
     }
 }
