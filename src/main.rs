@@ -6,9 +6,7 @@ use std::{fs, path::PathBuf};
 fn main() {
     if let Err(e) = run() {
         let message = format!("{e:#}");
-        let path = std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|p| p.join("logs/startup.log")));
+        let path = craft_apps_manager::self_update::startup_log_path();
         if let Some(path) = path {
             let _ = fs::create_dir_all(path.parent().unwrap());
             let _ = fs::write(path, &message);
@@ -19,6 +17,7 @@ fn main() {
                 || a == "--background"
                 || a == "--check-app-updates"
                 || a == "--check-source-updates"
+                || a == "--apply-self-update"
         }) {
             std::process::exit(1);
         }
