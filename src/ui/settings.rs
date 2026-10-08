@@ -156,8 +156,8 @@ impl App {
                                             match *section {
                                                 "General" => self.settings_general(ui),
                                                 "Updates" => self.settings_updates(ui, ctx, busy),
-                                                "Backups" => self.settings_backups(ui),
-                                                "Builds" => self.settings_builds(ui),
+                                                "Backups" => self.settings_backups(ui, busy),
+                                                "Builds" => self.settings_builds(ui, busy),
                                                 _ => self.settings_folders(ui),
                                             }
                                         }
@@ -307,6 +307,7 @@ impl App {
     }
 
     fn settings_updates(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, busy: bool) {
+        let building = self.build_job.state.lock().unwrap().busy;
         group(ui, "Craft Apps Manager", |ui| {
             let built = env!("CRAFT_BUILD_TIMESTAMP")
                 .parse::<i64>()
@@ -370,7 +371,7 @@ impl App {
                                             "Download and restart…"
                                         })
                                         .primary()
-                                        .enabled(!busy && self.manager_plan.is_none())
+                                        .enabled(!busy && !building && self.manager_plan.is_none())
                                         .show(ui)
                                         .clicked()
                                         {
@@ -445,7 +446,7 @@ impl App {
         });
     }
 
-    fn settings_backups(&mut self, ui: &mut egui::Ui) {
+    fn settings_backups(&mut self, ui: &mut egui::Ui, busy: bool) {
         group(ui, "", |ui| {
             check_row(
                 ui,
@@ -489,14 +490,17 @@ impl App {
         });
         if btn("Delete all backups…")
             .icon_colored(theme::Icon::Trash, theme::RED)
+            .enabled(!busy)
             .show(ui)
+            .on_disabled_hover_text("Wait for the current operation to finish.")
             .clicked()
         {
             self.confirm_clear = true;
         }
     }
 
-    fn settings_builds(&mut self, ui: &mut egui::Ui) {
+    fn settings_builds(&mut self, ui: &mut egui::Ui, busy: bool) {
+        let building = self.build_job.state.lock().unwrap().busy;
         group(ui, "After a successful build", |ui| {
             check_row(
                 ui,
@@ -532,7 +536,16 @@ impl App {
             });
         });
         ui.horizontal(|ui| {
-            if btn("Clean temporary build files…").show(ui).clicked() {
+            if btn("Clean temporary build files…")
+                .enabled(!busy && !building)
+                .show(ui)
+                .on_disabled_hover_text(if building {
+                    "Wait for the build to finish."
+                } else {
+                    "Wait for the current operation to finish."
+                })
+                .clicked()
+            {
                 self.confirm_clean = true;
             }
             if !self.builder

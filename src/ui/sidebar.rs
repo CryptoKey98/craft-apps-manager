@@ -6,6 +6,7 @@ use eframe::egui::{self, Color32, CornerRadius, Rect, Sense, Stroke};
 
 impl App {
     pub(super) fn top_bar(&mut self, ctx: &egui::Context, state: &State) {
+        let building = self.build_job.state.lock().unwrap().busy;
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
@@ -40,23 +41,21 @@ impl App {
                             .kind(Kind::Soft)
                             .size(Size::Pill)
                             .icon(Icon::ArrowUp)
-                            .enabled(!state.busy)
+                            .enabled(!state.busy && !building)
                             .show(ui)
                             .on_hover_text(format!("Craft Apps Manager {version} is available"))
+                            .on_disabled_hover_text(if building {
+                                "Wait for the build to finish."
+                            } else {
+                                "Wait for the current operation to finish."
+                            })
                             .clicked()
                         {
                             self.confirm_self_update = true;
                         }
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if btn("Settings")
-                            .medium()
-                            .icon(Icon::Gear)
-                            .enabled(!state.busy)
-                            .show(ui)
-                            .on_disabled_hover_text("Wait for the current operation to finish.")
-                            .clicked()
-                        {
+                        if btn("Settings").medium().icon(Icon::Gear).show(ui).clicked() {
                             self.open_settings();
                         }
                     });
@@ -156,24 +155,29 @@ impl App {
             .corner_radius(CornerRadius::same(8))
             .inner_margin(egui::Margin::symmetric(10, 0))
             .show(ui, |ui| {
+                ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
-                    ui.set_min_height(36.0);
+                    ui.set_min_height(34.0);
                     let (rect, _) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), Sense::hover());
                     theme::paint_icon(ui.painter(), rect, Icon::Search, theme::MUTED);
-                    let response = ui.add(
-                        egui::TextEdit::singleline(&mut self.search)
-                            .hint_text("Search apps")
-                            .frame(false)
-                            .desired_width(ui.available_width() - 24.0)
-                            .font(egui::FontId::proportional(13.0)),
-                    );
-                    if !self.search.is_empty()
-                        && theme::icon_button(ui, Icon::Close, "Clear search", theme::MUTED)
-                            .clicked()
-                    {
-                        self.search.clear();
-                        response.request_focus();
-                    }
+                    // Lay out right to left so the clear button keeps its room.
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let clear = !self.search.is_empty()
+                            && theme::icon_button(ui, Icon::Close, "Clear search", theme::MUTED)
+                                .clicked();
+                        let response = ui.add(
+                            egui::TextEdit::singleline(&mut self.search)
+                                .hint_text("Search apps")
+                                .frame(false)
+                                .margin(egui::Margin::ZERO)
+                                .desired_width(ui.available_width())
+                                .font(egui::FontId::proportional(13.0)),
+                        );
+                        if clear {
+                            self.search.clear();
+                            response.request_focus();
+                        }
+                    });
                 });
             });
     }
@@ -292,12 +296,11 @@ impl App {
             Icon::Grid,
             theme::TEXT_2,
         );
-        theme::painter_text(
-            ui.painter(),
+        ui.painter().text(
             egui::pos2(tile.right() + 12.0, rect.center().y),
             egui::Align2::LEFT_CENTER,
             "Overview",
-            14.0,
+            theme::medium(14.0),
             theme::TEXT,
         );
         if updates > 0 {
@@ -444,7 +447,11 @@ impl App {
         let max_text = (rect.right() - chip_width - text_left).max(1.0);
         let title = ui.painter().layout(
             model::title(name),
-            egui::FontId::proportional(14.0),
+            if is_installed {
+                theme::medium(14.0)
+            } else {
+                egui::FontId::proportional(14.0)
+            },
             if is_installed {
                 theme::TEXT
             } else {
@@ -511,17 +518,12 @@ impl App {
                 if chip == "Get" { "Install" } else { "Update" },
                 model::title(name)
             );
+            let id = ui.id().with(("install-app", name));
             let chip_response = ui
-                .interact(
-                    chip_rect,
-                    ui.id().with(("install-app", name)),
-                    if state.busy {
-                        Sense::hover()
-                    } else {
-                        Sense::click()
-                    },
-                )
-                .on_hover_text(format!("{label} (latest release)"));
+                .add_enabled_ui(!state.busy, |ui| ui.interact(chip_rect, id, Sense::click()))
+                .inner
+                .on_hover_text(format!("{label} (latest release)"))
+                .on_disabled_hover_text("Wait for the current operation to finish.");
             chip_response.widget_info(|| {
                 egui::WidgetInfo::labeled(egui::WidgetType::Button, !state.busy, &label)
             });

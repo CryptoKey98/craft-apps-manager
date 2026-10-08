@@ -365,19 +365,21 @@ impl<'a> Btn<'a> {
         };
         let galley = ui
             .painter()
-            .layout_no_wrap(self.text.to_owned(), font, text_color);
+            // Placeholder colour lets the paint call dim disabled text.
+            .layout_no_wrap(self.text.to_owned(), font, Color32::PLACEHOLDER);
         let icon_space = if self.icon.is_some() {
             icon_size + if self.text.is_empty() { 0.0 } else { 7.0 }
         } else {
             0.0
         };
         let width = (galley.size().x + icon_space + pad * 2.0).max(self.min_width);
-        let sense = if self.enabled {
-            Sense::click()
-        } else {
-            Sense::hover()
-        };
-        let (rect, response) = ui.allocate_exact_size(egui::vec2(width, height), sense);
+        // Allocate in a disabled scope so egui knows the state: disabled-hover
+        // tooltips then show and plain tooltips do not.
+        let (rect, response) = ui
+            .add_enabled_ui(self.enabled, |ui| {
+                ui.allocate_exact_size(egui::vec2(width, height), Sense::click())
+            })
+            .inner;
         response.widget_info(|| {
             egui::WidgetInfo::labeled(egui::WidgetType::Button, self.enabled, self.text)
         });
@@ -509,17 +511,38 @@ pub fn heading(ui: &mut Ui, text: impl Into<String>, size: f32) -> Response {
 pub fn section_label(ui: &mut Ui, text: &str) -> Response {
     ui.label(
         egui::RichText::new(text.to_uppercase())
-            .size(11.5)
+            .font(medium(12.0))
             .color(MUTED)
             .extra_letter_spacing(0.7),
     )
 }
 
 pub fn link(ui: &mut Ui, text: impl Into<String>) -> Response {
-    let response = ui.add(
-        egui::Label::new(egui::RichText::new(text).size(13.0).color(LINK)).sense(Sense::click()),
-    );
-    if response.hovered() {
+    link_enabled(ui, text, true)
+}
+
+/// A text link that acts like a button: focusable, announced as a link, and dimmed
+/// with a disabled-hover reason when it cannot be used.
+pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Response {
+    let text = text.into();
+    let response = ui
+        .add_enabled_ui(enabled, |ui| {
+            ui.add(
+                egui::Label::new(egui::RichText::new(&text).size(13.0).color(LINK))
+                    .sense(Sense::click()),
+            )
+        })
+        .inner;
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Link, enabled, &text));
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            response.rect.expand(2.0),
+            CornerRadius::same(3),
+            Stroke::new(1.5, LINK),
+            StrokeKind::Outside,
+        );
+    }
+    if enabled && response.hovered() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
     }
     response
@@ -606,7 +629,7 @@ pub fn segmented<T: PartialEq + Clone>(ui: &mut Ui, value: &mut T, options: &[(T
                     let galley = ui.painter().layout_no_wrap(
                         (*label).to_owned(),
                         FontId::proportional(13.0),
-                        TEXT,
+                        Color32::PLACEHOLDER,
                     );
                     let (rect, response) = ui.allocate_exact_size(
                         egui::vec2(galley.size().x + 24.0, 28.0),
@@ -687,8 +710,9 @@ pub fn row<R>(
 
 /// A checkbox that lives on the right side of a settings row.
 pub fn switch(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Response {
-    let checked = *on;
     let response = ui.add_enabled(enabled, egui::Checkbox::without_text(on));
+    // Read the state after the click so the announcement is current.
+    let checked = *on;
     response.widget_info(|| {
         egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, checked, label)
     });
@@ -706,19 +730,20 @@ pub fn painter_text(
     painter.text(pos, anchor, text, FontId::proportional(size), color)
 }
 
-static SYSTEM_FONT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-pub fn set_system_font(loaded: bool) {
-    SYSTEM_FONT.store(loaded, std::sync::atomic::Ordering::Relaxed);
-}
-/// "→" when the system font is loaded; the bundled font has no arrow glyph.
 pub fn arrow() -> &'static str {
-    if SYSTEM_FONT.load(std::sync::atomic::Ordering::Relaxed) {
-        "→"
-    } else {
-        "›"
-    }
+    "→"
 }
-/// Semibold text for headings, falling back to the regular face.
+pub fn bold_family() -> egui::FontFamily {
+    egui::FontFamily::Name("semibold".into())
+}
+pub fn medium_family() -> egui::FontFamily {
+    egui::FontFamily::Name("medium".into())
+}
+/// IBM Plex Sans SemiBold (600), used for headings and primary buttons.
 pub fn bold(size: f32) -> FontId {
-    FontId::new(size, egui::FontFamily::Name("bold".into()))
+    FontId::new(size, bold_family())
+}
+/// IBM Plex Sans Medium (500), used for labels such as app names and group titles.
+pub fn medium(size: f32) -> FontId {
+    FontId::new(size, medium_family())
 }

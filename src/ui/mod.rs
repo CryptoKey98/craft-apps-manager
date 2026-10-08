@@ -91,6 +91,11 @@ pub struct App {
     /// as they did in the separate builder window.
     build_job: Job,
     build_app: String,
+    /// "build" or "setup", so the tools column labels and retries the right one.
+    build_action: String,
+    build_was_busy: bool,
+    /// The action of the current release job, e.g. "clean".
+    job_action: String,
     page: Page,
     search: String,
     preferences: Preferences,
@@ -150,63 +155,45 @@ pub struct App {
     plan_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, (bool, String)>>>,
 }
 
-/// Prefers the system UI font, which also covers arrows the bundled font lacks,
-/// and registers a heavier face for headings.
+/// IBM Plex, as in the approved designs, bundled so every platform renders the
+/// same. egui has no font weights, so each weight is its own family.
 fn fonts(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
-    let mut add = |name: &str, path: &str, index: u32, family: egui::FontFamily| -> bool {
-        let Ok(bytes) = std::fs::read(path) else {
-            return false;
-        };
-        let mut data = egui::FontData::from_owned(bytes);
-        data.index = index;
-        fonts
-            .font_data
-            .insert(name.into(), std::sync::Arc::new(data));
-        fonts
-            .families
-            .entry(family)
-            .or_default()
-            .insert(0, name.into());
-        true
-    };
-    let bold = egui::FontFamily::Name("bold".into());
-    let system = if cfg!(target_os = "windows") {
-        add(
-            "Segoe UI",
-            "C:/Windows/Fonts/segoeui.ttf",
-            0,
+    let faces: [(&str, &'static [u8], egui::FontFamily); 4] = [
+        (
+            "IBM Plex Sans",
+            include_bytes!("../../assets/fonts/IBMPlexSans-Regular.ttf"),
             egui::FontFamily::Proportional,
+        ),
+        (
+            "IBM Plex Sans Medium",
+            include_bytes!("../../assets/fonts/IBMPlexSans-Medium.ttf"),
+            theme::medium_family(),
+        ),
+        (
+            "IBM Plex Sans SemiBold",
+            include_bytes!("../../assets/fonts/IBMPlexSans-SemiBold.ttf"),
+            theme::bold_family(),
+        ),
+        (
+            "IBM Plex Mono",
+            include_bytes!("../../assets/fonts/IBMPlexMono-Regular.ttf"),
+            egui::FontFamily::Monospace,
+        ),
+    ];
+    // The bundled egui fonts stay as fallbacks for symbols Plex lacks.
+    let fallback = fonts.families[&egui::FontFamily::Proportional].clone();
+    for (name, bytes, family) in faces {
+        fonts.font_data.insert(
+            name.into(),
+            std::sync::Arc::new(egui::FontData::from_static(bytes)),
         );
-        add(
-            "Segoe UI Semibold",
-            "C:/Windows/Fonts/seguisb.ttf",
-            0,
-            bold.clone(),
-        );
-        true
-    } else if cfg!(target_os = "macos") {
-        add(
-            "Helvetica Neue Medium",
-            "/System/Library/Fonts/HelveticaNeue.ttc",
-            10,
-            bold.clone(),
-        );
-        add(
-            "System Font",
-            "/System/Library/Fonts/SFNS.ttf",
-            0,
-            egui::FontFamily::Proportional,
-        )
-    } else {
-        false
-    };
-    theme::set_system_font(system);
-    let proportional = fonts.families[&egui::FontFamily::Proportional].clone();
-    let heading = fonts.families.entry(bold).or_default();
-    for name in proportional {
-        if !heading.contains(&name) {
-            heading.push(name);
+        let list = fonts.families.entry(family).or_default();
+        list.insert(0, name.into());
+        for font in &fallback {
+            if !list.contains(font) {
+                list.push(font.clone());
+            }
         }
     }
     ctx.set_fonts(fonts);
@@ -273,7 +260,7 @@ impl App {
                 ))
             })
             .collect::<Result<_>>()?;
-        Ok(Self {
+        let mut window = Self {
             icons,
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
@@ -281,6 +268,9 @@ impl App {
             home,
             builder,
             build_app: app.clone(),
+            build_action: "build".into(),
+            build_was_busy: false,
+            job_action: String::new(),
             app,
             latest: true,
             job,
@@ -345,7 +335,59 @@ impl App {
             alternates: Vec::new(),
             release_plan: None,
             plan_receiver: None,
-        })
+        };
+        window.previews();
+        Ok(window)
+    }
+    /// Opens a dialog or state directly, for screenshots of each part of the window:
+    /// `--preview-dialog install|uninstall|launch|cleanup|manager|error|notice` and
+    /// `--preview-build running|done|failed`. `--preview-progress` with
+    /// `--preview-details` shows the progress on the app page.
+    fn previews(&mut self) {
+        let args: Vec<_> = std::env::args().collect();
+        let value = |flag: &str| args.windows(2).find(|a| a[0] == flag).map(|a| a[1].clone());
+        if args.iter().any(|a| a == "--preview-progress") {
+            self.job_target = Some((self.app.clone(), "install-app".into()));
+            let mut state = self.job.state.lock().unwrap();
+            state.stage = "Downloading".into();
+            state.detail = "32 MB of 81 MB".into();
+            state.progress = Some(0.4);
+        }
+        match value("--preview-dialog").as_deref() {
+            Some("install") => self.confirm_install = Some(self.app.clone()),
+            Some("uninstall") => self.confirm_uninstall = true,
+            Some("launch") => {
+                self.launch_draft = apps::settings(&self.paths, &self.app).unwrap_or_default();
+                self.launch_arguments = self.launch_draft.arguments.join("\n");
+                self.launch_settings_open = true;
+            }
+            Some("cleanup") => self.confirm_clear = true,
+            Some("manager") => self.confirm_self_update = true,
+            Some("error") => {
+                self.error = Some("Close VectorCraft before updating, then try again.".into())
+            }
+            Some("notice") => {
+                self.selection_notice = Some("No apps are chosen for Update all. Choose apps in Settings › Updates, then try again.".into())
+            }
+            _ => {}
+        }
+        if let Some(kind) = value("--preview-build") {
+            self.build_app = self.app.clone();
+            let mut state = self.build_job.state.lock().unwrap();
+            state.log = "Source commit: 8d0cede\nCompiling kurbo\nCompiling peniko\n".into();
+            match kind.as_str() {
+                "running" => {
+                    state.busy = true;
+                    state.stage = "Compiling".into();
+                    state.detail = "212 steps".into();
+                }
+                "failed" => {
+                    state.stage = "Failed".into();
+                    state.outcome = "Command failed (exit status: 101). See the log.".into();
+                }
+                _ => state.stage = "Complete".into(),
+            }
+        }
     }
     fn result(&mut self, result: Result<()>) {
         if let Err(e) = result {
@@ -404,6 +446,10 @@ impl App {
         if self.release_pending() || self.job.state.lock().unwrap().busy {
             return;
         }
+        // Cleaning and building share the builder lock.
+        if action == "clean" && self.build_job.state.lock().unwrap().busy {
+            return;
+        }
         if action == "releases" && self.preferences.selected_apps.is_empty() {
             self.selection_notice = Some("No apps are chosen for Update all. Choose apps in Settings › Updates, then try again.".into());
             return;
@@ -413,6 +459,7 @@ impl App {
             return;
         }
         self.failure_dismissed = false;
+        self.job_action = action.to_string();
         if action == "releases" {
             let paths = self.paths.clone();
             let (tx, rx) = std::sync::mpsc::channel();
@@ -462,7 +509,7 @@ impl App {
     }
     /// Builds or sets up tools for the selected app, beside any release job.
     fn start_build(&mut self, action: &str) {
-        if self.build_job.state.lock().unwrap().busy {
+        if self.build_job.state.lock().unwrap().busy || self.cleaning() {
             return;
         }
         let paths = self.paths.clone();
@@ -473,16 +520,24 @@ impl App {
         self.build_job.history(&self.build_job.log_path);
         self.build_job.state.lock().unwrap().output = builder::history(&paths, &app);
         self.build_app = app.clone();
-        self.operation_was_busy = true;
+        self.build_action = action.clone();
+        self.build_was_busy = true;
         self.build_job.spawn(move |job| match action.as_str() {
             "build" => builder::build(&paths, &app, latest, &job),
             "setup" => tools::setup(&paths, &app, &job),
             _ => unreachable!(),
         });
     }
+    /// True while a release job cleans build files, which blocks builds.
+    fn cleaning(&self) -> bool {
+        self.job_action == "clean" && self.job.state.lock().unwrap().busy
+    }
+    /// Settings opens while jobs run so folders and the builder window stay
+    /// reachable; Save and the cleanup actions are disabled until they finish.
     fn open_settings(&mut self) {
-        if self.release_pending() || self.job.state.lock().unwrap().busy {
-            return;
+        // The builder window may have saved its preferences since startup.
+        if let Ok(preferences) = self.paths.builder_preferences() {
+            self.build_preferences = preferences;
         }
         self.settings_draft = self.preferences.clone();
         self.build_draft = self.build_preferences.clone();
@@ -523,17 +578,17 @@ impl App {
         let matching_format = installed.as_ref().is_some_and(|i| {
             (i.install_kind == "installer") == (self.preferences.release_format == "installer")
         });
-        let check = installed.as_ref().and_then(|installed| {
-            self.release_checks
-                .get(app)
-                .filter(|(version, _)| *version == installed.version)
-                .map(|(_, result)| result.clone())
-        });
+        let check = installed
+            .as_ref()
+            .filter(|_| matching_format)
+            .and_then(|installed| {
+                self.release_checks
+                    .get(app)
+                    .filter(|(version, _)| *version == installed.version)
+                    .map(|(_, result)| result.clone())
+            });
         AppStatus {
-            update: check
-                .as_ref()
-                .and_then(|c| c.clone().ok().flatten())
-                .filter(|_| matching_format),
+            update: check.as_ref().and_then(|c| c.clone().ok().flatten()),
             check,
             alternate: self.alternates.iter().find(|a| a.name == app).cloned(),
             installed,
@@ -568,11 +623,15 @@ impl App {
                 Err(std::sync::mpsc::TryRecvError::Empty) => {}
             }
         }
-        let busy = self.job.state.lock().unwrap().busy || self.build_job.state.lock().unwrap().busy;
-        if self.operation_was_busy && !busy {
+        // Builds do not change installs or backups, so only release jobs pause the
+        // snapshot; either kind finishing refreshes it.
+        let busy = self.job.state.lock().unwrap().busy;
+        let building = self.build_job.state.lock().unwrap().busy;
+        if (self.operation_was_busy && !busy) || (self.build_was_busy && !building) {
             self.config_refresh_at = std::time::Instant::now();
         }
         self.operation_was_busy = busy;
+        self.build_was_busy = building;
         if let Some(receiver) = &self.config_receiver {
             if let Ok(result) = receiver.try_recv() {
                 match result {

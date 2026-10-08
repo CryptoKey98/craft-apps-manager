@@ -164,6 +164,8 @@ impl App {
                         let paths = self.paths.clone();
                         self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
                         self.job_target = None;
+                        self.job_action.clear();
+                        self.failure_dismissed = false;
                         self.operation_was_busy = true;
                         self.job
                             .spawn(move |job| updates::execute_plan(&paths, &plan, &job));
@@ -797,6 +799,8 @@ impl App {
                                 self.release_checks.remove(&app);
                                 self.job =
                                     Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+                                self.job_action.clear();
+                                self.failure_dismissed = false;
                                 self.job_target = Some((
                                     app.clone(),
                                     if deleting {
@@ -887,6 +891,8 @@ impl App {
                                 &self.build_preferences,
                             );
                             self.job_target = None;
+                            self.job_action.clear();
+                            self.failure_dismissed = false;
                             self.job.spawn(move |job| {
                                 let result = self_update::prepare(&paths, &available, &job);
                                 let _ = tx.send(result_for_display(&result));

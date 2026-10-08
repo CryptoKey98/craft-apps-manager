@@ -141,6 +141,8 @@ impl App {
                 let verb = match action.as_str() {
                     "uninstall-app" => "uninstall",
                     "source-app" => "download the source for",
+                    "restore" => "restore a backup of",
+                    "delete-backups" => "delete backups of",
                     _ if status.installed.is_some() => "update",
                     _ => "install",
                 };
@@ -230,6 +232,8 @@ impl App {
             let verb = match mine.as_deref() {
                 Some("uninstall-app") => "Uninstalling",
                 Some("source-app") => "Downloading source for",
+                Some("restore") => "Restoring",
+                Some("delete-backups") => "Deleting backups of",
                 _ if status.installed.is_some() => "Updating",
                 _ => "Installing",
             };
@@ -273,7 +277,18 @@ impl App {
                         });
                     });
                 });
-        } else {
+        }
+        // Source downloads and backup deletion leave the installed copy alone,
+        // so its actions (Open in particular) stay available beside the progress.
+        let replaces_actions = state.busy
+            && matches!(
+                mine.as_deref(),
+                Some("install-app" | "uninstall-app" | "restore")
+            );
+        if !replaces_actions {
+            if state.busy && mine.is_some() {
+                ui.add_space(12.0);
+            }
             self.app_actions(ui, state, &status);
         }
         ui.add_space(24.0);
@@ -476,7 +491,9 @@ impl App {
             .as_ref()
             .map(|i| {
                 let path = PathBuf::from(&i.path);
-                let folder = if cfg!(target_os = "macos") || path.is_file() {
+                // The folder holding the executable or the macOS app bundle.
+                let bundle = path.extension().is_some_and(|e| e == "app");
+                let folder = if bundle || path.is_file() {
                     path.parent().map(|p| p.to_path_buf()).unwrap_or(path)
                 } else {
                     path
@@ -671,6 +688,8 @@ impl App {
             let last = self.display_builds.get(&app).cloned();
             let running = build.busy && building_here;
             let failed = building_here && !build.busy && build.stage == "Failed";
+            let setup = self.build_action == "setup";
+            let cleaning = self.cleaning();
             let (summary, color) = if running {
                 (
                     if build.detail.is_empty() {
@@ -681,7 +700,15 @@ impl App {
                     theme::LINK,
                 )
             } else if failed {
-                ("Build failed · see the log".to_owned(), theme::RED)
+                (
+                    if setup {
+                        "Tool setup failed · see the log"
+                    } else {
+                        "Build failed · see the log"
+                    }
+                    .to_owned(),
+                    theme::RED,
+                )
             } else if let Some((_, info)) = &last {
                 (
                     info.as_ref()
@@ -723,17 +750,22 @@ impl App {
                         "Build"
                     })
                     .kind(Kind::Soft)
-                    .enabled(!build.busy)
+                    .enabled(!build.busy && !cleaning)
                     .show(ui)
-                    .on_disabled_hover_text(format!(
-                        "Building {}. One build runs at a time.",
-                        model::title(&self.build_app)
-                    ))
+                    .on_disabled_hover_text(if cleaning {
+                        "Wait for the build file cleanup to finish.".to_owned()
+                    } else {
+                        format!(
+                            "Building {}. One build runs at a time.",
+                            model::title(&self.build_app)
+                        )
+                    })
                     .clicked()
                 }
             });
             if clicked {
-                self.start_build("build");
+                // Try again repeats whatever failed, which may be tool setup.
+                self.start_build(if failed && setup { "setup" } else { "build" });
             }
             egui::Frame::new()
                 .inner_margin(egui::Margin {
@@ -783,24 +815,30 @@ impl App {
                     } else {
                         &path
                     };
-                    let result = if cfg!(target_os = "macos") {
-                        // Reveal the app bundle instead of opening it.
-                        Command::new("open")
+                    // On macOS, select the app bundle in Finder instead of only
+                    // opening its folder.
+                    let bundle = cfg!(target_os = "macos")
+                        .then(|| model::installed_executable(folder, &app))
+                        .flatten();
+                    let result = match bundle {
+                        Some(bundle) => Command::new("open")
                             .arg("-R")
-                            .arg(&path)
+                            .arg(bundle)
                             .spawn()
                             .map(|_| ())
-                            .map_err(Into::into)
-                    } else {
-                        platform::open(folder)
+                            .map_err(Into::into),
+                        None => platform::open(folder),
                     };
                     self.result(result);
                 }
             }
-            let setup = theme::link(ui, "Set up build tools").on_hover_text(
-                "Installs or checks the Rust toolchain and other build prerequisites",
-            );
-            if setup.clicked() && !build.busy {
+            let cleaning = self.cleaning();
+            let setup = theme::link_enabled(ui, "Set up build tools", !build.busy && !cleaning)
+                .on_hover_text(
+                    "Installs or checks the Rust toolchain and other build prerequisites",
+                )
+                .on_disabled_hover_text("Wait for the current build or cleanup to finish.");
+            if setup.clicked() {
                 self.start_build("setup");
             }
         });
