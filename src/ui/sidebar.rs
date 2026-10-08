@@ -635,7 +635,9 @@ impl App {
                 egui::pos2(rect.right() - 20.0, rect.center().y),
                 egui::vec2(14.0, 14.0),
             );
-            ui.put(spinner, egui::Spinner::new().size(12.0))
+            // Not `ui.put`: allocating the spinner would move the next row up to its bottom.
+            ui.new_child(egui::UiBuilder::new().max_rect(spinner))
+                .add(egui::Spinner::new().size(12.0))
                 .on_hover_text("Checking for updates…");
         }
         if chip_clicked {
