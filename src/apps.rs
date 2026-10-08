@@ -39,19 +39,21 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
         files::inside(&root, &paths.at("releases"))?;
     }
     let mut names = Vec::new();
+    let aliases = crate::model::executable_names(app);
     for entry in std::fs::read_dir(&root)? {
         let entry = entry?;
-        if !entry.file_type()?.is_symlink()
+        // Bundle identity checks spawn plutil, so first reject unrelated
+        // filenames in potentially large Applications folders.
+        if (cfg!(target_os = "windows")
+            && entry
+                .path()
+                .extension()
+                .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
+            || cfg!(not(target_os = "windows"))
+                && aliases.contains(&entry.file_name().to_string_lossy().into_owned()))
+            && !entry.file_type()?.is_symlink()
             && crate::model::is_executable(&entry.path())
             && valid_launch_item(&entry.path(), app)
-            && (cfg!(target_os = "windows")
-                && entry
-                    .path()
-                    .extension()
-                    .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
-                || cfg!(not(target_os = "windows"))
-                    && crate::model::executable_names(app)
-                        .contains(&entry.file_name().to_string_lossy().into_owned()))
         {
             names.push(entry.file_name().to_string_lossy().into_owned());
         }
