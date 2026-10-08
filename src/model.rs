@@ -298,7 +298,7 @@ impl Paths {
         mut config: Config,
         detect: &impl Fn(&str) -> Result<Option<Installed>>,
     ) -> Result<Config> {
-        let installer = self.preferences()?.release_format == "installer";
+        let installer = self.read_preferences()?.release_format == "installer";
         // Add catalog entries when upgrading an existing library without
         // changing saved selections, installations, or the user's app order.
         for name in APPS {
@@ -362,7 +362,7 @@ impl Paths {
     }
     pub fn save_config(&self, config: &Config) -> Result<()> {
         let mut config = config.clone();
-        let installer = self.preferences()?.release_format == "installer";
+        let installer = self.read_preferences()?.release_format == "installer";
         for app in &config.apps {
             config
                 .installations
@@ -372,6 +372,62 @@ impl Paths {
             }
         }
         crate::files::write_json(&self.at("settings.json"), &config)
+    }
+    /// Read preferences without migrating or changing any file.
+    pub fn read_preferences(&self) -> Result<Preferences> {
+        let target = self.at("manager-settings.json");
+        let legacy = self.at("updater-settings.json");
+        let mut p =
+            crate::files::read_or_default::<Preferences>(if !target.exists() && legacy.exists() {
+                &legacy
+            } else {
+                &target
+            })?;
+        p.validate()?;
+        Ok(p)
+    }
+    /// Verified alternate-format facts for display only; action inventory remains unchanged.
+    pub fn alternate_installations(&self, config: &Config) -> Result<Vec<Installed>> {
+        self.alternates_with_detector(config, crate::installers::detect)
+    }
+    fn alternates_with_detector(
+        &self,
+        config: &Config,
+        detect: impl Fn(&str) -> Result<Option<Installed>>,
+    ) -> Result<Vec<Installed>> {
+        let installer = self.read_preferences()?.release_format == "installer";
+        let mut records = Vec::new();
+        for name in APPS {
+            if !installer {
+                if let Some(record) = detect(name)? {
+                    records.push(record);
+                }
+            } else {
+                let recorded = config.installations.iter().find(|a| {
+                    a.name == name
+                        && a.install_kind != "installer"
+                        && !a.path.is_empty()
+                        && installed_executable(Path::new(&a.path), name).is_some()
+                });
+                if let Some(record) = recorded {
+                    records.push(record.clone());
+                } else {
+                    let folder = self.at(format!("releases/{name}"));
+                    if let Some(executable) = installed_executable(&folder, name) {
+                        records.push(Installed {
+                            name: name.into(),
+                            path: folder.display().to_string(),
+                            version: crate::platform::executable_version(&executable)
+                                .unwrap_or_else(|| "0.0.0".into()),
+                            install_kind: "portable".into(),
+                            architecture: default_arch(),
+                            ..Default::default()
+                        });
+                    }
+                }
+            }
+        }
+        Ok(records)
     }
     pub fn preferences(&self) -> Result<Preferences> {
         let target = self.at("manager-settings.json");
@@ -452,6 +508,13 @@ pub fn release_os() -> &'static str {
         "linux"
     }
 }
+pub fn architecture_label(architecture: &str) -> &str {
+    if cfg!(target_os = "macos") {
+        "Universal (Intel + Apple silicon)"
+    } else {
+        architecture
+    }
+}
 pub fn release_arch(architecture: &str) -> &str {
     if cfg!(target_os = "macos") {
         // Upstream publishes one universal DMG for Intel and Apple silicon.
@@ -471,6 +534,113 @@ pub fn release_arch(architecture: &str) -> &str {
 #[cfg(test)]
 mod detection_tests {
     use super::*;
+    fn release_fixture(folder: &Path, app: &str) {
+        std::fs::create_dir_all(folder).unwrap();
+        let executable = folder.join(executable_name(app));
+        if cfg!(target_os = "macos") {
+            let contents = executable.join("Contents");
+            std::fs::create_dir_all(&contents).unwrap();
+            std::fs::write(contents.join("Info.plist"), format!("<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{app}</string><key>CFBundleShortVersionString</key><string>0.4.0</string></dict></plist>")).unwrap();
+        } else {
+            std::fs::write(executable, b"fixture").unwrap();
+        }
+    }
+    #[test]
+    fn alternate_snapshot_detects_fresh_installers_and_forgets_removed_records_without_writes() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        crate::files::write_json(
+            &paths.at("updater-settings.json"),
+            &Preferences {
+                release_format: "portable".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let config = paths
+            .config_with_detector(|_| {
+                panic!("portable action inventory must not detect installers")
+            })
+            .unwrap();
+        let alternate = root.join("Applications");
+        release_fixture(&alternate, "photocraft");
+        let detect = |name: &str| -> Result<Option<Installed>> {
+            Ok(
+                (name == "photocraft" && installed_executable(&alternate, name).is_some()).then(
+                    || Installed {
+                        name: name.into(),
+                        path: alternate.display().to_string(),
+                        version: "0.4.0".into(),
+                        install_kind: "installer".into(),
+                        ..Default::default()
+                    },
+                ),
+            )
+        };
+        let facts = paths.alternates_with_detector(&config, detect).unwrap();
+        assert_eq!(facts.len(), 1);
+        assert!(config.apps.iter().all(|a| a.path.is_empty()));
+        std::fs::remove_dir_all(&alternate).unwrap();
+        assert!(paths
+            .alternates_with_detector(&config, detect)
+            .unwrap()
+            .is_empty());
+        assert!(!paths.at("settings.json").exists());
+        assert!(!paths.at("manager-settings.json").exists());
+        assert!(paths.at("updater-settings.json").exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn installer_snapshot_verifies_portable_records_and_does_not_route_actions_to_them() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        crate::files::write_json(
+            &paths.at("manager-settings.json"),
+            &Preferences {
+                release_format: "installer".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let portable = paths.at("releases/photocraft");
+        release_fixture(&portable, "photocraft");
+        let config = paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert!(config.apps.iter().all(|a| a.path.is_empty()));
+        assert_eq!(
+            paths
+                .alternates_with_detector(&config, |_| Ok(None))
+                .unwrap()
+                .len(),
+            1
+        );
+        std::fs::remove_dir_all(portable).unwrap();
+        assert!(paths
+            .alternates_with_detector(&config, |_| Ok(None))
+            .unwrap()
+            .is_empty());
+        assert!(!paths.at("settings.json").exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn effective_architecture_preserves_legacy_macos_choices() {
+        for architecture in ["x86", "x64", "arm64"] {
+            let mut prefs = Preferences {
+                architecture: architecture.into(),
+                ..Default::default()
+            };
+            prefs.validate().unwrap();
+            if cfg!(target_os = "macos") {
+                assert_eq!(release_arch(architecture), release_arch("universal"));
+                assert_eq!(
+                    architecture_label(architecture),
+                    "Universal (Intel + Apple silicon)"
+                );
+            } else {
+                assert_ne!(release_arch(architecture), "universal");
+                assert_eq!(architecture_label(architecture), architecture);
+            }
+        }
+    }
     #[test]
     fn existing_libraries_gain_new_apps_without_resetting_preferences() {
         let root = std::env::temp_dir().join(format!("craft-catalog-{}", uuid::Uuid::new_v4()));
