@@ -491,9 +491,9 @@ pub fn executable_names(app: &str) -> Vec<String> {
     if renamed != app {
         names.push(executable_name(renamed));
     }
-    // The repository name is the current release name on macOS. Preserve
-    // legacy executable ordering on Windows and Linux.
-    if cfg!(target_os = "macos") && renamed != app {
+    // Prefer the current release name on Unix; keep the legacy name as a fallback.
+    // Windows installer resolution is handled separately.
+    if cfg!(any(target_os = "macos", target_os = "linux")) && renamed != app {
         names.reverse();
     }
     names
