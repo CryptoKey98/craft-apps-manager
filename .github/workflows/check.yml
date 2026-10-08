@@ -64,6 +64,9 @@ jobs:
       - run: cargo test --locked --all-targets -- --test-threads=1
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: ./scripts/package-macos.sh
+        env:
+          # Self-update from the releases of the repository being built.
+          CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
       - uses: actions/upload-artifact@v4
         with:
           name: macos-universal

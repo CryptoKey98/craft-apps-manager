@@ -13,9 +13,14 @@ Before installing, the manager checks GitHub's SHA-256 digest for the DMG. It th
 
 The library is stored in `~/Library/Application Support/Craft Apps Manager`. Hourly checks use launch agents in `~/Library/LaunchAgents/io.github.craft-apps-manager.*.plist`, and notifications appear through Notification Center.
 
+## Manager updates
+
+Craft Apps Manager.app can update itself. The new ZIP is checked against GitHub's SHA-256 digest, extracted into the library's `runtime/self-update` folder and verified with `codesign`. After the manager closes, the old app bundle is replaced. The previous bundle is kept in that folder as `previous.app`. The app must be in a folder you can write to, such as Applications. Development builds run outside a bundle and cannot update themselves.
+
+Updates come from the GitHub repository set by `CRAFT_MANAGER_REPOSITORY` (owner/name) at build time. The default is `CryptoKey98/craft-apps-manager`. CI sets it to the repository being built, so a fork's packages update from the fork's releases.
+
 ## Not yet available on macOS
 
-- Automatic manager self-updates. Download new versions manually.
 - Deleting app profile data on uninstall. The upstream profile paths have not been verified yet.
 - Shortcut files. App bundles open directly from Finder.
 

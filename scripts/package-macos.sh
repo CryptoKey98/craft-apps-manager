@@ -1,5 +1,6 @@
 #!/bin/sh
 # Builds a universal (Apple silicon + Intel) Craft Apps Manager.app and a ZIP of it.
+# Set CRAFT_MANAGER_REPOSITORY=owner/name to self-update from a fork's releases.
 set -eu
 project=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 output=${1:-"$project/dist/macos"}
@@ -53,5 +54,5 @@ done
 # launch of a downloaded copy needs right-click > Open.
 codesign --force --sign - "$bundle"
 codesign --verify --strict "$bundle"
-ditto -c -k --keepParent "$bundle" "$archive"
+ditto -c -k --norsrc --noextattr --keepParent "$bundle" "$archive"
 printf '%s\n' "$bundle" "$archive"

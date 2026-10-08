@@ -727,7 +727,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             egui::Window::new("Update Craft Apps Manager").collapsible(false).resizable(false).show(ctx, |ui| {
                 ui.label(if self_update::installed_with_msi() {"Download and install the new manager version?"} else {"Download the new manager and restart this window?"});
                 ui.small("Close other manager and builder windows first. Your library and settings will be kept.");
-                ui.hyperlink_to("Release source: CryptoKey98/craft-apps-manager", self_update::REPOSITORY);
+                ui.hyperlink_to(format!("Release source: {}", self_update::REPOSITORY_NAME), self_update::REPOSITORY);
                 ui.horizontal(|ui| {
                     if ui.button(if self_update::installed_with_msi() {"Download and install"} else {"Download and restart"}).clicked() {
                         if let Some(available)=self.manager_available.clone() {
