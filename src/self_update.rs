@@ -588,47 +588,95 @@ fn report_macos_result(stage: &Path, destination: &Path, result: &UpdateResult) 
 
 #[cfg(target_os = "macos")]
 fn apply_macos(plan_path: &Path) -> Result<()> {
-    let result = apply_macos_trusted(plan_path);
-    if let Err(original) = result {
-        // Even a rejected legacy/tampered plan gets an actionable next-startup
-        // error, but never writes to or launches a path supplied by that plan.
-        let reporting = macos_data_home()
-            .context("No macOS user data directory")
-            .and_then(|home| {
-                files::write_json(
-                    &home.join("self-update-result.json"),
-                    &UpdateResult {
-                        status: UpdateStatus::Failed,
-                        message: format!("Manager update failed: {original:#}"),
-                    },
-                )
-            });
-        if let Err(error) = reporting {
-            bail!("{original:#}. Could not persist the update failure: {error:#}");
-        }
-        return Err(original);
-    }
-    result
-}
-#[cfg(target_os = "macos")]
-fn apply_macos_trusted(plan_path: &Path) -> Result<()> {
-    let plan: Plan = files::read_json(plan_path)?;
-    let helper = std::env::current_exe()?.canonicalize()?;
-    let stage = validate_macos_layout(&plan, plan_path, &helper)?;
-    let previous_hash = files::hash(&staged_executable(&plan.target))?;
     let destination = macos_data_home()
         .context("No macOS user data directory")?
         .join("self-update-result.json");
+    apply_macos_with(
+        plan_path,
+        &std::env::current_exe()?.canonicalize()?,
+        &destination,
+        Duration::from_secs(60),
+        parent_alive,
+        launch_macos,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn parent_alive(pid: u32) -> Result<bool> {
+    let pid = i32::try_from(pid)?;
+    if pid <= 0 {
+        bail!("Invalid manager process identifier");
+    }
+    if unsafe { libc::kill(pid, 0) } == 0 {
+        return Ok(true);
+    }
+    match std::io::Error::last_os_error().raw_os_error() {
+        Some(libc::ESRCH) => Ok(false),
+        Some(libc::EPERM) => Ok(true),
+        _ => Err(std::io::Error::last_os_error())
+            .context("Could not check whether the manager closed"),
+    }
+}
+#[cfg(target_os = "macos")]
+fn wait_for_parent(
+    pid: u32,
+    timeout: Duration,
+    alive: &mut impl FnMut(u32) -> Result<bool>,
+) -> Result<()> {
+    let deadline = Instant::now() + timeout;
+    while alive(pid)? {
+        if Instant::now() >= deadline {
+            bail!(
+                "Manager did not close; update was not applied and no recovery window was opened"
+            );
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn apply_macos_with(
+    plan_path: &Path,
+    helper: &Path,
+    destination: &Path,
+    timeout: Duration,
+    mut alive: impl FnMut(u32) -> Result<bool>,
+    mut launch: impl FnMut(&Plan) -> Result<()>,
+) -> Result<()> {
+    let trusted = (|| -> Result<_> {
+        let plan: Plan = files::read_json(plan_path)?;
+        let stage = validate_macos_layout(&plan, plan_path, helper)?;
+        let previous_hash = files::hash(&staged_executable(&plan.target))?;
+        Ok((plan, stage, previous_hash))
+    })();
+    let (plan, stage, previous_hash) = match trusted {
+        Ok(trusted) => trusted,
+        Err(original) => {
+            // Rejected legacy/tampered plans get a startup diagnostic without
+            // writing to or launching any path supplied by the rejected plan.
+            let reporting = files::write_json(
+                destination,
+                &UpdateResult {
+                    status: UpdateStatus::Failed,
+                    message: format!("Manager update failed: {original:#}"),
+                },
+            );
+            if let Err(error) = reporting {
+                bail!("{original:#}. Could not persist the update failure: {error:#}");
+            }
+            return Err(original);
+        }
+    };
+    let mut parent_closed = false;
     let result = (|| -> Result<()> {
+        // The GUI closes after spawning the helper. Wait before fallible
+        // preparation so an early checksum/permission failure cannot skip
+        // recovery merely because the GUI was still closing at that instant.
+        wait_for_parent(plan.parent_pid, timeout, &mut alive)?;
+        parent_closed = true;
         validate_macos_replacement(&plan)?;
         check_update_directory(plan.target.parent().context("Missing application folder")?)?;
-        let deadline = Instant::now() + Duration::from_secs(60);
-        while unsafe { libc::kill(i32::try_from(plan.parent_pid)?, 0) } == 0 {
-            if Instant::now() >= deadline {
-                bail!("Manager did not close; update was not applied");
-            }
-            std::thread::sleep(Duration::from_millis(100));
-        }
         files::no_links(&plan.target)?;
         files::no_links(&plan.staged)?;
         verify_bundle(&plan.target)?;
@@ -648,11 +696,11 @@ fn apply_macos_trusted(plan_path: &Path) -> Result<()> {
                 Ok(())
             },
             || {
-                report_macos_result(&stage, &destination, &UpdateResult {
+                report_macos_result(&stage, destination, &UpdateResult {
                     status: UpdateStatus::LaunchPending,
                     message: format!("Replacement verified; manager launch request pending. Previous manager: {}", stage.join("previous.app").display()),
                 })?;
-                launch_macos(&plan)
+                launch(&plan)
             },
         )
     })();
@@ -668,38 +716,53 @@ fn apply_macos_trusted(plan_path: &Path) -> Result<()> {
     };
     let reporting = report_macos_result(
         &stage,
-        &destination,
+        destination,
         &UpdateResult {
             status: if result.is_ok() {
                 UpdateStatus::LaunchRequested
             } else {
                 UpdateStatus::Failed
             },
-            message,
+            message: message.clone(),
         },
     );
-    if let Err(original) = result {
-        // Only reopen the validated original, never a failed or tampered new
-        // target. Report first so the recovered manager sees the diagnostic.
-        let recovery = if files::no_links(&plan.target).is_ok()
+    if result.is_err() {
+        // Report first, then reopen only the validated original after confirmed
+        // parent shutdown. A wait timeout must not create a second window.
+        let recovery = if parent_closed
+            && files::no_links(&plan.target).is_ok()
             && files::hash(&staged_executable(&plan.target)).is_ok_and(|hash| hash == previous_hash)
             && verify_bundle(&plan.target).is_ok()
-            && unsafe { libc::kill(i32::try_from(plan.parent_pid)?, 0) } != 0
         {
-            launch_macos(&plan)
+            launch(&plan)
         } else {
             Ok(())
         };
-        let mut message = format!("{original:#}");
+        let mut detailed = message;
+        let mut additional_error = false;
         if let Err(error) = reporting {
-            message.push_str(&format!(". Result reporting failed: {error:#}"));
+            additional_error = true;
+            detailed.push_str(&format!(". Result reporting failed: {error:#}"));
         }
         if let Err(error) = recovery {
-            message.push_str(&format!(
+            additional_error = true;
+            detailed.push_str(&format!(
                 ". Previous manager launch request failed: {error:#}"
             ));
         }
-        bail!("{message}");
+        if additional_error {
+            // Keep the complete trusted diagnostic, including its recovery
+            // path, even if reporting or the recovery launch also failed.
+            let _ = report_macos_result(
+                &stage,
+                destination,
+                &UpdateResult {
+                    status: UpdateStatus::Failed,
+                    message: detailed.clone(),
+                },
+            );
+        }
+        bail!("{detailed}");
     }
     reporting.context(
         "Manager was replaced and its launch request accepted, but result reporting failed",
@@ -1310,5 +1373,165 @@ mod macos_tests {
             assert!(!matches!(result.status, UpdateStatus::Failed));
             assert!(!result.message.contains("earlier failure"));
         }
+    }
+    #[test]
+    fn full_apply_waits_for_closing_parent_then_reports_and_recovers_early_failure() {
+        use std::{cell::RefCell, rc::Rc};
+        let mut fixture = Fixture::new();
+        let parent = Rc::new(RefCell::new(
+            Command::new("/bin/sleep").arg("0.3").spawn().unwrap(),
+        ));
+        fixture.plan.parent_pid = parent.borrow().id();
+        files::write_json(&fixture.stage.join("plan.json"), &fixture.plan).unwrap();
+        fs::write(
+            staged_executable(&fixture.plan.staged),
+            "corrupt before parent closes",
+        )
+        .unwrap();
+        let destination = fixture.home.join("startup-result.json");
+        let mut recovery_launches = 0;
+        let mut observed_parent_alive = false;
+        let error = apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_secs(2),
+            |pid| {
+                assert_eq!(pid, parent.borrow().id());
+                let alive = parent.borrow_mut().try_wait().unwrap().is_none();
+                observed_parent_alive |= alive;
+                Ok(alive)
+            },
+            |plan| {
+                assert!(parent.borrow_mut().try_wait().unwrap().is_some());
+                assert_eq!(plan.target, fixture.plan.target);
+                assert!(fixture.old_is_present());
+                let before_launch: UpdateResult = files::read_json(&destination).unwrap();
+                assert!(matches!(before_launch.status, UpdateStatus::Failed));
+                assert!(before_launch.message.contains("checksum mismatch"));
+                assert!(before_launch
+                    .message
+                    .contains(&fixture.stage.display().to_string()));
+                recovery_launches += 1;
+                Ok(())
+            },
+        )
+        .unwrap_err();
+        assert!(observed_parent_alive);
+        assert_eq!(recovery_launches, 1);
+        assert!(fixture.old_is_present());
+        assert!(!fixture.stage.join("previous.app").exists());
+        assert!(error.to_string().contains("checksum mismatch"));
+        assert!(error
+            .to_string()
+            .contains(&fixture.stage.display().to_string()));
+        let final_result: UpdateResult = files::read_json(&destination).unwrap();
+        assert!(matches!(final_result.status, UpdateStatus::Failed));
+        assert!(final_result.message.contains("Recovery files:"));
+        assert!(final_result
+            .message
+            .contains(&fixture.stage.display().to_string()));
+    }
+    #[test]
+    fn trusted_failure_retains_recovery_path_and_secondary_launch_error() {
+        let fixture = Fixture::new();
+        fs::write(staged_executable(&fixture.plan.staged), "corrupt").unwrap();
+        let destination = fixture.home.join("startup-result.json");
+        let error = apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_millis(20),
+            |_| Ok(false),
+            |_| bail!("injected recovery launch failure"),
+        )
+        .unwrap_err();
+        let final_result: UpdateResult = files::read_json(&destination).unwrap();
+        assert!(matches!(final_result.status, UpdateStatus::Failed));
+        for expected in [
+            "checksum mismatch",
+            "Recovery files:",
+            "Previous manager launch request failed",
+            "injected recovery launch failure",
+        ] {
+            assert!(final_result.message.contains(expected));
+            assert!(error.to_string().contains(expected));
+        }
+        assert!(final_result
+            .message
+            .contains(&fixture.stage.display().to_string()));
+        let local: UpdateResult = files::read_json(&fixture.stage.join("result.json")).unwrap();
+        assert_eq!(local.message, final_result.message);
+        assert!(fixture.old_is_present());
+    }
+    #[test]
+    fn parent_shutdown_timeout_never_swaps_or_opens_recovery_window() {
+        let fixture = Fixture::new();
+        let destination = fixture.home.join("startup-result.json");
+        let started = Instant::now();
+        let error = apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_millis(20),
+            |_| Ok(true),
+            |_| panic!("must not open a window while the parent is alive"),
+        )
+        .unwrap_err();
+        assert!(started.elapsed() < Duration::from_secs(1));
+        assert!(error.to_string().contains("Manager did not close"));
+        assert!(fixture.old_is_present());
+        assert!(!fixture.stage.join("previous.app").exists());
+        let final_result: UpdateResult = files::read_json(&destination).unwrap();
+        assert!(final_result.message.contains("Recovery files:"));
+        assert!(final_result
+            .message
+            .contains(&fixture.stage.display().to_string()));
+    }
+    #[test]
+    fn pretrust_failure_is_reported_without_waiting_or_launching() {
+        let mut fixture = Fixture::new();
+        fixture.plan.layout = 0;
+        files::write_json(&fixture.stage.join("plan.json"), &fixture.plan).unwrap();
+        let destination = fixture.home.join("startup-result.json");
+        let error = apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_millis(20),
+            |_| panic!("untrusted plan must not wait"),
+            |_| panic!("untrusted plan must not launch"),
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("legacy layout"));
+        let final_result: UpdateResult = files::read_json(&destination).unwrap();
+        assert!(final_result.message.contains("legacy layout"));
+        assert!(matches!(final_result.status, UpdateStatus::Failed));
+        assert!(!fixture.stage.join("result.json").exists());
+        assert!(fixture.old_is_present());
+    }
+    #[test]
+    fn target_changed_during_parent_shutdown_is_never_recovery_launched() {
+        let fixture = Fixture::new();
+        fs::write(staged_executable(&fixture.plan.staged), "corrupt").unwrap();
+        let destination = fixture.home.join("startup-result.json");
+        let error = apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_millis(20),
+            |_| {
+                fs::write(
+                    fixture.plan.target.join("Contents/Resources/old-marker"),
+                    "tampered after trust validation",
+                )
+                .unwrap();
+                Ok(false)
+            },
+            |_| panic!("changed target must not be launched"),
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("checksum mismatch"));
+        assert!(!fixture.stage.join("previous.app").exists());
     }
 }
