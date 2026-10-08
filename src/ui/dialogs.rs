@@ -968,7 +968,8 @@ impl App {
             }
         }
         if self.confirm_self_update {
-            let msi = self_update::installed_with_msi();
+            let packaged = self_update::installed_with_linux_package();
+            let msi = self_update::installed_with_msi() || packaged;
             let modal = modal(ctx, "Update Craft Apps Manager", 480.0, |ui| {
                 band(ui, BODY, 280.0 - 2.0 - BAR_HEIGHT, |ui| {
                     header(
@@ -981,7 +982,9 @@ impl App {
                                 .as_ref()
                                 .map(|a| a.version.as_str())
                                 .unwrap_or("?"),
-                            if msi {
+                            if packaged {
+                                "The system package manager installs it after administrator approval."
+                            } else if msi {
                                 "The manager downloads and installs it."
                             } else {
                                 "The manager downloads it, checks it and restarts."

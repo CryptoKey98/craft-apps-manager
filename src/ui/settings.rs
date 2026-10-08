@@ -491,11 +491,15 @@ impl App {
                                 ui.with_layout(
                                     egui::Layout::right_to_left(egui::Align::Center),
                                     |ui| {
-                                        if btn(if self_update::installed_with_msi() {
-                                            "Download and install…"
-                                        } else {
-                                            "Download and restart…"
-                                        })
+                                        if btn(
+                                            if self_update::installed_with_msi()
+                                                || self_update::installed_with_linux_package()
+                                            {
+                                                "Download and install…"
+                                            } else {
+                                                "Download and restart…"
+                                            },
+                                        )
                                         .primary()
                                         .enabled(!busy && !building && self.manager_plan.is_none())
                                         .show(ui)
@@ -507,6 +511,11 @@ impl App {
                                 );
                             }
                         });
+                        if self.manager_available.is_some()
+                            && self_update::installed_with_linux_package()
+                        {
+                            note(ui, "The system package manager will install this update after administrator approval. Your settings and library will be kept.");
+                        }
                     },
                 );
             }

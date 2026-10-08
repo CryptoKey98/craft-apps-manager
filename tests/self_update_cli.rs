@@ -16,6 +16,7 @@ fn rejected_helper_plan_exits_nonzero_and_reports_outside_bundle() {
         &Plan {
             layout: 0,
             msi: false,
+            linux_package: false,
             parent_pid: 0,
             target: target.clone(),
             staged: directory.join("untrusted.app"),
