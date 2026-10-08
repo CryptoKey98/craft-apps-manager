@@ -435,13 +435,25 @@ pub fn executable_names(app: &str) -> Vec<String> {
     if renamed != app {
         names.push(executable_name(renamed));
     }
+    // The repository name is the current release name on macOS. Preserve
+    // legacy executable ordering on Windows and Linux.
+    if cfg!(target_os = "macos") && renamed != app {
+        names.reverse();
+    }
     names
 }
 pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
-    executable_names(app)
-        .into_iter()
-        .map(|name| folder.join(name))
-        .find(|path| is_executable(path))
+    #[cfg(target_os = "macos")]
+    {
+        crate::installers::resolve_bundle(folder, app)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        executable_names(app)
+            .into_iter()
+            .map(|name| folder.join(name))
+            .find(|path| is_executable(path))
+    }
 }
 pub fn release_os() -> &'static str {
     if cfg!(target_os = "windows") {
@@ -531,7 +543,16 @@ mod detection_tests {
         let paths = Paths::new(root.clone(), None);
         let portable = paths.at("releases/photocraft");
         std::fs::create_dir_all(&portable).unwrap();
+        #[cfg(not(target_os = "macos"))]
         std::fs::write(portable.join(executable_name("photocraft")), b"portable").unwrap();
+        #[cfg(target_os = "macos")]
+        {
+            let contents = portable
+                .join(executable_name("photocraft"))
+                .join("Contents");
+            std::fs::create_dir_all(&contents).unwrap();
+            std::fs::write(contents.join("Info.plist"), r#"<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.photocraft</string><key>CFBundleShortVersionString</key><string>0.2.0</string></dict></plist>"#).unwrap();
+        }
         crate::files::write_json(
             &paths.at("manager-settings.json"),
             &Preferences {
