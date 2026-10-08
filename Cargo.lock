@@ -756,7 +756,7 @@ dependencies = [
 
 [[package]]
 name = "craft-apps-manager"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -765,9 +765,11 @@ dependencies = [
  "libc",
  "regex",
  "reqwest",
+ "semver",
  "serde",
  "serde_json",
  "sha2",
+ "toml_edit",
  "uuid",
  "walkdir",
  "windows",
@@ -3512,6 +3514,7 @@ dependencies = [
  "indexmap",
  "toml_datetime",
  "toml_parser",
+ "toml_writer",
  "winnow",
 ]
 

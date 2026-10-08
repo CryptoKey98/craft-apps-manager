@@ -1,13 +1,24 @@
 [package]
 name = "craft-apps-manager"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 license = "MIT"
 description = "Release and source manager for the Craft apps"
 repository = "https://github.com/CryptoKey98/craft-apps-manager"
 readme = "README.md"
+default-run = "craft-apps-manager"
+
+[features]
+release-tools = ["dep:toml_edit", "dep:semver"]
+
+[[bin]]
+name = "release-tool"
+path = "src/bin/release-tool.rs"
+required-features = ["release-tools"]
 
 [dependencies]
+toml_edit = { version = "0.25", optional = true }
+semver = { version = "1", optional = true }
 anyhow = "1"
 chrono = { version = "0.4", features = ["serde"] }
 eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "x11", "wayland", "accesskit", "__screenshot"] }

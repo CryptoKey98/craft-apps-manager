@@ -18,6 +18,12 @@ jobs:
           components: rustfmt, clippy
           targets: ${{ matrix.target }}
       - run: cargo fmt --check
+      - if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo test --locked --features release-tools --bin release-tool
+      - if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo run --locked --features release-tools --bin release-tool -- check
+      - if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo clippy --locked --features release-tools --bin release-tool -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}

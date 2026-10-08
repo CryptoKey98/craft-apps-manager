@@ -39,7 +39,7 @@ Screenshots show the Windows 0.3.3 release with a fictional demo library. Paths 
 
 ## Getting started
 
-Version **0.4.1** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
+Version **0.4.2** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -155,3 +155,7 @@ Open an issue with the app version, the Craft app involved, and the relevant par
 ## License
 
 MIT. The bundled 7-Zip files have their own license notices. Craft apps and their branding belong to their respective authors.
+
+## Preparing a release
+
+See [Release preparation](docs/releases.md) for the version-bump command and review process.
