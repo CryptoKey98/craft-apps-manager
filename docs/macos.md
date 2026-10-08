@@ -34,6 +34,6 @@ cargo test --locked -- --test-threads=1
 ./scripts/package-macos.sh
 ```
 
-The script writes a universal `Craft Apps Manager.app` and a ZIP to `dist/macos`. The bundle has only an ad-hoc signature and is not notarized. A downloaded copy needs right-click → **Open** the first time.
+The script writes a universal `Craft Apps Manager.app` and a ZIP to `dist/macos`. The bundle has only an ad-hoc signature and is not notarized. The first time a downloaded copy is opened, macOS blocks it. Click **Done**, then go to **System Settings → Privacy & Security** and click **Open Anyway**. Right-click → **Open** no longer skips this check on macOS 15 and newer.
 
 Source builds use Homebrew for extra tools: `sevenzip`, plus `node`, `cmake` and `nasm` for ArtCraft X. They produce a bare executable under `builds/`, not an app bundle.

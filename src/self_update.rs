@@ -175,6 +175,8 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
             },
         )?;
         fs::copy(&executable, stage.join(helper_name()))?;
+        #[cfg(target_os = "macos")]
+        clear_quarantine(&stage.join(helper_name()))?;
         fs::remove_file(zip)?;
         Ok(plan)
     })();
@@ -366,6 +368,28 @@ fn app_bundle(executable: &Path) -> Result<PathBuf> {
         .map(Path::to_path_buf)
         .context("Only Craft Apps Manager.app can update itself. Development builds cannot.")
 }
+/// The helper is a copy of the running executable, which the user already
+/// approved. Copying keeps a browser download's quarantine flag, which would
+/// make Gatekeeper block the helper, so drop it from the copy.
+#[cfg(target_os = "macos")]
+fn clear_quarantine(path: &Path) -> Result<()> {
+    use std::os::unix::ffi::OsStrExt;
+    let path = std::ffi::CString::new(path.as_os_str().as_bytes())?;
+    if unsafe {
+        libc::removexattr(
+            path.as_ptr(),
+            c"com.apple.quarantine".as_ptr(),
+            libc::XATTR_NOFOLLOW,
+        )
+    } != 0
+    {
+        let error = std::io::Error::last_os_error();
+        if error.raw_os_error() != Some(libc::ENOATTR) {
+            return Err(error).context("Could not prepare the update helper");
+        }
+    }
+    Ok(())
+}
 #[cfg(target_os = "macos")]
 fn verify_bundle(bundle: &Path) -> Result<()> {
     if crate::platform::bundle_value(bundle, "CFBundleIdentifier").as_deref() != Some(BUNDLE_ID) {
@@ -555,6 +579,22 @@ mod macos_tests {
             "0.4.0"
         )
         .is_err());
+    }
+    #[test]
+    fn update_helper_drops_inherited_quarantine() {
+        let file = std::env::temp_dir().join(format!("craft-helper-{}", uuid::Uuid::new_v4()));
+        fs::write(&file, "helper").unwrap();
+        clear_quarantine(&file).unwrap();
+        let status = Command::new("/usr/bin/xattr")
+            .args(["-w", "com.apple.quarantine", "0083;6720f000;Safari;"])
+            .arg(&file)
+            .status()
+            .unwrap();
+        assert!(status.success());
+        clear_quarantine(&file).unwrap();
+        let out = Command::new("/usr/bin/xattr").arg(&file).output().unwrap();
+        assert!(!String::from_utf8_lossy(&out.stdout).contains("com.apple.quarantine"));
+        fs::remove_file(file).unwrap();
     }
     #[test]
     fn only_app_bundles_update_themselves() {

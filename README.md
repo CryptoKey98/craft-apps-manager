@@ -39,7 +39,7 @@ Screenshots show the Windows 0.3.3 release with a fictional demo library. Paths 
 
 ## Getting started
 
-Version **0.4.0** includes Windows x64/x86 packages and experimental Linux x64/x86 packages. Download the format for your system from the Releases page:
+Version **0.4.1** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -49,6 +49,7 @@ Version **0.4.0** includes Windows x64/x86 packages and experimental Linux x64/x
 | Ubuntu 26.04 / Debian family, 32-bit | i386 DEB | linux-x86 ZIP |
 | Fedora 44 / RPM family, 64-bit | x86_64 RPM | linux-x64 ZIP |
 | Fedora 44 / RPM family, 32-bit | i686 RPM | linux-x86 ZIP |
+| macOS 11 or newer, Apple silicon and Intel | — | macos-universal ZIP |
 
 For Windows, run the MSI or extract the ZIP and open `CraftApps-Manager.exe`. Keep the portable package's `workspace/tools/7zip` folder with the app. Rust and a separate 7-Zip installation are not needed to run Manager.
 
@@ -56,7 +57,15 @@ The Windows MSI stores settings and the app library in `%LOCALAPPDATA%\Craft App
 
 Linux packages were built on Ubuntu 26.04 and require glibc 2.43 or newer. They have been tested on Ubuntu 26.04 and Fedora 44. They are not intended for older Ubuntu/Fedora versions yet. x86 launch tests used 64-bit VMs with 32-bit libraries; native 32-bit systems and ARM64 are not verified. See [Linux setup and packaging](docs/linux.md). Both Windows packages were tested on 64-bit Windows; native 32-bit Windows testing remains pending.
 
-Changes are listed in [CHANGELOG.md](CHANGELOG.md). The source is shared across Windows and Linux.
+For macOS, extract the ZIP and move `Craft Apps Manager.app` to your Applications folder. The manager is not notarized by Apple yet, so the first launch shows "Apple could not verify “Craft Apps Manager.app” is free of malware". To open it:
+
+1. Click **Done** in that dialog. Don't choose **Move to Trash**.
+2. Open **System Settings → Privacy & Security** and scroll down to the message about Craft Apps Manager.app.
+3. Click **Open Anyway** and confirm with your password or Touch ID.
+
+You only need to do this once. Right-clicking the app and choosing **Open** no longer skips this check on macOS 15 and newer. The Craft apps themselves are notarized by their authors and open normally. Updates installed by the manager's own update check don't need this step again. On macOS, installer mode copies each Craft app into `/Applications` and also detects apps you installed yourself. See [macOS](docs/macos.md).
+
+Changes are listed in [CHANGELOG.md](CHANGELOG.md). The source is shared across Windows, Linux and macOS.
 
 ## Upgrading from Craft Apps Updater
 
@@ -97,7 +106,7 @@ Upstream build failures can still happen. Warnings from an upstream project are 
 
 ## Files and backups
 
-On Windows, the app keeps its library beside the executable by default. On Linux, it uses `$XDG_DATA_HOME/craft-apps-manager`, or `~/.local/share/craft-apps-manager` when that variable is unset:
+On Windows, the app keeps its library beside the executable by default. On Linux, it uses `$XDG_DATA_HOME/craft-apps-manager`, or `~/.local/share/craft-apps-manager` when that variable is unset. On macOS, it uses `~/Library/Application Support/Craft Apps Manager`:
 
 ```text
 releases/           Portable apps and downloaded installers
@@ -118,7 +127,7 @@ Each app panel has a **Backups** window with Restore and Delete modes. Restore l
 
 ## Building this manager
 
-Windows and Linux share one source checkout. Platform-specific code lives in `src/platform`, `src/installers`, `src/scheduler`, and `src/tools`; generated executables and packages are not part of the source repository.
+Windows, Linux and macOS share one source checkout. Platform-specific code lives in `src/platform`, `src/installers`, `src/scheduler`, and `src/tools`; generated executables and packages are not part of the source repository.
 
 For Windows, install stable Rust and Microsoft's **Desktop development with C++** workload, including its x86 and x64 tools. Build each target separately:
 
