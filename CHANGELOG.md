@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Add WordCraft, GridCraft, DeckCraft, CADCraft, and SoundCraft to release updates, source updates, and the source builder on supported platforms.
+- Include the upstream app icons and preserve existing app selections and ordering when expanding the catalog.
+- Show app and source selection totals from the current catalog.
+- Add experimental macOS support contributed in pull request #2.
+
 ## 0.4.0
 
 - Detect previously installed apps on the first launch of a fresh library.

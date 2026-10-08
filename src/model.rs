@@ -10,7 +10,7 @@ pub const MANAGER_ARCH: &str = if cfg!(target_arch = "x86") {
     "x64"
 };
 
-pub const APPS: [&str; 7] = [
+pub const APPS: [&str; 12] = [
     "designcraft",
     "effectcraft",
     "filmcraft",
@@ -18,8 +18,13 @@ pub const APPS: [&str; 7] = [
     "photocraft",
     "printcraft",
     "vectorcraft",
+    "wordcraft",
+    "gridcraft",
+    "deckcraft",
+    "cadcraft",
+    "soundcraft",
 ];
-pub const SOURCES: [&str; 8] = [
+pub const SOURCES: [&str; 13] = [
     "designcraft",
     "effectcraft",
     "filmcraft",
@@ -27,9 +32,17 @@ pub const SOURCES: [&str; 8] = [
     "photocraft",
     "printcraft",
     "vectorcraft",
+    "wordcraft",
+    "gridcraft",
+    "deckcraft",
+    "cadcraft",
+    "soundcraft",
     "artcraftx",
 ];
 pub fn title(name: &str) -> String {
+    if name == "cadcraft" {
+        return "CADCraft".into();
+    }
     if name == "printcraft" {
         return "PDFCraft".into();
     }
@@ -286,6 +299,17 @@ impl Paths {
         detect: &impl Fn(&str) -> Result<Option<Installed>>,
     ) -> Result<Config> {
         let installer = self.preferences()?.release_format == "installer";
+        // Add catalog entries when upgrading an existing library without
+        // changing saved selections, installations, or the user's app order.
+        for name in APPS {
+            if !config.apps.iter().any(|app| app.name == name) {
+                config.apps.push(Installed {
+                    name: name.into(),
+                    architecture: default_arch(),
+                    ..Default::default()
+                });
+            }
+        }
         for app in &config.apps {
             if !app.path.is_empty()
                 && !config.installations.iter().any(|a| {
@@ -377,6 +401,9 @@ pub fn executable_name(app: &str) -> String {
     if cfg!(target_os = "windows") {
         format!("{app}.exe")
     } else if cfg!(target_os = "macos") {
+        if app == "cadcraft" {
+            return "CADCraft.app".into();
+        }
         format!(
             "{}{}.app",
             app[..1].to_uppercase(),
@@ -444,6 +471,59 @@ pub fn release_arch(architecture: &str) -> &str {
 #[cfg(test)]
 mod detection_tests {
     use super::*;
+    #[test]
+    fn existing_libraries_gain_new_apps_without_resetting_preferences() {
+        let root = std::env::temp_dir().join(format!("craft-catalog-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let prefs = Preferences {
+            release_format: "installer".into(),
+            selected_apps: vec!["filmcraft".into()],
+            selected_sources: vec!["filmcraft".into()],
+            app_order: vec!["filmcraft".into()],
+            ..Default::default()
+        };
+        crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        let config = Config {
+            apps_root: root.display().to_string(),
+            apps: vec![Installed {
+                name: "filmcraft".into(),
+                ..Default::default()
+            }],
+            installations: vec![],
+        };
+        crate::files::write_json(&paths.at("settings.json"), &config).unwrap();
+        let detect = |name: &str| {
+            Ok((name == "wordcraft").then(|| Installed {
+                name: name.into(),
+                path: "system/WordCraft".into(),
+                version: "0.3.0".into(),
+                install_kind: "installer".into(),
+                ..Default::default()
+            }))
+        };
+        let migrated = paths.config_with_detector(detect).unwrap();
+        assert_eq!(migrated.apps.len(), APPS.len());
+        assert_eq!(
+            migrated
+                .apps
+                .iter()
+                .find(|a| a.name == "wordcraft")
+                .unwrap()
+                .version,
+            "0.3.0"
+        );
+        paths.save_config(&migrated).unwrap();
+        assert_eq!(
+            paths.config_with_detector(detect).unwrap().apps.len(),
+            APPS.len()
+        );
+        let preserved = paths.preferences().unwrap();
+        assert_eq!(preserved.selected_apps, ["filmcraft"]);
+        assert_eq!(preserved.selected_sources, ["filmcraft"]);
+        assert_eq!(preserved.app_order[0], "filmcraft");
+        assert_eq!(preserved.app_order.len(), APPS.len());
+        std::fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn first_launch_detects_preexisting_installers_and_keeps_portable_inventory() {
         let root =

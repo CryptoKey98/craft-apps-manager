@@ -50,6 +50,8 @@ PLIST
 for name in README.md CHANGELOG.md LICENSE THIRD-PARTY-NOTICES.txt; do
     cp "$name" "$bundle/Contents/Resources/"
 done
+mkdir -p "$bundle/Contents/Resources/licenses/app-icons"
+cp assets/app-icons/*.txt "$bundle/Contents/Resources/licenses/app-icons/"
 # Ad-hoc signature: required on Apple silicon. Not notarized, so the first
 # launch of a downloaded copy needs right-click > Open.
 codesign --force --sign - "$bundle"

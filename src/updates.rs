@@ -465,6 +465,62 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
 mod tests {
     use super::*;
     #[test]
+    fn new_apps_select_matching_release_formats_and_reject_missing_architectures() {
+        for app in [
+            "wordcraft",
+            "gridcraft",
+            "deckcraft",
+            "cadcraft",
+            "soundcraft",
+        ] {
+            for format in ["portable", "installer"] {
+                let preferences = Preferences {
+                    architecture: "x64".into(),
+                    release_format: format.into(),
+                    ..Default::default()
+                };
+                let suffix = if cfg!(target_os = "macos") {
+                    ".dmg"
+                } else if format == "installer" {
+                    crate::installers::installer_extension().unwrap()
+                } else if cfg!(target_os = "windows") {
+                    "-portable.zip"
+                } else {
+                    ".AppImage"
+                };
+                let name = format!(
+                    "{app}-0.3.0-{}-{}{suffix}",
+                    crate::model::release_os(),
+                    crate::model::release_arch("x64")
+                );
+                let release = Release {
+                    tag_name: "v0.3.0".into(),
+                    draft: false,
+                    prerelease: false,
+                    assets: vec![crate::model::Asset {
+                        name: name.clone(),
+                        size: 1,
+                        digest: None,
+                        browser_download_url: format!(
+                            "https://github.com/storytold/{app}/releases/download/v0.3.0/{name}"
+                        ),
+                    }],
+                };
+                assert_eq!(
+                    select_asset(&release, app, &preferences).unwrap().name,
+                    name
+                );
+                if !cfg!(target_os = "macos") {
+                    let other = Preferences {
+                        architecture: "x86".into(),
+                        ..preferences
+                    };
+                    assert!(select_asset(&release, app, &other).is_err());
+                }
+            }
+        }
+    }
+    #[test]
     fn rollback() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
         fs::create_dir_all(&root).unwrap();

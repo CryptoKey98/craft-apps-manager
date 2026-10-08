@@ -355,7 +355,10 @@ fn release_and_source_selections_are_independent() {
         &serde_json::json!({"selectedApps":[]}),
     )
     .unwrap();
-    assert_eq!(paths.preferences().unwrap().selected_sources.len(), 8);
+    assert_eq!(
+        paths.preferences().unwrap().selected_sources.len(),
+        craft_apps_manager::model::SOURCES.len()
+    );
 }
 #[test]
 fn individual_check_detects_newer_release_without_downloading() {
@@ -514,7 +517,7 @@ fn settings_compatible_with_powershell_and_empty_selection() {
     assert!(!p.keep_app_backups);
     assert_eq!(p.architecture, "x86");
     let mut p = p;
-    p.selected_apps = vec!["filmcraft".into(), "wordcraft".into(), "filmcraft".into()];
+    p.selected_apps = vec!["filmcraft".into(), "unknown-app".into(), "filmcraft".into()];
     p.validate().unwrap();
     assert_eq!(p.selected_apps, ["filmcraft"]);
     files::write_json(&paths.at("manager-settings.json"), &p).unwrap();
@@ -870,7 +873,10 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     let refreshed = paths.config().unwrap();
     assert!(refreshed.apps[0].path.is_empty());
     assert!(refreshed.apps[0].product_code.is_empty());
-    assert!(refreshed.installations.is_empty());
+    assert!(!refreshed
+        .installations
+        .iter()
+        .any(|app| app.name == "craft-test-missing-app"));
     let prefs = Preferences {
         release_format: "portable".into(),
         ..Default::default()

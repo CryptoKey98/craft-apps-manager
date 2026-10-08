@@ -64,7 +64,7 @@ Version 0.3.2 renames the app to Craft Apps Manager. Download this release manua
 
 ## Supported apps
 
-DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, and VectorCraft are available for release and source updates. ArtCraft X is available for source updates and builds.
+DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, VectorCraft, WordCraft, GridCraft, DeckCraft, CADCraft, and SoundCraft are available for release and source updates. ArtCraft X is available for source updates and builds. Release formats and architectures depend on what each upstream app publishes.
 
 PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 

@@ -31,6 +31,10 @@ fn mapped(app: &str, roaming: &Path, local: &Path) -> Result<Vec<Target>> {
         "photocraft" => (&["Photocraft"], &[]),
         "printcraft" => (&["PdfCraft", "PrintCraft"], &["PdfCraft", "PrintCraft"]),
         "vectorcraft" => (&["VectorCraft", "DrawCraft"], &[]),
+        "wordcraft" => (&["WordCraft"], &[]),
+        "gridcraft" => (&["GridCraft"], &[]),
+        "deckcraft" => (&["DeckCraft"], &[]),
+        "soundcraft" => (&["SoundCraft"], &[]),
         _ => bail!("This app has no verified profile locations"),
     };
     Ok(roaming_names

@@ -11,6 +11,12 @@ PDFCraft: https://github.com/storytold/PDFCraft/blob/6974c6550d9dbcfdada41bc902c
 VectorCraft: https://github.com/storytold/VectorCraft/blob/48cfb414ca77536f034b55c9bd34d1c0c502219a/assets/app-icon/hicolor/64x64/apps/ai.storyteller.vectorcraft.png
 
 
+WordCraft: https://github.com/storytold/wordcraft/blob/7584b9b2930ffddfe7db96b6eba977262e55135c/assets/app-icon/hicolor/64x64/apps/ai.storyteller.wordcraft.png
+GridCraft: https://github.com/storytold/gridcraft/blob/fb823899c57b41703edcad2b6476cf4b8a01dfc4/assets/app-icon/hicolor/64x64/apps/ai.storyteller.gridcraft.png
+DeckCraft: https://github.com/storytold/deckcraft/blob/d0e57d7e25f9852179cc66be12dd6188f1c05535/assets/app-icon/hicolor/64x64/apps/ai.storyteller.deckcraft.png
+CADCraft: https://github.com/storytold/cadcraft/blob/59631c8d4f9ffe6c08c5c2065ea17504e53bf821/assets/app-icon/hicolor/64x64/apps/ai.storyteller.cadcraft.png
+SoundCraft: https://github.com/storytold/soundcraft/blob/c51e5d5ec52f11c6264b72e26661fa712feb5345/assets/app-icon/hicolor/64x64/apps/ai.storyteller.soundcraft.png
+
 The upstream icons are distributed under their repositories' MIT / Apache-2.0 licenses. Full copyright and license texts are in assets/app-icons/ in the source checkout and licenses/app-icons/ in distribution packages.
 
 Windows packages bundle 7-Zip for archive handling. Its complete license is included beside 7za.exe in workspace/tools/7zip/. Linux packages use the system's 7-Zip installation.

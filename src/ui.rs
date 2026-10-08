@@ -17,6 +17,11 @@ fn app_icon(name: &str) -> &'static [u8] {
         "lightcraft" => include_bytes!("../assets/app-icons/lightcraft.png"),
         "photocraft" => include_bytes!("../assets/app-icons/photocraft.png"),
         "vectorcraft" => include_bytes!("../assets/app-icons/vectorcraft.png"),
+        "wordcraft" => include_bytes!("../assets/app-icons/wordcraft.png"),
+        "gridcraft" => include_bytes!("../assets/app-icons/gridcraft.png"),
+        "deckcraft" => include_bytes!("../assets/app-icons/deckcraft.png"),
+        "cadcraft" => include_bytes!("../assets/app-icons/cadcraft.png"),
+        "soundcraft" => include_bytes!("../assets/app-icons/soundcraft.png"),
         _ => include_bytes!("../assets/app-icons/pdfcraft.png"),
     }
 }
@@ -398,7 +403,7 @@ egui::ScrollArea::vertical().max_height((ctx.screen_rect().height()-180.0).max(2
             }else{
                 ui.horizontal(|ui|{ui.label("Release format");egui::ComboBox::from_id_salt("format").selected_text(if self.settings_draft.release_format=="portable"{if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"}}else{"Installer"}).show_ui(ui,|ui|{ui.selectable_value(&mut self.settings_draft.release_format,"portable".into(),if cfg!(target_os = "linux") {"AppImage"} else if cfg!(target_os = "macos") {"Portable app"} else {"Portable ZIP"});ui.selectable_value(&mut self.settings_draft.release_format,"installer".into(),"Installer");});});
                 ui.horizontal(|ui|{ui.label("Architecture");egui::ComboBox::from_id_salt("arch").selected_text(&self.settings_draft.architecture).show_ui(ui,|ui|{for (value,label) in [("x64","64-bit (x64)"),("x86","32-bit (x86)"),("arm64","ARM64")]{ui.selectable_value(&mut self.settings_draft.architecture,value.into(),label);}});});
-                ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of 7 apps selected",self.settings_draft.selected_apps.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of 8 sources selected",self.settings_draft.selected_sources.len()));});
+                ui.horizontal(|ui|{if ui.button("Choose release apps...").clicked(){self.source_selection=false;self.selection_draft=self.settings_draft.selected_apps.clone();self.selection=true;}ui.label(format!("{} of {} apps selected",self.settings_draft.selected_apps.len(),APPS.len()));});ui.horizontal(|ui|{if ui.button("Choose source apps...").clicked(){self.source_selection=true;self.selection_draft=self.settings_draft.selected_sources.clone();self.selection=true;}ui.label(format!("{} of {} sources selected",self.settings_draft.selected_sources.len(),SOURCES.len()));});
                 ui.separator();ui.checkbox(&mut self.settings_draft.keep_app_backups,"Create app backups (portable releases only)");ui.checkbox(&mut self.settings_draft.keep_source_backups,"Create source backups");ui.checkbox(&mut self.settings_draft.compress_backups,"Compress portable app backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.compress_source_backups,"Recompress source backups (7-Zip Ultra / LZMA2)");ui.checkbox(&mut self.settings_draft.notify_updates,"Notify me when app or source updates are available");ui.checkbox(&mut self.settings_draft.check_installed_apps_on_startup,"Check installed apps for updates on startup").on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");ui.checkbox(&mut self.settings_draft.check_manager_on_startup,"Check for a new version of this program on startup").on_hover_text("Checks for a new Craft Apps Manager release. Downloads require your confirmation.");
                 ui.horizontal(|ui|{ui.label("Previous versions to keep per app / source");ui.add(egui::DragValue::new(&mut self.settings_draft.backup_versions).range(1..=10));});
                 ui.small(if cfg!(target_os = "linux") {"AppImage updates retain a rollback copy until successful. System packages require administrator authorization."} else if cfg!(target_os = "macos") {"A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."} else {"A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."});if ui.button("Clear backups...").clicked(){self.confirm_clear=true;}
@@ -1055,7 +1060,7 @@ impl eframe::App for App {
                     RichText::new(if self.builder {
                         "BUILD CONTROLS"
                     } else {
-                        "CREATIVE APPS"
+                        "CRAFT APPS"
                     })
                     .small()
                     .strong()
@@ -1603,8 +1608,9 @@ impl eframe::App for App {
                         egui::pos2(footer.left() + 4.0, footer.top() + 20.0),
                         egui::Align2::LEFT_CENTER,
                         format!(
-                            "{} of 7 apps selected",
-                            self.preferences.selected_apps.len()
+                            "{} of {} apps selected",
+                            self.preferences.selected_apps.len(),
+                            APPS.len()
                         ),
                         egui::FontId::proportional(13.0),
                         Color32::from_gray(190),
