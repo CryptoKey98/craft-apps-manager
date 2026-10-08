@@ -8,7 +8,7 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
-![Craft Apps Manager startup view](docs/images/main.png)
+![Craft Apps Manager startup view](docs/images/main.png?v=0.3.3-current)
 
 Screenshots show version 0.3.3 with a fictional demo library. Paths and build history are examples.
 
@@ -17,23 +17,23 @@ Screenshots show version 0.3.3 with a fictional demo library. Paths and build hi
 
 **App controls** — launch an app, check its release, or manage backups.
 
-![FilmCraft app controls](docs/images/app-controls.png)
+![FilmCraft app controls](docs/images/app-controls.png?v=0.3.3-current)
 
 **Settings** — choose release formats, backup preferences, and manager checks.
 
-![Release preferences and backup settings](docs/images/settings.png)
+![Release preferences and backup settings](docs/images/settings.png?v=0.3.3-current)
 
 **App selection** — choose which apps receive release updates. Source updates have their own selection.
 
-![Choose release apps dialog](docs/images/app-selection.png)
+![Choose release apps dialog](docs/images/app-selection.png?v=0.3.3-current)
 
 **Backups** — browse previous versions and choose restore or delete mode.
 
-![FilmCraft backup management](docs/images/backups.png)
+![FilmCraft backup management](docs/images/backups.png?v=0.3.3-current)
 
 **Builder** — build upstream source and review the build log and output.
 
-![Craft Apps Builder](docs/images/builder.png)
+![Craft Apps Builder](docs/images/builder.png?v=0.3.3-current)
 
 </details>
 
