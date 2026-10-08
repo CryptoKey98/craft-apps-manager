@@ -6,9 +6,9 @@ The interface is written in Rust and uses a compact dark theme. This is an indep
 
 ## Video tour
 
-[![Watch the Craft Apps Updater video tour](docs/images/main.png)](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/craft-apps-updater-tour.mp4)
+https://github.com/user-attachments/assets/9d39928a-3c10-43dd-a813-40183dcaeb27
 
-**[Watch the video tour](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/craft-apps-updater-tour.mp4)** — a short look at app controls, backups, settings, and the source builder. Click the preview above to open the video.
+A short look at app controls, backups, settings, and the source builder.
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
 
