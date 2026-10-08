@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2
+
+- Prefer the newest installed PDFCraft/PrintCraft version on Windows when both names are registered.
+- Resolve renamed app executables correctly on Linux and macOS, including saved launch settings.
+- Improve macOS app replacement and manager update recovery across different volumes.
+- Review selected release updates before downloading and improve settings recovery, cancellation, and keyboard accessibility.
+- Add a local version preparation tool and CI validation for release metadata.
+- Avoid duplicate workflow runs for pull request branches.
+
 ## 0.4.1
 
 - Add WordCraft, GridCraft, DeckCraft, CADCraft, and SoundCraft to release updates, source updates, and the source builder on supported platforms.
