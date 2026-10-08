@@ -741,8 +741,14 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
             Ok(())
         })();
         if let Err(e) = result {
-            if crate::jobs::is_cancelled(&e) && errors == 0 {
-                return Err(e);
+            if crate::jobs::is_cancelled(&e) {
+                if errors == 0 {
+                    return Err(e);
+                }
+                job.log(&format!(
+                    "{name}: cancelled; {errors} earlier source failure(s) retained"
+                ));
+                break;
             }
             errors += 1;
             job.log(&format!("{name}: {e:#}"));

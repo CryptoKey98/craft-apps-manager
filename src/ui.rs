@@ -118,7 +118,7 @@ pub struct App {
     manager_available: Option<self_update::Available>,
     manager_message: String,
     manager_startup_pending: bool,
-    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, String>>>,
+    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, (bool, String)>>>,
     confirm_self_update: bool,
     restore_app: Option<String>,
     restore_backups: Vec<backups::Backup>,
@@ -358,10 +358,7 @@ impl App {
             self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
             self.job.spawn(move |job| {
                 let result = updates::plan_releases(&paths, &job);
-                let _ =
-                    tx.send(result.as_ref().map(Clone::clone).map_err(|e| {
-                        (craft_apps_manager::jobs::is_cancelled(e), format!("{e:#}"))
-                    }));
+                let _ = tx.send(result_for_display(&result));
                 result.map(|_| ())
             });
             return;
@@ -540,20 +537,19 @@ impl App {
         if let Some(plan) = self.release_plan.clone() {
             let response = modal(ctx, "Review release operations", |ui| {
                 ui.set_width(570.0);
-                ui.heading("Review release operations");
                 ui.label(format!(
                     "{} · {}",
                     plan.preferences.release_format,
                     model::architecture_label(&plan.preferences.architecture)
                 ));
-                ui.small("Only the listed Install and Update entries will run. Assets and versions are pinned to this review.");
+                ui.small("Only the listed Install and Update entries will run.");
                 egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
                     for entry in &plan.entries {
                         ui.separator(); ui.strong(format!("{}: {} {}", model::title(&entry.app), entry.action, entry.version));
                         if let Some(error) = &entry.error {ui.colored_label(Color32::LIGHT_RED, error);}
                         else {
                             ui.small(entry.destination.as_ref().map(|p| format!("Destination: {}", p.display())).unwrap_or_else(|| "Destination: Applications / system installation (installer controlled)".into()));
-                            if let Some(asset) = &entry.asset { ui.small(format!("{} · {} bytes", asset.name, asset.size)); ui.hyperlink_to("Pinned release asset", &asset.browser_download_url); ui.small(format!("Digest: {}", asset.digest.as_deref().unwrap_or("not supplied by upstream"))); }
+                            if let Some(asset) = &entry.asset { ui.hyperlink_to(RichText::new(&asset.name).small(), &asset.browser_download_url); }
                         }
                     }
                 });
@@ -1017,12 +1013,7 @@ impl App {
                             );
                             self.job.spawn(move |job| {
                                 let result = self_update::prepare(&paths, &available, &job);
-                                let _ = tx.send(
-                                    result
-                                        .as_ref()
-                                        .map(Clone::clone)
-                                        .map_err(|e| format!("{e:#}")),
-                                );
+                                let _ = tx.send(result_for_display(&result));
                                 ctx.request_repaint();
                                 result.map(|_| ())
                             });
@@ -1276,9 +1267,13 @@ impl eframe::App for App {
                         Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                         Err(error) => self.result(Err(error)),
                     },
-                    Err(error) => {
-                        self.manager_message = "Manager download failed.".into();
-                        self.error = Some(error);
+                    Err((cancelled, error)) => {
+                        if cancelled {
+                            self.manager_message = "Manager download cancelled.".into();
+                        } else {
+                            self.manager_message = "Manager download failed.".into();
+                            self.error = Some(error);
+                        }
                     }
                 }
             }
@@ -2394,5 +2389,38 @@ fn restore_dialog_focus(ctx: &egui::Context) {
     });
     if let Some(id) = focus {
         ctx.memory_mut(|memory| memory.request_focus(id));
+    }
+}
+
+fn result_for_display<T: Clone>(result: &Result<T>) -> Result<T, (bool, String)> {
+    match result {
+        Ok(value) => Ok(value.clone()),
+        Err(error) => Err((
+            craft_apps_manager::jobs::is_cancelled(error),
+            format!("{error:#}"),
+        )),
+    }
+}
+#[cfg(test)]
+mod outcome_tests {
+    use super::*;
+    #[test]
+    fn display_copy_retains_cancellation_and_real_failure_distinction() {
+        let cancelled: Result<PathBuf> =
+            Err(anyhow::Error::new(craft_apps_manager::jobs::Cancelled)
+                .context("Manager download interrupted"));
+        let copy = result_for_display(&cancelled).unwrap_err();
+        assert!(copy.0);
+        assert!(copy.1.contains("Manager download interrupted"));
+        if let Err(error) = &cancelled {
+            assert!(craft_apps_manager::jobs::is_cancelled(error));
+        }
+        let failure: Result<PathBuf> = Err(anyhow::anyhow!("Digest mismatch"));
+        assert!(!result_for_display(&failure).unwrap_err().0);
+        let success = Ok(PathBuf::from("prepared-update"));
+        assert_eq!(
+            result_for_display(&success).unwrap(),
+            PathBuf::from("prepared-update")
+        );
     }
 }
