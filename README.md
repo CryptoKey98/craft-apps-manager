@@ -4,6 +4,29 @@ A Windows app for downloading, updating, and building the Craft apps from Storyt
 
 The interface is written in Rust and uses a compact dark theme. This is an independent project, not an official Storytold or Adobe app.
 
+![Craft Apps Updater 0.3.0 with FilmCraft selected](docs/images/main.png)
+
+[Watch the 20-second interface preview](https://github.com/CryptoKey98/craft-apps-updater/blob/main/docs/media/interface-tour.mp4) · [Download the latest release](https://github.com/CryptoKey98/craft-apps-updater/releases/latest)
+
+Screenshots and the silent preview use an example library. The preview cycles through the main window, Settings, app selection, and backups.
+
+<details>
+<summary>More screenshots</summary>
+
+**Settings** — choose release formats, backup preferences, and updater checks.
+
+![Release preferences and backup settings](docs/images/settings.png)
+
+**App selection** — choose which apps receive release updates. Source updates have their own selection.
+
+![Choose release apps dialog](docs/images/app-selection.png)
+
+**Backups** — browse previous versions and choose restore or delete mode.
+
+![FilmCraft backup management](docs/images/backups.png)
+
+</details>
+
 ## Getting started
 
 Download the Windows ZIP from this repository's Releases page, extract it, and open `CraftApps-Updater.exe`. Keep the bundled `workspace/tools/7zip` folder with the app. You don't need Rust or a separate 7-Zip installation to use the updater.
