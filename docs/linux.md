@@ -65,4 +65,4 @@ On Fedora, install the local RPM using:
 sudo dnf install ./craft-apps-manager-0.4.0-0.2*.x86_64.rpm
 ```
 
-RPM packages are experimental during distribution testing. Removing the package leaves each user's app library intact. A system-installed manager is updated by installing a newer DEB or RPM; replacing it through the portable ZIP update mechanism requires a writable portable installation.
+RPM packages are experimental during distribution testing. Removing the package leaves each user's app library intact. For a DEB/RPM installation, the manager update button downloads the matching native package and invokes apt-get or dnf with an administrator prompt. It verifies the installed package version before restarting, and preserves user settings and libraries. Portable ZIP installations use the separate executable-replacement update flow and require a writable installation folder.
