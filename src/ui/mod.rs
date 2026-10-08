@@ -1,0 +1,907 @@
+use anyhow::Result;
+use craft_apps_manager::{
+    apps, backups, builder,
+    jobs::Job,
+    model::{self, BuilderPreferences, Paths, Preferences, APPS},
+    platform, scheduler, self_update, tools, updates,
+};
+use eframe::egui;
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::BTreeMap, path::PathBuf, process::Command, sync::atomic::Ordering, time::Duration,
+};
+
+mod app_page;
+mod builder_view;
+mod dialogs;
+mod overview;
+mod settings;
+mod sidebar;
+mod theme;
+
+fn app_icon(name: &str) -> &'static [u8] {
+    match name {
+        "designcraft" => include_bytes!("../../assets/app-icons/designcraft.png"),
+        "effectcraft" => include_bytes!("../../assets/app-icons/effectcraft.png"),
+        "filmcraft" => include_bytes!("../../assets/app-icons/filmcraft.png"),
+        "lightcraft" => include_bytes!("../../assets/app-icons/lightcraft.png"),
+        "photocraft" => include_bytes!("../../assets/app-icons/photocraft.png"),
+        "vectorcraft" => include_bytes!("../../assets/app-icons/vectorcraft.png"),
+        "wordcraft" => include_bytes!("../../assets/app-icons/wordcraft.png"),
+        "gridcraft" => include_bytes!("../../assets/app-icons/gridcraft.png"),
+        "deckcraft" => include_bytes!("../../assets/app-icons/deckcraft.png"),
+        "cadcraft" => include_bytes!("../../assets/app-icons/cadcraft.png"),
+        "soundcraft" => include_bytes!("../../assets/app-icons/soundcraft.png"),
+        _ => include_bytes!("../../assets/app-icons/pdfcraft.png"),
+    }
+}
+
+type ReleaseCheck = Result<Option<String>, String>;
+type CheckMessage = (u64, String, String, ReleaseCheck);
+
+/// Everything the window shows that is read from disk, refreshed off the UI thread.
+struct Snapshot {
+    config: model::Config,
+    alternates: Vec<model::Installed>,
+    backups: BTreeMap<String, Vec<backups::Backup>>,
+    checks: craft_apps_manager::hourly::Checks,
+    sources: BTreeMap<String, model::Source>,
+    builds: BTreeMap<String, (PathBuf, Option<model::BuildInfo>)>,
+    launch: BTreeMap<String, apps::LaunchSettings>,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct Locations {
+    pub root: Option<PathBuf>,
+    pub tools: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Page {
+    Overview,
+    App,
+}
+
+/// What the window knows about one app in the active release format.
+#[derive(Default)]
+struct AppStatus {
+    installed: Option<model::Installed>,
+    alternate: Option<model::Installed>,
+    /// The newer release, when a check found one for the installed version.
+    update: Option<String>,
+    /// The last check for the installed version: Ok(None) means up to date.
+    check: Option<ReleaseCheck>,
+    checking: bool,
+    loaded: bool,
+}
+
+pub struct App {
+    icons: BTreeMap<String, egui::TextureHandle>,
+    paths: Paths,
+    home: PathBuf,
+    builder: bool,
+    app: String,
+    latest: bool,
+    job: Job,
+    /// The app and action the current release job was started for, so its
+    /// progress and failure show on that app's page.
+    job_target: Option<(String, String)>,
+    failure_dismissed: bool,
+    /// Builds and tool setup started from an app page run beside release jobs,
+    /// as they did in the separate builder window.
+    build_job: Job,
+    build_app: String,
+    page: Page,
+    search: String,
+    preferences: Preferences,
+    build_preferences: BuilderPreferences,
+    settings: bool,
+    settings_jump: Option<usize>,
+    selection: bool,
+    source_selection: bool,
+    selection_draft: Vec<String>,
+    settings_draft: Preferences,
+    build_draft: BuilderPreferences,
+    auto: bool,
+    auto_source: bool,
+    error: Option<String>,
+    selection_notice: Option<String>,
+    root_text: String,
+    tools_text: String,
+    confirm_clear: bool,
+    confirm_clean: bool,
+    closing: bool,
+    capture_frame: usize,
+    launch_settings_open: bool,
+    launch_draft: apps::LaunchSettings,
+    launch_arguments: String,
+    confirm_uninstall: bool,
+    delete_profile: bool,
+    confirm_install: Option<String>,
+    release_checks: BTreeMap<String, (String, ReleaseCheck)>,
+    check_receiver: std::sync::mpsc::Receiver<CheckMessage>,
+    check_sender: std::sync::mpsc::Sender<CheckMessage>,
+    checking_apps: std::collections::BTreeSet<String>,
+    check_generation: u64,
+    apps_startup_pending: bool,
+    manager_receiver:
+        Option<std::sync::mpsc::Receiver<Result<Option<self_update::Available>, String>>>,
+    manager_available: Option<self_update::Available>,
+    manager_message: String,
+    manager_startup_pending: bool,
+    manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, (bool, String)>>>,
+    confirm_self_update: bool,
+    restore_app: Option<String>,
+    restore_backups: Vec<backups::Backup>,
+    restore_selected: Option<usize>,
+    confirm_restore: bool,
+    backup_delete_mode: bool,
+    backup_delete_selected: std::collections::BTreeSet<usize>,
+    display_config: Option<model::Config>,
+    config_receiver: Option<std::sync::mpsc::Receiver<Result<Snapshot, String>>>,
+    display_backups: BTreeMap<String, Vec<backups::Backup>>,
+    display_sources: BTreeMap<String, model::Source>,
+    display_builds: BTreeMap<String, (PathBuf, Option<model::BuildInfo>)>,
+    display_launch: BTreeMap<String, apps::LaunchSettings>,
+    config_refresh_at: std::time::Instant,
+    operation_was_busy: bool,
+    alternates: Vec<model::Installed>,
+    release_plan: Option<updates::ReleasePlan>,
+    plan_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, (bool, String)>>>,
+}
+
+/// Prefers the system UI font, which also covers arrows the bundled font lacks,
+/// and registers a heavier face for headings.
+fn fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    let mut add = |name: &str, path: &str, index: u32, family: egui::FontFamily| -> bool {
+        let Ok(bytes) = std::fs::read(path) else {
+            return false;
+        };
+        let mut data = egui::FontData::from_owned(bytes);
+        data.index = index;
+        fonts
+            .font_data
+            .insert(name.into(), std::sync::Arc::new(data));
+        fonts
+            .families
+            .entry(family)
+            .or_default()
+            .insert(0, name.into());
+        true
+    };
+    let bold = egui::FontFamily::Name("bold".into());
+    let system = if cfg!(target_os = "windows") {
+        add(
+            "Segoe UI",
+            "C:/Windows/Fonts/segoeui.ttf",
+            0,
+            egui::FontFamily::Proportional,
+        );
+        add(
+            "Segoe UI Semibold",
+            "C:/Windows/Fonts/seguisb.ttf",
+            0,
+            bold.clone(),
+        );
+        true
+    } else if cfg!(target_os = "macos") {
+        add(
+            "Helvetica Neue Medium",
+            "/System/Library/Fonts/HelveticaNeue.ttc",
+            10,
+            bold.clone(),
+        );
+        add(
+            "System Font",
+            "/System/Library/Fonts/SFNS.ttf",
+            0,
+            egui::FontFamily::Proportional,
+        )
+    } else {
+        false
+    };
+    theme::set_system_font(system);
+    let proportional = fonts.families[&egui::FontFamily::Proportional].clone();
+    let heading = fonts.families.entry(bold).or_default();
+    for name in proportional {
+        if !heading.contains(&name) {
+            heading.push(name);
+        }
+    }
+    ctx.set_fonts(fonts);
+}
+
+impl App {
+    pub fn new(
+        cc: &eframe::CreationContext<'_>,
+        paths: Paths,
+        home: PathBuf,
+        builder: bool,
+    ) -> Result<Self> {
+        theme::apply(&cc.egui_ctx);
+        fonts(&cc.egui_ctx);
+        let preferences = paths.preferences()?;
+        let build_preferences = paths.builder_preferences()?;
+        let args: Vec<_> = std::env::args().collect();
+        let app = args
+            .windows(2)
+            .find(|a| a[0] == "--app")
+            .map(|a| a[1].clone())
+            .unwrap_or_else(|| "filmcraft".into());
+        model::valid_app(&app)?;
+        let job = Job::new(
+            paths.at(if builder {
+                format!("logs/{app}.log")
+            } else {
+                "logs/updates.log".into()
+            }),
+            &build_preferences,
+        );
+        job.history(&job.log_path);
+        if builder {
+            job.state.lock().unwrap().output = builder::history(&paths, &app)
+        }
+        if std::env::args().any(|a| a == "--preview-progress") {
+            let mut state = job.state.lock().unwrap();
+            state.busy = true;
+            state.stage = "Working".into();
+        }
+        let build_job = Job::new(paths.at(format!("logs/{app}.log")), &build_preferences);
+        let auto = scheduler::enabled(false);
+        let auto_source = scheduler::enabled(true);
+        let manager_startup_pending = !builder && preferences.check_manager_on_startup;
+        let apps_startup_pending = !builder && preferences.check_installed_apps_on_startup;
+        let (check_sender, check_receiver) = std::sync::mpsc::channel();
+        let preview_backups = std::env::args().any(|a| a == "--preview-backups");
+        let restore_backups = if preview_backups {
+            backups::list(&paths, &app)?
+        } else {
+            Vec::new()
+        };
+        let restore_app = preview_backups.then(|| app.clone());
+        let icons = APPS
+            .into_iter()
+            .map(|name| -> Result<_> {
+                let image = image::load_from_memory(app_icon(name))?.into_rgba8();
+                let size = [image.width() as usize, image.height() as usize];
+                let pixels = egui::ColorImage::from_rgba_unmultiplied(size, image.as_raw());
+                Ok((
+                    name.to_owned(),
+                    cc.egui_ctx
+                        .load_texture(name, pixels, egui::TextureOptions::LINEAR),
+                ))
+            })
+            .collect::<Result<_>>()?;
+        Ok(Self {
+            icons,
+            root_text: paths.root.display().to_string(),
+            tools_text: paths.tools.display().to_string(),
+            paths,
+            home,
+            builder,
+            build_app: app.clone(),
+            app,
+            latest: true,
+            job,
+            job_target: None,
+            failure_dismissed: false,
+            build_job,
+            page: if std::env::args().any(|a| a == "--preview-details") {
+                Page::App
+            } else {
+                Page::Overview
+            },
+            search: String::new(),
+            settings: std::env::args().any(|a| a == "--preview-settings" || a == "--preview-apps"),
+            settings_jump: None,
+            selection: std::env::args().any(|a| a == "--preview-apps"),
+            source_selection: false,
+            selection_draft: preferences.selected_apps.clone(),
+            settings_draft: preferences.clone(),
+            build_draft: build_preferences.clone(),
+            preferences,
+            build_preferences,
+            auto,
+            auto_source,
+            error: self_update::startup_message(),
+            selection_notice: None,
+            confirm_clear: false,
+            confirm_clean: false,
+            closing: false,
+            capture_frame: 0,
+            launch_settings_open: false,
+            launch_draft: Default::default(),
+            launch_arguments: String::new(),
+            confirm_uninstall: false,
+            delete_profile: false,
+            confirm_install: None,
+            release_checks: Default::default(),
+            check_receiver,
+            check_sender,
+            checking_apps: Default::default(),
+            check_generation: 0,
+            apps_startup_pending,
+            manager_receiver: None,
+            manager_available: None,
+            manager_message: String::new(),
+            manager_startup_pending,
+            manager_plan: None,
+            confirm_self_update: false,
+            restore_app,
+            restore_backups,
+            restore_selected: None,
+            confirm_restore: false,
+            backup_delete_mode: false,
+            backup_delete_selected: Default::default(),
+            display_config: None,
+            config_receiver: None,
+            display_backups: Default::default(),
+            display_sources: Default::default(),
+            display_builds: Default::default(),
+            display_launch: Default::default(),
+            config_refresh_at: std::time::Instant::now(),
+            operation_was_busy: false,
+            alternates: Vec::new(),
+            release_plan: None,
+            plan_receiver: None,
+        })
+    }
+    fn result(&mut self, result: Result<()>) {
+        if let Err(e) = result {
+            self.error = Some(format!("{e:#}"));
+        }
+    }
+    fn check_manager(&mut self, ctx: &egui::Context) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.manager_receiver = Some(rx);
+        self.manager_available = None;
+        self.manager_message = "Checking for manager updates…".into();
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            let result = self_update::check(&paths).map_err(|e| format!("{e:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+    }
+    fn check_selected_app(&mut self, ctx: &egui::Context, installed_version: String) {
+        self.check_apps(ctx, vec![(self.app.clone(), installed_version)]);
+    }
+    fn check_apps(&mut self, ctx: &egui::Context, apps: Vec<(String, String)>) {
+        let apps: Vec<_> = apps
+            .into_iter()
+            .filter(|(app, _)| self.checking_apps.insert(app.clone()))
+            .collect();
+        for (app, _) in &apps {
+            self.release_checks.remove(app);
+        }
+        let tx = self.check_sender.clone();
+        let generation = self.check_generation;
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            for (app, installed_version) in apps {
+                let started = std::time::Instant::now();
+                let result = updates::check_app(&paths, &app).map_err(|e| format!("{e:#}"));
+                // Keep fast cached checks visible long enough to acknowledge the click.
+                std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
+                if tx
+                    .send((generation, app, installed_version, result))
+                    .is_err()
+                {
+                    break;
+                }
+                ctx.request_repaint();
+            }
+        });
+    }
+    fn release_pending(&self) -> bool {
+        self.plan_receiver.is_some() || self.release_plan.is_some()
+    }
+    fn start(&mut self, action: &str) {
+        // Starting a job replaces self.job, which would orphan a running one.
+        if self.release_pending() || self.job.state.lock().unwrap().busy {
+            return;
+        }
+        if action == "releases" && self.preferences.selected_apps.is_empty() {
+            self.selection_notice = Some("No apps are chosen for Update all. Choose apps in Settings › Updates, then try again.".into());
+            return;
+        }
+        if action == "sources" && self.preferences.selected_sources.is_empty() {
+            self.selection_notice = Some("No sources are chosen for Update all sources. Choose sources in Settings › Updates, then try again.".into());
+            return;
+        }
+        self.failure_dismissed = false;
+        if action == "releases" {
+            let paths = self.paths.clone();
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.plan_receiver = Some(rx);
+            self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+            self.job_target = None;
+            self.job.spawn(move |job| {
+                let result = updates::plan_releases(&paths, &job);
+                let _ = tx.send(result_for_display(&result));
+                result.map(|_| ())
+            });
+            return;
+        }
+        let paths = self.paths.clone();
+        let app = self.app.clone();
+        let latest = self.latest;
+        let delete_profile = self.delete_profile;
+        let action = action.to_string();
+        let log = if self.builder {
+            format!("logs/{app}.log")
+        } else {
+            "logs/updates.log".into()
+        };
+        let previous = self.job.state.lock().unwrap().output.clone();
+        self.job = Job::new(paths.at(log), &self.build_preferences);
+        self.job.history(&self.job.log_path);
+        self.job.state.lock().unwrap().output = previous;
+        self.job_target = matches!(
+            action.as_str(),
+            "install-app" | "uninstall-app" | "source-app"
+        )
+        .then(|| (app.clone(), action.clone()));
+        self.operation_was_busy = true;
+        self.job.spawn(move |job| match action.as_str() {
+            "releases" => updates::releases(&paths, &job, false),
+            "install-app" => updates::install_app(&paths, &app, &job),
+            "uninstall-app" => apps::uninstall_with_profile(&paths, &app, delete_profile),
+            "sources" => updates::sources(&paths, &paths.preferences()?.selected_sources, &job),
+            "source-app" => updates::sources(&paths, &[app], &job),
+            "build" => builder::build(&paths, &app, latest, &job),
+            "setup" => tools::setup(&paths, &app, &job),
+            "clear" => backups::clear(&paths),
+            "clear-app" => backups::clear_app(&paths, &app),
+            "clean" => builder::clean(&paths),
+            _ => unreachable!(),
+        });
+    }
+    /// Builds or sets up tools for the selected app, beside any release job.
+    fn start_build(&mut self, action: &str) {
+        if self.build_job.state.lock().unwrap().busy {
+            return;
+        }
+        let paths = self.paths.clone();
+        let app = self.app.clone();
+        let latest = self.latest;
+        let action = action.to_string();
+        self.build_job = Job::new(paths.at(format!("logs/{app}.log")), &self.build_preferences);
+        self.build_job.history(&self.build_job.log_path);
+        self.build_job.state.lock().unwrap().output = builder::history(&paths, &app);
+        self.build_app = app.clone();
+        self.operation_was_busy = true;
+        self.build_job.spawn(move |job| match action.as_str() {
+            "build" => builder::build(&paths, &app, latest, &job),
+            "setup" => tools::setup(&paths, &app, &job),
+            _ => unreachable!(),
+        });
+    }
+    fn open_settings(&mut self) {
+        if self.release_pending() || self.job.state.lock().unwrap().busy {
+            return;
+        }
+        self.settings_draft = self.preferences.clone();
+        self.build_draft = self.build_preferences.clone();
+        self.root_text = self.paths.root.display().to_string();
+        self.tools_text = self.paths.tools.display().to_string();
+        self.settings = true;
+    }
+    fn open_builder(&mut self) {
+        let result = (|| -> Result<()> {
+            Command::new(platform::relaunch_executable()?)
+                .arg("--builder")
+                .arg("--app")
+                .arg(&self.app)
+                .arg("--root")
+                .arg(&self.paths.root)
+                .arg("--tools")
+                .arg(&self.paths.tools)
+                .spawn()?;
+            Ok(())
+        })();
+        self.result(result)
+    }
+    fn select(&mut self, app: &str) {
+        if self.app != app {
+            self.launch_settings_open = false;
+            self.confirm_uninstall = false;
+        }
+        self.app = app.into();
+        self.page = Page::App;
+    }
+    fn status(&self, app: &str) -> AppStatus {
+        let config = self.display_config.as_ref();
+        let installed = config
+            .and_then(|c| c.apps.iter().find(|a| a.name == app))
+            .filter(|a| !a.version.is_empty() && !a.path.is_empty())
+            .cloned();
+        // Only a copy in the active release format can be updated in place.
+        let matching_format = installed.as_ref().is_some_and(|i| {
+            (i.install_kind == "installer") == (self.preferences.release_format == "installer")
+        });
+        let check = installed.as_ref().and_then(|installed| {
+            self.release_checks
+                .get(app)
+                .filter(|(version, _)| *version == installed.version)
+                .map(|(_, result)| result.clone())
+        });
+        AppStatus {
+            update: check
+                .as_ref()
+                .and_then(|c| c.clone().ok().flatten())
+                .filter(|_| matching_format),
+            check,
+            alternate: self.alternates.iter().find(|a| a.name == app).cloned(),
+            installed,
+            checking: self.checking_apps.contains(app),
+            loaded: config.is_some(),
+        }
+    }
+    /// Polls background work and keeps the snapshot of disk state fresh.
+    fn poll(&mut self, ctx: &egui::Context) {
+        if let Some(receiver) = &self.plan_receiver {
+            match receiver.try_recv() {
+                Ok(result) => {
+                    self.plan_receiver = None;
+                    match result {
+                        Ok(plan) => {
+                            if !self.closing {
+                                self.release_plan = Some(plan);
+                            }
+                        }
+                        Err((cancelled, error)) => {
+                            if !cancelled {
+                                self.error = Some(error);
+                            }
+                        }
+                    }
+                }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.plan_receiver = None;
+                    self.error =
+                        Some("Release planner stopped unexpectedly. See the activity log.".into());
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            }
+        }
+        let busy = self.job.state.lock().unwrap().busy || self.build_job.state.lock().unwrap().busy;
+        if self.operation_was_busy && !busy {
+            self.config_refresh_at = std::time::Instant::now();
+        }
+        self.operation_was_busy = busy;
+        if let Some(receiver) = &self.config_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                match result {
+                    Ok(snapshot) => {
+                        if self.display_config.is_none() {
+                            for app in &snapshot.config.apps {
+                                if let Some(check) = snapshot.checks.get(
+                                    &craft_apps_manager::hourly::key(&self.preferences, &app.name),
+                                ) {
+                                    if check.installed == app.version && !app.path.is_empty() {
+                                        self.release_checks.entry(app.name.clone()).or_insert((
+                                            check.installed.clone(),
+                                            Ok(check.latest.clone()),
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        self.alternates = snapshot.alternates;
+                        self.display_config = Some(snapshot.config);
+                        self.display_backups = snapshot.backups;
+                        self.display_sources = snapshot.sources;
+                        self.display_builds = snapshot.builds;
+                        self.display_launch = snapshot.launch;
+                    }
+                    Err(error) => self.error = Some(error),
+                }
+                self.config_receiver = None;
+            }
+        }
+        if !self.builder
+            && !busy
+            && self.config_receiver.is_none()
+            && std::time::Instant::now() >= self.config_refresh_at
+        {
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.config_receiver = Some(rx);
+            self.config_refresh_at = std::time::Instant::now() + Duration::from_secs(10);
+            let paths = self.paths.clone();
+            let ctx = ctx.clone();
+            std::thread::spawn(move || {
+                let result = (|| -> Result<Snapshot> {
+                    let config = paths.config()?;
+                    let alternates = paths.alternate_installations(&config)?;
+                    let backups = APPS
+                        .into_iter()
+                        .map(|name| {
+                            backups::list(&paths, name).map(|items| (name.to_owned(), items))
+                        })
+                        .collect::<Result<_>>()?;
+                    let checks = craft_apps_manager::hourly::read(&paths)?;
+                    // Display-only extras: an unreadable file just leaves its row empty.
+                    let sources = craft_apps_manager::files::read_or_default(
+                        &paths.at("sources/source-index.json"),
+                    )
+                    .unwrap_or_default();
+                    let builds = APPS
+                        .into_iter()
+                        .filter_map(|name| {
+                            let folder = builder::history(&paths, name)?;
+                            let info = craft_apps_manager::files::read_json(
+                                &folder.join("build-info.json"),
+                            )
+                            .ok();
+                            Some((name.to_owned(), (folder, info)))
+                        })
+                        .collect();
+                    let launch = APPS
+                        .into_iter()
+                        .filter_map(|name| {
+                            apps::settings(&paths, name)
+                                .ok()
+                                .map(|settings| (name.to_owned(), settings))
+                        })
+                        .collect();
+                    Ok(Snapshot {
+                        config,
+                        alternates,
+                        backups,
+                        checks,
+                        sources,
+                        builds,
+                        launch,
+                    })
+                })();
+                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
+                ctx.request_repaint();
+            });
+        }
+        if self.apps_startup_pending && !self.job.state.lock().unwrap().busy {
+            if let Some(config) = &self.display_config {
+                let apps = updates::installed_check_targets(config)
+                    .into_iter()
+                    .map(|app| (app.name, app.version))
+                    .collect();
+                self.apps_startup_pending = false;
+                self.check_apps(ctx, apps);
+            }
+        }
+        if self.manager_startup_pending {
+            self.manager_startup_pending = false;
+            self.check_manager(ctx);
+        }
+        if let Some(receiver) = &self.manager_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                match result {
+                    Ok(Some(available)) => {
+                        self.manager_message =
+                            format!("Version {} is available.", available.version);
+                        self.manager_available = Some(available);
+                    }
+                    Ok(None) => {
+                        self.manager_message = "You’re running the latest manager version.".into()
+                    }
+                    Err(error) => {
+                        self.manager_message = format!("Could not check for updates: {error}")
+                    }
+                }
+                self.manager_receiver = None;
+            }
+        }
+        if let Some(receiver) = &self.manager_plan {
+            if let Ok(result) = receiver.try_recv() {
+                self.manager_plan = None;
+                match result {
+                    Ok(plan) => match self_update::launch(&plan) {
+                        Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+                        Err(error) => self.result(Err(error)),
+                    },
+                    Err((cancelled, error)) => {
+                        if cancelled {
+                            self.manager_message = "Manager download cancelled.".into();
+                        } else {
+                            self.manager_message = "Manager download failed.".into();
+                            self.error = Some(error);
+                        }
+                    }
+                }
+            }
+        }
+        while let Ok((generation, app, version, result)) = self.check_receiver.try_recv() {
+            if generation == self.check_generation {
+                self.checking_apps.remove(&app);
+                self.release_checks.insert(app, (version, result));
+            }
+        }
+    }
+    fn screenshot(&mut self, ctx: &egui::Context) {
+        let Ok(path) = std::env::var("CRAFT_SCREENSHOT_TO") else {
+            return;
+        };
+        self.capture_frame += 1;
+        if self.capture_frame == 10 {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::UserData::default()));
+        }
+        ctx.input(|i| {
+            for event in &i.events {
+                if let egui::Event::Screenshot { image, .. } = event {
+                    let rgba: Vec<u8> = image.pixels.iter().flat_map(|p| p.to_array()).collect();
+                    if let Err(e) = image::save_buffer(
+                        &path,
+                        &rgba,
+                        image.size[0] as u32,
+                        image.size[1] as u32,
+                        image::ColorType::Rgba8,
+                    ) {
+                        self.error = Some(e.to_string());
+                    } else {
+                        // This mode is only for unattended visual verification.
+                        std::process::exit(0);
+                    }
+                }
+            }
+        });
+        ctx.request_repaint_after(Duration::from_millis(50));
+    }
+    /// Cancel button rules shared by every place that can stop the release job.
+    fn cancel_button(&mut self, ui: &mut egui::Ui, stage: &str) {
+        let requested = self.job.cancel.load(Ordering::Relaxed);
+        if theme::btn(if requested {
+            "Cancel requested…"
+        } else {
+            "Cancel"
+        })
+        .enabled(!requested && !authorizing_package(stage))
+        .show(ui)
+        .on_hover_text("Downloads can be cancelled. An authorized Linux package transaction must finish to keep the package database consistent.")
+        .clicked()
+        {
+            self.job.cancel.store(true, Ordering::Relaxed);
+        }
+    }
+}
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        ctx.data_mut(|data| {
+            data.insert_temp(egui::Id::new("active-dialogs"), Vec::<egui::Id>::new())
+        });
+        self.poll(ctx);
+        self.screenshot(ctx);
+        let mut state = self.job.state.lock().unwrap().clone();
+        state.busy |= self.release_pending();
+        let building = self.build_job.state.lock().unwrap().busy;
+        if ctx.input(|i| i.viewport().close_requested()) && (state.busy || building) {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            self.closing = true;
+            self.release_plan = None;
+            self.job.cancel.store(true, Ordering::Relaxed);
+            self.build_job.cancel.store(true, Ordering::Relaxed);
+        }
+        if self.closing && !state.busy && !building {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+        if self.builder {
+            self.builder_view(ctx, &state);
+        } else {
+            self.top_bar(ctx, &state);
+            self.status_bar(ctx, &state);
+            self.sidebar(ctx, &state);
+            match self.page {
+                Page::Overview => self.overview(ctx, &state),
+                Page::App => self.app_page(ctx, &state),
+            }
+        }
+        self.settings_ui(ctx);
+        self.dialogs(ctx);
+        restore_dialog_focus(ctx);
+        if state.busy || building {
+            ctx.request_repaint_after(Duration::from_millis(100));
+        } else {
+            ctx.request_repaint_after(Duration::from_secs(1));
+        }
+    }
+}
+/// Linux package installs wait on a PolicyKit prompt and cannot be cancelled.
+fn authorizing_package(stage: &str) -> bool {
+    cfg!(target_os = "linux") && stage == "Installing package"
+}
+
+#[derive(Clone, Default)]
+struct DialogFocus(Vec<(egui::Id, Option<egui::Id>)>);
+fn modal(
+    ctx: &egui::Context,
+    title: impl Into<String>,
+    width: f32,
+    content: impl FnOnce(&mut egui::Ui),
+) -> egui::ModalResponse<()> {
+    let title = title.into();
+    let id = egui::Id::new(&title);
+    let focused = ctx.memory(|memory| memory.focused());
+    ctx.data_mut(|data| {
+        let stack = data.get_temp_mut_or_default::<DialogFocus>(egui::Id::new("dialog-focus"));
+        if !stack.0.iter().any(|(open, _)| *open == id) {
+            stack.0.push((id, focused));
+        }
+        data.get_temp_mut_or_default::<Vec<egui::Id>>(egui::Id::new("active-dialogs"))
+            .push(id);
+    });
+    let width = width.min(ctx.screen_rect().width() - 48.0);
+    egui::Modal::new(id)
+        .backdrop_color(egui::Color32::from_black_alpha(150))
+        .frame(
+            egui::Frame::new()
+                .fill(theme::PANEL)
+                .stroke(egui::Stroke::new(1.0, theme::BORDER_STRONG))
+                .corner_radius(egui::CornerRadius::same(12))
+                .inner_margin(egui::Margin::same(24))
+                .shadow(egui::Shadow {
+                    offset: [0, 12],
+                    blur: 32,
+                    spread: 0,
+                    color: egui::Color32::from_black_alpha(110),
+                }),
+        )
+        .show(ctx, |ui| {
+            ui.set_width(width - 48.0);
+            content(ui);
+        })
+}
+fn restore_dialog_focus(ctx: &egui::Context) {
+    let focus = ctx.data_mut(|data| {
+        let active = data
+            .get_temp::<Vec<egui::Id>>(egui::Id::new("active-dialogs"))
+            .unwrap_or_default();
+        let stack = data.get_temp_mut_or_default::<DialogFocus>(egui::Id::new("dialog-focus"));
+        let mut focus = None;
+        // When several nested dialogs close together, restore the outer opener.
+        for (id, opener) in stack.0.iter().rev() {
+            if !active.contains(id) {
+                focus = *opener;
+            }
+        }
+        stack.0.retain(|(id, _)| active.contains(id));
+        focus
+    });
+    if let Some(id) = focus {
+        ctx.memory_mut(|memory| memory.request_focus(id));
+    }
+}
+
+fn result_for_display<T: Clone>(result: &Result<T>) -> Result<T, (bool, String)> {
+    match result {
+        Ok(value) => Ok(value.clone()),
+        Err(error) => Err((
+            craft_apps_manager::jobs::is_cancelled(error),
+            format!("{error:#}"),
+        )),
+    }
+}
+#[cfg(test)]
+mod outcome_tests {
+    use super::*;
+    #[test]
+    fn display_copy_retains_cancellation_and_real_failure_distinction() {
+        let cancelled: Result<PathBuf> =
+            Err(anyhow::Error::new(craft_apps_manager::jobs::Cancelled)
+                .context("Manager download interrupted"));
+        let copy = result_for_display(&cancelled).unwrap_err();
+        assert!(copy.0);
+        assert!(copy.1.contains("Manager download interrupted"));
+        if let Err(error) = &cancelled {
+            assert!(craft_apps_manager::jobs::is_cancelled(error));
+        }
+        let failure: Result<PathBuf> = Err(anyhow::anyhow!("Digest mismatch"));
+        assert!(!result_for_display(&failure).unwrap_err().0);
+        let success = Ok(PathBuf::from("prepared-update"));
+        assert_eq!(
+            result_for_display(&success).unwrap(),
+            PathBuf::from("prepared-update")
+        );
+    }
+}

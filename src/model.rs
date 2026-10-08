@@ -63,6 +63,42 @@ pub fn repository(name: &str) -> &str {
         name
     }
 }
+/// Short category shown under each app, taken from the upstream repository description.
+pub fn category(name: &str) -> &'static str {
+    match name {
+        "designcraft" => "Page layout",
+        "effectcraft" => "Motion graphics",
+        "filmcraft" => "Video editing",
+        "lightcraft" => "Photo workflow",
+        "photocraft" => "Image editing",
+        "printcraft" => "PDF documents",
+        "vectorcraft" => "Vector graphics",
+        "wordcraft" => "Word processing",
+        "gridcraft" => "Spreadsheets",
+        "deckcraft" => "Presentations",
+        "cadcraft" => "CAD and drafting",
+        "soundcraft" => "Audio production",
+        _ => "",
+    }
+}
+/// The upstream repository description, shown on each app page.
+pub fn description(name: &str) -> &'static str {
+    match name {
+        "designcraft" => "Page layout and publishing; an open-source, clean-room reimplementation of Adobe InDesign, rebuilt in pure Rust.",
+        "effectcraft" => "Motion graphics and visual effects; an open-source, clean-room reimplementation of Adobe After Effects, rebuilt in pure Rust.",
+        "filmcraft" => "An open-source, clean-room reimplementation of Adobe Premiere Pro built in pure Rust.",
+        "lightcraft" => "An open-source, clean-room reimplementation of Adobe Lightroom in pure Rust.",
+        "photocraft" => "An open-source, clean-room reimplementation of Adobe Photoshop in pure Rust.",
+        "printcraft" => "An open-source, clean-room reimplementation of Adobe Acrobat built in pure Rust.",
+        "vectorcraft" => "An open-source, clean-room reimplementation of Adobe Illustrator, built in pure Rust.",
+        "wordcraft" => "An open-source, clean-room reimplementation of Microsoft Word in pure Rust.",
+        "gridcraft" => "An open-source, clean-room spreadsheet (Microsoft Excel-style) in pure Rust.",
+        "deckcraft" => "Presentations and slide shows: an open-source, clean-room reimplementation of Microsoft PowerPoint in pure Rust.",
+        "cadcraft" => "Computer-aided design and drafting: an open-source, clean-room AutoCAD-style app in pure Rust.",
+        "soundcraft" => "An open-source, clean-room reimplementation of Avid Pro Tools in pure Rust.",
+        _ => "",
+    }
+}
 pub fn valid_app(name: &str) -> Result<()> {
     if !SOURCES.contains(&name) {
         bail!("Unknown app: {name}");
