@@ -32,6 +32,45 @@ pub fn installed_with_msi() -> bool {
     #[cfg(not(target_os = "windows"))]
     false
 }
+/// Package ownership is checked once: never run package queries during painting.
+pub fn installed_with_linux_package() -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        static INSTALLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *INSTALLED.get_or_init(|| {
+            let Ok(executable) = std::env::current_exe().and_then(|p| p.canonicalize()) else {
+                return false;
+            };
+            for (command, args) in [
+                ("dpkg-query", vec!["-S"]),
+                ("rpm", vec!["-qf", "--queryformat", "%{NAME}"]),
+            ] {
+                if let Ok(output) = Command::new(command).args(args).arg(&executable).output() {
+                    if output.status.success()
+                        && linux_package_owner(command, &String::from_utf8_lossy(&output.stdout))
+                    {
+                        return true;
+                    }
+                }
+            }
+            false
+        })
+    }
+    #[cfg(not(target_os = "linux"))]
+    false
+}
+
+#[cfg(any(target_os = "linux", test))]
+fn linux_package_owner(command: &str, output: &str) -> bool {
+    if command == "rpm" {
+        output.trim() == "craft-apps-manager"
+    } else {
+        output.lines().any(|line| {
+            line.split_once(": ")
+                .is_some_and(|(owner, _)| owner.split(':').next() == Some("craft-apps-manager"))
+        })
+    }
+}
 #[derive(Clone)]
 pub struct Available {
     pub version: String,
@@ -101,6 +140,9 @@ pub struct Plan {
     pub tools: PathBuf,
 }
 pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
+    if installed_with_linux_package() {
+        bail!("Update this installation with the DEB or RPM package from the release page. The package manager will preserve your settings and library");
+    }
     let executable = std::env::current_exe()?.canonicalize()?;
     let target = executable.clone();
     // On macOS the whole app bundle is replaced, not just the executable.
@@ -206,7 +248,7 @@ fn check_update_directory(home: &Path) -> Result<()> {
         .context(if cfg!(target_os = "macos") {
             "Craft Apps Manager.app is in a folder you cannot write to. Move it to Applications or download the new version manually"
         } else {
-            "This installation is managed by the system package manager. Install a newer DEB or RPM package to update Craft Apps Manager"
+            "The manager folder is not writable. Move the portable manager to a writable folder or download the new version manually"
         })?;
     drop(file);
     fs::remove_file(probe)?;
@@ -1533,5 +1575,31 @@ mod macos_tests {
         .unwrap_err();
         assert!(error.to_string().contains("checksum mismatch"));
         assert!(!fixture.stage.join("previous.app").exists());
+    }
+}
+
+#[cfg(test)]
+mod linux_package_tests {
+    use super::linux_package_owner;
+    #[test]
+    fn exact_package_ownership_is_required() {
+        assert!(linux_package_owner(
+            "dpkg-query",
+            "craft-apps-manager:amd64: /usr/bin/craft-apps-manager\n"
+        ));
+        assert!(linux_package_owner(
+            "dpkg-query",
+            "craft-apps-manager: /usr/bin/craft-apps-manager\n"
+        ));
+        assert!(linux_package_owner("rpm", "craft-apps-manager\n"));
+        assert!(!linux_package_owner("rpm", "other-craft-apps-manager"));
+        assert!(!linux_package_owner(
+            "dpkg-query",
+            "other: /home/user/craft-apps-manager\n"
+        ));
+        assert!(!linux_package_owner(
+            "dpkg-query",
+            "dpkg-query: no path found matching pattern"
+        ));
     }
 }
