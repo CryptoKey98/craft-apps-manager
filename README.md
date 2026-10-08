@@ -6,18 +6,18 @@ A Windows app for downloading, updating, and building the Craft apps from Storyt
 
 The interface is written in Rust and uses a compact dark theme. This is an independent project, not an official Storytold or Adobe app.
 
-## Video tour
-
-https://github.com/user-attachments/assets/9d39928a-3c10-43dd-a813-40183dcaeb27
-
-A short look at app controls, backups, settings, and the source builder.
-
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
-The video and screenshots use an example library. Music: Prelude in C major, BWV 846, by Bach, performed by Kimiko Ishizaka ([CC0 recording and credit](docs/media/music-credit.txt)).
+![Craft Apps Manager startup view](docs/images/main.png)
+
+Screenshots show version 0.3.3 with a fictional demo library. Paths and build history are examples.
 
 <details>
 <summary>More screenshots</summary>
+
+**App controls** — launch an app, check its release, or manage backups.
+
+![FilmCraft app controls](docs/images/app-controls.png)
 
 **Settings** — choose release formats, backup preferences, and manager checks.
 
@@ -30,6 +30,10 @@ The video and screenshots use an example library. Music: Prelude in C major, BWV
 **Backups** — browse previous versions and choose restore or delete mode.
 
 ![FilmCraft backup management](docs/images/backups.png)
+
+**Builder** — build upstream source and review the build log and output.
+
+![Craft Apps Builder](docs/images/builder.png)
 
 </details>
 
