@@ -188,7 +188,15 @@ mod tests {
         files::write_json(&paths.at("manager-settings.json"), &current).unwrap();
         let bytes = fs::read(paths.at("manager-settings.json")).unwrap();
         let lock = platform::Lock::take("Local\\CraftAppsManager").unwrap();
-        assert!(reorder(&paths, "photocraft", "designcraft", true).is_err());
+        // Hold ownership here while a separate worker attempts the save.
+        // A Windows mutex allows repeated acquisition by its owning thread.
+        let blocked = std::thread::scope(|scope| {
+            scope
+                .spawn(|| reorder(&paths, "photocraft", "designcraft", true))
+                .join()
+                .unwrap()
+        });
+        assert!(blocked.is_err());
         assert_eq!(fs::read(paths.at("manager-settings.json")).unwrap(), bytes);
         drop(lock);
         let saved = reorder(&paths, "photocraft", "designcraft", true).unwrap();

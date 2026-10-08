@@ -876,7 +876,7 @@ mod planning_tests {
         let name = format!(
             "{app}-{tag}-{}-{}{suffix}",
             crate::model::release_os(),
-            crate::model::release_arch("x64")
+            crate::model::release_arch(crate::model::MANAGER_ARCH)
         );
         Release {
             tag_name: tag.into(),
@@ -1009,9 +1009,17 @@ mod planning_tests {
         let (paths, job) = fixture();
         let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
         let lock = platform::Lock::take("Local\\CraftAppsManager").unwrap();
-        assert!(
-            execute_validated(&paths, &plan, |_| panic!("must not execute while locked")).is_err()
-        );
+        // Windows mutexes are recursive on their owning thread. A competing
+        // worker must acquire on another thread, as real GUI operations do.
+        let blocked = std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    execute_validated(&paths, &plan, |_| panic!("must not execute while locked"))
+                })
+                .join()
+                .unwrap()
+        });
+        assert!(blocked.is_err());
         drop(lock);
         fs::create_dir_all(paths.at("releases/photocraft")).unwrap();
         assert!(execute_validated(&paths, &plan, |_| panic!(
