@@ -357,7 +357,13 @@ impl<'a> Btn<'a> {
             Size::Pill => (24.0, 12.0, 10.0, 12, 12.0),
             Size::Chip => (24.0, 11.0, 10.0, 12, 11.0),
         };
-        let font = FontId::proportional(font);
+        // Weights follow the designs: filled actions and chips are semibold,
+        // soft (tinted) buttons medium, outlined buttons regular.
+        let font = match (self.kind, self.size) {
+            (Kind::Primary | Kind::Danger, _) | (_, Size::Chip) => bold(font),
+            (Kind::Soft, _) => medium(font),
+            _ => FontId::proportional(font),
+        };
         let text_color = match self.kind {
             Kind::Primary | Kind::Danger => Color32::WHITE,
             Kind::Soft => Color32::from_rgb(0xcf, 0xe0, 0xff),
@@ -604,7 +610,7 @@ pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
 pub fn badge(ui: &mut Ui, text: &str, fill: Color32, color: Color32) -> Response {
     let galley = ui
         .painter()
-        .layout_no_wrap(text.to_owned(), FontId::proportional(11.0), color);
+        .layout_no_wrap(text.to_owned(), bold(11.0), color);
     let size = egui::vec2((galley.size().x + 12.0).max(20.0), 20.0);
     let (rect, response) = ui.allocate_exact_size(size, Sense::hover());
     ui.painter().rect_filled(rect, CornerRadius::same(10), fill);
