@@ -453,18 +453,12 @@ impl App {
                 let built=env!("CRAFT_BUILD_TIMESTAMP").parse::<i64>().ok().and_then(|t|chrono::DateTime::from_timestamp(t,0)).map(|t|t.format("%Y-%m-%d %H:%M UTC").to_string()).unwrap_or_default();ui.small(format!("Version {} · Build {} · {} · {} {}",env!("CARGO_PKG_VERSION"),built,env!("CRAFT_BUILD_PROFILE"),model::release_os(),model::MANAGER_ARCH));
                 if self.manager_receiver.is_some() || self.manager_plan.is_some() {ui.spinner();ctx.request_repaint_after(Duration::from_millis(100));}
                 if !self.manager_message.is_empty(){ui.small(&self.manager_message);}
-                if let Some(available) = &self.manager_available {
+                if self.manager_available.is_some() {
                     let packaged = self_update::installed_with_linux_package();
-                    if packaged {
-                        ui.small("Installed through the system package manager. Download and install the newer DEB or RPM; your settings and library are kept.");
-                    }
-                    let label = if packaged { "Open release download…" } else if self_update::installed_with_msi() { "Download and install…" } else { "Download and restart…" };
+                    if packaged { ui.small("The system package manager will install this update after administrator approval. Your settings and library will be kept."); }
+                    let label = if packaged || self_update::installed_with_msi() { "Download and install…" } else { "Download and restart…" };
                     if ui.add_enabled(!self.job.state.lock().unwrap().busy && self.manager_plan.is_none(), egui::Button::new(label)).clicked() {
-                        if packaged {
-                            ctx.open_url(egui::OpenUrl::new_tab(format!("{}/releases/tag/v{}", self_update::REPOSITORY, available.version)));
-                        } else {
-                            self.confirm_self_update = true;
-                        }
+                        self.confirm_self_update = true;
                     }
                 }
             }
@@ -996,11 +990,15 @@ impl App {
         }
         if self.confirm_self_update {
             let modal = modal(ctx, "Update Craft Apps Manager", |ui| {
-                ui.label(if self_update::installed_with_msi() {
-                    "Download and install the new manager version?"
-                } else {
-                    "Download the new manager and restart this window?"
-                });
+                ui.label(
+                    if self_update::installed_with_msi()
+                        || self_update::installed_with_linux_package()
+                    {
+                        "Download and install the new manager version?"
+                    } else {
+                        "Download the new manager and restart this window?"
+                    },
+                );
                 ui.small("Close other manager and builder windows first. Your library and settings will be kept.");
                 ui.hyperlink_to(
                     format!("Release source: {}", self_update::REPOSITORY_NAME),
@@ -1008,11 +1006,15 @@ impl App {
                 );
                 ui.horizontal(|ui| {
                     if ui
-                        .button(if self_update::installed_with_msi() {
-                            "Download and install"
-                        } else {
-                            "Download and restart"
-                        })
+                        .button(
+                            if self_update::installed_with_msi()
+                                || self_update::installed_with_linux_package()
+                            {
+                                "Download and install"
+                            } else {
+                                "Download and restart"
+                            },
+                        )
                         .clicked()
                     {
                         if let Some(available) = self.manager_available.clone() {

@@ -14,6 +14,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(target_os = "linux")]
+#[path = "self_update_linux.rs"]
+mod linux;
+
 /// The GitHub repository (owner/name) manager updates come from; set at build time.
 pub const REPOSITORY_NAME: &str = env!("CRAFT_MANAGER_REPOSITORY");
 pub const REPOSITORY: &str = concat!("https://github.com/", env!("CRAFT_MANAGER_REPOSITORY"));
@@ -41,22 +45,27 @@ pub fn installed_with_linux_package() -> bool {
             let Ok(executable) = std::env::current_exe().and_then(|p| p.canonicalize()) else {
                 return false;
             };
-            for (command, args) in [
-                ("dpkg-query", vec!["-S"]),
-                ("rpm", vec!["-qf", "--queryformat", "%{NAME}"]),
-            ] {
-                if let Ok(output) = Command::new(command).args(args).arg(&executable).output() {
-                    if output.status.success()
-                        && linux_package_owner(command, &String::from_utf8_lossy(&output.stdout))
-                    {
-                        return true;
-                    }
-                }
-            }
-            false
+            installed_with_linux_package_at(&executable)
         })
     }
     #[cfg(not(target_os = "linux"))]
+    false
+}
+
+#[cfg(target_os = "linux")]
+fn installed_with_linux_package_at(executable: &Path) -> bool {
+    for (command, args) in [
+        ("dpkg-query", vec!["-S"]),
+        ("rpm", vec!["-qf", "--queryformat", "%{NAME}"]),
+    ] {
+        if let Ok(output) = Command::new(command).args(args).arg(executable).output() {
+            if output.status.success()
+                && linux_package_owner(command, &String::from_utf8_lossy(&output.stdout))
+            {
+                return true;
+            }
+        }
+    }
     false
 }
 
@@ -91,7 +100,22 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     let names = if cfg!(target_os = "macos") {
         vec![format!("Craft-Apps-Manager-{version}-macos-universal.zip")]
     } else if cfg!(target_os = "linux") {
-        vec![format!("Craft-Apps-Manager-{version}-linux-{arch}.zip")]
+        #[cfg(target_os = "linux")]
+        {
+            if installed_with_linux_package() {
+                vec![linux::asset_name(
+                    &version,
+                    arch,
+                    crate::installers::package_kind()?,
+                )?]
+            } else {
+                vec![format!("Craft-Apps-Manager-{version}-linux-{arch}.zip")]
+            }
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            unreachable!()
+        }
     } else if msi {
         vec![format!("Craft-Apps-Manager-{version}-windows-{arch}.msi")]
     } else {
@@ -132,6 +156,8 @@ pub struct Plan {
     pub layout: u32,
     #[serde(default)]
     pub msi: bool,
+    #[serde(default)]
+    pub linux_package: bool,
     pub parent_pid: u32,
     pub target: PathBuf,
     pub staged: PathBuf,
@@ -140,8 +166,9 @@ pub struct Plan {
     pub tools: PathBuf,
 }
 pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
+    #[cfg(target_os = "linux")]
     if installed_with_linux_package() {
-        bail!("Update this installation with the DEB or RPM package from the release page. The package manager will preserve your settings and library");
+        return linux::prepare(paths, available, job);
     }
     let executable = std::env::current_exe()?.canonicalize()?;
     let target = executable.clone();
@@ -181,6 +208,7 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
                 &Plan {
                     layout: 0,
                     msi: true,
+                    linux_package: false,
                     parent_pid: std::process::id(),
                     target: target.clone(),
                     staged: zip.clone(),
@@ -219,6 +247,7 @@ pub fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBu
             &Plan {
                 layout: u32::from(cfg!(target_os = "macos")),
                 msi: false,
+                linux_package: false,
                 parent_pid: std::process::id(),
                 target: target.clone(),
                 staged,
@@ -292,6 +321,9 @@ pub fn apply(plan_path: &Path) -> Result<()> {
 #[cfg(not(target_os = "macos"))]
 fn apply_executable(plan_path: &Path) -> Result<()> {
     let mut plan: Plan = files::read_json(plan_path)?;
+    if plan.msi && plan.linux_package {
+        bail!("Conflicting manager installation types in update plan");
+    }
     files::no_links(&plan.target)?;
     plan.target = plan.target.canonicalize()?;
     plan.staged = plan.staged.canonicalize()?;
@@ -300,7 +332,11 @@ fn apply_executable(plan_path: &Path) -> Result<()> {
         .context("Missing update folder")?
         .canonicalize()?;
     let home = plan.target.parent().context("Missing application folder")?;
-    let stage_home = if plan.msi { plan.root.as_path() } else { home };
+    let stage_home = if plan.msi || plan.linux_package {
+        plan.root.as_path()
+    } else {
+        home
+    };
     let stage_root = stage_home.join("runtime/self-update");
     files::no_links(&stage_root)?;
     files::inside(&stage, &stage_root.canonicalize()?)?;
@@ -376,6 +412,23 @@ fn apply_executable(plan_path: &Path) -> Result<()> {
         }
         #[cfg(not(target_os = "windows"))]
         bail!("MSI updates are only supported on Windows");
+    }
+    if plan.linux_package {
+        #[cfg(target_os = "linux")]
+        {
+            if !installed_with_linux_package_at(&plan.target) {
+                bail!("Manager package ownership changed before restart");
+            }
+            Command::new(&plan.target)
+                .arg("--root")
+                .arg(&plan.root)
+                .arg("--tools")
+                .arg(&plan.tools)
+                .spawn()?;
+            return Ok(());
+        }
+        #[cfg(not(target_os = "linux"))]
+        bail!("Linux package updates are only supported on Linux");
     }
     let backup = stage.join("previous.exe");
     let deadline = Instant::now() + Duration::from_secs(60);
@@ -484,7 +537,7 @@ fn create_macos_stage(home: &Path) -> Result<PathBuf> {
 #[cfg(target_os = "macos")]
 fn validate_macos_layout(plan: &Plan, plan_path: &Path, helper: &Path) -> Result<PathBuf> {
     use std::os::unix::fs::{MetadataExt, PermissionsExt};
-    if plan.layout != 1 || plan.msi {
+    if plan.layout != 1 || plan.msi || plan.linux_package {
         bail!("This manager update plan uses an unsupported legacy layout. Reopen the manager and download the update again; no application was changed");
     }
     let target = &plan.target;
@@ -1123,6 +1176,7 @@ mod macos_tests {
             let plan = Plan {
                 layout: 1,
                 msi: false,
+                linux_package: false,
                 parent_pid: u32::MAX,
                 hash: files::hash(&staged_executable(&staged)).unwrap(),
                 target,
