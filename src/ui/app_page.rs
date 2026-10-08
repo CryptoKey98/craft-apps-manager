@@ -188,7 +188,7 @@ impl App {
                 };
                 egui::Frame::new()
                     .fill(theme::RED_BG)
-                    .stroke(Stroke::new(1.0, theme::RED_BORDER))
+                    .stroke(Stroke::new(1.0_f32, theme::RED_BORDER))
                     .corner_radius(CornerRadius::same(10))
                     .inner_margin(egui::Margin::symmetric(14, 12))
                     .show(ui, |ui| {
@@ -282,7 +282,7 @@ impl App {
             let width = ui.available_width().min(560.0 + 30.0);
             egui::Frame::new()
                 .fill(theme::PROGRESS_BG)
-                .stroke(Stroke::new(1.0, theme::ACCENT_BORDER))
+                .stroke(Stroke::new(1.0_f32, theme::ACCENT_BORDER))
                 .corner_radius(CornerRadius::same(10))
                 .inner_margin(egui::Margin::symmetric(14, 12))
                 .show(ui, |ui| {

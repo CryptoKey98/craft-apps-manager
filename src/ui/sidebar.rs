@@ -189,7 +189,7 @@ impl App {
     fn search_box(&mut self, ui: &mut egui::Ui) {
         egui::Frame::new()
             .fill(theme::FIELD)
-            .stroke(Stroke::new(1.0, Color32::from_rgb(0x2f, 0x32, 0x38)))
+            .stroke(Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38)))
             .corner_radius(CornerRadius::same(8))
             .inner_margin(egui::Margin::symmetric(10, 0))
             .show(ui, |ui| {
@@ -437,7 +437,7 @@ impl App {
             ui.painter().rect_stroke(
                 rect.shrink(1.0),
                 CornerRadius::same(8),
-                Stroke::new(1.0, theme::ACCENT),
+                Stroke::new(1.0_f32, theme::ACCENT),
                 egui::StrokeKind::Inside,
             );
         }
@@ -453,7 +453,7 @@ impl App {
                         egui::pos2(rect.left() + 4.0, y),
                         egui::pos2(rect.right() - 4.0, y),
                     ],
-                    Stroke::new(2.0, theme::ACCENT),
+                    Stroke::new(2.0_f32, theme::ACCENT),
                 );
             }
         }
@@ -608,7 +608,7 @@ impl App {
                     } else {
                         Color32::TRANSPARENT
                     },
-                    Stroke::new(1.0, CHIP_BORDER),
+                    Stroke::new(1.0_f32, CHIP_BORDER),
                     theme::TEXT_2,
                     13,
                 )
@@ -704,7 +704,7 @@ fn dimmed_icon(ctx: &egui::Context, name: &str) -> Option<egui::TextureHandle> {
     let size = [image.width() as usize, image.height() as usize];
     let mut pixels = image.into_raw();
     let k = 1.0 - 0.7;
-    for px in pixels.chunks_exact_mut(4) {
+    for px in pixels.as_chunks_mut::<4>().0 {
         let (r, g, b) = (px[0] as f32, px[1] as f32, px[2] as f32);
         let out = [
             (0.2126 + 0.7874 * k) * r + (0.7152 - 0.7152 * k) * g + (0.0722 - 0.0722 * k) * b,

@@ -899,7 +899,7 @@ fn modal(
             egui::Frame::new()
                 .fill(theme::PANEL)
                 .stroke(egui::Stroke::new(
-                    1.0,
+                    1.0_f32,
                     egui::Color32::from_rgb(0x2f, 0x32, 0x38),
                 ))
                 .corner_radius(egui::CornerRadius::same(12))

@@ -43,14 +43,14 @@ pub fn apply(ctx: &egui::Context) {
     let v = &mut style.visuals;
     v.panel_fill = BG;
     v.window_fill = PANEL;
-    v.window_stroke = Stroke::new(1.0, Color32::from_rgb(0x2f, 0x32, 0x38));
+    v.window_stroke = Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38));
     v.window_corner_radius = CornerRadius::same(12);
     v.extreme_bg_color = FIELD;
     v.faint_bg_color = CARD;
     v.code_bg_color = LOG;
     v.hyperlink_color = LINK;
     v.selection.bg_fill = ACCENT;
-    v.selection.stroke = Stroke::new(1.0, Color32::WHITE);
+    v.selection.stroke = Stroke::new(1.0_f32, Color32::WHITE);
     v.override_text_color = None;
     for (w, fill, stroke) in [
         (&mut v.widgets.noninteractive, PANEL, BORDER),
@@ -69,7 +69,7 @@ pub fn apply(ctx: &egui::Context) {
     ] {
         w.bg_fill = fill;
         w.weak_bg_fill = fill;
-        w.bg_stroke = Stroke::new(1.0, stroke);
+        w.bg_stroke = Stroke::new(1.0_f32, stroke);
         w.corner_radius = CornerRadius::same(5);
     }
     v.widgets.noninteractive.fg_stroke.color = TEXT_2;
@@ -155,7 +155,12 @@ pub fn paint_icon_weight(
     match icon {
         Icon::Gear => {
             painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
-            let outline = GEAR.chunks_exact(2).map(|xy| p(xy[0], xy[1])).collect();
+            let outline = GEAR
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .map(|&[x, y]| p(x, y))
+                .collect();
             painter.add(egui::Shape::closed_line(outline, stroke));
         }
         Icon::Search => {
@@ -428,7 +433,7 @@ impl<'a> Btn<'a> {
 
     /// Fill, hovered fill, border and text colour.
     fn colors(&self) -> (Color32, Color32, Stroke, Color32) {
-        let hairline = |color| Stroke::new(1.0, color);
+        let hairline = |color| Stroke::new(1.0_f32, color);
         let outline = if self.size == Size::Card {
             Color32::from_rgb(0x3a, 0x3d, 0x44)
         } else {
@@ -550,7 +555,7 @@ impl<'a> Btn<'a> {
                 painter.rect_stroke(
                     rect.expand(2.0),
                     CornerRadius::same(radius + 2),
-                    Stroke::new(2.0, LINK),
+                    Stroke::new(2.0_f32, LINK),
                     StrokeKind::Outside,
                 );
             }
@@ -623,7 +628,7 @@ fn underline(ui: &Ui, rect: Rect, size: f32, color: Color32) {
     ui.painter().hline(
         rect.x_range(),
         rect.top() + size + 2.0,
-        Stroke::new(1.0, color),
+        Stroke::new(1.0_f32, color),
     );
 }
 
@@ -632,7 +637,7 @@ fn focus_ring(ui: &Ui, response: &Response) {
         ui.painter().rect_stroke(
             response.rect.expand(2.0),
             CornerRadius::same(3),
-            Stroke::new(1.5, LINK),
+            Stroke::new(1.5_f32, LINK),
             StrokeKind::Outside,
         );
     }
@@ -694,14 +699,14 @@ pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size:
 pub fn card() -> egui::Frame {
     egui::Frame::new()
         .fill(PANEL)
-        .stroke(Stroke::new(1.0, BORDER))
+        .stroke(Stroke::new(1.0_f32, BORDER))
         .corner_radius(CornerRadius::same(12))
 }
 
 pub fn group() -> egui::Frame {
     egui::Frame::new()
         .fill(CARD)
-        .stroke(Stroke::new(1.0, BORDER))
+        .stroke(Stroke::new(1.0_f32, BORDER))
         .corner_radius(CornerRadius::same(10))
 }
 
@@ -787,7 +792,7 @@ pub fn segmented<T: PartialEq + Clone>(
         |ui| {
             egui::Frame::new()
                 .fill(FIELD)
-                .stroke(Stroke::new(1.0, Color32::from_rgb(0x2f, 0x32, 0x38)))
+                .stroke(Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38)))
                 .corner_radius(CornerRadius::same(8))
                 .inner_margin(egui::Margin::same(3))
                 .show(ui, |ui| {
@@ -821,7 +826,7 @@ pub fn segmented<T: PartialEq + Clone>(
                             ui.painter().rect_stroke(
                                 rect,
                                 CornerRadius::same(6),
-                                Stroke::new(1.5, LINK),
+                                Stroke::new(1.5_f32, LINK),
                                 StrokeKind::Inside,
                             );
                         }
@@ -856,7 +861,7 @@ pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, e
             rect,
             CornerRadius::same(2),
             Color32::WHITE.gamma_multiply(alpha),
-            Stroke::new(1.0, CONTROL_BORDER),
+            Stroke::new(1.0_f32, CONTROL_BORDER),
             StrokeKind::Inside,
         );
     }
@@ -874,7 +879,7 @@ pub fn paint_radio(ui: &egui::Ui, center: egui::Pos2, on: bool) {
             center,
             7.5,
             Color32::WHITE,
-            Stroke::new(1.0, CONTROL_BORDER),
+            Stroke::new(1.0_f32, CONTROL_BORDER),
         );
     }
 }
@@ -907,7 +912,7 @@ pub fn checkbox(
         ui.painter().rect_stroke(
             rect.expand(2.0),
             CornerRadius::same(4),
-            Stroke::new(2.0, LINK),
+            Stroke::new(2.0_f32, LINK),
             StrokeKind::Outside,
         );
     }
@@ -954,14 +959,14 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
             let p = |x: f32, y: f32| tick_box.min + egui::vec2(x, y) * 16.0;
             painter.add(egui::Shape::line(
                 vec![p(0.24, 0.52), p(0.42, 0.70), p(0.77, 0.32)],
-                Stroke::new(2.2, Color32::WHITE.gamma_multiply(alpha)),
+                Stroke::new(2.2_f32, Color32::WHITE.gamma_multiply(alpha)),
             ));
         } else {
             painter.rect(
                 tick_box,
                 CornerRadius::same(2),
                 Color32::WHITE.gamma_multiply(alpha),
-                Stroke::new(1.0, CONTROL_BORDER.gamma_multiply(alpha)),
+                Stroke::new(1.0_f32, CONTROL_BORDER.gamma_multiply(alpha)),
                 StrokeKind::Inside,
             );
         }
@@ -969,7 +974,7 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
             painter.rect_stroke(
                 tick_box.expand(2.0),
                 CornerRadius::same(4),
-                Stroke::new(2.0, LINK),
+                Stroke::new(2.0_f32, LINK),
                 StrokeKind::Outside,
             );
         }

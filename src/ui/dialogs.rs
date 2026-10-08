@@ -83,7 +83,7 @@ pub(super) fn close_button(ui: &mut egui::Ui) -> egui::Response {
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(8),
-            Stroke::new(2.0, theme::LINK),
+            Stroke::new(2.0_f32, theme::LINK),
             StrokeKind::Inside,
         );
     }
@@ -429,7 +429,7 @@ impl App {
                                             c + egui::vec2(0.0, 2.25),
                                             c + egui::vec2(4.5, -2.25),
                                         ],
-                                        Stroke::new(1.5, theme::TEXT),
+                                        Stroke::new(1.5_f32, theme::TEXT),
                                     ));
                                 })
                                 .selected_text(
@@ -741,7 +741,7 @@ impl App {
                                         ui.painter().rect_stroke(
                                             rect,
                                             CornerRadius::same(8),
-                                            Stroke::new(2.0, theme::LINK),
+                                            Stroke::new(2.0_f32, theme::LINK),
                                             StrokeKind::Inside,
                                         );
                                     }
@@ -1206,7 +1206,7 @@ impl App {
                             ui.painter().rect_stroke(
                                 rect.shrink(1.0),
                                 CornerRadius::same(6),
-                                Stroke::new(2.0, theme::LINK),
+                                Stroke::new(2.0_f32, theme::LINK),
                                 StrokeKind::Inside,
                             );
                         }
@@ -1287,8 +1287,8 @@ pub(super) fn field_style(ui: &mut egui::Ui) {
         widget.corner_radius = CornerRadius::same(8);
         widget.expansion = 0.0;
     }
-    visuals.widgets.inactive.bg_stroke = Stroke::new(1.0, theme::BORDER_STRONG);
-    visuals.widgets.open.bg_stroke = Stroke::new(1.0, theme::BORDER_STRONG);
+    visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, theme::BORDER_STRONG);
+    visuals.widgets.open.bg_stroke = Stroke::new(1.0_f32, theme::BORDER_STRONG);
 }
 
 /// What an uninstall removes: the app inside its install folder, or the
