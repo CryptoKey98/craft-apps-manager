@@ -891,7 +891,7 @@ fn installer_path(path: &Path) -> PathBuf {
 #[cfg(all(test, target_os = "linux"))]
 mod linux_tests {
     #[test]
-    fn system_installation_reports_package_update_before_download() {
+    fn unwritable_portable_directory_reports_manual_update_before_download() {
         use std::os::unix::fs::PermissionsExt;
         let directory = std::env::temp_dir().join(format!("craft-update-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir(&directory).unwrap();
@@ -902,7 +902,11 @@ mod linux_tests {
         std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
         std::fs::remove_dir_all(directory).unwrap();
         if unsafe { libc::geteuid() } != 0 {
-            assert!(result.unwrap_err().to_string().contains("DEB or RPM"));
+            let error = result.unwrap_err();
+            assert!(error.to_string().contains("manager folder is not writable"));
+            assert!(error.chain().any(|cause| cause
+                .downcast_ref::<std::io::Error>()
+                .is_some_and(|error| error.kind() == std::io::ErrorKind::PermissionDenied)));
         }
     }
 }
