@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::{path::Path, sync::RwLock};
 
 pub const ORG: &str = "storytold";
+pub const REFRESH_INTERVAL: i64 = 6 * 3600;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -462,6 +463,25 @@ pub fn parse_asset(name: &str) -> Option<ParsedAsset> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn fresh_catalog_uses_cache_without_a_network_request() {
+        let root =
+            std::env::temp_dir().join(format!("craft-catalog-cache-{}", uuid::Uuid::new_v4()));
+        files::write_json(
+            &cache_path(&root),
+            &Cache {
+                checked_at: chrono::Utc::now().timestamp(),
+                entries: vec![craft("mapcraft", "MapCraft", "Maps", "")],
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let result = refresh_if_older(&root, REFRESH_INTERVAL).unwrap();
+        assert!(result.iter().any(|e| e.key == "mapcraft"));
+        // Restore the process-wide catalog for the remaining serial tests.
+        load(&root.join("unused"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
     use super::*;
     use crate::model::Asset;
     fn release(tag: &str, name: &str, assets: &[&str]) -> Release {

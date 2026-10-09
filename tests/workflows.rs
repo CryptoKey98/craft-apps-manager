@@ -937,7 +937,7 @@ fn newly_published_apps_are_selected_once_and_remembered() {
     // Settings from a manager that only knew its built-in apps.
     files::write_json(
         &paths.at("manager-settings.json"),
-        &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":["filmcraft"]}),
+        &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":["filmcraft"],"selectNewApps":true}),
     )
     .unwrap();
     let p = paths.preferences().unwrap();
@@ -959,11 +959,15 @@ fn newly_published_apps_are_selected_once_and_remembered() {
     // Automatic selection can be turned off.
     files::write_json(
         &paths.at("manager-settings.json"),
-        &serde_json::json!({"selectedApps":[],"selectNewApps":false}),
+        &serde_json::json!({"selectedApps":[],"selectedSources":[]}),
     )
     .unwrap();
     let p = paths.preferences().unwrap();
     assert!(p.selected_apps.is_empty());
+    assert!(p.selected_sources.is_empty());
+    assert!(!p.select_new_apps);
+    assert!(!p.check_catalog_on_startup);
+    assert!(!p.check_catalog_with_app_updates);
     assert!(p.known_apps.iter().any(|a| a == "artcraft"));
 }
 #[test]

@@ -199,10 +199,20 @@ fn tauri_asset<'a>(
             format!("^{prefix}_{version}_{arch}_[A-Za-z]{{2}}-[A-Za-z]{{2}}\\.msi$"),
             format!("^{prefix}_{version}_{arch}-setup\\.exe$"),
         ]
-    } else if p.release_format == "installer" {
-        vec![format!("(?i)^{prefix}_{version}_amd64\\.deb$")]
     } else {
-        vec![format!("^{prefix}_{version}_amd64\\.AppImage$")]
+        #[cfg(target_os = "linux")]
+        {
+            let kind = if p.release_format == "installer" {
+                crate::installers::package_kind()?
+            } else {
+                crate::installers::PackageKind::Debian
+            };
+            tauri_linux_patterns(&prefix, &version, p, kind)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Vec::new()
+        }
     };
     for pattern in patterns {
         let pattern = regex::Regex::new(&pattern)?;
@@ -223,6 +233,32 @@ fn tauri_asset<'a>(
         entry.title,
         p.release_format
     )
+}
+#[cfg(target_os = "linux")]
+fn tauri_linux_patterns(
+    prefix: &str,
+    version: &str,
+    prefs: &Preferences,
+    kind: crate::installers::PackageKind,
+) -> Vec<String> {
+    use crate::installers::PackageKind;
+    let (deb, native, image) = match prefs.architecture.as_str() {
+        "x86" => ("i386", "i686", "i386"),
+        "arm64" => ("arm64", "aarch64", "aarch64"),
+        _ => ("amd64", "x86_64", "amd64"),
+    };
+    if prefs.release_format != "installer" {
+        return vec![format!("(?i)^{prefix}_{version}_{image}\\.AppImage$")];
+    }
+    match kind {
+        PackageKind::Debian => vec![format!("(?i)^{prefix}_{version}_{deb}\\.deb$")],
+        PackageKind::Rpm => vec![format!(
+            "(?i)^{prefix}-{version}-[0-9][A-Za-z0-9.]*\\.{native}\\.rpm$"
+        )],
+        PackageKind::Arch => vec![format!(
+            "(?i)^{prefix}-{version}-[0-9][A-Za-z0-9.]*-{native}\\.pkg\\.tar\\.zst$"
+        )],
+    }
 }
 fn backup_path(paths: &Paths, name: &str, v: &str, source: bool) -> PathBuf {
     paths
@@ -906,6 +942,44 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
 }
 #[cfg(test)]
 mod tests {
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn tauri_linux_assets_match_distribution_and_architecture() {
+        use crate::installers::PackageKind;
+        for (architecture, deb, native, image) in [
+            ("x64", "amd64", "x86_64", "amd64"),
+            ("x86", "i386", "i686", "i386"),
+            ("arm64", "arm64", "aarch64", "aarch64"),
+        ] {
+            let mut prefs = Preferences {
+                architecture: architecture.into(),
+                release_format: "installer".into(),
+                ..Default::default()
+            };
+            for (kind, name) in [
+                (PackageKind::Debian, format!("ArtCraft_0.41.0_{deb}.deb")),
+                (PackageKind::Rpm, format!("ArtCraft-0.41.0-1.{native}.rpm")),
+                (
+                    PackageKind::Arch,
+                    format!("ArtCraft-0.41.0-1-{native}.pkg.tar.zst"),
+                ),
+            ] {
+                let patterns = tauri_linux_patterns("ArtCraft", "0\\.41\\.0", &prefs, kind);
+                let regex = regex::Regex::new(&patterns[0]).unwrap();
+                assert!(regex.is_match(&name));
+                assert!(!regex.is_match("ArtCraft_0.41.0_amd64.AppImage"));
+                if architecture != "x64" {
+                    assert!(!regex.is_match("ArtCraft_0.41.0_amd64.deb"));
+                }
+            }
+            prefs.release_format = "portable".into();
+            let patterns =
+                tauri_linux_patterns("ArtCraft", "0\\.41\\.0", &prefs, PackageKind::Arch);
+            let regex = regex::Regex::new(&patterns[0]).unwrap();
+            assert!(regex.is_match(&format!("ArtCraft_0.41.0_{image}.AppImage")));
+            assert!(!regex.is_match(&format!("ArtCraft_0.41.0_{deb}.deb")));
+        }
+    }
     use super::*;
     #[test]
     fn new_apps_select_matching_release_formats_and_reject_missing_architectures() {

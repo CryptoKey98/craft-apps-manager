@@ -684,6 +684,22 @@ impl App {
             )
             .on_hover_text("Apps that appear on github.com/storytold after this version are added to Update all and Update all sources the first time they are found.");
             dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.settings_draft.check_catalog_on_startup,
+                "Look for new Craft apps on startup",
+                None,
+            )
+            .on_hover_text("Uses the saved app list for six hours between automatic checks. Discovery never downloads or installs apps.");
+            dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.settings_draft.check_catalog_with_app_updates,
+                "Look for new Craft apps during hourly app checks",
+                None,
+            )
+            .on_hover_text("Requires hourly App updates to be enabled. Shares the six-hour cache with startup checks. Refresh below checks immediately.");
+            dialogs::rule(ui);
             let known = catalog::all().len();
             let status = if self.catalog_message.is_empty() {
                 let checked = catalog::age(&self.paths.root)

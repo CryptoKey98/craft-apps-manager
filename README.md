@@ -6,9 +6,9 @@ A desktop app for downloading, updating, and building the Craft apps from Storyt
 
 The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. Version 0.5.1 adds light and dark themes, an About page, local build launch options and experimental Arch packaging. This is an independent project, not an official Storytold or Adobe app.
 
-This fork, [carpaaaaa/craft-apps-manager](https://github.com/carpaaaaa/craft-apps-manager), follows [CryptoKey98/craft-apps-manager](https://github.com/CryptoKey98/craft-apps-manager) and adds automatic app discovery: every Craft app published under [github.com/storytold](https://github.com/storytold), including apps released after this version and ArtCraft, is listed, installed and updated. Its releases update themselves from this fork.
+App discovery and ArtCraft support were contributed by [carpaaaaa](https://github.com/carpaaaaa). Use Settings → App list → Refresh to find new Storytold Craft apps. Automatic discovery at startup or during hourly app checks is optional and uses a shared six-hour cache. Newly discovered apps appear in the list; adding them to bulk updates automatically is a separate opt-in setting. Discovery never installs apps.
 
-[Download the latest release](https://github.com/carpaaaaa/craft-apps-manager/releases/latest)
+[Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
 ![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.5.0)
 
@@ -54,7 +54,7 @@ Linux is supported by the same source; build its packages with the scripts in `s
 On macOS you can also install or update the manager from Terminal. The script downloads the latest release, checks it against `SHA256SUMS.txt` and copies the app into `/Applications` (or `~/Applications`); a copy installed this way opens without the first-launch steps below:
 
 ```text
-curl -fsSL https://raw.githubusercontent.com/carpaaaaa/craft-apps-manager/main/scripts/install-macos.sh | bash
+curl -fsSL https://raw.githubusercontent.com/CryptoKey98/craft-apps-manager/main/scripts/install-macos.sh | bash
 ```
 
 For Windows, run the MSI or extract the ZIP and open `CraftApps-Manager.exe`. Keep the portable package's `workspace/tools/7zip` folder with the app. Rust and a separate 7-Zip installation are not needed to run Manager.
@@ -87,7 +87,7 @@ Every Craft app published under [github.com/storytold](https://github.com/storyt
 
 Release formats and architectures depend on what each upstream app publishes.
 
-The manager keeps this list current by itself. When the window opens (at most every six hours) and during hourly checks, it lists the Storytold repositories whose name contains `craft` and classifies each new one from its latest release. New apps appear in the app list with their description, are added to Update all and Update all sources (turn off **Settings → Updates → Include newly published Craft apps automatically** to choose them yourself), and hourly checks announce them with a notification. **Settings → Updates → App list → Refresh** checks immediately. The list built into the manager is used when GitHub cannot be reached. Setting a `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) environment variable raises GitHub's hourly API limit; the token is sent only to `api.github.com`.
+The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery and discovery during hourly app checks are separate opt-in settings with a shared six-hour cache. New apps appear in the list but are not selected for bulk app/source updates unless you enable **Include newly published Craft apps automatically**. Discovery never installs apps. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.
 
 PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. More generally, when an app's release uses a single new file name, the manager installs it as the same app and remembers the new name. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 

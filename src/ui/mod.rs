@@ -326,21 +326,21 @@ impl App {
             .collect();
         let (icon_sender, icon_receiver) = std::sync::mpsc::channel();
         // The app list is refreshed in the background; newer apps appear when it finishes.
-        let catalog_receiver = std::env::args()
-            .all(|a| !a.starts_with("--preview"))
-            .then(|| {
-                let (tx, rx) = std::sync::mpsc::channel();
-                let root = paths.root.clone();
-                let ctx = cc.egui_ctx.clone();
-                std::thread::spawn(move || {
-                    let result = catalog::refresh_if_older(&root, 6 * 3600)
-                        .map(|_| ())
-                        .map_err(|e| format!("{e:#}"));
-                    let _ = tx.send(result);
-                    ctx.request_repaint();
-                });
-                rx
+        let catalog_receiver = (preferences.check_catalog_on_startup
+            && std::env::args().all(|a| !a.starts_with("--preview")))
+        .then(|| {
+            let (tx, rx) = std::sync::mpsc::channel();
+            let root = paths.root.clone();
+            let ctx = cc.egui_ctx.clone();
+            std::thread::spawn(move || {
+                let result = catalog::refresh_if_older(&root, catalog::REFRESH_INTERVAL)
+                    .map(|_| ())
+                    .map_err(|e| format!("{e:#}"));
+                let _ = tx.send(result);
+                ctx.request_repaint();
             });
+            rx
+        });
         let mut window = Self {
             icons,
             icon_receiver,

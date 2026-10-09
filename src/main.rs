@@ -152,11 +152,6 @@ fn run() -> Result<()> {
     }
     if let Some(app) = text("--install-app") {
         let job = Job::new(paths.at("logs/updates.log"), &paths.builder_preferences()?);
-        if let Err(error) = craft_apps_manager::catalog::refresh_if_older(&paths.root, 3600) {
-            job.log(&format!(
-                "App list refresh failed; using the saved list: {error:#}"
-            ));
-        }
         updates::install_app(&paths, &app, &job)
             .with_context(|| format!("See {}", job.log_path.display()))?;
         let installed = craft_apps_manager::apps::installed(&paths, &app)?;

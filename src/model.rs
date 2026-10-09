@@ -108,6 +108,10 @@ pub struct Preferences {
     pub known_apps: Vec<String>,
     /// Select newly published Craft apps for release and source updates.
     pub select_new_apps: bool,
+    /// Discover new apps at startup, using the shared catalog cache.
+    pub check_catalog_on_startup: bool,
+    /// Discover new apps during scheduled app availability checks.
+    pub check_catalog_with_app_updates: bool,
 }
 impl Default for Preferences {
     fn default() -> Self {
@@ -132,7 +136,9 @@ impl Default for Preferences {
             check_manager_on_startup: false,
             check_installed_apps_on_startup: false,
             known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
-            select_new_apps: true,
+            select_new_apps: false,
+            check_catalog_on_startup: false,
+            check_catalog_with_app_updates: false,
         }
     }
 }

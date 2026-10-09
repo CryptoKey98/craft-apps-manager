@@ -1,8 +1,8 @@
 #!/bin/bash
 # Installs or updates Craft Apps Manager on macOS from the latest GitHub release.
-#   curl -fsSL https://raw.githubusercontent.com/carpaaaaa/craft-apps-manager/main/scripts/install-macos.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/CryptoKey98/craft-apps-manager/main/scripts/install-macos.sh | bash
 set -euo pipefail
-repo="carpaaaaa/craft-apps-manager"
+repo="CryptoKey98/craft-apps-manager"
 name="Craft Apps Manager.app"
 
 release="$(curl -fsSL "https://api.github.com/repos/$repo/releases/latest")"

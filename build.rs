@@ -25,7 +25,7 @@ fn main() {
     let repository = std::env::var("CRAFT_MANAGER_REPOSITORY")
         .ok()
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "carpaaaaa/craft-apps-manager".into());
+        .unwrap_or_else(|| "CryptoKey98/craft-apps-manager".into());
     let valid = |part: &str| {
         !part.is_empty()
             && part
