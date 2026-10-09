@@ -171,6 +171,7 @@ pub struct App {
     selection: bool,
     source_selection: bool,
     selection_draft: Vec<String>,
+    selection_from_review: bool,
     settings_draft: Preferences,
     build_draft: BuilderPreferences,
     auto: bool,
@@ -374,6 +375,7 @@ impl App {
             selection: std::env::args().any(|a| a == "--preview-apps"),
             source_selection: false,
             selection_draft: preferences.selected_apps.clone(),
+            selection_from_review: false,
             settings_draft: preferences.clone(),
             build_draft: build_preferences.clone(),
             preferences,
@@ -555,16 +557,7 @@ impl App {
         self.failure_dismissed = false;
         self.job_action = action.to_string();
         if action == "releases" {
-            let paths = self.paths.clone();
-            let (tx, rx) = std::sync::mpsc::channel();
-            self.plan_receiver = Some(rx);
-            self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
-            self.job_target = None;
-            self.job.spawn(move |job| {
-                let result = updates::plan_releases(&paths, &job);
-                let _ = tx.send(result_for_display(&result));
-                result.map(|_| ())
-            });
+            self.begin_release_review();
             return;
         }
         let paths = self.paths.clone();
@@ -620,6 +613,20 @@ impl App {
             "build" => builder::build(&paths, &app, latest, &job),
             "setup" => tools::setup(&paths, &app, &job),
             _ => unreachable!(),
+        });
+    }
+    fn begin_release_review(&mut self) {
+        let paths = self.paths.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.plan_receiver = Some(rx);
+        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+        self.job_target = None;
+        self.failure_dismissed = false;
+        self.job_action = "releases".into();
+        self.job.spawn(move |job| {
+            let result = updates::plan_releases(&paths, &job);
+            let _ = tx.send(result_for_display(&result));
+            result.map(|_| ())
         });
     }
     /// True while a release job cleans build files, which blocks builds.

@@ -7,6 +7,7 @@ App discovery and ArtCraft support contributed by [carpaaaaa](https://github.com
 - Read the app list from the Storytold repositories on GitHub, so Craft apps published after this version appear without a manager update. A built-in list is used offline.
 - Offer new apps without changing bulk update selections by default. Automatic inclusion is opt-in.
 - Add Settings → App list → Refresh to look for new apps at any time.
+- Add Choose… to the Update all review so the app selection can be changed before running operations.
 - Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_…`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
 - Accept a release whose files switched to a single new name and remember that name, so renamed apps keep installing and updating.
 - Download icons for apps without a bundled one, with a neutral tile when a repository has none.

@@ -1131,6 +1131,35 @@ mod planning_tests {
         fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
+    fn choosing_apps_rebuilds_review_without_unselected_operations() {
+        let (paths, job) = fixture();
+        let original = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+        assert_eq!(original.entries.len(), 2);
+        crate::settings::select_release_apps(&paths, &["filmcraft".into()]).unwrap();
+        let changed = plan_with(&paths, &job, None, |app| {
+            assert_eq!(
+                app, "filmcraft",
+                "unchecked apps must not be queried or planned"
+            );
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        assert_eq!(changed.entries.len(), 1);
+        assert_eq!(changed.entries[0].app, "filmcraft");
+        assert!(
+            execute_validated(&paths, &original, |_| panic!("stale review must not run")).is_err()
+        );
+        crate::settings::select_release_apps(&paths, &[]).unwrap();
+        let empty = plan_with(&paths, &job, None, |_| {
+            panic!("empty selection must not query releases")
+        })
+        .unwrap();
+        assert!(empty.entries.is_empty());
+        assert_eq!(empty.executable_count(), 0);
+        assert!(!paths.at("runtime/downloads").exists());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
     fn legacy_mac_architecture_is_current_for_same_universal_release() {
         if !cfg!(target_os = "macos") {
             return;

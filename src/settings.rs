@@ -74,6 +74,25 @@ pub fn save<T: Serialize>(
     commit(&writes, atomic_bytes)
 }
 /// Reordering changes only the order in the latest preferences, under the mutation lock.
+/// Save only the bulk release selection, keeping other preferences and inventory intact.
+pub fn select_release_apps(paths: &Paths, selected: &[String]) -> Result<Preferences> {
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    let choices = crate::model::apps();
+    if selected.iter().any(|app| !choices.contains(app)) {
+        bail!("Unknown release app in selection");
+    }
+    let mut preferences = paths.read_preferences()?;
+    preferences.selected_apps = selected.to_vec();
+    preferences.validate()?;
+    commit(
+        &[(
+            paths.at("manager-settings.json"),
+            serde_json::to_vec_pretty(&preferences)?,
+        )],
+        atomic_bytes,
+    )?;
+    Ok(preferences)
+}
 pub fn reorder(paths: &Paths, dragged: &str, target: &str, before: bool) -> Result<Preferences> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
     let mut preferences = paths.read_preferences()?;
@@ -174,6 +193,39 @@ fn commit(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn review_selection_preserves_other_preferences_and_inventory() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let preferences = Preferences {
+            theme: crate::model::Theme::Light,
+            selected_apps: vec!["filmcraft".into(), "photocraft".into()],
+            selected_sources: vec!["soundcraft".into()],
+            ..Default::default()
+        };
+        files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
+        fs::write(
+            paths.at("settings.json"),
+            b"inventory must remain untouched",
+        )
+        .unwrap();
+        let saved = select_release_apps(&paths, &["filmcraft".into()]).unwrap();
+        assert_eq!(saved.selected_apps, ["filmcraft"]);
+        assert_eq!(saved.selected_sources, ["soundcraft"]);
+        assert_eq!(saved.theme, crate::model::Theme::Light);
+        assert_eq!(
+            fs::read(paths.at("settings.json")).unwrap(),
+            b"inventory must remain untouched"
+        );
+        let bytes = fs::read(paths.at("manager-settings.json")).unwrap();
+        assert!(select_release_apps(&paths, &["unknown".into()]).is_err());
+        assert_eq!(fs::read(paths.at("manager-settings.json")).unwrap(), bytes);
+        assert!(select_release_apps(&paths, &[])
+            .unwrap()
+            .selected_apps
+            .is_empty());
+        fs::remove_dir_all(root).unwrap();
+    }
     use super::*;
     #[test]
     fn reorder_preserves_other_window_preferences_and_obeys_operation_lock() {
