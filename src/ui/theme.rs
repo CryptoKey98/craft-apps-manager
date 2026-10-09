@@ -5,77 +5,276 @@ use eframe::egui::{
 };
 use std::time::Duration;
 
-pub const BG: Color32 = Color32::from_rgb(0x13, 0x14, 0x17);
-pub const PANEL: Color32 = Color32::from_rgb(0x17, 0x18, 0x1c);
-pub const CARD: Color32 = Color32::from_rgb(0x1b, 0x1d, 0x22);
-pub const FIELD: Color32 = Color32::from_rgb(0x13, 0x14, 0x17);
-pub const LOG: Color32 = Color32::from_rgb(0x10, 0x11, 0x14);
-pub const BORDER: Color32 = Color32::from_rgb(0x2a, 0x2d, 0x33);
-pub const BORDER_STRONG: Color32 = Color32::from_rgb(0x33, 0x36, 0x3d);
-pub const BUTTON: Color32 = Color32::from_rgb(0x1f, 0x21, 0x26);
-pub const BUTTON_HOVER: Color32 = Color32::from_rgb(0x28, 0x2b, 0x31);
-pub const SELECTED: Color32 = Color32::from_rgb(0x23, 0x2a, 0x37);
-pub const HOVER: Color32 = Color32::from_rgb(0x1e, 0x21, 0x27);
-pub const TEXT: Color32 = Color32::from_rgb(0xec, 0xec, 0xee);
-pub const TEXT_2: Color32 = Color32::from_rgb(0xc9, 0xcc, 0xd2);
-pub const TEXT_3: Color32 = Color32::from_rgb(0xb3, 0xb7, 0xbe);
-pub const MUTED: Color32 = Color32::from_rgb(0x8f, 0x94, 0x9c);
-pub const ACCENT: Color32 = Color32::from_rgb(0x25, 0x63, 0xeb);
-pub const ACCENT_HOVER: Color32 = Color32::from_rgb(0x3a, 0x74, 0xf0);
-pub const ACCENT_SOFT: Color32 = Color32::from_rgb(0x1d, 0x2d, 0x4f);
-pub const ACCENT_BORDER: Color32 = Color32::from_rgb(0x2f, 0x4a, 0x7d);
-pub const ACCENT_TEXT: Color32 = Color32::from_rgb(0xa9, 0xc4, 0xff);
-pub const PROGRESS_BG: Color32 = Color32::from_rgb(0x17, 0x22, 0x38);
-pub const PROGRESS_TRACK: Color32 = Color32::from_rgb(0x2a, 0x35, 0x50);
-pub const LINK: Color32 = Color32::from_rgb(0x8f, 0xb4, 0xff);
-pub const GREEN: Color32 = Color32::from_rgb(0x6f, 0xcf, 0x97);
-pub const RED: Color32 = Color32::from_rgb(0xf2, 0x77, 0x7d);
-pub const RED_TEXT: Color32 = Color32::from_rgb(0xf0, 0xb9, 0xbc);
-pub const RED_BG: Color32 = Color32::from_rgb(0x2a, 0x17, 0x19);
-pub const RED_BORDER: Color32 = Color32::from_rgb(0x6a, 0x32, 0x36);
-pub const DANGER: Color32 = Color32::from_rgb(0xb3, 0x36, 0x3b);
-pub const AMBER: Color32 = Color32::from_rgb(0xe6, 0xb4, 0x64);
+use craft_apps_manager::model::Theme;
 
-pub fn apply(ctx: &egui::Context) {
+#[derive(Clone, Copy)]
+pub struct Palette {
+    pub bg: Color32,
+    pub panel: Color32,
+    pub card: Color32,
+    pub field: Color32,
+    pub log: Color32,
+    pub border: Color32,
+    pub border_strong: Color32,
+    pub button: Color32,
+    pub button_hover: Color32,
+    pub selected: Color32,
+    pub hover: Color32,
+    pub text: Color32,
+    pub text_2: Color32,
+    pub text_3: Color32,
+    pub muted: Color32,
+    pub accent: Color32,
+    pub accent_hover: Color32,
+    pub accent_soft: Color32,
+    pub accent_border: Color32,
+    pub accent_text: Color32,
+    pub progress_bg: Color32,
+    pub progress_track: Color32,
+    pub link: Color32,
+    pub green: Color32,
+    pub red: Color32,
+    pub red_text: Color32,
+    pub red_bg: Color32,
+    pub red_border: Color32,
+    pub danger: Color32,
+    pub amber: Color32,
+    pub control_border: Color32,
+}
+// Neutral colors use exact Adobe Spectrum gray tokens:
+// https://opensource.adobe.com/spectrum-design-data/tokens/color-palette/
+const DARK: Palette = Palette {
+    bg: Color32::from_rgb(17, 17, 17),
+    panel: Color32::from_rgb(27, 27, 27),
+    card: Color32::from_rgb(34, 34, 34),
+    field: Color32::from_rgb(17, 17, 17),
+    log: Color32::from_rgb(17, 17, 17),
+    border: Color32::from_rgb(50, 50, 50),
+    border_strong: Color32::from_rgb(68, 68, 68),
+    button: Color32::from_rgb(34, 34, 34),
+    button_hover: Color32::from_rgb(50, 50, 50),
+    selected: Color32::from_rgb(0x23, 0x2a, 0x37),
+    hover: Color32::from_rgb(44, 44, 44),
+    text: Color32::from_rgb(242, 242, 242),
+    text_2: Color32::from_rgb(219, 219, 219),
+    text_3: Color32::from_rgb(175, 175, 175),
+    muted: Color32::from_rgb(175, 175, 175),
+    accent: Color32::from_rgb(0x25, 0x63, 0xeb),
+    accent_hover: Color32::from_rgb(0x3a, 0x74, 0xf0),
+    accent_soft: Color32::from_rgb(0x1d, 0x2d, 0x4f),
+    accent_border: Color32::from_rgb(0x2f, 0x4a, 0x7d),
+    accent_text: Color32::from_rgb(0xa9, 0xc4, 0xff),
+    progress_bg: Color32::from_rgb(0x17, 0x22, 0x38),
+    progress_track: Color32::from_rgb(0x2a, 0x35, 0x50),
+    link: Color32::from_rgb(0x8f, 0xb4, 0xff),
+    green: Color32::from_rgb(0x6f, 0xcf, 0x97),
+    red: Color32::from_rgb(0xf2, 0x77, 0x7d),
+    red_text: Color32::from_rgb(0xf0, 0xb9, 0xbc),
+    red_bg: Color32::from_rgb(0x2a, 0x17, 0x19),
+    red_border: Color32::from_rgb(0x6a, 0x32, 0x36),
+    danger: Color32::from_rgb(0xb3, 0x36, 0x3b),
+    amber: Color32::from_rgb(0xe6, 0xb4, 0x64),
+    control_border: Color32::from_rgb(138, 138, 138),
+};
+const LIGHT: Palette = Palette {
+    bg: Color32::from_rgb(248, 248, 248),
+    panel: Color32::from_rgb(255, 255, 255),
+    card: Color32::from_rgb(243, 243, 243),
+    field: Color32::from_rgb(243, 243, 243),
+    log: Color32::from_rgb(248, 248, 248),
+    border: Color32::from_rgb(225, 225, 225),
+    border_strong: Color32::from_rgb(198, 198, 198),
+    button: Color32::from_rgb(243, 243, 243),
+    button_hover: Color32::from_rgb(225, 225, 225),
+    selected: Color32::from_rgb(0xe3, 0xed, 0xfc),
+    hover: Color32::from_rgb(233, 233, 233),
+    text: Color32::from_rgb(19, 19, 19),
+    text_2: Color32::from_rgb(41, 41, 41),
+    text_3: Color32::from_rgb(80, 80, 80),
+    muted: Color32::from_rgb(80, 80, 80),
+    accent: Color32::from_rgb(0x25, 0x63, 0xeb),
+    accent_hover: Color32::from_rgb(0x1d, 0x4e, 0xd8),
+    accent_soft: Color32::from_rgb(0xe5, 0xed, 0xfc),
+    accent_border: Color32::from_rgb(0xa6, 0xc2, 0xf2),
+    accent_text: Color32::from_rgb(0x19, 0x4f, 0xb4),
+    progress_bg: Color32::from_rgb(0xee, 0xf3, 0xfc),
+    progress_track: Color32::from_rgb(0xd4, 0xe1, 0xf7),
+    link: Color32::from_rgb(0x1d, 0x56, 0xbf),
+    green: Color32::from_rgb(0x20, 0x78, 0x44),
+    red: Color32::from_rgb(0xb8, 0x2f, 0x3b),
+    red_text: Color32::from_rgb(0x9c, 0x25, 0x30),
+    red_bg: Color32::from_rgb(0xff, 0xf0, 0xf1),
+    red_border: Color32::from_rgb(0xe8, 0xaa, 0xb0),
+    danger: Color32::from_rgb(0xb3, 0x36, 0x3b),
+    amber: Color32::from_rgb(0x8a, 0x5a, 0x0d),
+    control_border: Color32::from_rgb(113, 113, 113),
+};
+// Paint helpers run on the UI thread. Re-select the palette for the active
+// window each frame, so custom widgets and egui use the same theme.
+thread_local! {
+    static CURRENT: std::cell::Cell<Palette> = const { std::cell::Cell::new(DARK) };
+}
+pub fn palette() -> Palette {
+    CURRENT.with(std::cell::Cell::get)
+}
+
+impl Palette {
+    fn blend(self, target: Self, amount: f32) -> Self {
+        let blend = |a: Color32, b: Color32| {
+            let a = a.to_array();
+            let b = b.to_array();
+            let channel =
+                |i: usize| (a[i] as f32 + (b[i] as f32 - a[i] as f32) * amount).round() as u8;
+            Color32::from_rgba_premultiplied(channel(0), channel(1), channel(2), channel(3))
+        };
+        Self {
+            bg: blend(self.bg, target.bg),
+            panel: blend(self.panel, target.panel),
+            card: blend(self.card, target.card),
+            field: blend(self.field, target.field),
+            log: blend(self.log, target.log),
+            border: blend(self.border, target.border),
+            border_strong: blend(self.border_strong, target.border_strong),
+            button: blend(self.button, target.button),
+            button_hover: blend(self.button_hover, target.button_hover),
+            selected: blend(self.selected, target.selected),
+            hover: blend(self.hover, target.hover),
+            text: blend(self.text, target.text),
+            text_2: blend(self.text_2, target.text_2),
+            text_3: blend(self.text_3, target.text_3),
+            muted: blend(self.muted, target.muted),
+            accent: blend(self.accent, target.accent),
+            accent_hover: blend(self.accent_hover, target.accent_hover),
+            accent_soft: blend(self.accent_soft, target.accent_soft),
+            accent_border: blend(self.accent_border, target.accent_border),
+            accent_text: blend(self.accent_text, target.accent_text),
+            progress_bg: blend(self.progress_bg, target.progress_bg),
+            progress_track: blend(self.progress_track, target.progress_track),
+            link: blend(self.link, target.link),
+            green: blend(self.green, target.green),
+            red: blend(self.red, target.red),
+            red_text: blend(self.red_text, target.red_text),
+            red_bg: blend(self.red_bg, target.red_bg),
+            red_border: blend(self.red_border, target.red_border),
+            danger: blend(self.danger, target.danger),
+            amber: blend(self.amber, target.amber),
+            control_border: blend(self.control_border, target.control_border),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ThemeTransition {
+    mode: Theme,
+    from: Palette,
+    started: f64,
+}
+pub fn apply(ctx: &egui::Context, mode: Theme) {
+    let id = egui::Id::new("manager-visual-theme");
+    let now = ctx.input(|input| input.time);
+    let target = if mode == Theme::Light { LIGHT } else { DARK };
+    let previous = ctx.data(|data| data.get_temp::<ThemeTransition>(id));
+    let transition = match previous {
+        Some(state) if state.mode == mode => state,
+        Some(state) => {
+            let elapsed = ((now - state.started) / 0.25).clamp(0.0, 1.0) as f32;
+            let eased = elapsed * elapsed * (3.0 - 2.0 * elapsed);
+            let old_target = if state.mode == Theme::Light {
+                LIGHT
+            } else {
+                DARK
+            };
+            ThemeTransition {
+                mode,
+                from: state.from.blend(old_target, eased),
+                started: now,
+            }
+        }
+        None => ThemeTransition {
+            mode,
+            from: target,
+            started: now - 0.25,
+        },
+    };
+    let amount = ((now - transition.started) / 0.25).clamp(0.0, 1.0) as f32;
+    let eased = amount * amount * (3.0 - 2.0 * amount);
+    CURRENT.with(|palette| palette.set(transition.from.blend(target, eased)));
+    let settled_id = id.with("settled");
+    let settled = ctx
+        .data(|data| data.get_temp::<bool>(settled_id))
+        .unwrap_or(false);
+    ctx.data_mut(|data| {
+        data.insert_temp(id, transition);
+        data.insert_temp(settled_id, amount >= 1.0);
+    });
+    if settled && amount >= 1.0 && previous.is_some_and(|state| state.mode == mode) {
+        return;
+    }
+    if amount < 1.0 {
+        ctx.request_repaint();
+    }
+    if previous.is_none_or(|state| state.mode != mode) {
+        ctx.send_viewport_cmd(egui::ViewportCommand::SetTheme(if mode == Theme::Light {
+            egui::SystemTheme::Light
+        } else {
+            egui::SystemTheme::Dark
+        }));
+    }
     let mut style = (*ctx.style()).clone();
-    style.visuals = egui::Visuals::dark();
+    style.visuals = if mode == Theme::Light {
+        egui::Visuals::light()
+    } else {
+        egui::Visuals::dark()
+    };
     style.animation_time = 0.18;
     let v = &mut style.visuals;
-    v.panel_fill = BG;
-    v.window_fill = PANEL;
-    v.window_stroke = Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38));
+    v.panel_fill = palette().bg;
+    v.window_fill = palette().panel;
+    v.window_stroke = Stroke::new(1.0_f32, palette().border_strong);
     v.window_corner_radius = CornerRadius::same(12);
-    v.extreme_bg_color = FIELD;
-    v.faint_bg_color = CARD;
-    v.code_bg_color = LOG;
-    v.hyperlink_color = LINK;
-    v.selection.bg_fill = ACCENT;
+    v.extreme_bg_color = palette().field;
+    v.faint_bg_color = palette().card;
+    v.code_bg_color = palette().log;
+    v.hyperlink_color = palette().link;
+    v.selection.bg_fill = palette().accent;
     v.selection.stroke = Stroke::new(1.0_f32, Color32::WHITE);
     v.override_text_color = None;
     for (w, fill, stroke) in [
-        (&mut v.widgets.noninteractive, PANEL, BORDER),
-        (&mut v.widgets.inactive, BUTTON, BORDER_STRONG),
+        (
+            &mut v.widgets.noninteractive,
+            palette().panel,
+            palette().border,
+        ),
+        (
+            &mut v.widgets.inactive,
+            palette().button,
+            palette().border_strong,
+        ),
         (
             &mut v.widgets.hovered,
-            BUTTON_HOVER,
-            Color32::from_rgb(0x45, 0x49, 0x52),
+            palette().button_hover,
+            palette().border_strong,
         ),
         (
             &mut v.widgets.active,
-            Color32::from_rgb(0x30, 0x34, 0x3c),
-            Color32::from_rgb(0x50, 0x55, 0x5f),
+            palette().selected,
+            palette().border_strong,
         ),
-        (&mut v.widgets.open, BUTTON_HOVER, BORDER_STRONG),
+        (
+            &mut v.widgets.open,
+            palette().button_hover,
+            palette().border_strong,
+        ),
     ] {
         w.bg_fill = fill;
         w.weak_bg_fill = fill;
         w.bg_stroke = Stroke::new(1.0_f32, stroke);
         w.corner_radius = CornerRadius::same(5);
     }
-    v.widgets.noninteractive.fg_stroke.color = TEXT_2;
-    v.widgets.inactive.fg_stroke.color = TEXT;
-    v.widgets.hovered.fg_stroke.color = Color32::WHITE;
-    v.widgets.active.fg_stroke.color = Color32::WHITE;
+    v.widgets.noninteractive.fg_stroke.color = palette().text_2;
+    v.widgets.inactive.fg_stroke.color = palette().text;
+    v.widgets.hovered.fg_stroke.color = palette().text;
+    v.widgets.active.fg_stroke.color = palette().text;
     style.spacing.item_spacing = egui::vec2(8.0, 8.0);
     style.spacing.button_padding = egui::vec2(12.0, 6.0);
     style.spacing.interact_size.y = 28.0;
@@ -104,6 +303,7 @@ pub fn apply(ctx: &egui::Context) {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Icon {
+    Sun,
     Gear,
     Search,
     Grid,
@@ -120,6 +320,77 @@ pub enum Icon {
     Alert,
     Folder,
     Check,
+}
+
+pub fn theme_toggle(ui: &mut Ui, mode: Theme) -> Response {
+    let label = if mode == Theme::Dark {
+        "Switch to light theme"
+    } else {
+        "Switch to dark theme"
+    };
+    let (hit_rect, response) = ui.allocate_exact_size(egui::vec2(56.0, 36.0), Sense::click());
+    let rect = Rect::from_center_size(hit_rect.center(), egui::vec2(48.0, 20.0));
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
+    let light = mode == Theme::Light;
+    let position = ui
+        .ctx()
+        .animate_bool_with_time(response.id.with("theme-thumb"), light, 0.18);
+    let track = if light {
+        Color32::from_gray(if response.hovered() { 248 } else { 255 })
+    } else {
+        Color32::from_gray(if response.hovered() { 57 } else { 50 })
+    };
+    ui.painter().rect(
+        rect,
+        CornerRadius::same(10),
+        track,
+        Stroke::new(1.0_f32, palette().border_strong),
+        StrokeKind::Inside,
+    );
+    let center = egui::pos2(
+        egui::lerp((rect.left() + 10.0)..=(rect.right() - 10.0), position),
+        rect.center().y,
+    );
+    let thumb = if light {
+        Color32::from_gray(41)
+    } else {
+        Color32::from_gray(242)
+    };
+    let ink = if light {
+        Color32::WHITE
+    } else {
+        Color32::from_gray(27)
+    };
+    ui.painter().circle_filled(
+        center + egui::vec2(0.0, 1.0),
+        8.5,
+        Color32::from_black_alpha(28),
+    );
+    ui.painter().circle_filled(center, 8.0, thumb);
+    if light {
+        ui.painter().circle_filled(center, 5.0, ink);
+        ui.painter()
+            .circle_filled(center + egui::vec2(2.5, -2.0), 4.5, thumb);
+    } else {
+        paint_icon(
+            ui.painter(),
+            Rect::from_center_size(center, Vec2::splat(14.0)),
+            Icon::Sun,
+            ink,
+        );
+    }
+    if response.has_focus() {
+        ui.painter().rect_stroke(
+            rect.expand(2.0),
+            CornerRadius::same(12),
+            Stroke::new(1.0_f32, palette().accent),
+            StrokeKind::Inside,
+        );
+    }
+    if response.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    response.on_hover_text(label)
 }
 
 /// Strokes an icon drawn on the 24-unit grid the mockups use, scaled into `rect`.
@@ -153,6 +424,16 @@ pub fn paint_icon_weight(
             .collect()
     };
     match icon {
+        Icon::Sun => {
+            painter.circle_stroke(p(12.0, 12.0), 4.0 * scale, stroke);
+            for angle in (0..360).step_by(45) {
+                let angle = (angle as f32).to_radians();
+                line(vec![
+                    p(12.0 + 7.0 * angle.cos(), 12.0 + 7.0 * angle.sin()),
+                    p(12.0 + 10.0 * angle.cos(), 12.0 + 10.0 * angle.sin()),
+                ]);
+            }
+        }
         Icon::Gear => {
             painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
             let outline = GEAR
@@ -434,47 +715,53 @@ impl<'a> Btn<'a> {
     /// Fill, hovered fill, border and text colour.
     fn colors(&self) -> (Color32, Color32, Stroke, Color32) {
         let hairline = |color| Stroke::new(1.0_f32, color);
-        let outline = if self.size == Size::Card {
-            Color32::from_rgb(0x3a, 0x3d, 0x44)
-        } else {
-            BORDER_STRONG
-        };
+        let outline = palette().border_strong;
         match self.kind {
-            Kind::Primary => (ACCENT, ACCENT_HOVER, Stroke::NONE, Color32::WHITE),
+            Kind::Primary => (
+                palette().accent,
+                palette().accent_hover,
+                Stroke::NONE,
+                Color32::WHITE,
+            ),
             Kind::Danger => (
-                DANGER,
+                palette().danger,
                 Color32::from_rgb(0xc4, 0x44, 0x49),
                 Stroke::NONE,
                 Color32::WHITE,
             ),
             Kind::Soft => (
-                ACCENT_SOFT,
-                Color32::from_rgb(0x24, 0x38, 0x61),
-                hairline(ACCENT_BORDER),
-                Color32::from_rgb(0xcf, 0xe0, 0xff),
+                palette().accent_soft,
+                palette().selected,
+                hairline(palette().accent_border),
+                palette().accent_text,
             ),
             Kind::Tinted => (
-                Color32::from_rgb(0x1d, 0x24, 0x33),
-                Color32::from_rgb(0x25, 0x2e, 0x42),
-                hairline(Color32::from_rgb(0x3a, 0x4a, 0x6b)),
-                TEXT,
+                palette().accent_soft,
+                palette().selected,
+                hairline(palette().accent_border),
+                palette().text,
             ),
-            Kind::Secondary => (BUTTON, BUTTON_HOVER, hairline(outline), TEXT),
+            Kind::Secondary => (
+                palette().button,
+                palette().button_hover,
+                hairline(outline),
+                palette().text,
+            ),
             Kind::DangerOutline => (
                 Color32::TRANSPARENT,
-                RED_BG,
-                hairline(Color32::from_rgb(0x4a, 0x2a, 0x2d)),
-                Color32::from_rgb(0xf2, 0xa0, 0xa4),
+                palette().red_bg,
+                hairline(palette().red_border),
+                palette().red,
             ),
             Kind::Ghost => (
                 Color32::TRANSPARENT,
-                BUTTON_HOVER,
+                palette().button_hover,
                 if self.size == Size::Chip {
-                    hairline(Color32::from_rgb(0x3a, 0x3d, 0x44))
+                    hairline(palette().border_strong)
                 } else {
                     Stroke::NONE
                 },
-                TEXT,
+                palette().text,
             ),
         }
     }
@@ -555,7 +842,7 @@ impl<'a> Btn<'a> {
                 painter.rect_stroke(
                     rect.expand(2.0),
                     CornerRadius::same(radius + 2),
-                    Stroke::new(2.0_f32, LINK),
+                    Stroke::new(2.0_f32, palette().link),
                     StrokeKind::Outside,
                 );
             }
@@ -593,7 +880,7 @@ pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Resp
     response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
     if response.hovered() {
         ui.painter()
-            .rect_filled(rect, CornerRadius::same(8), BUTTON_HOVER);
+            .rect_filled(rect, CornerRadius::same(8), palette().button_hover);
     }
     paint_icon(
         ui.painter(),
@@ -609,7 +896,11 @@ pub fn text(ui: &mut Ui, text: impl Into<String>, size: f32, color: Color32) -> 
 }
 
 pub fn heading(ui: &mut Ui, text: impl Into<String>, size: f32) -> Response {
-    ui.label(egui::RichText::new(text).font(bold(size)).color(TEXT))
+    ui.label(
+        egui::RichText::new(text)
+            .font(bold(size))
+            .color(palette().text),
+    )
 }
 
 /// Uppercase, letter-spaced group label such as "INSTALLED" or "ACTIVITY".
@@ -617,7 +908,7 @@ pub fn section_label(ui: &mut Ui, text: &str) -> Response {
     ui.label(
         egui::RichText::new(text.to_uppercase())
             .font(medium(12.0))
-            .color(MUTED)
+            .color(palette().muted)
             .extra_letter_spacing(0.7),
     )
 }
@@ -637,7 +928,7 @@ fn focus_ring(ui: &Ui, response: &Response) {
         ui.painter().rect_stroke(
             response.rect.expand(2.0),
             CornerRadius::same(3),
-            Stroke::new(1.5_f32, LINK),
+            Stroke::new(1.5_f32, palette().link),
             StrokeKind::Outside,
         );
     }
@@ -654,14 +945,14 @@ pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Resp
     let response = ui
         .add_enabled_ui(enabled, |ui| {
             let response = ui.add(
-                egui::Label::new(egui::RichText::new(&text).size(13.0).color(LINK))
+                egui::Label::new(egui::RichText::new(&text).size(13.0).color(palette().link))
                     // One line, so the underline matches the text; a wrapping layout
                     // moves the whole link to the next line instead.
                     .extend()
                     .sense(Sense::click()),
             );
             // Painted in the disabled scope so it dims with the text.
-            underline(ui, response.rect, 13.0, LINK);
+            underline(ui, response.rect, 13.0, palette().link);
             response
         })
         .inner;
@@ -689,31 +980,35 @@ pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size:
     ] {
         state.fg_stroke.width = 0.0;
     }
-    let response = ui.hyperlink_to(egui::RichText::new(text).size(size).color(LINK), url);
+    let response = ui.hyperlink_to(
+        egui::RichText::new(text).size(size).color(palette().link),
+        url,
+    );
     ui.set_style(style);
-    underline(ui, response.rect, size, LINK);
+    underline(ui, response.rect, size, palette().link);
     focus_ring(ui, &response);
     response
 }
 
 pub fn card() -> egui::Frame {
     egui::Frame::new()
-        .fill(PANEL)
-        .stroke(Stroke::new(1.0_f32, BORDER))
+        .fill(palette().panel)
+        .stroke(Stroke::new(1.0_f32, palette().border))
         .corner_radius(CornerRadius::same(12))
 }
 
 pub fn group() -> egui::Frame {
     egui::Frame::new()
-        .fill(CARD)
-        .stroke(Stroke::new(1.0_f32, BORDER))
+        .fill(palette().card)
+        .stroke(Stroke::new(1.0_f32, palette().border))
         .corner_radius(CornerRadius::same(10))
 }
 
 /// Paints a full-width hairline at the current cursor, used between rows of a group.
 pub fn divider(ui: &mut Ui) {
     let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), 1.0), Sense::hover());
-    ui.painter().rect_filled(rect, CornerRadius::ZERO, BORDER);
+    ui.painter()
+        .rect_filled(rect, CornerRadius::ZERO, palette().border);
 }
 
 pub fn dot(ui: &mut Ui, color: Color32) {
@@ -726,7 +1021,8 @@ pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
     let (rect, _) =
         ui.allocate_exact_size(egui::vec2(ui.available_width(), height), Sense::hover());
     let radius = CornerRadius::same((height / 2.0) as u8);
-    ui.painter().rect_filled(rect, radius, PROGRESS_TRACK);
+    ui.painter()
+        .rect_filled(rect, radius, palette().progress_track);
     let fill = match progress {
         Some(value) => Rect::from_min_size(
             rect.min,
@@ -744,7 +1040,7 @@ pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
         }
     };
     if fill.width() > 0.0 {
-        ui.painter().rect_filled(fill, radius, ACCENT);
+        ui.painter().rect_filled(fill, radius, palette().accent);
     }
 }
 
@@ -760,9 +1056,6 @@ pub fn badge(ui: &mut Ui, text: &str, fill: Color32, color: Color32) -> Response
         .galley(rect.center() - galley.size() / 2.0, galley, color);
     response
 }
-
-/// Unchecked checkbox and radio outline, as the mockups render native inputs.
-pub const CONTROL_BORDER: Color32 = Color32::from_rgb(0x76, 0x76, 0x76);
 
 /// Two-option segmented control: `height` segments with `pad` side padding in a
 /// 3pt-padded field. Keeps the option order in right-to-left layouts too.
@@ -791,8 +1084,8 @@ pub fn segmented<T: PartialEq + Clone>(
         egui::Layout::left_to_right(egui::Align::Center),
         |ui| {
             egui::Frame::new()
-                .fill(FIELD)
-                .stroke(Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38)))
+                .fill(palette().field)
+                .stroke(Stroke::new(1.0_f32, palette().border_strong))
                 .corner_radius(CornerRadius::same(8))
                 .inner_margin(egui::Margin::same(3))
                 .show(ui, |ui| {
@@ -816,9 +1109,9 @@ pub fn segmented<T: PartialEq + Clone>(
                                 rect,
                                 CornerRadius::same(6),
                                 if selected {
-                                    Color32::from_rgb(0x2b, 0x2f, 0x37)
+                                    palette().button_hover
                                 } else {
-                                    HOVER
+                                    palette().hover
                                 },
                             );
                         }
@@ -826,12 +1119,15 @@ pub fn segmented<T: PartialEq + Clone>(
                             ui.painter().rect_stroke(
                                 rect,
                                 CornerRadius::same(6),
-                                Stroke::new(1.5_f32, LINK),
+                                Stroke::new(1.5_f32, palette().link),
                                 StrokeKind::Inside,
                             );
                         }
-                        ui.painter()
-                            .galley(rect.center() - galley.size() / 2.0, galley, TEXT);
+                        ui.painter().galley(
+                            rect.center() - galley.size() / 2.0,
+                            galley,
+                            palette().text,
+                        );
                         if response.clicked() && !selected {
                             *value = option.clone();
                             changed = true;
@@ -861,7 +1157,7 @@ pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, e
             rect,
             CornerRadius::same(2),
             Color32::WHITE.gamma_multiply(alpha),
-            Stroke::new(1.0_f32, CONTROL_BORDER),
+            Stroke::new(1.0_f32, palette().control_border),
             StrokeKind::Inside,
         );
     }
@@ -871,15 +1167,15 @@ pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, e
 pub fn paint_radio(ui: &egui::Ui, center: egui::Pos2, on: bool) {
     let painter = ui.painter();
     if on {
-        painter.circle_filled(center, 8.0, ACCENT);
+        painter.circle_filled(center, 8.0, palette().accent);
         painter.circle_filled(center, 6.5, Color32::WHITE);
-        painter.circle_filled(center, 4.5, ACCENT);
+        painter.circle_filled(center, 4.5, palette().accent);
     } else {
         painter.circle(
             center,
             7.5,
             Color32::WHITE,
-            Stroke::new(1.0_f32, CONTROL_BORDER),
+            Stroke::new(1.0_f32, palette().control_border),
         );
     }
 }
@@ -912,7 +1208,7 @@ pub fn checkbox(
         ui.painter().rect_stroke(
             rect.expand(2.0),
             CornerRadius::same(4),
-            Stroke::new(2.0_f32, LINK),
+            Stroke::new(2.0_f32, palette().link),
             StrokeKind::Outside,
         );
     }
@@ -951,9 +1247,9 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
         );
         if checked {
             let fill = if enabled && response.hovered() {
-                ACCENT_HOVER
+                palette().accent_hover
             } else {
-                ACCENT
+                palette().accent
             };
             painter.rect_filled(tick_box, CornerRadius::same(2), fill.gamma_multiply(alpha));
             let p = |x: f32, y: f32| tick_box.min + egui::vec2(x, y) * 16.0;
@@ -966,7 +1262,7 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
                 tick_box,
                 CornerRadius::same(2),
                 Color32::WHITE.gamma_multiply(alpha),
-                Stroke::new(1.0_f32, CONTROL_BORDER.gamma_multiply(alpha)),
+                Stroke::new(1.0_f32, palette().control_border.gamma_multiply(alpha)),
                 StrokeKind::Inside,
             );
         }
@@ -974,7 +1270,7 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
             painter.rect_stroke(
                 tick_box.expand(2.0),
                 CornerRadius::same(4),
-                Stroke::new(2.0_f32, LINK),
+                Stroke::new(2.0_f32, palette().link),
                 StrokeKind::Outside,
             );
         }
@@ -984,7 +1280,9 @@ pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Re
                 rect.center().y - galley.size().y / 2.0,
             ),
             galley,
-            TEXT_2.gamma_multiply(if enabled { 1.0 } else { 0.5 }),
+            palette()
+                .text_2
+                .gamma_multiply(if enabled { 1.0 } else { 0.5 }),
         );
     }
     if enabled && response.hovered() {
@@ -1000,7 +1298,7 @@ pub fn log_view(ui: &mut Ui, text: &str, wrap: bool) {
     let line_height = 12.0 * 1.7;
     let available = ui.available_height();
     egui::Frame::new()
-        .fill(LOG)
+        .fill(palette().log)
         .corner_radius(CornerRadius::same(8))
         .inner_margin(egui::Margin::same(12))
         .show(ui, |ui| {
@@ -1023,7 +1321,7 @@ pub fn log_view(ui: &mut Ui, text: &str, wrap: bool) {
                             .monospace()
                             .size(12.0)
                             .line_height(Some(line_height))
-                            .color(TEXT_3),
+                            .color(palette().text_3),
                     )
                     .selectable(true);
                     ui.add(if wrap {
@@ -1062,4 +1360,73 @@ pub fn bold(size: f32) -> FontId {
 /// IBM Plex Sans Medium (500), used for labels such as app names and group titles.
 pub fn medium(size: f32) -> FontId {
     FontId::new(size, medium_family())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn luminance(color: Color32) -> f32 {
+        let linear = |component: u8| {
+            let component = f32::from(component) / 255.0;
+            if component <= 0.04045 {
+                component / 12.92
+            } else {
+                ((component + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * linear(color.r()) + 0.7152 * linear(color.g()) + 0.0722 * linear(color.b())
+    }
+    #[test]
+    fn both_themes_keep_body_text_and_statuses_readable() {
+        for palette in [DARK, LIGHT] {
+            for background in [palette.bg, palette.panel, palette.card, palette.log] {
+                for text in [
+                    palette.text,
+                    palette.text_2,
+                    palette.text_3,
+                    palette.muted,
+                    palette.green,
+                    palette.red,
+                ] {
+                    let a = luminance(text);
+                    let b = luminance(background);
+                    let contrast = (a.max(b) + 0.05) / (a.min(b) + 0.05);
+                    assert!(
+                        contrast >= 4.5,
+                        "Insufficient contrast: {text:?} on {background:?}: {contrast}"
+                    );
+                }
+            }
+        }
+    }
+    #[test]
+    fn switching_theme_updates_native_and_custom_widget_colors() {
+        let ctx = egui::Context::default();
+        apply(&ctx, Theme::Light);
+        assert!(!ctx.style().visuals.dark_mode);
+        assert_eq!(ctx.style().visuals.panel_fill, LIGHT.bg);
+        assert_eq!(palette().text, LIGHT.text);
+        apply(&ctx, Theme::Dark);
+        assert!(ctx.style().visuals.dark_mode);
+        assert_eq!(palette().text, LIGHT.text);
+        // Advance the transition halfway, then verify that it reaches the exact endpoint.
+        let id = egui::Id::new("manager-visual-theme");
+        ctx.data_mut(|data| {
+            let mut state = data.get_temp::<ThemeTransition>(id).unwrap();
+            state.started -= 0.125;
+            data.insert_temp(id, state);
+        });
+        apply(&ctx, Theme::Dark);
+        assert_ne!(palette().bg, LIGHT.bg);
+        assert_ne!(palette().bg, DARK.bg);
+        assert_eq!(ctx.style().visuals.panel_fill, palette().bg);
+        ctx.data_mut(|data| {
+            let mut state = data.get_temp::<ThemeTransition>(id).unwrap();
+            state.started -= 0.125;
+            data.insert_temp(id, state);
+        });
+        apply(&ctx, Theme::Dark);
+        assert_eq!(palette().text, DARK.text);
+        assert_eq!(ctx.style().visuals.panel_fill, DARK.bg);
+    }
 }

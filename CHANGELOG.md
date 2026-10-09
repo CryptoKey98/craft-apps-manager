@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1
+
+- Add a saved light and dark theme with a slim toggle beside Settings.
+- Blend interface colors smoothly when switching themes.
+- Use Adobe Spectrum neutral grays in light and dark themes.
+- Add an About section with project information and contributor credits.
+- Add experimental Arch Linux package support and packaging tools.
+- Add local build launch controls, saved launch arguments and a build options window.
+- Allow local builds to be deleted with confirmation.
+
 ## 0.5.0
 
 - Redesign the manager window: an app list with search and Installed / Not installed groups, an Overview page for Update all and Update all sources, and a page for each app with its description, actions, details and tools.

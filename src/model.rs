@@ -106,9 +106,26 @@ pub fn valid_app(name: &str) -> Result<()> {
     Ok(())
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Theme {
+    #[default]
+    Dark,
+    Light,
+}
+impl Theme {
+    pub fn toggled(self) -> Self {
+        match self {
+            Self::Dark => Self::Light,
+            Self::Light => Self::Dark,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Preferences {
+    pub theme: Theme,
     pub keep_app_backups: bool,
     pub keep_source_backups: bool,
     pub compress_backups: bool,
@@ -127,6 +144,7 @@ pub struct Preferences {
 impl Default for Preferences {
     fn default() -> Self {
         Self {
+            theme: Theme::Dark,
             keep_app_backups: true,
             keep_source_backups: true,
             compress_backups: true,
@@ -582,6 +600,21 @@ pub fn release_arch(architecture: &str) -> &str {
 #[cfg(test)]
 mod detection_tests {
     use super::*;
+    #[test]
+    fn theme_defaults_for_existing_settings_and_survives_restart() {
+        let legacy: Preferences =
+            serde_json::from_str(r#"{"selectedApps":["filmcraft"]}"#).unwrap();
+        assert_eq!(legacy.theme, Theme::Dark);
+        let root = std::env::temp_dir().join(format!("craft-theme-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let mut preferences = legacy;
+        preferences.theme = Theme::Light;
+        crate::files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
+        let reopened = paths.read_preferences().unwrap();
+        assert_eq!(reopened.theme, Theme::Light);
+        assert_eq!(reopened.selected_apps, ["filmcraft"]);
+        std::fs::remove_dir_all(root).unwrap();
+    }
     fn release_fixture(folder: &Path, app: &str) {
         std::fs::create_dir_all(folder).unwrap();
         let executable = folder.join(executable_name(app));

@@ -4,7 +4,7 @@
 
 A desktop app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
-The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. This is an independent project, not an official Storytold or Adobe app.
+The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. Version 0.5.1 adds light and dark themes, an About page, local build launch options and experimental Arch packaging. This is an independent project, not an official Storytold or Adobe app.
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
@@ -39,7 +39,7 @@ Screenshots show the macOS 0.5.0 release with a demo library.
 
 ## Getting started
 
-Version **0.5.0** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
+Version **0.5.1** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
 
 | System | Installation | Portable |
 | --- | --- | --- |

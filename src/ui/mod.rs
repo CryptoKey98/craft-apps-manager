@@ -118,6 +118,9 @@ pub struct App {
     closing: bool,
     capture_frame: usize,
     launch_settings_open: bool,
+    launch_build_options: bool,
+    build_options_open: bool,
+    delete_build_confirm: bool,
     launch_draft: apps::LaunchSettings,
     launch_arguments: String,
     confirm_uninstall: bool,
@@ -206,9 +209,9 @@ impl App {
         home: PathBuf,
         builder: bool,
     ) -> Result<Self> {
-        theme::apply(&cc.egui_ctx);
         fonts(&cc.egui_ctx);
         let preferences = paths.preferences()?;
+        theme::apply(&cc.egui_ctx, preferences.theme);
         let build_preferences = paths.builder_preferences()?;
         let args: Vec<_> = std::env::args().collect();
         let app = args
@@ -301,6 +304,9 @@ impl App {
             closing: false,
             capture_frame: 0,
             launch_settings_open: false,
+            launch_build_options: false,
+            build_options_open: false,
+            delete_build_confirm: false,
             launch_draft: Default::default(),
             launch_arguments: String::new(),
             confirm_uninstall: false,
@@ -354,6 +360,11 @@ impl App {
             state.progress = Some(0.4);
         }
         match value("--preview-dialog").as_deref() {
+            Some("build-options") => {
+                self.launch_draft = builder::launch_options(&self.paths, &self.app).unwrap_or_default();
+                self.launch_arguments = self.launch_draft.arguments.join("\n");
+                self.build_options_open = true;
+            }
             Some("install") => self.confirm_install = Some(self.app.clone()),
             Some("uninstall") => self.confirm_uninstall = true,
             Some("launch") => {
@@ -784,7 +795,7 @@ impl App {
             return;
         };
         self.capture_frame += 1;
-        if self.capture_frame == 10 {
+        if self.capture_frame >= 10 && (self.builder || self.display_config.is_some()) {
             ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::UserData::default()));
         }
         ctx.input(|i| {
@@ -827,6 +838,7 @@ impl App {
 }
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        theme::apply(ctx, self.preferences.theme);
         ctx.data_mut(|data| {
             data.insert_temp(egui::Id::new("active-dialogs"), Vec::<egui::Id>::new())
         });
@@ -897,11 +909,8 @@ fn modal(
         .backdrop_color(egui::Color32::from_black_alpha(150))
         .frame(
             egui::Frame::new()
-                .fill(theme::PANEL)
-                .stroke(egui::Stroke::new(
-                    1.0_f32,
-                    egui::Color32::from_rgb(0x2f, 0x32, 0x38),
-                ))
+                .fill(theme::palette().panel)
+                .stroke(egui::Stroke::new(1.0_f32, theme::palette().border_strong))
                 .corner_radius(egui::CornerRadius::same(12))
                 .inner_margin(egui::Margin::ZERO)
                 .shadow(egui::Shadow {

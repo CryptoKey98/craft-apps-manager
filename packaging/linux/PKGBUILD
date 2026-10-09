@@ -1,0 +1,25 @@
+# scripts/package-linux-arch.sh sets pkgver and the payload checksum.
+pkgname=craft-apps-manager
+pkgrel=1
+pkgdesc='Manage Craft app releases, sources and builds'
+arch=('x86_64')
+url='https://github.com/CryptoKey98/craft-apps-manager'
+license=('MIT')
+depends=('glibc' 'gcc-libs' 'libx11' 'libxrandr' 'libxi' 'libxcursor'
+         'libxkbcommon' 'wayland' 'libglvnd' 'polkit' 'libnotify'
+         'xdg-utils' 'libarchive')
+optdepends=('7zip: compressed backups' 'systemd: scheduled update checks')
+options=('!strip' '!debug')
+source=('payload.tar.gz')
+
+package() {
+    install -Dm755 "$srcdir/craft-apps-manager" "$pkgdir/usr/bin/craft-apps-manager"
+    install -Dm644 "$srcdir/icon.png" "$pkgdir/usr/share/pixmaps/craft-apps-manager.png"
+    for launcher in craft-apps-manager craft-apps-builder; do
+        install -Dm644 "$srcdir/$launcher.desktop" "$pkgdir/usr/share/applications/$launcher.desktop"
+    done
+    install -Dm644 "$srcdir/linux.md" "$pkgdir/usr/share/doc/$pkgname/linux.md"
+    install -Dm644 "$srcdir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 "$srcdir/THIRD-PARTY-NOTICES.txt" "$pkgdir/usr/share/licenses/$pkgname/THIRD-PARTY-NOTICES.txt"
+    cp -r "$srcdir/licenses" "$pkgdir/usr/share/licenses/$pkgname/"
+}

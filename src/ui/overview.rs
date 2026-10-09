@@ -21,7 +21,7 @@ impl App {
             .exact_width(320.0)
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     .inner_margin(egui::Margin {
                         // One more point on the left for the panel's border line.
                         left: 21,
@@ -32,7 +32,7 @@ impl App {
             )
             .show(ctx, |ui| self.overview_side(ui, state));
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::BG))
+            .frame(egui::Frame::new().fill(theme::palette().bg))
             .show(ctx, |ui| {
                 egui::ScrollArea::vertical()
                     .auto_shrink([false, false])
@@ -66,7 +66,13 @@ impl App {
             .collect();
         ui.spacing_mut().item_spacing = Vec2::ZERO;
         // Heading block: 26pt title at line-height 1.2, then the summary 4pt below.
-        text_line(ui, "Overview", theme::bold(26.0), theme::TEXT, 31.2);
+        text_line(
+            ui,
+            "Overview",
+            theme::bold(26.0),
+            theme::palette().text,
+            31.2,
+        );
         ui.add_space(4.0);
         ui.add(
             egui::Label::new(
@@ -82,7 +88,7 @@ impl App {
                     model::architecture_label(&self.preferences.architecture),
                 ))
                 .size(14.0)
-                .color(theme::TEXT_3),
+                .color(theme::palette().text_3),
             )
             .wrap(),
         );
@@ -156,7 +162,7 @@ impl App {
                     egui::Label::new(
                         RichText::new(model::title(name))
                             .font(theme::medium(14.0))
-                            .color(theme::TEXT),
+                            .color(theme::palette().text),
                     )
                     .truncate(),
                 );
@@ -164,7 +170,7 @@ impl App {
                     egui::Label::new(
                         RichText::new(format!("{installed} {} {latest}", theme::arrow()))
                             .size(12.0)
-                            .color(theme::LINK),
+                            .color(theme::palette().link),
                     )
                     .truncate(),
                 );
@@ -258,7 +264,7 @@ impl App {
                 egui::Label::new(
                     RichText::new("Open log")
                         .font(link_font)
-                        .color(theme::LINK)
+                        .color(theme::palette().link)
                         .underline(),
                 )
                 .sense(Sense::click()),
@@ -306,7 +312,7 @@ impl App {
             f.layout(
                 title.to_owned(),
                 FontId::proportional(14.0),
-                theme::TEXT,
+                theme::palette().text,
                 text_width,
             )
             .size()
@@ -319,7 +325,7 @@ impl App {
                 f.layout(
                     state.detail.clone(),
                     FontId::proportional(12.0),
-                    theme::MUTED,
+                    theme::palette().muted,
                     text_width,
                 )
                 .size()
@@ -340,9 +346,9 @@ impl App {
             if state.busy {
                 BUSY_DOT
             } else if failed {
-                theme::RED
+                theme::palette().red
             } else {
-                theme::GREEN
+                theme::palette().green
             },
         );
         let mut text = ui.new_child(
@@ -353,13 +359,15 @@ impl App {
                 ))
                 .layout(Layout::top_down(Align::Min)),
         );
-        text.add(egui::Label::new(RichText::new(title).size(14.0).color(theme::TEXT)).wrap());
+        text.add(
+            egui::Label::new(RichText::new(title).size(14.0).color(theme::palette().text)).wrap(),
+        );
         if !state.detail.is_empty() {
             text.add(
                 egui::Label::new(RichText::new(&state.detail).size(12.0).color(if failed {
-                    theme::RED_TEXT
+                    theme::palette().red_text
                 } else {
-                    theme::MUTED
+                    theme::palette().muted
                 }))
                 .wrap(),
             );
@@ -426,7 +434,7 @@ fn card_header(
         f.layout(
             subtitle.to_owned(),
             FontId::proportional(13.0),
-            theme::MUTED,
+            theme::palette().muted,
             text_width,
         )
         .size()
@@ -450,9 +458,16 @@ fn card_header(
     text.add(egui::Label::new(
         RichText::new(title)
             .font(theme::bold(16.0))
-            .color(theme::TEXT),
+            .color(theme::palette().text),
     ));
-    text.add(egui::Label::new(RichText::new(subtitle).size(13.0).color(theme::MUTED)).wrap());
+    text.add(
+        egui::Label::new(
+            RichText::new(subtitle)
+                .size(13.0)
+                .color(theme::palette().muted),
+        )
+        .wrap(),
+    );
     let mut right = ui.new_child(
         UiBuilder::new()
             .max_rect(inner)

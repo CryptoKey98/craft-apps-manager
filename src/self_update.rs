@@ -57,6 +57,7 @@ fn installed_with_linux_package_at(executable: &Path) -> bool {
     for (command, args) in [
         ("dpkg-query", vec!["-S"]),
         ("rpm", vec!["-qf", "--queryformat", "%{NAME}"]),
+        ("pacman", vec!["-Qqo"]),
     ] {
         if let Ok(output) = Command::new(command).args(args).arg(executable).output() {
             if output.status.success()
@@ -71,7 +72,7 @@ fn installed_with_linux_package_at(executable: &Path) -> bool {
 
 #[cfg(any(target_os = "linux", test))]
 fn linux_package_owner(command: &str, output: &str) -> bool {
-    if command == "rpm" {
+    if matches!(command, "rpm" | "pacman") {
         output.trim() == "craft-apps-manager"
     } else {
         output.lines().any(|line| {
@@ -1650,6 +1651,8 @@ mod linux_package_tests {
             "craft-apps-manager: /usr/bin/craft-apps-manager\n"
         ));
         assert!(linux_package_owner("rpm", "craft-apps-manager\n"));
+        assert!(linux_package_owner("pacman", "craft-apps-manager\n"));
+        assert!(!linux_package_owner("pacman", "other-craft-apps-manager\n"));
         assert!(!linux_package_owner("rpm", "other-craft-apps-manager"));
         assert!(!linux_package_owner(
             "dpkg-query",

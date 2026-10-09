@@ -9,6 +9,7 @@ pub(super) fn asset_name(version: &str, arch: &str, kind: PackageKind) -> Result
         (PackageKind::Rpm, "x64") => format!("craft-apps-manager-{version}-0.2.x86_64.rpm"),
         (PackageKind::Rpm, "x86") => format!("craft-apps-manager-{version}-0.2.i686.rpm"),
         (PackageKind::Rpm, "arm64") => format!("craft-apps-manager-{version}-0.2.aarch64.rpm"),
+        (PackageKind::Arch, "x64") => format!("craft-apps-manager-{version}-1-x86_64.pkg.tar.zst"),
         _ => bail!("Unsupported manager package architecture"),
     })
 }
@@ -21,6 +22,7 @@ fn validate_metadata(output: &str, version: &str, arch: &str, kind: PackageKind)
         (PackageKind::Rpm, "x64") => "x86_64",
         (PackageKind::Rpm, "x86") => "i686",
         (PackageKind::Rpm, "arm64") => "aarch64",
+        (PackageKind::Arch, "x64") => "x86_64",
         _ => bail!("Unsupported manager architecture"),
     };
     if output.split_whitespace().collect::<Vec<_>>() != ["craft-apps-manager", version, expected] {
@@ -30,6 +32,13 @@ fn validate_metadata(output: &str, version: &str, arch: &str, kind: PackageKind)
 }
 
 fn metadata(file: &Path, kind: PackageKind) -> Result<String> {
+    if kind == PackageKind::Arch {
+        let (name, version, arch) = crate::installers::arch_metadata(file)?;
+        return Ok(format!(
+            "{name} {} {arch}",
+            crate::installers::upstream_version(&version)
+        ));
+    }
     let output = match kind {
         PackageKind::Debian => Command::new("dpkg-deb")
             .args(["-f"])
@@ -40,6 +49,7 @@ fn metadata(file: &Path, kind: PackageKind) -> Result<String> {
             .args(["-qp", "--queryformat", "%{NAME} %{VERSION} %{ARCH}"])
             .arg(file)
             .output()?,
+        PackageKind::Arch => unreachable!("Arch metadata handled above"),
     };
     if !output.status.success() {
         bail!("Could not read manager package metadata");
@@ -97,16 +107,13 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
     job.check()?;
     job.stage("Installing manager update", None, "Approve the administrator prompt. The package manager must finish before the manager restarts.");
     let log = fs::File::create(stage.join("install.log"))?;
+    let args = match kind {
+        PackageKind::Debian => ["/usr/bin/apt-get", "install", "-y"],
+        PackageKind::Rpm => ["/usr/bin/dnf", "install", "-y"],
+        PackageKind::Arch => ["/usr/bin/pacman", "-U", "--noconfirm"],
+    };
     let status = Command::new("pkexec")
-        .args([
-            if kind == PackageKind::Debian {
-                "/usr/bin/apt-get"
-            } else {
-                "/usr/bin/dnf"
-            },
-            "install",
-            "-y",
-        ])
+        .args(args)
         .arg(&package)
         .stdout(log.try_clone()?)
         .stderr(log)
@@ -121,9 +128,20 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
         PackageKind::Rpm => Command::new("rpm")
             .args(["-q", "--queryformat", "%{VERSION}", "craft-apps-manager"])
             .output()?,
+        PackageKind::Arch => Command::new("pacman")
+            .args(["-Q", "craft-apps-manager"])
+            .output()?,
+    };
+    let installed_text = String::from_utf8_lossy(&output.stdout);
+    let installed_version = if kind == PackageKind::Arch {
+        crate::installers::upstream_version(
+            installed_text.split_whitespace().nth(1).unwrap_or_default(),
+        )
+    } else {
+        installed_text.trim()
     };
     if !output.status.success()
-        || String::from_utf8_lossy(&output.stdout).trim() != available.version
+        || installed_version != available.version
         || !installed_with_linux_package_at(&target)
     {
         bail!("Package installation completed, but the new manager version could not be verified. See {}", stage.join("install.log").display());
@@ -170,6 +188,7 @@ mod tests {
             (PackageKind::Debian, "x86", "i386"),
             (PackageKind::Rpm, "x64", "x86_64"),
             (PackageKind::Rpm, "x86", "i686"),
+            (PackageKind::Arch, "x64", "x86_64"),
         ] {
             let name = asset_name("0.4.2", arch, kind).unwrap();
             assert!(name.contains(metadata));
