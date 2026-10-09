@@ -45,6 +45,14 @@ jobs:
           ./scripts/package-windows.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
           ./scripts/package-windows-msi.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
           Get-ChildItem $out -File
+      - name: Verify upgrade from the previous MSI release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern 'Craft-Apps-Manager-0.5.1-windows-${{ matrix.arch }}.msi' --dir baseline
+          $candidate = (Get-ChildItem 'dist/windows-${{ matrix.arch }}/*.msi').FullName
+          ./scripts/smoke-windows-msi.ps1 -Architecture ${{ matrix.arch }} -BaselineMsi 'baseline/Craft-Apps-Manager-0.5.1-windows-${{ matrix.arch }}.msi' -CandidateMsi $candidate
       - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.arch }}

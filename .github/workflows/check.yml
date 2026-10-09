@@ -31,6 +31,23 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Test Windows MSI upgrade and shortcuts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $arch = if ('${{ matrix.target }}' -eq 'i686-pc-windows-msvc') { 'x86' } else { 'x64' }
+          gh release download --repo ip7z/7zip --pattern '*-extra.7z' --dir 7zip-download
+          & 'C:\Program Files\7-Zip\7z.exe' x (Get-ChildItem 7zip-download/*-extra.7z).FullName -o7zip -y
+          if ($LASTEXITCODE -ne 0) { throw '7-Zip extraction failed' }
+          $seven = if ($arch -eq 'x86') { '7zip' } else { '7zip/x64' }
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add --global WixToolset.UI.wixext/5.0.2
+          $out = "dist/windows-$arch"
+          ./scripts/package-windows-msi.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
+          gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern "Craft-Apps-Manager-0.5.1-windows-$arch.msi" --dir baseline
+          $candidate = (Get-ChildItem "$out/*.msi").FullName
+          ./scripts/smoke-windows-msi.ps1 -Architecture $arch -BaselineMsi "baseline/Craft-Apps-Manager-0.5.1-windows-$arch.msi" -CandidateMsi $candidate
       - name: Install and remove real Craft apps
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
