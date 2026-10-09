@@ -28,13 +28,13 @@ Run the packaging script as a regular user on Arch:
 
 ```sh
 sh scripts/package-linux-arch.sh target/release/craft-apps-manager
-sudo pacman -U ./dist/linux/craft-apps-manager-0.5.1-1-x86_64.pkg.tar.zst
+sudo pacman -U ./dist/linux/craft-apps-manager-0.6.0-1-x86_64.pkg.tar.zst
 ```
 
 The package includes Manager and Builder launchers and license notices. Removing
 it with `sudo pacman -R craft-apps-manager` preserves your library and settings.
 The manager's update button selects a native Arch package when one is present
-in a future manager release and requests administrator approval through PolicyKit.
+in a manager release and requests administrator approval through PolicyKit.
 Native Arch packages still need installation and upgrade testing on Arch.
 
 Keep Arch fully updated before setting up build tools. The manager installs
@@ -44,7 +44,7 @@ database separately or perform a partial system upgrade.
 Tester checklist: launch Manager and Builder; install, launch and remove an
 AppImage; download sources; create and restore a backup; test notifications and
 scheduled checks; set up tools and build a selected app. Native manager upgrades
-need two native package versions and are not yet covered by a public release.
+need two native package versions for testing.
 Arch desktop behavior has not yet been verified on an Arch machine.
 
 See the [pacman manual](https://man.archlinux.org/man/pacman.8.en) for native
@@ -81,7 +81,7 @@ To cross-build x86 on an Ubuntu x64 host, add the `i386` package architecture an
 
 Run `sh scripts/package-linux-zip.sh path/to/craft-apps-manager` for a portable ZIP. The 32-bit manager only selects matching upstream x86 app assets; it cannot turn an upstream x64-only release into a 32-bit app.
 
-Linux packages are experimental. The current binaries were built on Ubuntu 26.04 and require glibc 2.43 or newer. Ubuntu 26.04 and Fedora 44 x86_64 have been used for testing. This does not establish compatibility with older systems. Linux CI builds on Ubuntu 22.04 to keep the glibc baseline older; additional distribution testing is needed before claiming compatibility with older distributions. An Ubuntu 22.04 or 24.04 VM is a useful next test target. macOS packaging is documented separately.
+Linux packages are experimental. Release DEB, RPM and portable binaries are built on Ubuntu 22.04; Arch packages are built separately on Arch. Earlier local test binaries built on Ubuntu 26.04 required glibc 2.43 or newer; that requirement does not describe every release package. Ubuntu 26.04 and Fedora 44 x86_64 have been used for desktop testing. Additional distribution testing is needed before claiming compatibility with older distributions. An Ubuntu 22.04 or 24.04 VM is a useful next test target. macOS packaging is documented separately.
 
 ## Ubuntu and Debian development package
 
