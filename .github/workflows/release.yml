@@ -1,0 +1,143 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+env:
+  # Packages self-update from the releases of the repository that built them.
+  CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+jobs:
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            target: x86_64-pc-windows-msvc
+            seven: 7zip/x64
+          - arch: x86
+            target: i686-pc-windows-msvc
+            seven: 7zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Download the 7-Zip console tools bundled with the manager
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo ip7z/7zip --pattern '*-extra.7z' --dir 7zip-download
+          & 'C:\Program Files\7-Zip\7z.exe' x (Get-ChildItem 7zip-download/*-extra.7z).FullName -o7zip -y
+          if ($LASTEXITCODE -ne 0) { throw '7-Zip extraction failed' }
+      - name: Install WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add --global WixToolset.UI.wixext/5.0.2
+      - name: Package
+        shell: pwsh
+        run: |
+          $out = "dist/windows-${{ matrix.arch }}"
+          ./scripts/package-windows.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
+          ./scripts/package-windows-msi.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
+          Get-ChildItem $out -File
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.arch }}
+          path: |
+            dist/windows-${{ matrix.arch }}/*.zip
+            dist/windows-${{ matrix.arch }}/*.msi
+          if-no-files-found: error
+  linux:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            pkgconfig: /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig
+          - target: i686-unknown-linux-gnu
+            pkgconfig: /usr/lib/i386-linux-gnu/pkgconfig:/usr/share/pkgconfig
+    env:
+      PKG_CONFIG_ALLOW_CROSS: "1"
+      PKG_CONFIG_LIBDIR: ${{ matrix.pkgconfig }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev dpkg-dev rpm zip
+      - if: matrix.target == 'i686-unknown-linux-gnu'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib libc6-dev-i386 libx11-dev:i386 libxi-dev:i386 libxrandr-dev:i386 libxcursor-dev:i386 libxkbcommon-dev:i386 libwayland-dev:i386 libgl1-mesa-dev:i386 libegl1-mesa-dev:i386
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package ZIP, DEB and RPM
+        run: |
+          binary=target/${{ matrix.target }}/release/craft-apps-manager
+          sh scripts/package-linux-zip.sh "$binary"
+          sh scripts/package-linux-deb.sh "$binary"
+          sh scripts/package-linux-rpm.sh "$binary"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.target }}
+          path: |
+            dist/linux/*.zip
+            dist/linux/*.deb
+            dist/linux/*.rpm
+          if-no-files-found: error
+  arch:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - run: pacman -Syu --needed --noconfirm git rust pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils
+      - uses: actions/checkout@v4
+      - name: Build and package as a regular user
+        run: |
+          useradd -m builder
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          runuser -u builder -- sh -c 'cargo build --release --locked && sh scripts/package-linux-arch.sh target/release/craft-apps-manager'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arch-x86_64
+          path: dist/linux/*.pkg.tar.zst
+          if-no-files-found: error
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - run: ./scripts/package-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal
+          path: dist/macos/*.zip
+          if-no-files-found: error
+  publish:
+    needs: [windows, linux, arch, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Checksums
+        run: cd packages && find . -maxdepth 1 -type f ! -name SHA256SUMS.txt -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Release notes from the changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          package_version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
+          test "$version" = "$package_version" || { echo "Release tag does not match Cargo.toml" >&2; exit 1; }
+          awk -v heading="## $version" '$0 == heading {found = 1; next} found && /^## / {exit} found {print}' CHANGELOG.md > notes.md
+          test -s notes.md || echo "Craft Apps Manager $version" > notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" packages/* --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md

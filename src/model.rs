@@ -10,100 +10,63 @@ pub const MANAGER_ARCH: &str = if cfg!(target_arch = "x86") {
     "x64"
 };
 
-pub const APPS: [&str; 12] = [
-    "designcraft",
-    "effectcraft",
-    "filmcraft",
-    "lightcraft",
-    "photocraft",
-    "printcraft",
-    "vectorcraft",
-    "wordcraft",
-    "gridcraft",
-    "deckcraft",
-    "cadcraft",
-    "soundcraft",
-];
-pub const SOURCES: [&str; 13] = [
-    "designcraft",
-    "effectcraft",
-    "filmcraft",
-    "lightcraft",
-    "photocraft",
-    "printcraft",
-    "vectorcraft",
-    "wordcraft",
-    "gridcraft",
-    "deckcraft",
-    "cadcraft",
-    "soundcraft",
-    "artcraftx",
-];
+/// Apps with installable releases, from the current catalog.
+pub fn apps() -> Vec<String> {
+    crate::catalog::release_keys()
+}
+/// Apps whose source can be downloaded and built, from the current catalog.
+pub fn sources() -> Vec<String> {
+    crate::catalog::source_keys()
+}
 pub fn title(name: &str) -> String {
-    if name == "cadcraft" {
-        return "CADCraft".into();
-    }
-    if name == "printcraft" {
-        return "PDFCraft".into();
-    }
-    if name == "artcraftx" {
-        return "ArtCraft X".into();
-    }
-    format!(
-        "{}{}",
-        name[..1].to_uppercase(),
-        name[1..].replace("craft", "Craft")
-    )
+    crate::catalog::get(name)
+        .map(|e| e.title)
+        .unwrap_or_else(|| crate::catalog::pretty(name))
 }
 /// Upstream repository names can differ from the published binary names.
-pub fn repository(name: &str) -> &str {
-    if name == "printcraft" {
-        "pdfcraft"
-    } else {
-        name
-    }
+pub fn repository(name: &str) -> String {
+    crate::catalog::get(name)
+        .map(|e| e.repository)
+        .unwrap_or_else(|| name.into())
 }
 /// Short category shown under each app, taken from the upstream repository description.
-pub fn category(name: &str) -> &'static str {
-    match name {
-        "designcraft" => "Page layout",
-        "effectcraft" => "Motion graphics",
-        "filmcraft" => "Video editing",
-        "lightcraft" => "Photo workflow",
-        "photocraft" => "Image editing",
-        "printcraft" => "PDF documents",
-        "vectorcraft" => "Vector graphics",
-        "wordcraft" => "Word processing",
-        "gridcraft" => "Spreadsheets",
-        "deckcraft" => "Presentations",
-        "cadcraft" => "CAD and drafting",
-        "soundcraft" => "Audio production",
-        _ => "",
-    }
+pub fn category(name: &str) -> String {
+    crate::catalog::get(name)
+        .map(|e| e.category)
+        .unwrap_or_default()
 }
 /// The upstream repository description, shown on each app page.
-pub fn description(name: &str) -> &'static str {
-    match name {
-        "designcraft" => "Page layout and publishing; an open-source, clean-room reimplementation of Adobe InDesign, rebuilt in pure Rust.",
-        "effectcraft" => "Motion graphics and visual effects; an open-source, clean-room reimplementation of Adobe After Effects, rebuilt in pure Rust.",
-        "filmcraft" => "An open-source, clean-room reimplementation of Adobe Premiere Pro built in pure Rust.",
-        "lightcraft" => "An open-source, clean-room reimplementation of Adobe Lightroom in pure Rust.",
-        "photocraft" => "An open-source, clean-room reimplementation of Adobe Photoshop in pure Rust.",
-        "printcraft" => "An open-source, clean-room reimplementation of Adobe Acrobat built in pure Rust.",
-        "vectorcraft" => "An open-source, clean-room reimplementation of Adobe Illustrator, built in pure Rust.",
-        "wordcraft" => "An open-source, clean-room reimplementation of Microsoft Word in pure Rust.",
-        "gridcraft" => "An open-source, clean-room spreadsheet (Microsoft Excel-style) in pure Rust.",
-        "deckcraft" => "Presentations and slide shows: an open-source, clean-room reimplementation of Microsoft PowerPoint in pure Rust.",
-        "cadcraft" => "Computer-aided design and drafting: an open-source, clean-room AutoCAD-style app in pure Rust.",
-        "soundcraft" => "An open-source, clean-room reimplementation of Avid Pro Tools in pure Rust.",
-        _ => "",
-    }
+pub fn description(name: &str) -> String {
+    crate::catalog::get(name)
+        .map(|e| e.description)
+        .unwrap_or_default()
 }
 pub fn valid_app(name: &str) -> Result<()> {
-    if !SOURCES.contains(&name) {
+    if crate::catalog::get(name).is_none() {
         bail!("Unknown app: {name}");
     }
     Ok(())
+}
+/// Apps offered before the catalog was read from GitHub. Settings written by
+/// those versions treat every later app as new.
+fn legacy_known_apps() -> Vec<String> {
+    [
+        "artcraftx",
+        "cadcraft",
+        "deckcraft",
+        "designcraft",
+        "effectcraft",
+        "filmcraft",
+        "gridcraft",
+        "lightcraft",
+        "photocraft",
+        "printcraft",
+        "soundcraft",
+        "vectorcraft",
+        "wordcraft",
+    ]
+    .map(String::from)
+    .to_vec()
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -140,6 +103,15 @@ pub struct Preferences {
     #[serde(alias = "checkUpdaterOnStartup")]
     pub check_manager_on_startup: bool,
     pub check_installed_apps_on_startup: bool,
+    /// Apps already offered to the user; newer catalog apps are adopted once.
+    #[serde(default = "legacy_known_apps")]
+    pub known_apps: Vec<String>,
+    /// Select newly published Craft apps for release and source updates.
+    pub select_new_apps: bool,
+    /// Discover new apps at startup, using the shared catalog cache.
+    pub check_catalog_on_startup: bool,
+    /// Discover new apps during scheduled app availability checks.
+    pub check_catalog_with_app_updates: bool,
 }
 impl Default for Preferences {
     fn default() -> Self {
@@ -158,38 +130,67 @@ impl Default for Preferences {
             }
             .into(),
             architecture: MANAGER_ARCH.into(),
-            selected_apps: APPS.iter().map(|s| s.to_string()).collect(),
-            selected_sources: SOURCES.iter().map(|s| s.to_string()).collect(),
-            app_order: APPS.iter().map(|s| s.to_string()).collect(),
+            selected_apps: apps(),
+            selected_sources: sources(),
+            app_order: apps(),
             check_manager_on_startup: false,
             check_installed_apps_on_startup: false,
+            known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
+            select_new_apps: false,
+            check_catalog_on_startup: false,
+            check_catalog_with_app_updates: false,
         }
     }
 }
 impl Preferences {
     pub fn validate(&mut self) -> Result<()> {
+        self.adopt_new_apps()?;
+        Ok(())
+    }
+    /// Normalizes the settings against the current catalog. Returns `true`
+    /// when newly published apps were adopted and the settings should be saved.
+    pub fn adopt_new_apps(&mut self) -> Result<bool> {
         if !["portable", "installer"].contains(&self.release_format.as_str())
             || !["x64", "x86", "arm64"].contains(&self.architecture.as_str())
         {
             bail!("Unsupported release format or architecture");
         }
         self.backup_versions = self.backup_versions.clamp(1, 10);
-        self.selected_apps.retain(|s| APPS.contains(&s.as_str()));
+        let apps = apps();
+        let sources = sources();
+        let mut adopted = false;
+        for entry in crate::catalog::all() {
+            if self.known_apps.contains(&entry.key) {
+                continue;
+            }
+            adopted = true;
+            if self.select_new_apps {
+                if entry.release {
+                    self.selected_apps.push(entry.key.clone());
+                }
+                if entry.source {
+                    self.selected_sources.push(entry.key.clone());
+                }
+            }
+            self.known_apps.push(entry.key);
+        }
+        self.known_apps.sort();
+        self.known_apps.dedup();
+        self.selected_apps.retain(|s| apps.contains(s));
         self.selected_apps.sort();
         self.selected_apps.dedup();
-        self.selected_sources
-            .retain(|s| SOURCES.contains(&s.as_str()));
+        self.selected_sources.retain(|s| sources.contains(s));
         self.selected_sources.sort();
         self.selected_sources.dedup();
         let mut seen = std::collections::BTreeSet::new();
         self.app_order
-            .retain(|s| APPS.contains(&s.as_str()) && seen.insert(s.clone()));
-        for name in APPS {
-            if seen.insert(name.to_owned()) {
-                self.app_order.push(name.to_owned());
+            .retain(|s| apps.contains(s) && seen.insert(s.clone()));
+        for name in apps {
+            if seen.insert(name.clone()) {
+                self.app_order.push(name);
             }
         }
-        Ok(())
+        Ok(adopted)
     }
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -254,6 +255,8 @@ pub struct Asset {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Release {
     pub tag_name: String,
+    #[serde(default)]
+    pub name: Option<String>,
     pub draft: bool,
     pub prerelease: bool,
     pub assets: Vec<Asset>,
@@ -296,7 +299,8 @@ impl Paths {
             return self.refresh_config(config, &detect);
         }
         let mut apps = Vec::new();
-        for name in APPS {
+        for name in self::apps() {
+            let name = name.as_str();
             let mut found: Vec<_> = std::fs::read_dir(self.at("releases"))
                 .into_iter()
                 .flatten()
@@ -311,7 +315,7 @@ impl Paths {
                     let label = e.file_name().to_string_lossy().into_owned();
                     let version = label
                         .strip_prefix(&format!("{name}-"))?
-                        .split("-windows-")
+                        .split(&format!("-{}-", release_os()))
                         .next()?
                         .to_string();
                     crate::updates::version(&version)
@@ -355,10 +359,10 @@ impl Paths {
         let installer = self.read_preferences()?.release_format == "installer";
         // Add catalog entries when upgrading an existing library without
         // changing saved selections, installations, or the user's app order.
-        for name in APPS {
+        for name in apps() {
             if !config.apps.iter().any(|app| app.name == name) {
                 config.apps.push(Installed {
-                    name: name.into(),
+                    name,
                     architecture: default_arch(),
                     ..Default::default()
                 });
@@ -451,7 +455,8 @@ impl Paths {
     ) -> Result<Vec<Installed>> {
         let installer = self.read_preferences()?.release_format == "installer";
         let mut records = Vec::new();
-        for name in APPS {
+        for name in apps() {
+            let name = name.as_str();
             if !installer {
                 if let Some(record) = detect(name)? {
                     records.push(record);
@@ -489,10 +494,13 @@ impl Paths {
         let migrate = !target.exists() && legacy.exists();
         let mut p =
             crate::files::read_or_default::<Preferences>(if migrate { &legacy } else { &target })?;
-        p.validate()?;
+        let adopted = p.adopt_new_apps()?;
         if migrate {
             crate::files::write_json(&target, &p)?;
             std::fs::remove_file(legacy)?;
+        } else if adopted && target.exists() {
+            // Remember new apps so they are selected and announced only once.
+            crate::files::write_json(&target, &p)?;
         }
         Ok(p)
     }
@@ -540,14 +548,14 @@ pub fn is_executable(path: &Path) -> bool {
     }
 }
 pub fn executable_names(app: &str) -> Vec<String> {
-    let mut names = vec![executable_name(app)];
-    let renamed = repository(app);
-    if renamed != app {
-        names.push(executable_name(renamed));
-    }
-    // Prefer the current release name on Unix; keep the legacy name as a fallback.
+    let mut names: Vec<String> = crate::catalog::names(app)
+        .iter()
+        .map(|name| executable_name(name))
+        .collect();
+    names.dedup();
+    // Prefer the current release name on Unix; keep older names as fallbacks.
     // Windows installer resolution is handled separately.
-    if cfg!(any(target_os = "macos", target_os = "linux")) && renamed != app {
+    if cfg!(any(target_os = "macos", target_os = "linux")) {
         names.reverse();
     }
     names
@@ -609,6 +617,8 @@ mod detection_tests {
         let paths = Paths::new(root.clone(), None);
         let mut preferences = legacy;
         preferences.theme = Theme::Light;
+        // Written after the newest apps were found, so none are adopted on reopening.
+        preferences.known_apps = crate::catalog::all().into_iter().map(|e| e.key).collect();
         crate::files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
         let reopened = paths.read_preferences().unwrap();
         assert_eq!(reopened.theme, Theme::Light);
@@ -753,7 +763,7 @@ mod detection_tests {
             }))
         };
         let migrated = paths.config_with_detector(detect).unwrap();
-        assert_eq!(migrated.apps.len(), APPS.len());
+        assert_eq!(migrated.apps.len(), apps().len());
         assert_eq!(
             migrated
                 .apps
@@ -766,13 +776,13 @@ mod detection_tests {
         paths.save_config(&migrated).unwrap();
         assert_eq!(
             paths.config_with_detector(detect).unwrap().apps.len(),
-            APPS.len()
+            apps().len()
         );
         let preserved = paths.preferences().unwrap();
         assert_eq!(preserved.selected_apps, ["filmcraft"]);
         assert_eq!(preserved.selected_sources, ["filmcraft"]);
         assert_eq!(preserved.app_order[0], "filmcraft");
-        assert_eq!(preserved.app_order.len(), APPS.len());
+        assert_eq!(preserved.app_order.len(), apps().len());
         std::fs::remove_dir_all(root).unwrap();
     }
     #[test]

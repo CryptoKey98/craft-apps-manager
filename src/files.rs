@@ -21,11 +21,15 @@ pub fn read_or_default<T: DeserializeOwned + Default>(p: &Path) -> Result<T> {
     }
 }
 pub fn write_json<T: Serialize>(p: &Path, v: &T) -> Result<()> {
+    write_bytes(p, &serde_json::to_vec_pretty(v)?)
+}
+/// Replaces a file atomically so readers never see a partial write.
+pub fn write_bytes(p: &Path, bytes: &[u8]) -> Result<()> {
     fs::create_dir_all(p.parent().context("No parent directory")?)?;
     let tmp = p.with_extension(format!("{}.tmp", uuid::Uuid::new_v4().simple()));
     {
         let mut f = File::create(&tmp)?;
-        f.write_all(&serde_json::to_vec_pretty(v)?)?;
+        f.write_all(bytes)?;
         f.sync_all()?;
     }
     let result = crate::platform::atomic_replace(&tmp, p);

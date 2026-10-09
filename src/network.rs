@@ -29,6 +29,22 @@ impl Network {
             cache: root.join("runtime/api-cache"),
         })
     }
+    /// Like `json`, but `None` when GitHub reports the resource missing (404),
+    /// such as `releases/latest` for a repository without releases.
+    pub fn json_optional<T: DeserializeOwned>(&self, url: &str) -> Result<Option<T>> {
+        match self.json(url) {
+            Ok(value) => Ok(Some(value)),
+            Err(error)
+                if error
+                    .downcast_ref::<reqwest::Error>()
+                    .and_then(reqwest::Error::status)
+                    .is_some_and(|s| s.as_u16() == 404) =>
+            {
+                Ok(None)
+            }
+            Err(error) => Err(error),
+        }
+    }
     pub fn json<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
         use sha2::{Digest, Sha256};
         let path = self
@@ -46,6 +62,15 @@ impl Network {
             .header("Accept", "application/vnd.github+json");
         if let Some(etag) = old.as_ref().and_then(|c| c.etag.as_ref()) {
             request = request.header("If-None-Match", etag);
+        }
+        // An optional token raises GitHub's hourly API limit; it is sent only to the API host.
+        if url.starts_with("https://api.github.com/") {
+            if let Some(token) = ["CRAFT_GITHUB_TOKEN", "GITHUB_TOKEN"]
+                .iter()
+                .find_map(|k| std::env::var(k).ok().filter(|t| !t.trim().is_empty()))
+            {
+                request = request.bearer_auth(token.trim());
+            }
         }
         let response = request.send()?;
         if response.status().as_u16() == 304 {

@@ -4,8 +4,7 @@ use super::App;
 use craft_apps_manager::{
     builder,
     jobs::{Job, State},
-    model::{self, SOURCES},
-    platform,
+    model, platform,
 };
 use eframe::egui::{self, RichText};
 use std::sync::atomic::Ordering;
@@ -92,9 +91,10 @@ impl App {
                     .width(ui.available_width())
                     .selected_text(model::title(&self.app))
                     .show_ui(ui, |ui| {
-                        for name in SOURCES {
+                        for name in model::sources() {
                             ui.add_enabled_ui(!state.busy, |ui| {
-                                ui.selectable_value(&mut self.app, name.into(), model::title(name));
+                                let label = model::title(&name);
+                                ui.selectable_value(&mut self.app, name, label);
                             });
                         }
                     });

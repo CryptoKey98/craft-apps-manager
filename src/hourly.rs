@@ -23,6 +23,30 @@ pub fn read(paths: &Paths) -> Result<Checks> {
 }
 pub fn run(paths: &Paths, job: &Job) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManagerHourlyChecks")?;
+    let before = paths.read_preferences()?;
+    if before.check_catalog_with_app_updates {
+        match crate::catalog::refresh_if_older(&paths.root, crate::catalog::REFRESH_INTERVAL) {
+            Ok(entries) => {
+                for entry in entries
+                    .iter()
+                    .filter(|e| !before.known_apps.contains(&e.key))
+                {
+                    job.log(&format!("{}: new Craft app found", entry.key));
+                    if before.notify_updates {
+                        let message = format!(
+                            "{} is a new Craft app. Open Craft Apps Manager to install it.",
+                            entry.title
+                        );
+                        if let Err(error) = platform::notify(&std::env::current_exe()?, &message) {
+                            job.log(&format!("Notification warning: {error:#}"));
+                        }
+                    }
+                }
+            }
+            Err(error) => job.log(&format!("App list refresh failed: {error:#}")),
+        }
+    }
+    // Reading the settings again adopts and remembers newly found apps.
     let prefs = paths.preferences()?;
     let config = paths.config()?;
     let mut checks = read(paths)?;

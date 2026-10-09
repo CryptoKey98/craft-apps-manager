@@ -196,7 +196,7 @@ pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) ->
 
 #[cfg(target_os = "linux")]
 pub fn repair_linux_shortcuts(paths: &Paths) -> Result<()> {
-    for app in crate::model::APPS {
+    for app in crate::model::apps() {
         let old = paths.at(format!("releases/{app}.lnk"));
         if !old.is_file() {
             continue;

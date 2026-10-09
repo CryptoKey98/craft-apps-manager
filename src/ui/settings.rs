@@ -3,10 +3,7 @@ use super::dialogs;
 use super::overview::release_format_label;
 use super::theme::{self, btn, Kind};
 use super::{modal, App, Locations};
-use craft_apps_manager::{
-    model::{self, APPS, SOURCES},
-    platform, self_update,
-};
+use craft_apps_manager::{catalog, model, platform, self_update};
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
@@ -656,7 +653,7 @@ impl App {
             let apps = format!(
                 "{} of {} included",
                 self.settings_draft.selected_apps.len(),
-                APPS.len()
+                model::apps().len()
             );
             if row(ui, "Apps", Some(&apps), 52.0, |ui| {
                 btn("Choose…").show(ui).clicked()
@@ -669,7 +666,7 @@ impl App {
             let sources = format!(
                 "{} of {} included",
                 self.settings_draft.selected_sources.len(),
-                SOURCES.len()
+                model::sources().len()
             );
             if row(ui, "Sources", Some(&sources), 52.0, |ui| {
                 btn("Choose…").show(ui).clicked()
@@ -677,6 +674,56 @@ impl App {
                 self.source_selection = true;
                 self.selection_draft = self.settings_draft.selected_sources.clone();
                 self.selection = true;
+            }
+            dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.settings_draft.select_new_apps,
+                "Include newly published Craft apps automatically",
+                None,
+            )
+            .on_hover_text("Apps that appear on github.com/storytold after this version are added to Update all and Update all sources the first time they are found.");
+            dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.settings_draft.check_catalog_on_startup,
+                "Look for new Craft apps on startup",
+                None,
+            )
+            .on_hover_text("Uses the saved app list for six hours between automatic checks. Discovery never downloads or installs apps.");
+            dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.settings_draft.check_catalog_with_app_updates,
+                "Look for new Craft apps during hourly app checks",
+                None,
+            )
+            .on_hover_text("Requires hourly App updates to be enabled. Shares the six-hour cache with startup checks. Refresh below checks immediately.");
+            dialogs::rule(ui);
+            let known = catalog::all().len();
+            let status = if self.catalog_message.is_empty() {
+                let checked = catalog::age(&self.paths.root)
+                    .map(|s| {
+                        if s < 120 {
+                            "just now".to_string()
+                        } else if s < 7200 {
+                            format!("{} min ago", s / 60)
+                        } else {
+                            format!("{} h ago", s / 3600)
+                        }
+                    })
+                    .unwrap_or_else(|| "not yet".into());
+                format!("{known} Craft apps known · checked {checked}")
+            } else {
+                self.catalog_message.clone()
+            };
+            let refreshing = self.catalog_receiver.is_some();
+            if row(ui, "App list", Some(&status), 52.0, |ui| {
+                ui.add_enabled_ui(!refreshing, |ui| btn("Refresh").show(ui).clicked())
+                    .inner
+            }) {
+                let ctx = ui.ctx().clone();
+                self.refresh_catalog(&ctx);
             }
         });
         ui.add_space(16.0);

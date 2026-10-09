@@ -4,7 +4,7 @@ use craft_apps_manager::model::Release;
 use craft_apps_manager::{
     backups, builder, files,
     jobs::Job,
-    model::{Asset, BuilderPreferences, Paths, Preferences, Source, APPS},
+    model::{self, Asset, BuilderPreferences, Paths, Preferences, Source},
     network::{verify_asset, Network},
     platform, updates,
 };
@@ -40,6 +40,7 @@ fn renamed_pdfcraft_assets_and_executable_keep_legacy_library_identity() {
     );
     let release = Release {
         tag_name: "v0.4.0".into(),
+        name: None,
         draft: false,
         prerelease: false,
         assets: [
@@ -105,7 +106,7 @@ fn manager_settings_migrate_existing_startup_preferences() {
     let paths = f.paths();
     fs::write(
         paths.at("updater-settings.json"),
-        r#"{"checkUpdaterOnStartup":true,"selectedApps":[],"appOrder":["filmcraft","photocraft"]}"#,
+        serde_json::json!({"checkUpdaterOnStartup":true,"selectedApps":[],"appOrder":["filmcraft","photocraft"],"knownApps":known_apps()}).to_string(),
     )
     .unwrap();
     let preferences = paths.preferences().unwrap();
@@ -118,9 +119,11 @@ fn manager_settings_migrate_existing_startup_preferences() {
 }
 #[test]
 fn sidebar_order_migrates_and_preserves_custom_order() {
-    let mut legacy: Preferences = serde_json::from_str(r#"{"selectedApps":[]}"#).unwrap();
+    let mut legacy: Preferences =
+        serde_json::from_value(serde_json::json!({"selectedApps":[],"knownApps":known_apps()}))
+            .unwrap();
     legacy.validate().unwrap();
-    assert_eq!(legacy.app_order, APPS);
+    assert_eq!(legacy.app_order, model::apps());
     legacy.app_order = vec![
         "filmcraft".into(),
         "unknown".into(),
@@ -129,7 +132,7 @@ fn sidebar_order_migrates_and_preserves_custom_order() {
     ];
     legacy.validate().unwrap();
     assert_eq!(&legacy.app_order[..2], &["filmcraft", "photocraft"]);
-    assert_eq!(legacy.app_order.len(), APPS.len());
+    assert_eq!(legacy.app_order.len(), model::apps().len());
     assert!(legacy.selected_apps.is_empty());
     let mut loaded: Preferences =
         serde_json::from_str(&serde_json::to_string(&legacy).unwrap()).unwrap();
@@ -339,7 +342,7 @@ fn switching_release_format_remembers_both_installations() {
 fn release_and_source_selections_are_independent() {
     let f = Fixture::new();
     let paths = f.paths();
-    files::write_json(&paths.at("manager-settings.json"), &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":["artcraftx","artcraftx","unknown"]})).unwrap();
+    files::write_json(&paths.at("manager-settings.json"), &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":["artcraftx","artcraftx","unknown"],"knownApps":known_apps()})).unwrap();
     let p = paths.preferences().unwrap();
     assert_eq!(p.selected_apps, ["filmcraft"]);
     assert_eq!(p.selected_sources, ["artcraftx"]);
@@ -358,7 +361,7 @@ fn release_and_source_selections_are_independent() {
     .unwrap();
     assert_eq!(
         paths.preferences().unwrap().selected_sources.len(),
-        craft_apps_manager::model::SOURCES.len()
+        craft_apps_manager::model::sources().len()
     );
 }
 #[test]
@@ -485,7 +488,7 @@ fn pdfcraft_repository_rename_preserves_existing_app_identity() {
     );
     assert!(files::verify_source(&archive, "printcraft", &sha).is_err());
     let release = Release {
-        tag_name: "v0.2.1".into(), draft: false, prerelease: false,
+        tag_name: "v0.2.1".into(), name: None, draft: false, prerelease: false,
         assets: vec![Asset { name: "printcraft-0.2.1-windows-x64-portable.zip".into(), size: 1,
             browser_download_url: "https://github.com/storytold/pdfcraft/releases/download/v0.2.1/printcraft-0.2.1-windows-x64-portable.zip".into(), digest: None }],
     };
@@ -502,7 +505,10 @@ fn settings_compatible_with_powershell_and_empty_selection() {
     let paths = f.paths();
     fs::write(
         paths.at("manager-settings.json"),
-        "\u{feff}{\"selectedApps\":[],\"keepAppBackups\":false,\"architecture\":\"x86\"}",
+        format!(
+            "\u{feff}{}",
+            serde_json::json!({"selectedApps":[],"keepAppBackups":false,"architecture":"x86","knownApps":known_apps()})
+        ),
     )
     .unwrap();
     let p = paths.preferences().unwrap();
@@ -521,6 +527,7 @@ fn settings_compatible_with_powershell_and_empty_selection() {
 fn architectures_and_installer_selection() {
     let r = Release {
         tag_name: "v1.2.3".into(),
+        name: None,
         draft: false,
         prerelease: false,
         assets: vec![
@@ -832,7 +839,7 @@ fn real_rust_fixture_build() -> Result<()> {
         out.join(craft_apps_manager::model::executable_name("designcraft")),
     ))?;
     assert!(String::from_utf8_lossy(&result.stdout).contains("rust-builder-fixture"));
-    assert!(APPS.contains(&"designcraft"));
+    assert!(model::apps().iter().any(|a| a == "designcraft"));
     Ok(())
 }
 
@@ -880,4 +887,158 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     config.installations[0].install_kind = "portable".into();
     files::write_json(&paths.at("settings.json"), &config).unwrap();
     assert!(paths.config().unwrap().apps[0].path.is_empty());
+}
+
+/// Every app currently in the catalog, so fixtures behave like settings
+/// written after the newest apps were found.
+fn known_apps() -> serde_json::Value {
+    serde_json::json!(craft_apps_manager::catalog::all()
+        .into_iter()
+        .map(|e| e.key)
+        .collect::<Vec<_>>())
+}
+/// A release file for this system in the portable format.
+fn release_asset(app: &str, version: &str) -> String {
+    if cfg!(target_os = "windows") {
+        format!(
+            "{app}-{version}-windows-{}-portable.zip",
+            model::MANAGER_ARCH
+        )
+    } else if cfg!(target_os = "macos") {
+        format!("{app}-{version}-macos-universal.dmg")
+    } else {
+        format!(
+            "{app}-{version}-linux-{}.AppImage",
+            model::release_arch(model::MANAGER_ARCH)
+        )
+    }
+}
+fn release_with(tag: &str, names: &[String]) -> craft_apps_manager::model::Release {
+    craft_apps_manager::model::Release {
+        tag_name: tag.into(),
+        name: None,
+        draft: false,
+        prerelease: false,
+        assets: names
+            .iter()
+            .map(|name| Asset {
+                name: name.clone(),
+                size: 1,
+                browser_download_url: String::new(),
+                digest: None,
+            })
+            .collect(),
+    }
+}
+#[test]
+fn newly_published_apps_are_selected_once_and_remembered() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    // Settings from a manager that only knew its built-in apps.
+    files::write_json(
+        &paths.at("manager-settings.json"),
+        &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":["filmcraft"],"selectNewApps":true}),
+    )
+    .unwrap();
+    let p = paths.preferences().unwrap();
+    assert!(p.selected_apps.iter().any(|a| a == "artcraft"));
+    assert!(p.app_order.iter().any(|a| a == "artcraft"));
+    assert!(!p.selected_apps.iter().any(|a| a == "photocraft"));
+    // ArtCraft is published as releases only.
+    assert!(!p.selected_sources.iter().any(|a| a == "artcraft"));
+    // The user deselects the new app; it stays deselected.
+    let mut p = p;
+    p.selected_apps.retain(|a| a != "artcraft");
+    files::write_json(&paths.at("manager-settings.json"), &p).unwrap();
+    assert!(!paths
+        .preferences()
+        .unwrap()
+        .selected_apps
+        .iter()
+        .any(|a| a == "artcraft"));
+    // Automatic selection can be turned off.
+    files::write_json(
+        &paths.at("manager-settings.json"),
+        &serde_json::json!({"selectedApps":[],"selectedSources":[]}),
+    )
+    .unwrap();
+    let p = paths.preferences().unwrap();
+    assert!(p.selected_apps.is_empty());
+    assert!(p.selected_sources.is_empty());
+    assert!(!p.select_new_apps);
+    assert!(!p.check_catalog_on_startup);
+    assert!(!p.check_catalog_with_app_updates);
+    assert!(p.known_apps.iter().any(|a| a == "artcraft"));
+}
+#[test]
+fn renamed_release_files_are_still_matched() {
+    let release = |prefixes: &[&str]| {
+        let names: Vec<String> = prefixes.iter().map(|p| release_asset(p, "0.4.0")).collect();
+        release_with("v0.4.0", &names)
+    };
+    let prefs = Preferences {
+        release_format: "portable".into(),
+        ..Default::default()
+    };
+    // PDFCraft's files switched from printcraft-* to pdfcraft-* in 0.4.0.
+    assert!(updates::select_asset(&release(&["pdfcraft"]), "printcraft", &prefs).is_ok());
+    assert!(updates::select_asset(&release(&["printcraft"]), "printcraft", &prefs).is_ok());
+    // One new name in the app's own release is the same app renamed.
+    assert!(updates::select_asset(&release(&["lumencraft"]), "lightcraft", &prefs).is_ok());
+    // Known names win over others; two unknown names cannot be told apart.
+    assert!(
+        updates::select_asset(&release(&["lightcraft", "other"]), "lightcraft", &prefs)
+            .unwrap()
+            .name
+            .starts_with("lightcraft-")
+    );
+    assert!(updates::select_asset(&release(&["alpha", "beta"]), "lightcraft", &prefs).is_err());
+    // A learned name is used to find the program afterwards.
+    let f = Fixture::new();
+    craft_apps_manager::catalog::learn_alias(&f.0, "lightcraft", "lumencraft").unwrap();
+    assert!(craft_apps_manager::catalog::names("lightcraft").contains(&"lumencraft".to_string()));
+    assert!(model::executable_names("lightcraft")
+        .iter()
+        .any(|n| n.to_lowercase().starts_with("lumencraft")));
+    // Restore the built-in list for the tests that follow.
+    craft_apps_manager::catalog::load(&f.0.join("empty"));
+}
+#[test]
+fn artcraft_installers_are_selected() {
+    let artcraft = release_with(
+        "artcraft-v0.41.0",
+        &[
+            "ArtCraft_0.41.0_universal.dmg".into(),
+            "ArtCraft_0.41.0_x64-setup.exe".into(),
+            "ArtCraft_0.41.0_x64_en-US.msi".into(),
+        ],
+    );
+    let installer = Preferences {
+        release_format: "installer".into(),
+        architecture: "x64".into(),
+        ..Default::default()
+    };
+    let portable = Preferences {
+        release_format: "portable".into(),
+        ..installer.clone()
+    };
+    let chosen = updates::select_asset(&artcraft, "artcraft", &installer);
+    if cfg!(target_os = "windows") {
+        assert_eq!(chosen.unwrap().name, "ArtCraft_0.41.0_x64_en-US.msi");
+        assert!(updates::select_asset(&artcraft, "artcraft", &portable).is_err());
+    } else if cfg!(target_os = "macos") {
+        assert_eq!(chosen.unwrap().name, "ArtCraft_0.41.0_universal.dmg");
+        assert_eq!(
+            updates::select_asset(&artcraft, "artcraft", &portable)
+                .unwrap()
+                .name,
+            "ArtCraft_0.41.0_universal.dmg"
+        );
+    } else {
+        assert!(chosen.is_err());
+    }
+    assert_eq!(
+        updates::release_version("artcraft-v0.41.0").unwrap(),
+        "0.41.0"
+    );
 }

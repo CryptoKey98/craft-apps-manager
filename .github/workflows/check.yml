@@ -3,8 +3,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
+env:
+  # Raises GitHub's API limit for the release lookups made by tests and end-to-end checks.
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   windows:
     runs-on: windows-latest
@@ -27,6 +31,33 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Install and remove real Craft apps
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        shell: pwsh
+        run: |
+          $exe = "target/${{ matrix.target }}/release/craft-apps-manager.exe"
+          $library = Join-Path $env:RUNNER_TEMP 'craft-smoke'
+          function Invoke-Manager([string[]]$Arguments) {
+            $out = Join-Path $env:RUNNER_TEMP 'manager-output.txt'
+            $p = Start-Process $exe -ArgumentList (@('--root', $library) + $Arguments) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $out
+            Get-Content $out
+            if ($p.ExitCode -ne 0) {
+              Get-Content (Join-Path $library 'logs/updates.log') -ErrorAction SilentlyContinue | Select-Object -Last 40
+              throw "Manager failed: $Arguments"
+            }
+          }
+          Invoke-Manager @('--list-apps')
+          foreach ($app in 'soundcraft', 'printcraft') {
+            Invoke-Manager @('--release-format', 'portable', '--install-app', $app)
+          }
+          & (Join-Path $library 'releases/soundcraft/soundcraft-cli.exe') --version
+          if ($LASTEXITCODE -ne 0) { throw 'SoundCraft does not run' }
+          & (Join-Path $library 'releases/printcraft/pdfcraft-cli.exe') --version
+          if ($LASTEXITCODE -ne 0) { throw 'PDFCraft does not run' }
+          foreach ($app in 'soundcraft', 'printcraft') {
+            Invoke-Manager @('--uninstall-app', $app)
+            if (Test-Path (Join-Path $library "releases/$app")) { throw "$app was not removed" }
+          }
 
   linux:
     runs-on: ubuntu-22.04
@@ -74,6 +105,8 @@ jobs:
         env:
           # Self-update from the releases of the repository being built.
           CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+      - name: Install and remove real Craft apps
+        run: sh scripts/smoke-macos.sh
       - uses: actions/upload-artifact@v4
         with:
           name: macos-universal

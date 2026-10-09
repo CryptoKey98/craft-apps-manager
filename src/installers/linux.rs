@@ -108,16 +108,28 @@ fn manager(kind: PackageKind) -> &'static str {
     }
 }
 pub fn detect(app: &str) -> Result<Option<Installed>> {
-    if !crate::model::APPS.contains(&app) {
+    if !crate::model::apps().iter().any(|a| a == app) {
         return Ok(None);
     }
-    if let Some(installed) = detect_package(app, crate::model::repository(app))? {
-        return Ok(Some(installed));
-    }
-    if crate::model::repository(app) != app {
-        return detect_package(app, app);
+    // Newest package names first, like the repository name the app now uses.
+    let mut names: Vec<String> = crate::catalog::names(app)
+        .iter()
+        .map(|n| n.to_lowercase())
+        .collect();
+    names.reverse();
+    names.dedup();
+    for package in &names {
+        if let Some(installed) = detect_package(app, package)? {
+            return Ok(Some(installed));
+        }
     }
     Ok(None)
+}
+/// Whether a package name belongs to the app under any of its names.
+fn owned_package(app: &str, package: &str) -> bool {
+    crate::catalog::names(app)
+        .iter()
+        .any(|name| name.eq_ignore_ascii_case(package))
 }
 fn detect_package(app: &str, package: &str) -> Result<Option<Installed>> {
     let kind = package_kind()?;
@@ -257,7 +269,7 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&Job>) -> Result<Install
     let package = match kind {
         PackageKind::Arch => {
             let (name, _, _) = arch_metadata(&file)?;
-            if ![app, crate::model::repository(app)].contains(&name.as_str()) {
+            if !owned_package(app, &name) {
                 bail!("Package identity does not match the selected app");
             }
             return install_arch(&file, app, job);
@@ -273,8 +285,7 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&Job>) -> Result<Install
             .output()?,
     };
     if !package.status.success()
-        || ![app, crate::model::repository(app)]
-            .contains(&String::from_utf8_lossy(&package.stdout).trim())
+        || !owned_package(app, String::from_utf8_lossy(&package.stdout).trim())
     {
         bail!("Package identity does not match the selected app");
     }
@@ -297,9 +308,7 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&Job>) -> Result<Install
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
     crate::model::valid_app(&app.name)?;
-    if ![app.name.as_str(), crate::model::repository(&app.name)]
-        .contains(&app.product_code.as_str())
-    {
+    if !owned_package(&app.name, &app.product_code) {
         bail!("Installed package identity mismatch");
     }
     let kind = package_kind()?;

@@ -11,8 +11,11 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+/// Parses `1.2.3`, `v1.2.3` and app-prefixed tags such as `artcraft-v0.41.0`.
 pub fn version(v: &str) -> Result<(u64, u64, u64)> {
     let nums: Vec<_> = v
+        .rsplit_once("-v")
+        .map_or(v, |(_, version)| version)
         .trim_start_matches('v')
         .split('.')
         .map(str::parse::<u64>)
@@ -21,6 +24,11 @@ pub fn version(v: &str) -> Result<(u64, u64, u64)> {
         bail!("Unsupported version: {v}");
     }
     Ok((nums[0], nums[1], nums[2]))
+}
+/// The plain `x.y.z` version of a release tag.
+pub fn release_version(tag: &str) -> Result<String> {
+    let (a, b, c) = version(tag)?;
+    Ok(format!("{a}.{b}.{c}"))
 }
 pub fn check_app(paths: &Paths, app: &str) -> Result<Option<String>> {
     crate::model::valid_app(app)?;
@@ -34,30 +42,70 @@ pub fn check_app(paths: &Paths, app: &str) -> Result<Option<String>> {
     }
     if version(&release.tag_name)? > version(&installed.version)? {
         select_asset(&release, app, &paths.preferences()?)?;
-        Ok(Some(release.tag_name.trim_start_matches('v').into()))
+        Ok(Some(release_version(&release.tag_name)?))
     } else {
         Ok(None)
     }
 }
 pub fn installed_check_targets(config: &crate::model::Config) -> Vec<crate::model::Installed> {
+    let apps = crate::model::apps();
     config
         .apps
         .iter()
-        .filter(|app| {
-            crate::model::APPS.contains(&app.name.as_str())
-                && !app.path.is_empty()
-                && !app.version.is_empty()
-        })
+        .filter(|app| apps.contains(&app.name) && !app.path.is_empty() && !app.version.is_empty())
         .cloned()
         .collect()
 }
+/// Chooses the release file for this system, architecture and release format.
 pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&'a Asset> {
-    version(&r.tag_name)?;
+    let release = release_version(&r.tag_name)?;
+    let entry = crate::catalog::get(name).context("Unknown app")?;
+    if entry.scheme == crate::catalog::Scheme::Tauri {
+        return tauri_asset(r, &entry, &release, p);
+    }
+    // Newest names first, like the repository name the release now uses.
+    let mut known = crate::catalog::names(name);
+    known.reverse();
+    if let Some(asset) = asset_named(r, &known, p)? {
+        return Ok(asset);
+    }
+    // A release from the app's own repository whose files use one new name is
+    // the same app renamed (printcraft → pdfcraft).
+    let renamed: std::collections::BTreeSet<String> = r
+        .assets
+        .iter()
+        .filter_map(|a| crate::catalog::parse_asset(&a.name))
+        .filter(|a| {
+            a.scheme == crate::catalog::Scheme::Craft
+                && a.version == release
+                && a.os == crate::model::release_os()
+                && !known.iter().any(|k| k.eq_ignore_ascii_case(&a.prefix))
+        })
+        .map(|a| a.prefix)
+        .collect();
+    if renamed.len() == 1 {
+        if let Some(asset) = asset_named(r, &renamed.into_iter().collect::<Vec<_>>(), p)? {
+            return Ok(asset);
+        }
+    }
+    bail!(
+        "This release has no {} {}. Choose another option in Settings.",
+        p.architecture,
+        p.release_format
+    )
+}
+/// Release file whose name starts with one of `prefixes`.
+fn asset_named<'a>(
+    r: &'a Release,
+    prefixes: &[String],
+    p: &Preferences,
+) -> Result<Option<&'a Asset>> {
+    let release = release_version(&r.tag_name)?;
     let mut names = Vec::new();
-    for asset_name in [crate::model::repository(name), name] {
+    for asset_name in prefixes {
         let prefix = format!(
             "{asset_name}-{}-{}-{}",
-            r.tag_name.trim_start_matches('v'),
+            release,
             crate::model::release_os(),
             crate::model::release_arch(&p.architecture)
         );
@@ -84,7 +132,7 @@ pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&
         if p.release_format == "installer"
             && crate::installers::package_kind()? == crate::installers::PackageKind::Arch
         {
-            let start = format!("{asset_name}-{}-", r.tag_name.trim_start_matches('v'));
+            let start = format!("{asset_name}-{release}-");
             let end = format!(
                 "-{}.pkg.tar.zst",
                 crate::model::release_arch(&p.architecture)
@@ -116,14 +164,101 @@ pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&
             bail!("Ambiguous release assets");
         }
         if let Some(a) = assets.first() {
-            return Ok(a);
+            return Ok(Some(a));
+        }
+    }
+    Ok(None)
+}
+/// ArtCraft-style releases: `ArtCraft_0.41.0_x64_en-US.msi`, `ArtCraft_0.41.0_universal.dmg`.
+fn tauri_asset<'a>(
+    r: &'a Release,
+    entry: &crate::catalog::Entry,
+    release: &str,
+    p: &Preferences,
+) -> Result<&'a Asset> {
+    let prefix = regex::escape(&entry.asset_prefix);
+    let version = regex::escape(release);
+    let arch = match p.architecture.as_str() {
+        "x86" => "x86",
+        "arm64" => "(?:arm64|aarch64)",
+        _ => "x64",
+    };
+    let patterns: Vec<String> = if cfg!(target_os = "macos") {
+        vec![
+            format!("^{prefix}_{version}_universal\\.dmg$"),
+            format!("^{prefix}_{version}_{arch}\\.dmg$"),
+        ]
+    } else if cfg!(target_os = "windows") {
+        if p.release_format != "installer" {
+            bail!(
+                "{} is only published as an installer. Choose Installer in Settings.",
+                entry.title
+            );
+        }
+        vec![
+            format!("^{prefix}_{version}_{arch}_[A-Za-z]{{2}}-[A-Za-z]{{2}}\\.msi$"),
+            format!("^{prefix}_{version}_{arch}-setup\\.exe$"),
+        ]
+    } else {
+        #[cfg(target_os = "linux")]
+        {
+            let kind = if p.release_format == "installer" {
+                crate::installers::package_kind()?
+            } else {
+                crate::installers::PackageKind::Debian
+            };
+            tauri_linux_patterns(&prefix, &version, p, kind)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Vec::new()
+        }
+    };
+    for pattern in patterns {
+        let pattern = regex::Regex::new(&pattern)?;
+        let assets: Vec<_> = r
+            .assets
+            .iter()
+            .filter(|a| pattern.is_match(&a.name))
+            .collect();
+        if assets.len() > 1 {
+            bail!("Ambiguous release assets");
+        }
+        if let Some(asset) = assets.first() {
+            return Ok(asset);
         }
     }
     bail!(
-        "This release has no {} {}. Choose another option in Settings.",
-        p.architecture,
+        "This {} release has no {} package for this system.",
+        entry.title,
         p.release_format
     )
+}
+#[cfg(target_os = "linux")]
+fn tauri_linux_patterns(
+    prefix: &str,
+    version: &str,
+    prefs: &Preferences,
+    kind: crate::installers::PackageKind,
+) -> Vec<String> {
+    use crate::installers::PackageKind;
+    let (deb, native, image) = match prefs.architecture.as_str() {
+        "x86" => ("i386", "i686", "i386"),
+        "arm64" => ("arm64", "aarch64", "aarch64"),
+        _ => ("amd64", "x86_64", "amd64"),
+    };
+    if prefs.release_format != "installer" {
+        return vec![format!("(?i)^{prefix}_{version}_{image}\\.AppImage$")];
+    }
+    match kind {
+        PackageKind::Debian => vec![format!("(?i)^{prefix}_{version}_{deb}\\.deb$")],
+        PackageKind::Rpm => vec![format!(
+            "(?i)^{prefix}-{version}-[0-9][A-Za-z0-9.]*\\.{native}\\.rpm$"
+        )],
+        PackageKind::Arch => vec![format!(
+            "(?i)^{prefix}-{version}-[0-9][A-Za-z0-9.]*-{native}\\.pkg\\.tar\\.zst$"
+        )],
+    }
 }
 fn backup_path(paths: &Paths, name: &str, v: &str, source: bool) -> PathBuf {
     paths
@@ -182,7 +317,7 @@ pub fn releases(paths: &Paths, job: &Job, background: bool) -> Result<()> {
 }
 pub fn install_app(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     crate::model::valid_app(app)?;
-    if !crate::model::APPS.contains(&app) {
+    if !crate::model::apps().iter().any(|a| a == app) {
         bail!("This app has no managed release");
     }
     releases_for(paths, job, Some(app))
@@ -304,6 +439,10 @@ fn plan_with(
                 bail!("Not a stable release");
             }
             let asset = select_asset(&release, &app.name, &prefs)?;
+            // Remember a new file name so extraction and detection find the program.
+            if let Some(parsed) = crate::catalog::parse_asset(&asset.name) {
+                crate::catalog::learn_alias(&paths.root, &app.name, &parsed.prefix)?;
+            }
             if !asset.browser_download_url.starts_with(&format!(
                 "https://github.com/storytold/{}/releases/download/",
                 crate::model::repository(&app.name)
@@ -320,7 +459,7 @@ fn plan_with(
                 bail!("Release asset has an invalid SHA-256 digest");
             }
 
-            entry.version = release.tag_name.trim_start_matches('v').into();
+            entry.version = release_version(&release.tag_name)?;
             entry.asset = Some(asset.clone());
             let installer = prefs.release_format == "installer";
             let target = if installer {
@@ -426,6 +565,7 @@ fn execute_entries(
         let asset = entry.asset.as_ref().context("Planned asset missing")?;
         let release = Release {
             tag_name: entry.version.clone(),
+            name: None,
             draft: false,
             prerelease: false,
             assets: vec![],
@@ -441,7 +581,15 @@ fn execute_entries(
                 } else {
                     network.asset(asset, &dest, job)?;
                 }
-                job.stage("Installing", None, "Complete the Windows installer wizard; Windows may ask for administrator permission.");
+                job.stage(
+                    "Installing",
+                    None,
+                    if cfg!(target_os = "windows") {
+                        "Complete the Windows installer wizard; Windows may ask for administrator permission."
+                    } else {
+                        "Installing the app."
+                    },
+                );
                 let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
                 installed.architecture = if cfg!(target_os = "macos") {
                     "universal".into()
@@ -794,6 +942,44 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
 }
 #[cfg(test)]
 mod tests {
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn tauri_linux_assets_match_distribution_and_architecture() {
+        use crate::installers::PackageKind;
+        for (architecture, deb, native, image) in [
+            ("x64", "amd64", "x86_64", "amd64"),
+            ("x86", "i386", "i686", "i386"),
+            ("arm64", "arm64", "aarch64", "aarch64"),
+        ] {
+            let mut prefs = Preferences {
+                architecture: architecture.into(),
+                release_format: "installer".into(),
+                ..Default::default()
+            };
+            for (kind, name) in [
+                (PackageKind::Debian, format!("ArtCraft_0.41.0_{deb}.deb")),
+                (PackageKind::Rpm, format!("ArtCraft-0.41.0-1.{native}.rpm")),
+                (
+                    PackageKind::Arch,
+                    format!("ArtCraft-0.41.0-1-{native}.pkg.tar.zst"),
+                ),
+            ] {
+                let patterns = tauri_linux_patterns("ArtCraft", "0\\.41\\.0", &prefs, kind);
+                let regex = regex::Regex::new(&patterns[0]).unwrap();
+                assert!(regex.is_match(&name));
+                assert!(!regex.is_match("ArtCraft_0.41.0_amd64.AppImage"));
+                if architecture != "x64" {
+                    assert!(!regex.is_match("ArtCraft_0.41.0_amd64.deb"));
+                }
+            }
+            prefs.release_format = "portable".into();
+            let patterns =
+                tauri_linux_patterns("ArtCraft", "0\\.41\\.0", &prefs, PackageKind::Arch);
+            let regex = regex::Regex::new(&patterns[0]).unwrap();
+            assert!(regex.is_match(&format!("ArtCraft_0.41.0_{image}.AppImage")));
+            assert!(!regex.is_match(&format!("ArtCraft_0.41.0_{deb}.deb")));
+        }
+    }
     use super::*;
     #[test]
     fn new_apps_select_matching_release_formats_and_reject_missing_architectures() {
@@ -826,6 +1012,7 @@ mod tests {
                 );
                 let release = Release {
                     tag_name: "v0.3.0".into(),
+                    name: None,
                     draft: false,
                     prerelease: false,
                     assets: vec![crate::model::Asset {
@@ -908,6 +1095,7 @@ mod planning_tests {
         );
         Release {
             tag_name: tag.into(),
+            name: None,
             draft: false,
             prerelease: false,
             assets: vec![Asset {
@@ -939,6 +1127,35 @@ mod planning_tests {
             })
             .unwrap();
         }
+        assert!(!paths.at("runtime/downloads").exists());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn choosing_apps_rebuilds_review_without_unselected_operations() {
+        let (paths, job) = fixture();
+        let original = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+        assert_eq!(original.entries.len(), 2);
+        crate::settings::select_release_apps(&paths, &["filmcraft".into()]).unwrap();
+        let changed = plan_with(&paths, &job, None, |app| {
+            assert_eq!(
+                app, "filmcraft",
+                "unchecked apps must not be queried or planned"
+            );
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        assert_eq!(changed.entries.len(), 1);
+        assert_eq!(changed.entries[0].app, "filmcraft");
+        assert!(
+            execute_validated(&paths, &original, |_| panic!("stale review must not run")).is_err()
+        );
+        crate::settings::select_release_apps(&paths, &[]).unwrap();
+        let empty = plan_with(&paths, &job, None, |_| {
+            panic!("empty selection must not query releases")
+        })
+        .unwrap();
+        assert!(empty.entries.is_empty());
+        assert_eq!(empty.executable_count(), 0);
         assert!(!paths.at("runtime/downloads").exists());
         fs::remove_dir_all(paths.root).unwrap();
     }

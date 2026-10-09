@@ -192,7 +192,8 @@ pub fn running_app(name: &str) -> Result<bool> {
         bail!("Could not check running apps");
     }
     let s = String::from_utf8_lossy(&out.stdout).to_lowercase();
-    Ok([name, crate::model::repository(name)].iter().any(|name| {
+    Ok(crate::catalog::names(name).iter().any(|name| {
+        let name = name.to_lowercase();
         s.lines().any(|l| {
             l.starts_with(&format!("\"{name}.exe\""))
                 || l.starts_with(&format!("\"{name}-cli.exe\""))
