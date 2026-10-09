@@ -10,32 +10,32 @@ App discovery and ArtCraft support were contributed by [carpaaaaa](https://githu
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
-![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.5.0)
+![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.6.0)
 
-Screenshots show the macOS 0.5.0 release with a demo library.
+Screenshots show the Windows 0.6.0 release with a separate demo library.
 
 <details>
 <summary>More screenshots</summary>
 
 **Overview** — update all chosen apps or sources, turn hourly checks on or off, and follow the activity log.
 
-![Overview page](docs/images/overview.png?v=0.5.0)
+![Overview page](docs/images/overview.png?v=0.6.0)
 
 **Install** — Install, Update and Get ask for confirmation before downloading.
 
-![Install confirmation](docs/images/install.png?v=0.5.0)
+![Install confirmation](docs/images/install.png?v=0.6.0)
 
 **Settings** — one scrolling page for release format, updates, backups, builds and folders.
 
-![Settings](docs/images/settings.png?v=0.5.0)
+![Settings](docs/images/settings.png?v=0.6.0)
 
 **App selection** — choose which apps Update all installs or updates. Sources have their own selection.
 
-![Choose apps for Update all](docs/images/app-selection.png?v=0.5.0)
+![Choose apps for Update all](docs/images/app-selection.png?v=0.6.0)
 
 **Builder** — the separate builder window builds any upstream source, including ArtCraft X.
 
-![Craft Apps Builder](docs/images/builder.png?v=0.5.0)
+![Craft Apps Builder](docs/images/builder.png?v=0.6.0)
 
 </details>
 
