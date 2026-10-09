@@ -357,8 +357,11 @@ impl App {
                     self.checking_apps.clear();
                     self.release_checks.clear();
                 }
-                self.display_config = None;
-                self.config_receiver = None;
+                // Appearance/selection saves must not temporarily empty the app lists.
+                if changed || root != self.paths.root {
+                    self.display_config = None;
+                    self.config_receiver = None;
+                }
                 self.config_refresh_at = std::time::Instant::now();
             }
             self.settings = false;
@@ -663,26 +666,15 @@ impl App {
                 self.selection = true;
             }
             dialogs::rule(ui);
-            let sources = format!(
-                "{} of {} included",
-                self.settings_draft.selected_sources.len(),
-                model::sources().len()
-            );
-            if row(ui, "Sources", Some(&sources), 52.0, |ui| {
-                btn("Choose…").show(ui).clicked()
-            }) {
-                self.source_selection = true;
-                self.selection_draft = self.settings_draft.selected_sources.clone();
-                self.selection = true;
-            }
-            dialogs::rule(ui);
             check_row(
                 ui,
                 &mut self.settings_draft.select_new_apps,
                 "Include newly published Craft apps automatically",
                 None,
             )
-            .on_hover_text("Apps that appear on github.com/storytold after this version are added to Update all and Update all sources the first time they are found.");
+            .on_hover_text(
+                "New Craft apps are included in Update All when they are first discovered.",
+            );
             dialogs::rule(ui);
             check_row(
                 ui,
@@ -730,6 +722,13 @@ impl App {
         group(ui, "Checks and notifications", |ui| {
             check_row(
                 ui,
+                &mut self.settings_draft.check_installed_apps_periodically,
+                "Check app updates every 20 minutes",
+                Some("While the manager is open. Checks wait until operations finish."),
+            );
+            dialogs::rule(ui);
+            check_row(
+                ui,
                 &mut self.settings_draft.check_installed_apps_on_startup,
                 "Check installed apps on startup",
                 None,
@@ -739,7 +738,7 @@ impl App {
             check_row(
                 ui,
                 &mut self.settings_draft.notify_updates,
-                "Notify me when app or source updates are available",
+                "Notify me when app updates are available",
                 None,
             );
         });

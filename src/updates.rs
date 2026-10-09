@@ -335,6 +335,7 @@ pub struct ReleaseEntry {
 pub struct ReleasePlan {
     pub entries: Vec<ReleaseEntry>,
     pub preferences: Preferences,
+    pub requested_tag: Option<String>,
     snapshot: Vec<u8>,
 }
 impl ReleasePlan {
@@ -353,7 +354,6 @@ fn state_snapshot(
     let destinations: Vec<_> = config
         .apps
         .iter()
-        .filter(|a| prefs.selected_apps.contains(&a.name))
         .map(|a| {
             let target = if prefs.release_format == "installer" && !a.path.is_empty() {
                 PathBuf::from(&a.path)
@@ -391,6 +391,81 @@ pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
             crate::model::repository(name)
         ))
     })
+}
+/// Recent published stable releases compatible with the chosen platform and format.
+/// Older assets without a published digest remain unavailable for verified installs.
+pub fn available_versions(paths: &Paths, app: &str) -> Result<Vec<Release>> {
+    crate::model::valid_app(app)?;
+    let prefs = paths.read_preferences()?;
+    let network = Network::new(&paths.root)?;
+    let releases: Vec<Release> = network.json(&format!(
+        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+        crate::model::repository(app)
+    ))?;
+    Ok(compatible_versions(releases, app, &prefs))
+}
+fn compatible_versions(releases: Vec<Release>, app: &str, prefs: &Preferences) -> Vec<Release> {
+    let mut versions: Vec<_> = releases
+        .into_iter()
+        .filter(|r| {
+            !r.draft
+                && !r.prerelease
+                && release_version(&r.tag_name).is_ok()
+                && select_asset(r, app, prefs).is_ok_and(|a| {
+                    a.digest
+                        .as_deref()
+                        .and_then(|d| d.strip_prefix("sha256:"))
+                        .is_some_and(|d| d.len() == 64 && d.bytes().all(|b| b.is_ascii_hexdigit()))
+                })
+        })
+        .collect();
+    versions.sort_by_key(|r| std::cmp::Reverse(version(&r.tag_name).unwrap()));
+    versions
+}
+/// Pin a user-selected release, preserving the normal verification and review flow.
+pub fn plan_version(paths: &Paths, job: &Job, app: &str, tag: &str) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    release_version(tag)?;
+    let mut url = reqwest::Url::parse(&format!(
+        "https://api.github.com/repos/storytold/{}/releases/tags/",
+        crate::model::repository(app)
+    ))?;
+    url.path_segments_mut()
+        .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+        .pop_if_empty()
+        .push(tag);
+    let release: Release = Network::new(&paths.root)?.json(url.as_str())?;
+    anyhow::ensure!(
+        release.tag_name == tag,
+        "The release tag changed; choose the version again"
+    );
+    plan_selected_version(paths, job, app, release)
+}
+fn plan_selected_version(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    release: Release,
+) -> Result<ReleasePlan> {
+    let tag = release.tag_name.clone();
+    let mut plan = plan_with(paths, job, Some(app), |_| Ok(release.clone()))?;
+    anyhow::ensure!(
+        !plan.entries.is_empty(),
+        "App is missing from the current catalog"
+    );
+    let config = paths.config()?;
+    for entry in &mut plan.entries {
+        // Only an explicit selection can downgrade. Update all still skips older versions.
+        if entry.error.is_none() && entry.action == "Skip" {
+            if let Some(installed) = config.apps.iter().find(|a| a.name == app) {
+                if version(&installed.version)? > version(&entry.version)? {
+                    entry.action = "Update".into();
+                }
+            }
+        }
+    }
+    plan.requested_tag = Some(tag);
+    Ok(plan)
 }
 fn plan_with(
     paths: &Paths,
@@ -524,6 +599,7 @@ fn plan_with(
         return Err(error);
     }
     Ok(ReleasePlan {
+        requested_tag: None,
         entries,
         preferences: prefs,
         snapshot,
@@ -1107,6 +1183,105 @@ mod planning_tests {
                 ),
             }],
         }
+    }
+    #[test]
+    fn version_list_excludes_previews_incompatible_packages_and_unverified_assets() {
+        let prefs = Preferences {
+            release_format: "portable".into(),
+            ..Default::default()
+        };
+        let stable = release("photocraft", "0.4.0");
+        let older = release("photocraft", "0.3.0");
+        let mut preview = stable.clone();
+        preview.prerelease = true;
+        let mut draft = stable.clone();
+        draft.draft = true;
+        let mut unverified = stable.clone();
+        unverified.assets[0].digest = None;
+        let mut invalid = stable.clone();
+        invalid.tag_name = "beta".into();
+        let mut incompatible = stable.clone();
+        incompatible.assets.clear();
+        let versions = compatible_versions(
+            vec![
+                older,
+                preview,
+                unverified,
+                draft,
+                incompatible,
+                invalid,
+                stable,
+            ],
+            "photocraft",
+            &prefs,
+        );
+        assert_eq!(
+            versions
+                .iter()
+                .map(|r| r.tag_name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["0.4.0", "0.3.0"]
+        );
+    }
+    #[test]
+    fn only_explicit_version_selection_can_plan_a_downgrade_and_stays_pinned() {
+        let (paths, job) = fixture();
+        let folder = paths.at("releases/photocraft");
+        fs::create_dir_all(&folder).unwrap();
+        let executable = folder.join(crate::model::executable_name("photocraft"));
+        if cfg!(target_os = "macos") {
+            fs::create_dir_all(executable.join("Contents")).unwrap();
+            fs::write(executable.join("Contents/Info.plist"), "<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.photocraft</string><key>CFBundleShortVersionString</key><string>9.0.0</string></dict></plist>").unwrap();
+        } else {
+            fs::write(&executable, "current version").unwrap();
+        }
+        let record = crate::model::Installed {
+            name: "photocraft".into(),
+            version: "9.0.0".into(),
+            path: folder.display().to_string(),
+            install_kind: "portable".into(),
+            architecture: crate::model::MANAGER_ARCH.into(),
+            ..Default::default()
+        };
+        files::write_json(
+            &paths.at("settings.json"),
+            &crate::model::Config {
+                apps_root: paths.root.display().to_string(),
+                apps: vec![record.clone()],
+                installations: vec![record],
+            },
+        )
+        .unwrap();
+        let ordinary = plan_with(&paths, &job, Some("photocraft"), |_| {
+            Ok(release("photocraft", "0.3.0"))
+        })
+        .unwrap();
+        assert_eq!(ordinary.entries[0].action, "Skip");
+        let mut prefs = paths.read_preferences().unwrap();
+        prefs.selected_apps = vec!["filmcraft".into()];
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        let explicit =
+            plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.3.0"))
+                .unwrap();
+        assert_eq!(explicit.entries.len(), 1);
+        assert_eq!(explicit.entries[0].action, "Update");
+        assert_eq!(explicit.entries[0].version, "0.3.0");
+        assert_eq!(explicit.requested_tag.as_deref(), Some("0.3.0"));
+        assert_eq!(explicit.executable_count(), 1);
+        let mut unverified = release("photocraft", "0.3.0");
+        unverified.assets[0].digest = None;
+        let denied = plan_selected_version(&paths, &job, "photocraft", unverified).unwrap();
+        assert_eq!(denied.executable_count(), 0);
+        if cfg!(target_os = "macos") {
+            fs::write(executable.join("Contents/Info.plist"), "changed").unwrap();
+        } else {
+            fs::write(&executable, "installation changed after review").unwrap();
+        }
+        assert!(execute_validated(&paths, &explicit, |_| panic!(
+            "changed unselected app must invalidate version plan"
+        ))
+        .is_err());
+        fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
     fn invalid_digest_metadata_is_excluded_before_package_download() {

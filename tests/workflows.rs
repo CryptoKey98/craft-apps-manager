@@ -966,7 +966,7 @@ fn newly_published_apps_are_selected_once_and_remembered() {
     assert!(p.selected_apps.is_empty());
     assert!(p.selected_sources.is_empty());
     assert!(!p.select_new_apps);
-    assert!(!p.check_catalog_on_startup);
+    assert!(p.check_catalog_on_startup);
     assert!(!p.check_catalog_with_app_updates);
     assert!(p.known_apps.iter().any(|a| a == "artcraft"));
 }

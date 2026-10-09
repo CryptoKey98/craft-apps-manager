@@ -338,7 +338,11 @@ impl App {
                             theme::palette().accent_text,
                             40.0,
                         ),
-                        "Review install and update",
+                        if plan.requested_tag.is_some() {
+                            "Review version change"
+                        } else {
+                            "Review install and update"
+                        },
                         &format!(
                             "{} · {}. Only the Install and Update entries below will run.",
                             plan.preferences.release_format,
@@ -346,6 +350,15 @@ impl App {
                         ),
                         |_| {},
                     );
+                    if let Some(tag) = &plan.requested_tag {
+                        let installed = plan
+                            .entries
+                            .first()
+                            .and_then(|entry| self.status(&entry.app).installed)
+                            .map(|i| i.version)
+                            .unwrap_or_else(|| "Not installed".into());
+                        note(ui, format!("Installed: {installed} → Selected: {tag}."));
+                    }
                     ui.add_space(18.0);
                     theme::group().show(ui, |ui| {
                         ui.set_width(ui.available_width());
@@ -383,7 +396,7 @@ impl App {
                                                     };
                                                     theme::badge(
                                                         ui,
-                                                        format!("{} {}", entry.action, entry.version).trim(),
+                                                        format!("{} {}", if plan.requested_tag.is_some() && entry.action == "Update" { "Switch to" } else { &entry.action }, entry.version).trim(),
                                                         fill,
                                                         color,
                                                     );
@@ -430,8 +443,23 @@ impl App {
                         self.release_plan = None;
                         let paths = self.paths.clone();
                         self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
-                        self.job_target = None;
-                        self.job_action.clear();
+                        // A selected version is still a per-app install. Keep its
+                        // target so the app page shows progress and install failures.
+                        self.job_target = plan.requested_tag.as_ref().and_then(|_| {
+                            plan.entries
+                                .iter()
+                                .find(|entry| {
+                                    entry.error.is_none()
+                                        && matches!(entry.action.as_str(), "Install" | "Update")
+                                })
+                                .map(|entry| (entry.app.clone(), "install-app".into()))
+                        });
+                        self.job_action = if self.job_target.is_some() {
+                            "install-app"
+                        } else {
+                            "releases"
+                        }
+                        .into();
                         self.failure_dismissed = false;
                         self.operation_was_busy = true;
                         let plan = plan.clone();
@@ -445,7 +473,9 @@ impl App {
                         egui::vec2(ui.available_width(), 36.0),
                         egui::Layout::left_to_right(egui::Align::Center),
                         |ui| {
-                            if action(ui, "Choose…", Kind::Secondary, true).clicked() {
+                            if plan.requested_tag.is_none()
+                                && action(ui, "Choose…", Kind::Secondary, true).clicked()
+                            {
                                 self.selection_draft = plan.preferences.selected_apps.clone();
                                 self.source_selection = false;
                                 self.selection_from_review = true;

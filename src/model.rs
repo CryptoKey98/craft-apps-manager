@@ -73,13 +73,14 @@ fn legacy_known_apps() -> Vec<String> {
 #[serde(rename_all = "lowercase")]
 pub enum Theme {
     #[default]
+    System,
     Dark,
     Light,
 }
 impl Theme {
     pub fn toggled(self) -> Self {
         match self {
-            Self::Dark => Self::Light,
+            Self::System | Self::Dark => Self::Light,
             Self::Light => Self::Dark,
         }
     }
@@ -100,9 +101,12 @@ pub struct Preferences {
     pub selected_apps: Vec<String>,
     pub selected_sources: Vec<String>,
     pub app_order: Vec<String>,
+    /// Independent ordering for Home tiles; never follows sidebar reordering.
+    pub home_app_order: Vec<String>,
     #[serde(alias = "checkUpdaterOnStartup")]
     pub check_manager_on_startup: bool,
     pub check_installed_apps_on_startup: bool,
+    pub check_installed_apps_periodically: bool,
     /// Apps already offered to the user; newer catalog apps are adopted once.
     #[serde(default = "legacy_known_apps")]
     pub known_apps: Vec<String>,
@@ -116,7 +120,7 @@ pub struct Preferences {
 impl Default for Preferences {
     fn default() -> Self {
         Self {
-            theme: Theme::Dark,
+            theme: Theme::System,
             keep_app_backups: true,
             keep_source_backups: true,
             compress_backups: true,
@@ -133,11 +137,13 @@ impl Default for Preferences {
             selected_apps: apps(),
             selected_sources: sources(),
             app_order: apps(),
+            home_app_order: apps(),
             check_manager_on_startup: false,
             check_installed_apps_on_startup: false,
+            check_installed_apps_periodically: true,
             known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
             select_new_apps: false,
-            check_catalog_on_startup: false,
+            check_catalog_on_startup: true,
             check_catalog_with_app_updates: false,
         }
     }
@@ -185,6 +191,14 @@ impl Preferences {
         let mut seen = std::collections::BTreeSet::new();
         self.app_order
             .retain(|s| apps.contains(s) && seen.insert(s.clone()));
+        let mut home_seen = std::collections::BTreeSet::new();
+        self.home_app_order
+            .retain(|s| apps.contains(s) && home_seen.insert(s.clone()));
+        for name in &apps {
+            if home_seen.insert(name.clone()) {
+                self.home_app_order.push(name.clone());
+            }
+        }
         for name in apps {
             if seen.insert(name.clone()) {
                 self.app_order.push(name);
@@ -612,7 +626,7 @@ mod detection_tests {
     fn theme_defaults_for_existing_settings_and_survives_restart() {
         let legacy: Preferences =
             serde_json::from_str(r#"{"selectedApps":["filmcraft"]}"#).unwrap();
-        assert_eq!(legacy.theme, Theme::Dark);
+        assert_eq!(legacy.theme, Theme::System);
         let root = std::env::temp_dir().join(format!("craft-theme-{}", uuid::Uuid::new_v4()));
         let paths = Paths::new(root.clone(), None);
         let mut preferences = legacy;
