@@ -41,15 +41,20 @@ Screenshots show the macOS 0.5.0 release with a demo library.
 
 ## Getting started
 
-Version **0.6.0** includes Windows x64/x86 packages and a macOS package for Apple silicon and Intel Macs in this fork's releases. Download the format for your system from the Releases page:
+Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.6.0** includes these formats:
 
 | System | Installation | Portable |
 | --- | --- | --- |
 | Windows 64-bit | x64 MSI | x64 ZIP |
 | Windows 32-bit | x86 MSI | x86 ZIP |
+| Ubuntu / Debian 64-bit | amd64 DEB | x64 ZIP |
+| Ubuntu / Debian 32-bit | i386 DEB | x86 ZIP |
+| Fedora / RPM-based Linux 64-bit | x86_64 RPM | x64 ZIP |
+| Fedora / RPM-based Linux 32-bit | i686 RPM | x86 ZIP |
+| Arch Linux 64-bit (experimental) | x86_64 `.pkg.tar.zst` | x64 ZIP |
 | macOS 11 or newer, Apple silicon and Intel | — | macos-universal ZIP |
 
-Linux is supported by the same source; build its packages with the scripts in `scripts/` (see [docs/linux.md](docs/linux.md)).
+On Linux, choose the native package for your distribution, or extract the ZIP and run `craft-apps-manager`. DEB files are for Ubuntu/Debian, RPM files are for Fedora and compatible systems, and `.pkg.tar.zst` files are for Arch. See [Linux setup and packaging](docs/linux.md) for installation and source-build instructions.
 
 On macOS you can also install or update the manager from Terminal. The script downloads the latest release, checks it against `SHA256SUMS.txt` and copies the app into `/Applications` (or `~/Applications`); a copy installed this way opens without the first-launch steps below:
 
@@ -61,7 +66,7 @@ For Windows, run the MSI or extract the ZIP and open `CraftApps-Manager.exe`. Ke
 
 The Windows MSI stores settings and the app library in `%LOCALAPPDATA%\Craft Apps Manager`, separate from program files. Portable builds use their own folder. Manager updates choose the matching MSI or ZIP, and uninstalling the manager keeps its library and settings. See [Windows packaging](docs/windows-packaging.md).
 
-Linux packages were built on Ubuntu 26.04 and require glibc 2.43 or newer. They have been tested on Ubuntu 26.04 and Fedora 44. They are not intended for older Ubuntu/Fedora versions yet. x86 launch tests used 64-bit VMs with 32-bit libraries; native 32-bit systems and ARM64 are not verified. See [Linux setup and packaging](docs/linux.md). Both Windows packages were tested on 64-bit Windows; native 32-bit Windows testing remains pending.
+Linux DEB, RPM and portable release builds use Ubuntu 22.04 as their build baseline; Arch packages are built separately on Arch. Desktop testing has used Ubuntu 26.04 and Fedora 44. Older distributions still need testing, and Arch support remains experimental. x86 launch tests used 64-bit VMs with 32-bit libraries; native 32-bit systems and Linux ARM64 are not verified. Both Windows packages were tested on 64-bit Windows; native 32-bit Windows testing remains pending.
 
 For macOS, extract the ZIP and move `Craft Apps Manager.app` to your Applications folder. The manager is not notarized by Apple yet, so the first launch shows "Apple could not verify “Craft Apps Manager.app” is free of malware". To open it:
 
