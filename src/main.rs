@@ -206,7 +206,7 @@ fn run() -> Result<()> {
             .with_inner_size(screenshot_size.unwrap_or(if builder {
                 [1050.0, 740.0]
             } else {
-                [1160.0, 720.0]
+                [1240.0, 760.0]
             }))
             .with_min_inner_size(if builder {
                 [780.0, 580.0]

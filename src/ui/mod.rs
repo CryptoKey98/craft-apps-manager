@@ -179,6 +179,7 @@ pub struct App {
     settings_draft: Preferences,
     build_draft: BuilderPreferences,
     auto: bool,
+    auto_draft: bool,
     error: Option<String>,
     selection_notice: Option<String>,
     root_text: String,
@@ -388,6 +389,7 @@ impl App {
             preferences,
             build_preferences,
             auto,
+            auto_draft: auto,
             error: self_update::startup_message(),
             selection_notice: None,
             confirm_clear: false,
@@ -686,6 +688,8 @@ impl App {
         if let Ok(preferences) = self.paths.builder_preferences() {
             self.build_preferences = preferences;
         }
+        self.auto = scheduler::enabled(false);
+        self.auto_draft = self.auto;
         self.settings_draft = self.preferences.clone();
         self.build_draft = self.build_preferences.clone();
         self.root_text = self.paths.root.display().to_string();
@@ -991,7 +995,8 @@ impl App {
         }
         if !self.builder
             && self.preferences.check_installed_apps_periodically
-            && self.app_check_at.elapsed() >= Duration::from_secs(20 * 60)
+            && self.app_check_at.elapsed()
+                >= Duration::from_secs(self.preferences.app_check_interval_minutes * 60)
             && self.periodic_receiver.is_none()
             && self.checking_apps.is_empty()
             && !self.job.state.lock().unwrap().busy
@@ -1009,7 +1014,7 @@ impl App {
                     paths.at("runtime/background-app-check.log"),
                     &Default::default(),
                 );
-                let result = hourly::run(&paths, &job).and_then(|_| hourly::read(&paths));
+                let result = hourly::run_periodic(&paths, &job).and_then(|_| hourly::read(&paths));
                 let _ = tx.send(result.map_err(|e| format!("{e:#}")));
                 ctx.request_repaint();
             });

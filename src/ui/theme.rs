@@ -1296,79 +1296,6 @@ pub fn checkbox(
     response
 }
 
-/// A 16pt checkbox with its label, drawn like the mockup's native checkbox: accent fill and
-/// a white tick when on, neutral fill with a subtle border when off. The whole row toggles it.
-pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Response {
-    let font = FontId::proportional(14.0);
-    let galley = ui
-        .painter()
-        .layout_no_wrap(label.to_owned(), font, Color32::PLACEHOLDER);
-    // 4pt and 3pt margins around the box, then a 10pt gap to the label.
-    let size = egui::vec2(4.0 + 16.0 + 3.0 + 10.0 + galley.size().x, 22.0);
-    let (rect, mut response) = ui
-        .add_enabled_ui(enabled, |ui| ui.allocate_exact_size(size, Sense::click()))
-        .inner;
-    if response.clicked() {
-        *on = !*on;
-        response.mark_changed();
-    }
-    let checked = *on;
-    response.widget_info(|| {
-        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, checked, label)
-    });
-    if ui.is_rect_visible(rect) {
-        let alpha = if enabled { 1.0 } else { 0.45 };
-        let painter = ui.painter();
-        let tick_box = Rect::from_min_size(
-            egui::pos2(rect.left() + 4.0, rect.center().y - 8.0),
-            Vec2::splat(16.0),
-        );
-        if checked {
-            let fill = if enabled && response.hovered() {
-                palette().accent_hover
-            } else {
-                palette().accent
-            };
-            painter.rect_filled(tick_box, CornerRadius::same(2), fill.gamma_multiply(alpha));
-            let p = |x: f32, y: f32| tick_box.min + egui::vec2(x, y) * 16.0;
-            painter.add(egui::Shape::line(
-                vec![p(0.24, 0.52), p(0.42, 0.70), p(0.77, 0.32)],
-                Stroke::new(2.2_f32, Color32::WHITE.gamma_multiply(alpha)),
-            ));
-        } else {
-            painter.rect(
-                tick_box,
-                CornerRadius::same(2),
-                palette().button.gamma_multiply(alpha),
-                Stroke::new(1.0_f32, palette().border_strong.gamma_multiply(alpha)),
-                StrokeKind::Inside,
-            );
-        }
-        if response.has_focus() {
-            painter.rect_stroke(
-                tick_box.expand(2.0),
-                CornerRadius::same(4),
-                Stroke::new(2.0_f32, palette().link),
-                StrokeKind::Outside,
-            );
-        }
-        painter.galley(
-            egui::pos2(
-                tick_box.right() + 3.0 + 10.0,
-                rect.center().y - galley.size().y / 2.0,
-            ),
-            galley,
-            palette()
-                .text_2
-                .gamma_multiply(if enabled { 1.0 } else { 0.5 }),
-        );
-    }
-    if enabled && response.hovered() {
-        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-    }
-    response
-}
-
 /// A log on the dark log background: monospace lines 1.7 apart, as tall as its text
 /// up to the space left, then scrolling and following new lines. `wrap` breaks long
 /// lines; otherwise they scroll sideways.
@@ -1536,7 +1463,6 @@ mod tests {
         let output = ctx.run(egui::RawInput::default(), |ctx| {
             egui::CentralPanel::default().show(ctx, |ui| {
                 let mut on = false;
-                check_label(ui, &mut on, "App updates", true);
                 checkbox(ui, &mut on, 16.0, DARK.accent, "App backups", true);
             });
         });
@@ -1551,7 +1477,7 @@ mod tests {
                 }
             })
             .collect();
-        assert!(fills.iter().filter(|fill| **fill == DARK.button).count() >= 2);
+        assert!(fills.iter().filter(|fill| **fill == DARK.button).count() >= 1);
         assert!(!fills.contains(&Color32::WHITE));
     }
     #[test]

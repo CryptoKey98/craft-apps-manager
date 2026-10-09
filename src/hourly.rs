@@ -21,9 +21,36 @@ pub fn key(prefs: &Preferences, app: &str) -> String {
 pub fn read(paths: &Paths) -> Result<Checks> {
     files::read_or_default(&paths.at("runtime/app-update-checks.json"))
 }
+#[derive(Default, Serialize, Deserialize)]
+struct LastAutomaticCheck {
+    at: i64,
+    format: String,
+    architecture: String,
+}
+fn recently_checked(last: &LastAutomaticCheck, prefs: &Preferences, now: i64) -> bool {
+    let elapsed = now - last.at;
+    last.format == prefs.release_format
+        && last.architecture == prefs.architecture
+        && elapsed >= 0
+        && elapsed < (prefs.app_check_interval_minutes.clamp(10, 60) * 60) as i64
+}
 pub fn run(paths: &Paths, job: &Job) -> Result<()> {
+    run_automatic(paths, job, false)
+}
+pub fn run_periodic(paths: &Paths, job: &Job) -> Result<()> {
+    run_automatic(paths, job, true)
+}
+fn run_automatic(paths: &Paths, job: &Job, periodic: bool) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManagerHourlyChecks")?;
     let before = paths.read_preferences()?;
+    let last_path = paths.at("runtime/last-automatic-app-check.json");
+    if periodic {
+        let last: LastAutomaticCheck = files::read_or_default(&last_path)?;
+        if recently_checked(&last, &before, chrono::Utc::now().timestamp()) {
+            job.log("A background check ran recently; using its saved results.");
+            return Ok(());
+        }
+    }
     if before.check_catalog_with_app_updates {
         match crate::catalog::refresh_if_older(&paths.root, crate::catalog::REFRESH_INTERVAL) {
             Ok(entries) => {
@@ -59,7 +86,15 @@ pub fn run(paths: &Paths, job: &Job) -> Result<()> {
         |name| updates::check_app(paths, name),
         |message| platform::notify(&std::env::current_exe()?, message),
     )?;
-    files::write_json(&paths.at("runtime/app-update-checks.json"), &checks)
+    files::write_json(&paths.at("runtime/app-update-checks.json"), &checks)?;
+    files::write_json(
+        &last_path,
+        &LastAutomaticCheck {
+            at: chrono::Utc::now().timestamp(),
+            format: prefs.release_format,
+            architecture: prefs.architecture,
+        },
+    )
 }
 pub fn sources(_paths: &Paths, job: &Job) -> Result<()> {
     job.log(
@@ -110,6 +145,40 @@ fn scan(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn periodic_interval_respects_recent_background_checks_and_package_changes() {
+        let mut prefs = Preferences::default();
+        let last = LastAutomaticCheck {
+            at: 1000,
+            format: prefs.release_format.clone(),
+            architecture: prefs.architecture.clone(),
+        };
+        assert!(recently_checked(&last, &prefs, 2199));
+        assert!(!recently_checked(&last, &prefs, 2200));
+        assert!(!recently_checked(&last, &prefs, 999));
+        prefs.app_check_interval_minutes = 10;
+        assert!(!recently_checked(&last, &prefs, 1600));
+        prefs.release_format = if last.format == "installer" {
+            "portable"
+        } else {
+            "installer"
+        }
+        .into();
+        assert!(!recently_checked(&last, &prefs, 1001));
+    }
+    #[test]
+    fn interval_preferences_migrate_and_clamp_without_changing_other_options() {
+        let mut prefs: Preferences =
+            serde_json::from_str(r#"{"checkInstalledAppsPeriodically":false}"#).unwrap();
+        assert_eq!(prefs.app_check_interval_minutes, 20);
+        assert!(!prefs.check_installed_apps_periodically);
+        for (input, expected) in [(0, 10), (35, 35), (100, 60)] {
+            prefs.app_check_interval_minutes = input;
+            prefs.validate().unwrap();
+            assert_eq!(prefs.app_check_interval_minutes, expected);
+            assert!(!prefs.check_installed_apps_periodically);
+        }
+    }
     #[test]
     fn legacy_source_check_does_not_create_files_or_fetch_updates() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());

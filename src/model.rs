@@ -107,6 +107,7 @@ pub struct Preferences {
     pub check_manager_on_startup: bool,
     pub check_installed_apps_on_startup: bool,
     pub check_installed_apps_periodically: bool,
+    pub app_check_interval_minutes: u64,
     /// Apps already offered to the user; newer catalog apps are adopted once.
     #[serde(default = "legacy_known_apps")]
     pub known_apps: Vec<String>,
@@ -121,8 +122,8 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             theme: Theme::System,
-            keep_app_backups: true,
-            keep_source_backups: true,
+            keep_app_backups: false,
+            keep_source_backups: false,
             compress_backups: true,
             compress_source_backups: true,
             notify_updates: true,
@@ -139,8 +140,9 @@ impl Default for Preferences {
             app_order: apps(),
             home_app_order: apps(),
             check_manager_on_startup: false,
-            check_installed_apps_on_startup: false,
+            check_installed_apps_on_startup: true,
             check_installed_apps_periodically: true,
+            app_check_interval_minutes: 20,
             known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
             select_new_apps: false,
             check_catalog_on_startup: true,
@@ -156,6 +158,7 @@ impl Preferences {
     /// Normalizes the settings against the current catalog. Returns `true`
     /// when newly published apps were adopted and the settings should be saved.
     pub fn adopt_new_apps(&mut self) -> Result<bool> {
+        self.app_check_interval_minutes = self.app_check_interval_minutes.clamp(10, 60);
         if !["portable", "installer"].contains(&self.release_format.as_str())
             || !["x64", "x86", "arm64"].contains(&self.architecture.as_str())
         {
@@ -622,6 +625,16 @@ pub fn release_arch(architecture: &str) -> &str {
 #[cfg(test)]
 mod detection_tests {
     use super::*;
+    #[test]
+    fn backup_defaults_are_off_and_saved_choices_are_preserved() {
+        let fresh = Preferences::default();
+        assert!(!fresh.keep_app_backups);
+        assert!(!fresh.keep_source_backups);
+        let saved: Preferences =
+            serde_json::from_str(r#"{"keepAppBackups":true,"keepSourceBackups":true}"#).unwrap();
+        assert!(saved.keep_app_backups);
+        assert!(saved.keep_source_backups);
+    }
     #[test]
     fn theme_defaults_for_existing_settings_and_survives_restart() {
         let legacy: Preferences =

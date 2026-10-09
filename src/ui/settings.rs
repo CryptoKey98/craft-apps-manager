@@ -3,7 +3,7 @@ use super::dialogs;
 use super::overview::release_format_label;
 use super::theme::{self, btn, Kind};
 use super::{modal, App, Locations};
-use craft_apps_manager::{catalog, model, platform, self_update};
+use craft_apps_manager::{catalog, model, platform, scheduler, self_update};
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
@@ -364,6 +364,17 @@ impl App {
                 }
                 self.config_refresh_at = std::time::Instant::now();
             }
+            if !self.builder && self.auto_draft != self.auto {
+                if let Err(error) = scheduler::set(&self.paths, false, self.auto_draft) {
+                    self.auto = scheduler::enabled(false);
+                    self.auto_draft = self.auto;
+                    self.result(Err(error.context(
+                        "Preferences saved, but the background scheduler could not be changed",
+                    )));
+                    return;
+                }
+                self.auto = self.auto_draft;
+            }
             self.settings = false;
         }
         self.result(result);
@@ -687,10 +698,10 @@ impl App {
             check_row(
                 ui,
                 &mut self.settings_draft.check_catalog_with_app_updates,
-                "Look for new Craft apps during hourly app checks",
+                "Look for new Craft apps during automatic update checks",
                 None,
             )
-            .on_hover_text("Requires hourly App updates to be enabled. Shares the six-hour cache with startup checks. Refresh below checks immediately.");
+            .on_hover_text("Uses periodic or background update checks. Shares the six-hour discovery cache with startup checks. Refresh below checks immediately.");
             dialogs::rule(ui);
             let known = catalog::all().len();
             let status = if self.catalog_message.is_empty() {
@@ -719,22 +730,56 @@ impl App {
             }
         });
         ui.add_space(16.0);
-        group(ui, "Checks and notifications", |ui| {
+        group(ui, "Automatic update checks", |ui| {
             check_row(
                 ui,
-                &mut self.settings_draft.check_installed_apps_periodically,
-                "Check app updates every 20 minutes",
-                Some("While the manager is open. Checks wait until operations finish."),
+                &mut self.settings_draft.check_installed_apps_on_startup,
+                "When the manager opens",
+                Some("Check installed apps for newer versions."),
             );
             dialogs::rule(ui);
             check_row(
                 ui,
-                &mut self.settings_draft.check_installed_apps_on_startup,
-                "Check installed apps on startup",
-                None,
-            )
-            .on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");
+                &mut self.settings_draft.check_installed_apps_periodically,
+                "Periodically while the manager is open",
+                Some("Checks wait until downloads and builds finish."),
+            );
+            row_with(
+                ui,
+                "Check every",
+                Some("Minutes · 10–60"),
+                44.0,
+                true,
+                |ui| {
+                    ui.add_enabled_ui(
+                        self.settings_draft.check_installed_apps_periodically,
+                        |ui| {
+                            number(
+                                ui,
+                                egui::DragValue::new(
+                                    &mut self.settings_draft.app_check_interval_minutes,
+                                )
+                                .range(10..=60),
+                            )
+                        },
+                    )
+                    .inner
+                },
+            );
             dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.auto_draft,
+                "Check even when the manager is closed",
+                Some("Every hour using your system’s background scheduler."),
+            );
+        });
+        note(
+            ui,
+            "Checks only look for updates. Downloads and installations require your approval.",
+        );
+        ui.add_space(16.0);
+        group(ui, "Notifications", |ui| {
             check_row(
                 ui,
                 &mut self.settings_draft.notify_updates,

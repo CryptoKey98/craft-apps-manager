@@ -17,7 +17,7 @@ Screenshots show the Windows 0.6.0 release with a separate demo library.
 <details>
 <summary>More screenshots</summary>
 
-**Overview** — update all chosen apps or sources, turn hourly checks on or off, and follow the activity log.
+**Home** — update chosen apps, launch installed apps, arrange app tiles, and follow the activity log.
 
 ![Overview page](docs/images/overview.png?v=0.6.0)
 
@@ -109,9 +109,9 @@ The uninstall confirmation has an optional **Delete app profile data** checkbox,
 
 Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
-The Overview page has **Update all** and **Update all sources**, each with its own selection under **Settings → Updates → Update all**. Update all also installs chosen apps that are missing, and lists every step for you to confirm first. These selections also apply to hourly availability checks.
+Home has **Update all**, with its app selection under **Settings → Updates**. Update all also installs chosen apps that are missing and lists every step for confirmation. Manual source downloads and builds remain in each app’s tools.
 
-Selecting a row does not check Craft app releases on GitHub. Settings has an optional **Check installed apps for updates on startup** switch, off by default. It checks only installed apps in the selected release format, independently of the bulk update selections, and reports availability without downloading or installing. Available updates are shown in blue in the app list, on the app's page and as a count next to Overview. Manual checks use a short cache to avoid repeated requests. Under **Hourly checks** on the Overview page, enable **App updates** to check selected installed apps, or **Source updates** to check selected downloaded source ZIPs. Checks run hourly and after sign-in, send a Windows notification once per new version or source commit, and never download or install automatically. Both installer and portable releases are supported. Turn notifications on or off in Settings.
+Under **Settings → Updates → Automatic update checks**, choose whether to check when the manager opens, periodically while it is open (10–60 minutes, default 20), or every hour even when closed using the system scheduler. The interval field is inactive when periodic checks are off. Save applies scheduler changes; Cancel leaves them unchanged. In-app periodic checks reuse recent scheduled results for the same package format and architecture. Checks never download or install updates automatically. Notifications are controlled separately.
 
 Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens; an **Update available** button then appears next to the version in the top bar. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 

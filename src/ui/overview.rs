@@ -4,7 +4,7 @@ use super::theme::{self, btn, Icon, Size};
 
 use super::App;
 
-use craft_apps_manager::{jobs::State, model, scheduler};
+use craft_apps_manager::{jobs::State, model};
 
 use eframe::egui::{
     self, Align, Color32, CornerRadius, FontId, Layout, Rect, RichText, Sense, Ui, UiBuilder, Vec2,
@@ -530,32 +530,6 @@ impl App {
         });
 
         ui.add_space(20.0);
-
-        theme::section_label(ui, "Hourly checks");
-
-        ui.add_space(11.0);
-
-        if theme::check_label(ui, &mut self.auto, "App updates", !state.busy)
-
-            .on_hover_text("Checks selected installed apps and notifies you when a new version is available. Supports installers and portable ZIPs; nothing downloads automatically.")
-
-            .changed()
-
-        {
-
-            let result = scheduler::set(&self.paths, false, self.auto);
-
-            if result.is_err() {
-
-                self.auto = !self.auto;
-
-            }
-
-            self.result(result)
-
-        }
-
-        ui.add_space(19.0);
 
         // Section label on the left and "Open log" on the right, centred on one line.
 
