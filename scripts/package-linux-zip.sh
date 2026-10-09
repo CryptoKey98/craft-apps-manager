@@ -25,6 +25,7 @@ files = [(binary, 'craft-apps-manager'), (project/'assets/icon.png', 'icon.png')
 files += [(project/name, name) for name in ('README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.txt')]
 files += [(project/'docs/linux.md', 'docs/linux.md')]
 files += [(p, 'licenses/app-icons/'+p.name) for p in sorted((project/'assets/app-icons').glob('*.txt'))]
+files += [(project/'assets/fonts/OFL.txt', 'licenses/fonts/IBM-Plex-OFL.txt')]
 try:
     with zipfile.ZipFile(archive, 'x', zipfile.ZIP_DEFLATED, compresslevel=9) as package:
         for source, name in files:

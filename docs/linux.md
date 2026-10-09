@@ -1,6 +1,6 @@
 # Linux development build
 
-The Windows and Linux applications share the same Rust source. Linux testing and packages use their own folders and app library.
+The Windows, Linux and macOS applications share the same Rust source. Linux testing and packages use their own folders and app library.
 
 ## Current support
 
@@ -9,6 +9,46 @@ The first test system is Ubuntu 26.04 x86_64. AppImage releases are the default;
 App updates, source downloads, backups, logs, launch settings and the source builder use the Linux platform layer. Hourly checks use systemd user timers and send desktop notifications; they never install updates automatically. Timers run during the user's session.
 
 Profile deletion remains disabled on Linux until each app's actual profile directories have been checked. Installer cancellation is available during downloading, but an authorized package transaction must finish to protect the package database.
+
+## Arch Linux (experimental)
+
+Arch and distributions identifying as Arch-compatible use pacman for native
+package detection, installation, removal and manager updates. The local manager
+package is x86_64 only. Craft apps must provide a matching Arch package for
+Installer mode; otherwise select AppImage in Settings. DEB and RPM files are
+never installed on Arch. Availability of individual Craft apps depends on their
+upstream releases.
+
+Build the manager on Linux with the commands below. On Arch, install `base-devel`,
+`pkgconf`, `libxkbcommon`, `wayland`, `libx11`, `libxi`, `libxrandr`,
+`libxcursor`, `libglvnd` and `openssl` first. For packaging, also install
+`libarchive`, `polkit`, `libnotify` and `xdg-utils`.
+
+Run the packaging script as a regular user on Arch:
+
+```sh
+sh scripts/package-linux-arch.sh target/release/craft-apps-manager
+sudo pacman -U ./dist/linux/craft-apps-manager-0.5.1-1-x86_64.pkg.tar.zst
+```
+
+The package includes Manager and Builder launchers and license notices. Removing
+it with `sudo pacman -R craft-apps-manager` preserves your library and settings.
+The manager's update button selects a native Arch package when one is present
+in a future manager release and requests administrator approval through PolicyKit.
+Native Arch packages still need installation and upgrade testing on Arch.
+
+Keep Arch fully updated before setting up build tools. The manager installs
+needed prerequisites with `pacman -S --needed`; it does not refresh the package
+database separately or perform a partial system upgrade.
+
+Tester checklist: launch Manager and Builder; install, launch and remove an
+AppImage; download sources; create and restore a backup; test notifications and
+scheduled checks; set up tools and build a selected app. Native manager upgrades
+need two native package versions and are not yet covered by a public release.
+Arch desktop behavior has not yet been verified on an Arch machine.
+
+See the [pacman manual](https://man.archlinux.org/man/pacman.8.en) for native
+package operations.
 
 ## Folders
 
@@ -31,7 +71,7 @@ cargo test --locked --all-targets -- --test-threads=1
 cargo clippy --locked --all-targets -- -D warnings
 ```
 
-The executable is `target/release/craft-apps-manager`. Launch it with `--builder` to open the builder. Set up build tools installs the selected app's prerequisites on Ubuntu/Debian and Fedora/RHEL-family systems with DNF; ArtCraft X additionally needs Node, npm and its desktop dependencies. Other distributions currently require manual prerequisite setup.
+The executable is `target/release/craft-apps-manager`. Launch it with `--builder` to open the builder. Set up build tools installs the selected app's prerequisites on Ubuntu/Debian and Fedora/RHEL-family systems with DNF; ArtCraft X additionally needs Node, npm and its desktop dependencies. Arch-compatible systems use pacman for prerequisite setup. Other distributions require manual prerequisite setup.
 
 ## Distribution testing
 
@@ -41,13 +81,13 @@ To cross-build x86 on an Ubuntu x64 host, add the `i386` package architecture an
 
 Run `sh scripts/package-linux-zip.sh path/to/craft-apps-manager` for a portable ZIP. The 32-bit manager only selects matching upstream x86 app assets; it cannot turn an upstream x64-only release into a 32-bit app.
 
-Linux packages are experimental. The current binaries were built on Ubuntu 26.04 and require glibc 2.43 or newer. Ubuntu 26.04 and Fedora 44 x86_64 have been used for testing. This does not establish compatibility with older systems. The proposed Linux CI job builds on Ubuntu 22.04 to keep the glibc baseline older; that job and additional distribution testing are needed before claiming compatibility with older distributions. An Ubuntu 22.04 or 24.04 VM is a useful next test target. macOS is not implemented in this port.
+Linux packages are experimental. The current binaries were built on Ubuntu 26.04 and require glibc 2.43 or newer. Ubuntu 26.04 and Fedora 44 x86_64 have been used for testing. This does not establish compatibility with older systems. Linux CI builds on Ubuntu 22.04 to keep the glibc baseline older; additional distribution testing is needed before claiming compatibility with older distributions. An Ubuntu 22.04 or 24.04 VM is a useful next test target. macOS packaging is documented separately.
 
 ## Ubuntu and Debian development package
 
 Run `sh scripts/package-linux-deb.sh path/to/craft-apps-manager` on Ubuntu or Debian. It requires `dpkg-dev` and creates an `amd64` or `i386` DEB based on the executable's ELF architecture. Linked-library requirements are calculated from the binary, so a package built on a newer Ubuntu release may require newer system libraries.
 
-Install the local package with `sudo apt install ./craft-apps-manager_0.4.0_amd64.deb` (or the `i386` package). The package includes both desktop launchers, the icon, and license notices. Removing it keeps the user's library and settings.
+Install the local package with `sudo apt install ./craft-apps-manager_0.5.1_amd64.deb` (or the `i386` package). The package includes both desktop launchers, the icon, and license notices. Removing it keeps the user's library and settings.
 
 ## Fedora RPM development package
 
@@ -62,7 +102,7 @@ The script requires `rpmbuild` (Fedora package `rpm-build`). It places the devel
 On Fedora, install the local RPM using:
 
 ```sh
-sudo dnf install ./craft-apps-manager-0.4.0-0.2*.x86_64.rpm
+sudo dnf install ./craft-apps-manager-0.5.1-0.2*.x86_64.rpm
 ```
 
 RPM packages are experimental during distribution testing. Removing the package leaves each user's app library intact. For a DEB/RPM installation, the manager update button downloads the matching native package and invokes apt-get or dnf with an administrator prompt. It verifies the installed package version before restarting, and preserves user settings and libraries. Portable ZIP installations use the separate executable-replacement update flow and require a writable installation folder.

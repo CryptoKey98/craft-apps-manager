@@ -15,7 +15,7 @@ impl App {
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     .inner_margin(egui::Margin::symmetric(20, 12)),
             )
             .show(ctx, |ui| {
@@ -23,26 +23,26 @@ impl App {
                     ui.label(
                         RichText::new("Craft Apps Builder")
                             .font(theme::bold(15.0))
-                            .color(theme::TEXT),
+                            .color(theme::palette().text),
                     );
                     theme::text(
                         ui,
                         format!("Version {}", env!("CARGO_PKG_VERSION")),
                         12.0,
-                        theme::MUTED,
+                        theme::palette().muted,
                     );
                 });
                 theme::text(
                     ui,
                     "Build original source. Keep control of your tools and output.",
                     13.0,
-                    theme::TEXT_3,
+                    theme::palette().text_3,
                 );
             });
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     .inner_margin(egui::Margin::symmetric(16, 6)),
             )
             .show(ctx, |ui| {
@@ -52,14 +52,14 @@ impl App {
                             ui,
                             if state.busy { "Working" } else { "Ready" },
                             12.0,
-                            theme::TEXT_3,
+                            theme::palette().text_3,
                         );
                         theme::dot(
                             ui,
                             if state.busy {
-                                theme::LINK
+                                theme::palette().link
                             } else {
-                                theme::GREEN
+                                theme::palette().green
                             },
                         );
                         ui.add_space(12.0);
@@ -68,7 +68,7 @@ impl App {
                                 egui::Label::new(
                                     RichText::new(format!("Data: {}", self.paths.root.display()))
                                         .size(12.0)
-                                        .color(theme::TEXT_3),
+                                        .color(theme::palette().text_3),
                                 )
                                 .truncate(),
                             );
@@ -81,7 +81,7 @@ impl App {
             .exact_width(240.0)
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     .inner_margin(egui::Margin::same(16)),
             )
             .show(ctx, |ui| {
@@ -115,7 +115,7 @@ impl App {
                     ui,
                     "Unchecked builds from your local source ZIP without contacting GitHub.",
                     12.0,
-                    theme::MUTED,
+                    theme::palette().muted,
                 );
                 ui.add_space(4.0);
                 let width = ui.available_width();
@@ -176,7 +176,7 @@ impl App {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(theme::BG)
+                    .fill(theme::palette().bg)
                     .inner_margin(egui::Margin::symmetric(28, 24)),
             )
             .show(ctx, |ui| {
@@ -199,7 +199,7 @@ impl App {
                     );
                 });
                 if !state.detail.is_empty() {
-                    theme::text(ui, &state.detail, 13.0, theme::TEXT_3);
+                    theme::text(ui, &state.detail, 13.0, theme::palette().text_3);
                 }
                 if state.busy {
                     theme::progress(ui, state.progress, 6.0);

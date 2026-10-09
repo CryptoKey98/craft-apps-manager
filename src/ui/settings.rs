@@ -10,8 +10,10 @@ use craft_apps_manager::{
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
-const MANAGER_SECTIONS: [&str; 5] = ["General", "Updates", "Backups", "Builds", "Folders"];
-const BUILDER_SECTIONS: [&str; 2] = ["Builds", "Folders"];
+const MANAGER_SECTIONS: [&str; 6] = [
+    "General", "Updates", "Backups", "Builds", "Folders", "About",
+];
+const BUILDER_SECTIONS: [&str; 3] = ["Builds", "Folders", "About"];
 /// Width of the section list, its right hairline included.
 const NAV_WIDTH: f32 = 176.0;
 
@@ -21,7 +23,7 @@ fn group(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
         ui.label(
             RichText::new(title)
                 .font(theme::bold(13.0))
-                .color(theme::TEXT_3),
+                .color(theme::palette().text_3),
         );
         ui.add_space(10.0);
     }
@@ -35,7 +37,7 @@ fn group(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
 /// Small print below a group, 10pt under it.
 fn note(ui: &mut egui::Ui, text: &str) {
     ui.add_space(10.0);
-    ui.add(egui::Label::new(RichText::new(text).size(12.0).color(theme::MUTED)).wrap());
+    ui.add(egui::Label::new(RichText::new(text).size(12.0).color(theme::palette().muted)).wrap());
 }
 
 /// One row of a group: title and optional detail on the left, the control on the
@@ -59,9 +61,9 @@ fn row_with<R>(
     control: impl FnOnce(&mut egui::Ui) -> R,
 ) -> R {
     let (left, vertical, color) = if nested {
-        (32, 6, theme::TEXT_2)
+        (32, 6, theme::palette().text_2)
     } else {
-        (14, 8, theme::TEXT)
+        (14, 8, theme::palette().text)
     };
     dialogs::band(
         ui,
@@ -94,7 +96,7 @@ fn row_with<R>(
                             ui.spacing_mut().item_spacing.y = 2.0;
                             theme::text(ui, title, 14.0, color);
                             if let Some(detail) = detail {
-                                theme::text(ui, detail, 12.0, theme::MUTED);
+                                theme::text(ui, detail, 12.0, theme::palette().muted);
                             }
                         },
                     );
@@ -127,7 +129,7 @@ fn check_row_with(
     row_with(ui, title, detail, height, nested, |ui| {
         // Native checkboxes keep a 3pt margin on their right.
         ui.add_space(3.0);
-        theme::checkbox(ui, value, 18.0, theme::ACCENT, title, true)
+        theme::checkbox(ui, value, 18.0, theme::palette().accent, title, true)
     })
 }
 
@@ -226,9 +228,9 @@ impl App {
                                             rect,
                                             CornerRadius::same(8),
                                             if selected {
-                                                theme::SELECTED
+                                                theme::palette().selected
                                             } else {
-                                                theme::HOVER
+                                                theme::palette().hover
                                             },
                                         );
                                     }
@@ -238,7 +240,11 @@ impl App {
                                         egui::Align2::LEFT_CENTER,
                                         section,
                                         14.0,
-                                        if selected { theme::TEXT } else { theme::TEXT_3 },
+                                        if selected {
+                                            theme::palette().text
+                                        } else {
+                                            theme::palette().text_3
+                                        },
                                     );
                                     if response.clicked() {
                                         self.settings_jump = Some(index);
@@ -248,7 +254,7 @@ impl App {
                         },
                     );
                     let (rect, _) = ui.allocate_exact_size(egui::vec2(1.0, height), Sense::hover());
-                    ui.painter().rect_filled(rect, 0.0, theme::BORDER);
+                    ui.painter().rect_filled(rect, 0.0, theme::palette().border);
                     egui::ScrollArea::vertical()
                         .id_salt("settings-scroll")
                         .auto_shrink([false, false])
@@ -286,6 +292,7 @@ impl App {
                                                 "Updates" => self.settings_updates(ui, ctx, busy),
                                                 "Backups" => self.settings_backups(ui, busy),
                                                 "Builds" => self.settings_builds(ui, busy),
+                                                "About" => self.settings_about(ui),
                                                 _ => self.settings_folders(ui),
                                             }
                                         }
@@ -362,6 +369,102 @@ impl App {
         self.result(result);
     }
 
+    fn settings_about(&self, ui: &mut egui::Ui) {
+        let icon_id = egui::Id::new("about-manager-icon");
+        let mut icon = ui
+            .ctx()
+            .data(|data| data.get_temp::<egui::TextureHandle>(icon_id));
+        if icon.is_none() {
+            if let Ok(image) = image::load_from_memory(include_bytes!("../../assets/icon.png")) {
+                let image = image.into_rgba8();
+                let pixels = egui::ColorImage::from_rgba_unmultiplied(
+                    [image.width() as usize, image.height() as usize],
+                    image.as_raw(),
+                );
+                let texture = ui.ctx().load_texture(
+                    "about-manager-icon",
+                    pixels,
+                    egui::TextureOptions::LINEAR,
+                );
+                ui.ctx()
+                    .data_mut(|data| data.insert_temp(icon_id, texture.clone()));
+                icon = Some(texture);
+            }
+        }
+        group(ui, "", |ui| {
+            dialogs::band(ui, egui::Margin::same(20), 0.0, |ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 16.0;
+                    if let Some(icon) = &icon {
+                        ui.add(egui::Image::new(icon).fit_to_exact_size(egui::vec2(56.0, 56.0)));
+                    }
+                    ui.vertical(|ui| {
+                        theme::heading(ui, "Craft Apps Manager", 21.0);
+                        ui.add_space(6.0);
+                        theme::text(
+                            ui,
+                            format!("Version {}", env!("CARGO_PKG_VERSION")),
+                            14.0,
+                            theme::palette().text_2,
+                        );
+                        ui.add_space(4.0);
+                        theme::text(
+                            ui,
+                            "Your Craft apps, in one place.",
+                            12.0,
+                            theme::palette().muted,
+                        );
+                    });
+                });
+                ui.add_space(20.0);
+                dialogs::rule(ui);
+                ui.add_space(16.0);
+                ui.add(egui::Label::new("Install and launch Craft apps, check for new releases, manage backups and launch settings, or download source code and build apps yourself.").wrap());
+                ui.add_space(16.0);
+                theme::hyperlink(ui, "Visit project on GitHub", self_update::REPOSITORY, 13.0);
+                ui.add_space(16.0);
+                let built = env!("CRAFT_BUILD_TIMESTAMP")
+                    .parse::<i64>()
+                    .ok()
+                    .and_then(|timestamp| chrono::DateTime::from_timestamp(timestamp, 0))
+                    .map(|date| date.format("%Y-%m-%d %H:%M UTC").to_string())
+                    .unwrap_or_else(|| "Unknown".to_owned());
+                theme::text(
+                    ui,
+                    format!(
+                        "{} · {} · {}",
+                        model::release_os(),
+                        model::MANAGER_ARCH,
+                        env!("CRAFT_BUILD_PROFILE")
+                    ),
+                    12.0,
+                    theme::palette().muted,
+                );
+                ui.add_space(4.0);
+                theme::text(ui, format!("Built {built}"), 12.0, theme::palette().muted);
+            });
+        });
+        ui.add_space(24.0);
+        group(ui, "Contributors", |ui| {
+            dialogs::band(ui, egui::Margin::same(16), 0.0, |ui| {
+                ui.add(egui::Label::new("Thank you to everyone who contributes, tests builds, reports bugs, and shares feedback.").wrap());
+                ui.add_space(12.0);
+                theme::hyperlink(
+                    ui,
+                    "View all contributors",
+                    "https://github.com/CryptoKey98/craft-apps-manager/graphs/contributors",
+                    13.0,
+                );
+            });
+        });
+        ui.add_space(24.0);
+        group(ui, "License and acknowledgments", |ui| {
+            dialogs::band(ui, egui::Margin::same(16), 0.0, |ui| {
+                ui.add(egui::Label::new("Open source under the MIT license. Third-party licenses are included in THIRD-PARTY-NOTICES.txt.").wrap());
+                note(ui, "An independent community project, not affiliated with Adobe or officially maintained by Storytold. Craft apps and their branding belong to their respective creators.");
+            });
+        });
+    }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
         group(ui, "Releases", |ui| {
             let hint = if self.settings_draft.release_format == "installer" {
@@ -394,7 +497,7 @@ impl App {
                         ui,
                         "Universal · Apple silicon and Intel",
                         14.0,
-                        theme::TEXT_3,
+                        theme::palette().text_3,
                     );
                 });
             } else {
@@ -482,9 +585,9 @@ impl App {
                                 &self.manager_message,
                                 13.0,
                                 if self.manager_available.is_some() {
-                                    theme::LINK
+                                    theme::palette().link
                                 } else {
-                                    theme::TEXT_3
+                                    theme::palette().text_3
                                 },
                             );
                             if self.manager_available.is_some() {
@@ -542,7 +645,7 @@ impl App {
                             13.0,
                         );
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                            theme::text(ui, "Release source", 13.0, theme::TEXT_3);
+                            theme::text(ui, "Release source", 13.0, theme::palette().text_3);
                         });
                     },
                 );
@@ -680,7 +783,7 @@ impl App {
                 Some("Megabytes per app log"),
                 52.0,
                 |ui| {
-                    theme::text(ui, "MB", 14.0, theme::TEXT_3);
+                    theme::text(ui, "MB", 14.0, theme::palette().text_3);
                     number(
                         ui,
                         egui::DragValue::new(&mut self.build_draft.log_size_mb).range(1..=100),
@@ -731,7 +834,7 @@ impl App {
                     ui,
                     "Library (releases, sources, builds, logs, backups)",
                     14.0,
-                    theme::TEXT,
+                    theme::palette().text,
                 );
                 if path_field(ui, &mut self.root_text) {
                     self.result(platform::open(&self.paths.root));
@@ -740,7 +843,7 @@ impl App {
             dialogs::rule(ui);
             dialogs::band(ui, block, 0.0, |ui| {
                 ui.spacing_mut().item_spacing.y = 8.0;
-                theme::text(ui, "Build tools", 14.0, theme::TEXT);
+                theme::text(ui, "Build tools", 14.0, theme::palette().text);
                 if path_field(ui, &mut self.tools_text) {
                     self.result(platform::open(&self.paths.tools));
                 }

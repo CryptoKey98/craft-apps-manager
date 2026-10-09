@@ -80,6 +80,34 @@ pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&
             vec![format!("{prefix}-portable.zip")]
         };
         names.extend(package_names);
+        #[cfg(target_os = "linux")]
+        if p.release_format == "installer"
+            && crate::installers::package_kind()? == crate::installers::PackageKind::Arch
+        {
+            let start = format!("{asset_name}-{}-", r.tag_name.trim_start_matches('v'));
+            let end = format!(
+                "-{}.pkg.tar.zst",
+                crate::model::release_arch(&p.architecture)
+            );
+            let mut candidates = Vec::new();
+            for asset in &r.assets {
+                if let Some(release) = asset
+                    .name
+                    .strip_prefix(&start)
+                    .and_then(|value| value.strip_suffix(&end))
+                {
+                    if release.split('.').all(|part| {
+                        !part.is_empty() && part.bytes().all(|value| value.is_ascii_digit())
+                    }) {
+                        candidates.push(asset.name.clone());
+                    }
+                }
+            }
+            if candidates.len() > 1 {
+                bail!("Ambiguous Arch release assets");
+            }
+            names.extend(candidates);
+        }
     }
     names.dedup();
     for n in names {

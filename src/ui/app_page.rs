@@ -1,8 +1,8 @@
 //! One app's page: what it is and its main actions in the middle, its tools on the right.
 use super::overview::release_format_label;
-use super::theme::{self, btn, Icon, Kind, Size};
+use super::theme::{self, btn, Icon, Size};
 use super::App;
-use craft_apps_manager::{apps, jobs::State, model, platform};
+use craft_apps_manager::{apps, builder, jobs::State, model, platform};
 use eframe::egui::{
     self, pos2, vec2, Align, Color32, CornerRadius, FontId, Layout, Rect, Response, RichText,
     Sense, Stroke, Ui, UiBuilder,
@@ -55,11 +55,6 @@ const MAIN_GAP: f32 = 24.0;
 const TOOL_ROW: f32 = 63.75;
 /// The left edge of a tool row's text, and of what sits below it, inside the group.
 const TOOL_TEXT_X: f32 = 38.0;
-/// The failed build summary.
-const RED_SOFT: Color32 = Color32::from_rgb(0xf2, 0xa0, 0xa4);
-/// The error banner's title.
-const RED_TITLE: Color32 = Color32::from_rgb(0xff, 0xd6, 0xd8);
-
 impl App {
     pub(super) fn app_page(&mut self, ctx: &egui::Context, state: &State) {
         egui::SidePanel::right("app-tools")
@@ -67,7 +62,7 @@ impl App {
             .exact_width(320.0)
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     .inner_margin(egui::Margin {
                         // The panel's 1-point border sits inside the mockup's 20-point padding.
                         left: 21,
@@ -83,7 +78,7 @@ impl App {
                     .show(ui, |ui| self.tools_column(ui, state));
             });
         egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(theme::BG))
+            .frame(egui::Frame::new().fill(theme::palette().bg))
             .show(ctx, |ui| {
                 egui::ScrollArea::vertical()
                     .id_salt("app-page-scroll")
@@ -139,8 +134,8 @@ impl App {
                     ui.spacing_mut().item_spacing = vec2(8.0, 4.0);
                     let category = model::category(&app);
                     if !category.is_empty() {
-                        theme::text(ui, category, 13.0, theme::TEXT_3);
-                        theme::text(ui, "·", 13.0, theme::TEXT_3);
+                        theme::text(ui, category, 13.0, theme::palette().text_3);
+                        theme::text(ui, "·", 13.0, theme::palette().text_3);
                     }
                     match &status.installed {
                         Some(installed) => {
@@ -148,20 +143,25 @@ impl App {
                                 ui,
                                 format!("Installed {}", installed.version),
                                 13.0,
-                                theme::GREEN,
+                                theme::palette().green,
                             );
                         }
                         None if status.alternate.is_some() => {
-                            theme::text(ui, format!("No {format} copy"), 13.0, theme::TEXT_3);
+                            theme::text(
+                                ui,
+                                format!("No {format} copy"),
+                                13.0,
+                                theme::palette().text_3,
+                            );
                         }
                         None if !status.loaded => {
-                            theme::text(ui, "Checking…", 13.0, theme::TEXT_3);
+                            theme::text(ui, "Checking…", 13.0, theme::palette().text_3);
                         }
                         None => {
-                            theme::text(ui, "Not installed", 13.0, theme::TEXT_3);
+                            theme::text(ui, "Not installed", 13.0, theme::palette().text_3);
                         }
                     }
-                    theme::text(ui, "·", 13.0, theme::TEXT_3);
+                    theme::text(ui, "·", 13.0, theme::palette().text_3);
                     let repository = model::repository(&app);
                     theme::hyperlink(
                         ui,
@@ -187,8 +187,8 @@ impl App {
                     _ => "install",
                 };
                 egui::Frame::new()
-                    .fill(theme::RED_BG)
-                    .stroke(Stroke::new(1.0_f32, theme::RED_BORDER))
+                    .fill(theme::palette().red_bg)
+                    .stroke(Stroke::new(1.0_f32, theme::palette().red_border))
                     .corner_radius(CornerRadius::same(10))
                     .inner_margin(egui::Margin::symmetric(14, 12))
                     .show(ui, |ui| {
@@ -196,8 +196,13 @@ impl App {
                         ui.spacing_mut().interact_size.y = 0.0;
                         ui.spacing_mut().item_spacing = vec2(12.0, 0.0);
                         ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                            if theme::icon_button(ui, Icon::Close, "Dismiss", theme::RED_TEXT)
-                                .clicked()
+                            if theme::icon_button(
+                                ui,
+                                Icon::Close,
+                                "Dismiss",
+                                theme::palette().red_text,
+                            )
+                            .clicked()
                             {
                                 self.failure_dismissed = true;
                             }
@@ -220,20 +225,25 @@ impl App {
                                     ui.add_space(1.0);
                                     let (rect, _) =
                                         ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
-                                    theme::paint_icon(ui.painter(), rect, Icon::Alert, theme::RED);
+                                    theme::paint_icon(
+                                        ui.painter(),
+                                        rect,
+                                        Icon::Alert,
+                                        theme::palette().red,
+                                    );
                                 });
                                 ui.vertical(|ui| {
                                     ui.spacing_mut().item_spacing.y = 2.0;
                                     ui.label(
                                         RichText::new(format!("Couldn't {verb} {title}"))
                                             .font(theme::bold(14.0))
-                                            .color(RED_TITLE),
+                                            .color(theme::palette().red_text),
                                     );
                                     ui.add(
                                         egui::Label::new(
                                             RichText::new(&state.outcome)
                                                 .size(13.0)
-                                                .color(theme::RED_TEXT),
+                                                .color(theme::palette().red_text),
                                         )
                                         .wrap(),
                                     );
@@ -259,7 +269,7 @@ impl App {
                     egui::Label::new(
                         RichText::new(description)
                             .size(15.0)
-                            .color(theme::TEXT_2)
+                            .color(theme::palette().text_2)
                             .line_height(Some(line_height)),
                     )
                     .wrap(),
@@ -281,8 +291,8 @@ impl App {
             // 560 points of content inside the padding and border, as in the design.
             let width = ui.available_width().min(560.0 + 30.0);
             egui::Frame::new()
-                .fill(theme::PROGRESS_BG)
-                .stroke(Stroke::new(1.0_f32, theme::ACCENT_BORDER))
+                .fill(theme::palette().progress_bg)
+                .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
                 .corner_radius(CornerRadius::same(10))
                 .inner_margin(egui::Margin::symmetric(14, 12))
                 .show(ui, |ui| {
@@ -301,7 +311,12 @@ impl App {
                         Layout::left_to_right(Align::Min),
                     );
                     text.spacing_mut().item_spacing.x = 12.0;
-                    theme::text(&mut text, format!("{verb} {title}…"), 14.0, theme::TEXT);
+                    theme::text(
+                        &mut text,
+                        format!("{verb} {title}…"),
+                        14.0,
+                        theme::palette().text,
+                    );
                     text.with_layout(Layout::right_to_left(Align::Min), |ui| {
                         ui.add(
                             egui::Label::new(
@@ -311,7 +326,7 @@ impl App {
                                     format!("{} · {}", state.stage, state.detail)
                                 })
                                 .size(14.0)
-                                .color(theme::TEXT_3),
+                                .color(theme::palette().text_3),
                             )
                             .truncate(),
                         );
@@ -366,13 +381,13 @@ impl App {
                     }
                 ),
                 13.0,
-                theme::TEXT_3,
+                theme::palette().text_3,
             );
             ui.add(
                 egui::Label::new(
                     RichText::new(&alternate.path)
                         .size(12.0)
-                        .color(theme::MUTED),
+                        .color(theme::palette().muted),
                 )
                 .truncate(),
             );
@@ -458,7 +473,7 @@ impl App {
                     }
                     if btn("Uninstall…")
                         .size(Size::Card)
-                        .icon_colored(Icon::Trash, theme::RED)
+                        .icon_colored(Icon::Trash, theme::palette().red)
                         .enabled(!state.busy)
                         .show(ui)
                         .on_disabled_hover_text("Wait for the current operation to finish.")
@@ -474,7 +489,7 @@ impl App {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.spinner();
-                theme::text(ui, "Checking for updates…", 13.0, theme::TEXT_3);
+                theme::text(ui, "Checking for updates…", 13.0, theme::palette().text_3);
             });
             ui.ctx()
                 .request_repaint_after(std::time::Duration::from_millis(33));
@@ -486,7 +501,7 @@ impl App {
                         ui,
                         "You’re running the latest version.",
                         13.0,
-                        theme::TEXT_3,
+                        theme::palette().text_3,
                     );
                 }
                 Ok(Some(version)) => {
@@ -494,12 +509,15 @@ impl App {
                         ui,
                         format!("Version {version} is available."),
                         13.0,
-                        theme::LINK,
+                        theme::palette().link,
                     );
                 }
                 Err(error) => {
                     ui.add(
-                        egui::Label::new(RichText::new(error).size(13.0).color(theme::RED)).wrap(),
+                        egui::Label::new(
+                            RichText::new(error).size(13.0).color(theme::palette().red),
+                        )
+                        .wrap(),
                     );
                 }
             }
@@ -515,7 +533,7 @@ impl App {
                     ui,
                     "Use Windows Installed apps to remove this installer version.",
                     13.0,
-                    theme::TEXT_3,
+                    theme::palette().text_3,
                 );
                 if theme::link(ui, "Windows Installed apps").clicked() {
                     self.result(
@@ -609,7 +627,7 @@ impl App {
             Sense::hover(),
         );
         ui.painter()
-            .rect_filled(rect, CornerRadius::same(10), theme::BORDER);
+            .rect_filled(rect, CornerRadius::same(10), theme::palette().border);
         let inner = rect.shrink(1.0);
         let cell = (inner.width() - (columns - 1) as f32) / columns as f32;
         for (index, (label, value, hover)) in cells.iter().enumerate() {
@@ -631,16 +649,18 @@ impl App {
                 sw: corner(last_row, first_column),
                 se: corner(last_row, last_column),
             };
-            ui.painter().rect_filled(cell_rect, radius, theme::PANEL);
+            ui.painter()
+                .rect_filled(cell_rect, radius, theme::palette().panel);
             let mut ui = child(
                 ui,
                 cell_rect.shrink2(vec2(14.0, 12.0)),
                 Layout::top_down(Align::Min),
             );
             ui.spacing_mut().item_spacing.y = 4.0;
-            theme::text(&mut ui, *label, 12.0, theme::MUTED);
+            theme::text(&mut ui, *label, 12.0, theme::palette().muted);
             let response = ui.add(
-                egui::Label::new(RichText::new(value).size(14.0).color(theme::TEXT)).truncate(),
+                egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
+                    .truncate(),
             );
             if let Some(hover) = hover {
                 response.on_hover_text(hover);
@@ -685,7 +705,7 @@ impl App {
                     icon: Icon::Sliders,
                     title: "Launch options",
                     detail: &summary,
-                    color: theme::MUTED,
+                    color: theme::palette().muted,
                     gap: 0.0,
                     progress: None,
                 },
@@ -699,6 +719,7 @@ impl App {
                     Ok(settings) => {
                         self.launch_arguments = settings.arguments.join("\n");
                         self.launch_draft = settings;
+                        self.launch_build_options = false;
                         self.launch_settings_open = true;
                     }
                     Err(error) => self.result(Err(error)),
@@ -718,7 +739,7 @@ impl App {
                     icon: Icon::Archive,
                     title: "Backups",
                     detail: &summary,
-                    color: theme::MUTED,
+                    color: theme::palette().muted,
                     gap: 0.0,
                     progress: None,
                 },
@@ -757,7 +778,7 @@ impl App {
                     icon: Icon::Code,
                     title: "Source",
                     detail: &summary,
-                    color: theme::MUTED,
+                    color: theme::palette().muted,
                     gap: 0.0,
                     progress: None,
                 },
@@ -789,7 +810,7 @@ impl App {
                     } else {
                         format!("{} · {}", build.stage, build.detail)
                     },
-                    theme::LINK,
+                    theme::palette().link,
                 )
             } else if failed {
                 (
@@ -799,119 +820,169 @@ impl App {
                         "Build failed · see the log"
                     }
                     .to_owned(),
-                    RED_SOFT,
+                    theme::palette().red,
                 )
             } else if let Some((_, info)) = &last {
                 (
                     info.as_ref()
                         .map(|info| {
                             format!(
-                                "Built {} · {}",
-                                short_date(&info.built_at),
-                                &info.commit[..7.min(info.commit.len())]
+                                "Ready · {}",
+                                short_date(&info.built_at).split(", ").next().unwrap_or(""),
                             )
                         })
                         .unwrap_or_else(|| "Built".into()),
-                    theme::GREEN,
+                    theme::palette().green,
                 )
             } else {
-                ("No builds yet".to_owned(), theme::MUTED)
+                ("Not built yet".to_owned(), theme::palette().muted)
             };
-            let row = Row {
-                icon: Icon::Wrench,
-                title: "Build",
-                detail: &summary,
-                color,
-                gap: 2.0,
-                progress: running.then_some(build.progress),
-            };
-            if running {
-                let requested = self
-                    .build_job
-                    .cancel
-                    .load(std::sync::atomic::Ordering::Relaxed);
-                let cancel = tool_row(
-                    ui,
-                    row,
-                    btn(if requested { "Cancelling…" } else { "Cancel" }).enabled(!requested),
-                );
-                if cancel.clicked() {
-                    self.build_job
-                        .cancel
-                        .store(true, std::sync::atomic::Ordering::Relaxed);
-                }
-            } else {
-                let start = tool_row(
-                    ui,
-                    row,
-                    btn(if failed {
-                        "Try again"
-                    } else if last.is_some() {
-                        "Rebuild"
-                    } else {
-                        "Build"
-                    })
-                    .kind(Kind::Tinted)
-                    .enabled(!build.busy && !cleaning),
-                );
-                if start
-                    .on_disabled_hover_text(if cleaning {
-                        "Wait for the build file cleanup to finish.".to_owned()
-                    } else {
-                        format!(
-                            "Building {}. One build runs at a time.",
-                            model::title(&self.build_app)
-                        )
-                    })
-                    .clicked()
-                {
-                    // Try again repeats whatever failed, which may be tool setup.
-                    self.start_build(if failed && setup { "setup" } else { "build" });
-                }
-            }
             egui::Frame::new()
-                .inner_margin(egui::Margin {
-                    left: TOOL_TEXT_X as i8,
-                    right: 12,
-                    top: 0,
-                    bottom: 12,
-                })
+                .inner_margin(egui::Margin::same(14))
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
-                    ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
-                    ui.spacing_mut().interact_size.y = 0.0;
-                    let output = if building_here {
-                        build.output.clone()
-                    } else {
-                        None
-                    }
-                    .or_else(|| last.as_ref().map(|(folder, _)| folder.clone()));
-                    let log = self.paths.at(format!("logs/{app}.log"));
-                    if output.is_some() || log.is_file() {
-                        ui.horizontal(|ui| {
-                            if let Some(output) = &output {
-                                if btn("Open folder").show(ui).clicked() {
-                                    self.result(platform::open(output));
-                                }
-                            }
-                            if log.is_file() && btn("View log").show(ui).clicked() {
-                                self.result(platform::open(&log));
-                            }
+                    ui.spacing_mut().item_spacing = vec2(8.0, 6.0);
+                    ui.horizontal_top(|ui| {
+                        ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            ui.allocate_ui_with_layout(
+                                vec2(76.0, 0.0),
+                                Layout::top_down(Align::Min),
+                                |ui| {
+                                    let label = if running {
+                                        "Cancel"
+                                    } else if failed {
+                                        "Try again"
+                                    } else if last.is_some() {
+                                        "Rebuild"
+                                    } else {
+                                        "Build"
+                                    };
+                                    if btn(label)
+                                        .kind(theme::Kind::Tinted)
+                                        .min_width(72.0)
+                                        .enabled(!cleaning && (running || !build.busy))
+                                        .show(ui)
+                                        .clicked()
+                                    {
+                                        if running {
+                                            self.build_job
+                                                .cancel
+                                                .store(true, std::sync::atomic::Ordering::Relaxed);
+                                        } else {
+                                            self.start_build(if failed && setup {
+                                                "setup"
+                                            } else {
+                                                "build"
+                                            });
+                                        }
+                                    }
+                                    if last.is_some() {
+                                        ui.add_space(6.0);
+                                        let launch = btn("Launch")
+                                            .kind(theme::Kind::Tinted)
+                                            .min_width(72.0)
+                                            .enabled(!cleaning)
+                                            .show(ui);
+                                        if !cleaning {
+                                            let pulse = ((ui.input(|i| i.time) * 2.5).sin() as f32
+                                                + 1.0)
+                                                * 0.5;
+                                            let blue = theme::palette().accent;
+                                            let alpha = if launch.hovered() {
+                                                255
+                                            } else {
+                                                (100.0 + pulse * 155.0) as u8
+                                            };
+                                            ui.painter().rect_stroke(
+                                                launch.rect,
+                                                CornerRadius::same(8),
+                                                Stroke::new(
+                                                    1.0_f32,
+                                                    Color32::from_rgba_unmultiplied(
+                                                        blue.r(),
+                                                        blue.g(),
+                                                        blue.b(),
+                                                        alpha,
+                                                    ),
+                                                ),
+                                                egui::StrokeKind::Inside,
+                                            );
+                                            ui.ctx().request_repaint_after(
+                                                std::time::Duration::from_millis(33),
+                                            );
+                                        }
+                                        if launch.clicked() {
+                                            self.result(builder::launch_local(&self.paths, &app));
+                                        }
+                                    }
+                                },
+                            );
+                            ui.allocate_ui_with_layout(
+                                vec2(ui.available_width(), 0.0),
+                                Layout::top_down(Align::Min),
+                                |ui| {
+                                    theme::text(ui, "Local build", 14.0, theme::palette().text);
+                                    ui.add(
+                                        egui::Label::new(
+                                            RichText::new(&summary).size(12.0).color(color),
+                                        )
+                                        .wrap(),
+                                    );
+                                    if let Some((_, Some(info))) = &last {
+                                        theme::text(
+                                            ui,
+                                            format!(
+                                                "Source {}",
+                                                &info.commit[..7.min(info.commit.len())]
+                                            ),
+                                            12.0,
+                                            theme::palette().muted,
+                                        );
+                                    }
+                                },
+                            );
                         });
+                    });
+                    if running {
+                        theme::progress(ui, build.progress, 4.0);
                     }
-                    ui.spacing_mut().icon_spacing = 10.0;
+                    ui.add_space(6.0);
                     ui.add_enabled(
-                        !build.busy,
+                        !build.busy && !cleaning,
                         egui::Checkbox::new(
                             &mut self.latest,
-                            RichText::new("Download the latest source first")
-                                .size(14.0)
-                                .color(theme::TEXT_2),
+                            RichText::new("Download latest source before building").size(12.0),
                         ),
                     )
-                    .on_hover_text(
-                        "Unchecked builds from your local source ZIP without contacting GitHub.",
-                    );
+                    .on_hover_text("Turn off to use the source ZIP already in your library.");
+                    ui.add_space(6.0);
+                    ui.horizontal(|ui| {
+                        if theme::link(ui, "Build options…").clicked() {
+                            match builder::launch_options(&self.paths, &app) {
+                                Ok(options) => {
+                                    self.launch_arguments = options.arguments.join("\n");
+                                    self.launch_draft = options;
+                                }
+                                Err(error) => {
+                                    self.result(Err(error));
+                                    return;
+                                }
+                            }
+                            self.delete_build_confirm = false;
+                            self.build_options_open = true;
+                        }
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            let cleaning = self.cleaning();
+            let setup = theme::link_enabled(ui, "Set up build tools", !build.busy && !cleaning)
+                .on_hover_text(
+                    "Installs or checks the Rust toolchain and other build prerequisites",
+                )
+                .on_disabled_hover_text("Wait for the current build or cleanup to finish.");
+            if setup.clicked() {
+                self.start_build("setup");
+            }
+                        });
+                    });
                 });
         });
         ui.add_space(12.0);
@@ -942,15 +1013,6 @@ impl App {
                     };
                     self.result(result);
                 }
-            }
-            let cleaning = self.cleaning();
-            let setup = theme::link_enabled(ui, "Set up build tools", !build.busy && !cleaning)
-                .on_hover_text(
-                    "Installs or checks the Rust toolchain and other build prerequisites",
-                )
-                .on_disabled_hover_text("Wait for the current build or cleanup to finish.");
-            if setup.clicked() {
-                self.start_build("setup");
             }
         });
         if building_here && (build.busy || !build.stage.is_empty()) {
@@ -998,7 +1060,7 @@ fn tool_row(ui: &mut Ui, row: Row, button: theme::Btn) -> Response {
     let (rect, _) =
         ui.allocate_exact_size(vec2(width, TOOL_ROW.max(column + 12.0)), Sense::hover());
     let icon = Rect::from_center_size(pos2(rect.left() + 20.0, rect.center().y), vec2(16.0, 16.0));
-    theme::paint_icon(ui.painter(), icon, row.icon, theme::MUTED);
+    theme::paint_icon(ui.painter(), icon, row.icon, theme::palette().muted);
     let top = rect.center().y - column / 2.0;
     let mut text = child(
         ui,
@@ -1009,7 +1071,7 @@ fn tool_row(ui: &mut Ui, row: Row, button: theme::Btn) -> Response {
         Layout::top_down(Align::Min),
     );
     text.spacing_mut().item_spacing.y = row.gap;
-    theme::text(&mut text, row.title, 14.0, theme::TEXT);
+    theme::text(&mut text, row.title, 14.0, theme::palette().text);
     text.add(egui::Label::new(RichText::new(row.detail).size(12.0).color(row.color)).wrap());
     if let Some(value) = row.progress {
         text.add_space(4.0 - row.gap);

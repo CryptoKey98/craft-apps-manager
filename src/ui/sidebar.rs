@@ -9,7 +9,6 @@ const LINE: f32 = 1.327;
 /// Placeholder colour of the mockup's search field.
 const PLACEHOLDER: Color32 = Color32::from_rgb(0x75, 0x75, 0x75);
 /// Border of the "Get" chip.
-const CHIP_BORDER: Color32 = Color32::from_rgb(0x3a, 0x3d, 0x44);
 /// Status-bar dot while an operation or a build runs.
 const BUSY_DOT: Color32 = Color32::from_rgb(0x5b, 0x8c, 0xff);
 // The top bar draws its own pill now, which leaves `Size::Pill` without a caller.
@@ -21,7 +20,7 @@ impl App {
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     // The bottom point holds the separator line egui draws inside the panel.
                     .inner_margin(egui::Margin {
                         left: 20,
@@ -40,17 +39,22 @@ impl App {
                         ui.label(
                             egui::RichText::new("Craft Apps Manager")
                                 .font(theme::bold(15.0))
-                                .color(theme::TEXT),
+                                .color(theme::palette().text),
                         );
                         theme::text(
                             ui,
                             format!("Version {}", env!("CARGO_PKG_VERSION")),
                             12.0,
-                            theme::MUTED,
+                            theme::palette().muted,
                         );
                         if self.manager_plan.is_some() {
                             ui.spinner();
-                            theme::text(ui, "Downloading update…", 12.0, theme::ACCENT_TEXT);
+                            theme::text(
+                                ui,
+                                "Downloading update…",
+                                12.0,
+                                theme::palette().accent_text,
+                            );
                         } else if let Some(available) = &self.manager_available {
                             let version = available.version.clone();
                             if btn("Update available")
@@ -80,6 +84,22 @@ impl App {
                             {
                                 self.open_settings();
                             }
+                            if theme::theme_toggle(ui, self.preferences.theme).clicked() {
+                                let result = (|| -> anyhow::Result<()> {
+                                    let mut preferences = self.paths.read_preferences()?;
+                                    preferences.theme = self.preferences.theme.toggled();
+                                    craft_apps_manager::files::write_json(
+                                        &self.paths.at("manager-settings.json"),
+                                        &preferences,
+                                    )?;
+                                    self.preferences.theme = preferences.theme;
+                                    self.settings_draft.theme = preferences.theme;
+                                    theme::apply(ctx, preferences.theme);
+                                    ctx.request_repaint();
+                                    Ok(())
+                                })();
+                                self.result(result);
+                            }
                         });
                     },
                 );
@@ -91,7 +111,7 @@ impl App {
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
-                    .fill(theme::PANEL)
+                    .fill(theme::palette().panel)
                     // The top point holds the separator line egui draws inside the panel.
                     .inner_margin(egui::Margin {
                         left: 16,
@@ -120,9 +140,9 @@ impl App {
                         ),
                     )
                 } else if state.stage == "Failed" {
-                    (theme::RED, "Last operation failed".to_owned())
+                    (theme::palette().red, "Last operation failed".to_owned())
                 } else {
-                    (theme::GREEN, "Ready".to_owned())
+                    (theme::palette().green, "Ready".to_owned())
                 };
                 ui.allocate_ui_with_layout(
                     egui::vec2(ui.available_width(), 30.0),
@@ -130,7 +150,7 @@ impl App {
                     |ui| {
                         ui.set_min_height(30.0);
                         ui.spacing_mut().item_spacing.x = 8.0;
-                        theme::text(ui, text, 12.0, theme::TEXT_3);
+                        theme::text(ui, text, 12.0, theme::palette().text_3);
                         theme::dot(ui, color);
                         ui.add_space(8.0);
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -141,7 +161,7 @@ impl App {
                                         self.paths.root.display()
                                     ))
                                     .size(12.0)
-                                    .color(theme::TEXT_3),
+                                    .color(theme::palette().text_3),
                                 )
                                 .truncate(),
                             );
@@ -156,7 +176,7 @@ impl App {
             .resizable(false)
             // 264 points of list plus the separator line egui draws inside the panel.
             .exact_width(265.0)
-            .frame(egui::Frame::new().fill(theme::PANEL))
+            .frame(egui::Frame::new().fill(theme::palette().panel))
             .show(ctx, |ui| {
                 ui.spacing_mut().item_spacing.y = 0.0;
                 egui::Frame::new()
@@ -188,8 +208,8 @@ impl App {
 
     fn search_box(&mut self, ui: &mut egui::Ui) {
         egui::Frame::new()
-            .fill(theme::FIELD)
-            .stroke(Stroke::new(1.0_f32, Color32::from_rgb(0x2f, 0x32, 0x38)))
+            .fill(theme::palette().field)
+            .stroke(Stroke::new(1.0_f32, theme::palette().border_strong))
             .corner_radius(CornerRadius::same(8))
             .inner_margin(egui::Margin::symmetric(10, 0))
             .show(ui, |ui| {
@@ -198,12 +218,17 @@ impl App {
                     ui.set_min_height(36.0);
                     ui.spacing_mut().item_spacing.x = 8.0;
                     let (rect, _) = ui.allocate_exact_size(egui::vec2(16.0, 16.0), Sense::hover());
-                    theme::paint_icon(ui.painter(), rect, Icon::Search, theme::MUTED);
+                    theme::paint_icon(ui.painter(), rect, Icon::Search, theme::palette().muted);
                     // Lay out right to left so the clear button keeps its room.
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let clear = !self.search.is_empty()
-                            && theme::icon_button(ui, Icon::Close, "Clear search", theme::MUTED)
-                                .clicked();
+                            && theme::icon_button(
+                                ui,
+                                Icon::Close,
+                                "Clear search",
+                                theme::palette().muted,
+                            )
+                            .clicked();
                         let response = ui.add(
                             egui::TextEdit::singleline(&mut self.search)
                                 .hint_text(
@@ -214,7 +239,7 @@ impl App {
                                 .frame(false)
                                 .margin(egui::Margin::ZERO)
                                 .desired_width(ui.available_width())
-                                .text_color(theme::TEXT)
+                                .text_color(theme::palette().text)
                                 .font(FontId::proportional(13.0)),
                         );
                         if clear {
@@ -278,7 +303,7 @@ impl App {
                     ui,
                     format!("No apps match “{}”.", self.search.trim()),
                     13.0,
-                    theme::MUTED,
+                    theme::palette().muted,
                 );
             });
         }
@@ -324,29 +349,26 @@ impl App {
             egui::pos2(rect.left() + 10.0, rect.center().y - 16.0),
             egui::vec2(32.0, 32.0),
         );
-        ui.painter().rect_filled(
-            tile,
-            CornerRadius::same(8),
-            Color32::from_rgb(0x23, 0x26, 0x2c),
-        );
+        ui.painter()
+            .rect_filled(tile, CornerRadius::same(8), theme::palette().button);
         theme::paint_icon(
             ui.painter(),
             Rect::from_center_size(tile.center(), egui::vec2(16.0, 16.0)),
             Icon::Grid,
-            theme::TEXT_2,
+            theme::palette().text_2,
         );
         ui.painter().text(
             egui::pos2(tile.right() + 12.0, rect.center().y),
             egui::Align2::LEFT_CENTER,
             "Overview",
             theme::medium(14.0),
-            theme::TEXT,
+            theme::palette().text,
         );
         if updates > 0 {
             let galley = ui.painter().layout_no_wrap(
                 updates.to_string(),
                 theme::bold(11.0),
-                theme::ACCENT_TEXT,
+                theme::palette().accent_text,
             );
             let width = (galley.size().x + 12.0).max(20.0);
             let badge = Rect::from_min_size(
@@ -354,11 +376,11 @@ impl App {
                 egui::vec2(width, 20.0),
             );
             ui.painter()
-                .rect_filled(badge, CornerRadius::same(10), theme::ACCENT_SOFT);
+                .rect_filled(badge, CornerRadius::same(10), theme::palette().accent_soft);
             ui.painter().galley(
                 badge.center() - galley.size() / 2.0,
                 galley,
-                theme::ACCENT_TEXT,
+                theme::palette().accent_text,
             );
         }
         response.clicked()
@@ -437,7 +459,7 @@ impl App {
             ui.painter().rect_stroke(
                 rect.shrink(1.0),
                 CornerRadius::same(8),
-                Stroke::new(1.0_f32, theme::ACCENT),
+                Stroke::new(1.0_f32, theme::palette().accent),
                 egui::StrokeKind::Inside,
             );
         }
@@ -453,7 +475,7 @@ impl App {
                         egui::pos2(rect.left() + 4.0, y),
                         egui::pos2(rect.right() - 4.0, y),
                     ],
-                    Stroke::new(2.0_f32, theme::ACCENT),
+                    Stroke::new(2.0_f32, theme::palette().accent),
                 );
             }
         }
@@ -519,9 +541,9 @@ impl App {
                 FontId::proportional(14.0)
             },
             if is_installed {
-                theme::TEXT
+                theme::palette().text
             } else {
-                theme::TEXT_3
+                theme::palette().text_3
             },
             max_text,
         );
@@ -531,30 +553,39 @@ impl App {
                     Some(progress) => format!("Installing… {:.0}%", progress * 100.0),
                     None => "Installing…".into(),
                 },
-                theme::LINK,
+                theme::palette().link,
             )
         } else if let Some(installed) = &status.installed {
             if let Some(update) = &status.update {
                 (
                     format!("{} {} {update}", installed.version, theme::arrow()),
-                    theme::LINK,
+                    theme::palette().link,
                 )
             } else if status.checking {
-                (format!("{} · checking…", installed.version), theme::MUTED)
+                (
+                    format!("{} · checking…", installed.version),
+                    theme::palette().muted,
+                )
             } else if matches!(status.check, Some(Ok(None))) {
-                (format!("{} · up to date", installed.version), theme::GREEN)
+                (
+                    format!("{} · up to date", installed.version),
+                    theme::palette().green,
+                )
             } else {
-                (format!("Installed {}", installed.version), theme::GREEN)
+                (
+                    format!("Installed {}", installed.version),
+                    theme::palette().green,
+                )
             }
         } else if let Some((label, version)) = &other {
             (
                 format!("{label} {version} · no {format} copy"),
-                theme::MUTED,
+                theme::palette().muted,
             )
         } else if !status.loaded {
-            ("Checking…".into(), theme::MUTED)
+            ("Checking…".into(), theme::palette().muted)
         } else {
-            (model::category(name).to_owned(), theme::MUTED)
+            (model::category(name).to_owned(), theme::palette().muted)
         };
         let mut detail_job = egui::text::LayoutJob::simple_singleline(
             detail,
@@ -569,8 +600,11 @@ impl App {
         let top = rect.center().y - (title_line + 1.0 + detail_line) / 2.0;
         let title_top = top + (title_line - title.size().y) / 2.0;
         let detail_top = top + title_line + 1.0 + (detail_line - detail.size().y) / 2.0;
-        ui.painter()
-            .galley(egui::pos2(text_left, title_top), title, theme::TEXT);
+        ui.painter().galley(
+            egui::pos2(text_left, title_top),
+            title,
+            theme::palette().text,
+        );
         ui.painter()
             .galley(egui::pos2(text_left, detail_top), detail, detail_color);
         let mut chip_clicked = false;
@@ -593,23 +627,23 @@ impl App {
             let (fill, stroke, color, radius) = if chip == "Update" {
                 (
                     if hovered {
-                        Color32::from_rgb(0x24, 0x38, 0x61)
+                        theme::palette().selected
                     } else {
-                        theme::ACCENT_SOFT
+                        theme::palette().accent_soft
                     },
                     Stroke::NONE,
-                    theme::ACCENT_TEXT,
+                    theme::palette().accent_text,
                     10,
                 )
             } else {
                 (
                     if hovered {
-                        theme::BUTTON_HOVER
+                        theme::palette().button_hover
                     } else {
                         Color32::TRANSPARENT
                     },
-                    Stroke::new(1.0_f32, CHIP_BORDER),
-                    theme::TEXT_2,
+                    Stroke::new(1.0_f32, theme::palette().border_strong),
+                    theme::palette().text_2,
                     13,
                 )
             };
@@ -656,9 +690,9 @@ fn paint_row_background(ui: &egui::Ui, rect: Rect, selected: bool, hovered: bool
             rect,
             CornerRadius::same(8),
             if selected {
-                theme::SELECTED
+                theme::palette().selected
             } else {
-                theme::HOVER
+                theme::palette().hover
             },
         );
     }
@@ -673,7 +707,7 @@ fn group_header(ui: &mut egui::Ui, label: &str, count: usize) {
     let text = |text: String| {
         egui::RichText::new(text)
             .font(theme::medium(12.0))
-            .color(theme::MUTED)
+            .color(theme::palette().muted)
             .extra_letter_spacing(0.72)
     };
     // Padding 4 × 8 around one 12-point line.

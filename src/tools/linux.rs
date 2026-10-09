@@ -95,11 +95,12 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     let manager = match kind {
         crate::installers::PackageKind::Debian => "apt-get",
         crate::installers::PackageKind::Rpm => "dnf",
+        crate::installers::PackageKind::Arch => "pacman",
     };
     if system(manager).is_none() || system("pkexec").is_none() {
         bail!("Automatic prerequisite setup requires {manager} and PolicyKit. Install Rust and the development packages listed in docs/linux.md.");
     }
-    let seven_package = if kind == crate::installers::PackageKind::Rpm
+    let seven_package = if kind != crate::installers::PackageKind::Debian
         || std::process::Command::new("apt-cache")
             .args(["show", "7zip"])
             .output()?
@@ -122,7 +123,11 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
         packages.join(", ")
     ));
     let mut command = std::process::Command::new("pkexec");
-    command.args([manager, "install", "-y"]);
+    if kind == crate::installers::PackageKind::Arch {
+        command.args([manager, "-S", "--needed", "--noconfirm"]);
+    } else {
+        command.args([manager, "install", "-y"]);
+    }
     if kind == crate::installers::PackageKind::Debian {
         command.arg("--no-install-recommends");
     }
@@ -152,6 +157,40 @@ fn prerequisite_packages<'a>(
     app: &str,
     seven: &'a str,
 ) -> Vec<&'a str> {
+    if kind == crate::installers::PackageKind::Arch {
+        let mut packages = vec![
+            "base-devel",
+            "pkgconf",
+            "libxkbcommon",
+            "wayland",
+            "libx11",
+            "libxrandr",
+            "libxi",
+            "libxcursor",
+            "mesa",
+            "alsa-lib",
+            "openssl",
+            "systemd",
+            "7zip",
+            "libarchive",
+        ];
+        if app == "artcraftx" {
+            packages.extend([
+                "nodejs",
+                "npm",
+                "cmake",
+                "perl",
+                "nasm",
+                "clang",
+                "git",
+                "gtk3",
+                "webkit2gtk-4.1",
+                "libayatana-appindicator",
+                "librsvg",
+            ]);
+        }
+        return packages;
+    }
     if kind == crate::installers::PackageKind::Rpm {
         let mut packages = vec![
             "gcc",
@@ -264,7 +303,7 @@ mod tests {
     use crate::installers::PackageKind;
     #[test]
     fn prerequisite_setup_only_installs_selected_apps_extra_tools() {
-        for kind in [PackageKind::Debian, PackageKind::Rpm] {
+        for kind in [PackageKind::Debian, PackageKind::Rpm, PackageKind::Arch] {
             let normal = prerequisite_packages(kind, "filmcraft", "7zip");
             assert!(!normal
                 .iter()

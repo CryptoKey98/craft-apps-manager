@@ -15,7 +15,6 @@ use eframe::egui::{self, Color32, CornerRadius, FontId, RichText, Sense, Stroke,
 
 /// Accent of the destructive checkboxes (`accent-color: #d9534f` in the mockups).
 pub(super) const CHECK_RED: Color32 = Color32::from_rgb(0xd9, 0x53, 0x4f);
-const CHIP: Color32 = Color32::from_rgb(0x23, 0x26, 0x2c);
 /// Footer, title bar and the dialog's own height, from the mockups.
 pub(super) const BAR_HEIGHT: f32 = 61.0;
 
@@ -36,11 +35,22 @@ pub(super) fn band<R>(
         .inner
 }
 
+/// A settings-style card with a section heading and consistent padding.
+fn options_section(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
+    theme::text(ui, title, 13.0, theme::palette().text_3);
+    ui.add_space(4.0);
+    theme::group().show(ui, |ui| {
+        band(ui, egui::Margin::same(16), 0.0, |ui| {
+            ui.spacing_mut().item_spacing.y = 6.0;
+            content(ui);
+        });
+    });
+}
 /// A full-width 1pt hairline.
 pub(super) fn rule(ui: &mut egui::Ui) {
     let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), 1.0), Sense::hover());
     ui.painter()
-        .rect_filled(rect, CornerRadius::ZERO, theme::BORDER);
+        .rect_filled(rect, CornerRadius::ZERO, theme::palette().border);
 }
 
 /// Title bar: 16pt title on the left, `right` (a close button or a control) on the
@@ -77,13 +87,13 @@ pub(super) fn close_button(ui: &mut egui::Ui) -> egui::Response {
     response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, "Close"));
     if response.hovered() {
         ui.painter()
-            .rect_filled(rect, CornerRadius::same(8), theme::BUTTON_HOVER);
+            .rect_filled(rect, CornerRadius::same(8), theme::palette().button_hover);
     }
     if response.has_focus() {
         ui.painter().rect_stroke(
             rect,
             CornerRadius::same(8),
-            Stroke::new(2.0_f32, theme::LINK),
+            Stroke::new(2.0_f32, theme::palette().link),
             StrokeKind::Inside,
         );
     }
@@ -91,7 +101,7 @@ pub(super) fn close_button(ui: &mut egui::Ui) -> egui::Response {
         ui.painter(),
         egui::Rect::from_center_size(rect.center(), egui::Vec2::splat(18.0)),
         Icon::Close,
-        theme::TEXT_3,
+        theme::palette().text_3,
     );
     if response.hovered() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
@@ -126,7 +136,7 @@ fn paragraph(ui: &mut egui::Ui, text: &str) {
         egui::Label::new(
             RichText::new(text)
                 .size(14.0)
-                .color(theme::TEXT_2)
+                .color(theme::palette().text_2)
                 .line_height(Some(21.0)),
         )
         .wrap(),
@@ -181,22 +191,154 @@ enum Art {
 const BODY: egui::Margin = egui::Margin::same(24);
 
 fn note(ui: &mut egui::Ui, text: impl Into<String>) {
-    ui.add(egui::Label::new(RichText::new(text).size(12.0).color(theme::MUTED)).wrap());
+    ui.add(egui::Label::new(RichText::new(text).size(12.0).color(theme::palette().muted)).wrap());
 }
 
 fn danger() -> (Icon, Color32, Color32) {
-    (Icon::Trash, theme::RED_BG, theme::RED)
+    (Icon::Trash, theme::palette().red_bg, theme::palette().red)
 }
 
 impl App {
     pub(super) fn dialogs(&mut self, ctx: &egui::Context) {
         let busy = self.job.state.lock().unwrap().busy;
+        if self.build_options_open {
+            let app = self.app.clone();
+            let last = self.display_builds.get(&app).cloned();
+            let build_busy = self.build_job.state.lock().unwrap().busy || self.cleaning();
+            let response = modal(ctx, "Local build options", 560.0, |ui| {
+                title_bar(ui, &format!("{} build options", model::title(&app)), |ui| {
+                    if close_button(ui).clicked() {
+                        self.build_options_open = false;
+                    }
+                });
+                egui::ScrollArea::vertical()
+                    .id_salt("build-options-scroll")
+                    .max_height((ctx.screen_rect().height() - 200.0).clamp(180.0, 560.0))
+                    .show(ui, |ui| {
+                        band(ui, egui::Margin::same(24), 0.0, |ui| {
+                            ui.spacing_mut().item_spacing.y = 8.0;
+                            ui.add(egui::Label::new(RichText::new("Configure your compiled copy. Installed releases use their own launch settings.").size(13.0).color(theme::palette().muted)).wrap());
+                            ui.add_space(12.0);
+                            options_section(ui, "Launch options", |ui| {
+                                theme::text(ui, "Executable", 12.0, theme::palette().muted);
+                                theme::text(ui, model::build_executable_name(&app), 14.0, theme::palette().text);
+                                ui.add_space(8.0);
+                                theme::text(ui, "Arguments", 13.0, theme::palette().text_2);
+                                ui.scope(|ui| {
+                                    field_style(ui);
+                                    ui.add(egui::TextEdit::multiline(&mut self.launch_arguments)
+                                        .font(FontId::monospace(13.0))
+                                        .margin(egui::Margin::same(10))
+                                        .hint_text("--example-flag")
+                                        .desired_width(ui.available_width()).desired_rows(4));
+                                });
+                                ui.add(egui::Label::new(RichText::new("One argument per line. Passed directly to the app; no shell quotes needed.").size(12.0).color(theme::palette().muted)).wrap());
+                            });
+                            ui.add_space(16.0);
+                            options_section(ui, "Build files", |ui| {
+                                ui.add(egui::Label::new(RichText::new("Browse the compiled files or review the output from your last build.").size(13.0).color(theme::palette().text_2)).wrap());
+                                ui.add_space(6.0);
+                                let log = self.paths.at(format!("logs/{app}.log"));
+                                ui.horizontal_wrapped(|ui| {
+                                    ui.spacing_mut().item_spacing.x = 10.0;
+                                    if action(ui, "Open build folder", Kind::Secondary, last.is_some()).clicked() {
+                                        if let Some((folder, _)) = &last { self.result(craft_apps_manager::platform::open(folder)); }
+                                    }
+                                    if action(ui, "View build log", Kind::Secondary, log.is_file()).clicked() {
+                                        self.result(craft_apps_manager::platform::open(&log));
+                                    }
+                                });
+                            });
+                            ui.add_space(16.0);
+                            options_section(ui, "Remove local build", |ui| {
+                                ui.add(egui::Label::new(RichText::new("Delete the compiled copy to free up space. Source files, installed releases, and other builds are kept.").size(13.0).color(theme::palette().text_2)).wrap());
+                                ui.add_space(6.0);
+                    if self.delete_build_confirm {
+                        ui.add(egui::Label::new("Delete this local build?").wrap());
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 10.0;
+                        if action(
+                            ui,
+                            "Yes",
+                            Kind::Danger,
+                            !build_busy && last.is_some(),
+                        )
+                        .clicked()
+                        {
+                            if let Some((folder, _)) = &last {
+                                let result = craft_apps_manager::builder::delete_local(
+                                    &self.paths,
+                                    &app,
+                                    folder,
+                                );
+                                if result.is_ok() {
+                                    self.display_builds.remove(&app);
+                                    if self.build_app == app {
+                                        self.build_job.state.lock().unwrap().output = None;
+                                    }
+                                    self.config_refresh_at = std::time::Instant::now();
+                                    self.build_options_open = false;
+                                }
+                                self.result(result);
+                            }
+                        }
+                        if action(ui, "No", Kind::Secondary, true).clicked() {
+                            self.delete_build_confirm = false;
+                        }
+                        });
+                    } else if action(
+                        ui,
+                        "Delete local build…",
+                        Kind::DangerOutline,
+                        !build_busy && last.is_some(),
+                    )
+                    .clicked()
+                    {
+                        self.delete_build_confirm = true;
+                    }
+
+                            });
+                        });
+                    });
+                footer(ui, |ui| {
+                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.build_options_open = false;
+                    }
+                    if action(ui, "Save", Kind::Primary, true).clicked() {
+                        self.launch_draft.executable.clear();
+                        self.launch_draft.arguments = self
+                            .launch_arguments
+                            .lines()
+                            .filter(|line| !line.is_empty())
+                            .map(String::from)
+                            .collect();
+                        let result = craft_apps_manager::builder::save_launch_options(
+                            &self.paths,
+                            &app,
+                            &self.launch_draft,
+                        );
+                        if result.is_ok() {
+                            self.build_options_open = false;
+                        }
+                        self.result(result);
+                    }
+                });
+            });
+            if response.should_close() {
+                self.build_options_open = false;
+            }
+        }
         if let Some(plan) = self.release_plan.clone() {
             let response = modal(ctx, "Review release operations", 600.0, |ui| {
                 band(ui, BODY, 0.0, |ui| {
                     header(
                         ui,
-                        Art::Icon(Icon::Refresh, theme::ACCENT_SOFT, theme::ACCENT_TEXT, 40.0),
+                        Art::Icon(
+                            Icon::Refresh,
+                            theme::palette().accent_soft,
+                            theme::palette().accent_text,
+                            40.0,
+                        ),
                         "Review install and update",
                         &format!(
                             "{} · {}. Only the Install and Update entries below will run.",
@@ -229,16 +371,16 @@ impl App {
                                                     .corner_radius(CornerRadius::same(6)),
                                                 );
                                             }
-                                            theme::text(ui, model::title(&entry.app), 14.0, theme::TEXT);
+                                            theme::text(ui, model::title(&entry.app), 14.0, theme::palette().text);
                                             ui.with_layout(
                                                 egui::Layout::right_to_left(egui::Align::Center),
                                                 |ui| {
                                                     let (fill, color) = match entry.action.as_str() {
                                                         "Install" | "Update" => {
-                                                            (theme::ACCENT_SOFT, theme::ACCENT_TEXT)
+                                                            (theme::palette().accent_soft, theme::palette().accent_text)
                                                         }
-                                                        "Error" => (theme::RED_BG, theme::RED),
-                                                        _ => (CHIP, theme::TEXT_3),
+                                                        "Error" => (theme::palette().red_bg, theme::palette().red),
+                                                        _ => (theme::palette().button, theme::palette().text_3),
                                                     };
                                                     theme::badge(
                                                         ui,
@@ -250,7 +392,7 @@ impl App {
                                             );
                                         });
                                         if let Some(error) = &entry.error {
-                                            ui.label(RichText::new(error).size(12.0).color(theme::RED));
+                                            ui.label(RichText::new(error).size(12.0).color(theme::palette().red));
                                         } else {
                                             note(
                                                 ui,
@@ -353,7 +495,7 @@ impl App {
                                 self.preferences.release_format
                             ))
                             .size(13.0)
-                            .color(theme::MUTED),
+                            .color(theme::palette().muted),
                         );
                         theme::hyperlink(
                             ui,
@@ -398,12 +540,28 @@ impl App {
         if self.launch_settings_open {
             let modal = modal(
                 ctx,
-                format!("{} launch settings", model::title(&self.app)),
+                format!(
+                    "{}{} launch settings",
+                    model::title(&self.app),
+                    if self.launch_build_options {
+                        " local build"
+                    } else {
+                        ""
+                    }
+                ),
                 520.0,
                 |ui| {
                     title_bar(
                         ui,
-                        &format!("{} launch options", model::title(&self.app)),
+                        &format!(
+                            "{}{} launch options",
+                            model::title(&self.app),
+                            if self.launch_build_options {
+                                " local build"
+                            } else {
+                                ""
+                            }
+                        ),
                         |ui| {
                             if close_button(ui).clicked() {
                                 self.launch_settings_open = false;
@@ -417,48 +575,57 @@ impl App {
                         |ui| {
                             field_style(ui);
                             ui.spacing_mut().item_spacing.y = 6.0;
-                            theme::text(ui, "Open", 13.0, theme::TEXT_3);
+                            theme::text(ui, "Open", 13.0, theme::palette().text_3);
                             ui.spacing_mut().button_padding = egui::vec2(10.0, 9.0);
-                            egui::ComboBox::from_id_salt("launch-executable")
-                                .width(ui.available_width())
-                                .icon(|ui, rect, _, _, _| {
-                                    let c = rect.center() + egui::vec2(2.0, 0.0);
-                                    ui.painter().add(egui::Shape::line(
-                                        vec![
-                                            c + egui::vec2(-4.5, -2.25),
-                                            c + egui::vec2(0.0, 2.25),
-                                            c + egui::vec2(4.5, -2.25),
-                                        ],
-                                        Stroke::new(1.5_f32, theme::TEXT),
-                                    ));
-                                })
-                                .selected_text(
-                                    RichText::new(if self.launch_draft.executable.is_empty() {
-                                        "Default executable"
-                                    } else {
-                                        &self.launch_draft.executable
+                            if self.launch_build_options {
+                                ui.label(model::build_executable_name(&self.app));
+                            } else {
+                                egui::ComboBox::from_id_salt("launch-executable")
+                                    .width(ui.available_width())
+                                    .icon(|ui, rect, _, _, _| {
+                                        let c = rect.center() + egui::vec2(2.0, 0.0);
+                                        ui.painter().add(egui::Shape::line(
+                                            vec![
+                                                c + egui::vec2(-4.5, -2.25),
+                                                c + egui::vec2(0.0, 2.25),
+                                                c + egui::vec2(4.5, -2.25),
+                                            ],
+                                            Stroke::new(1.5_f32, theme::palette().text),
+                                        ));
                                     })
-                                    .size(14.0)
-                                    .color(theme::TEXT),
-                                )
-                                .show_ui(ui, |ui| {
-                                    ui.selectable_value(
-                                        &mut self.launch_draft.executable,
-                                        String::new(),
-                                        "Default executable",
-                                    );
-                                    for exe in apps::executables(&self.paths, &self.app)
-                                        .unwrap_or_default()
-                                    {
+                                    .selected_text(
+                                        RichText::new(if self.launch_draft.executable.is_empty() {
+                                            "Default executable"
+                                        } else {
+                                            &self.launch_draft.executable
+                                        })
+                                        .size(14.0)
+                                        .color(theme::palette().text),
+                                    )
+                                    .show_ui(ui, |ui| {
                                         ui.selectable_value(
                                             &mut self.launch_draft.executable,
-                                            exe.clone(),
-                                            &exe,
+                                            String::new(),
+                                            "Default executable",
                                         );
-                                    }
-                                });
+                                        for exe in apps::executables(&self.paths, &self.app)
+                                            .unwrap_or_default()
+                                        {
+                                            ui.selectable_value(
+                                                &mut self.launch_draft.executable,
+                                                exe.clone(),
+                                                &exe,
+                                            );
+                                        }
+                                    });
+                            }
                             ui.add_space(12.0);
-                            theme::text(ui, "Arguments, one per line", 13.0, theme::TEXT_3);
+                            theme::text(
+                                ui,
+                                "Arguments, one per line",
+                                13.0,
+                                theme::palette().text_3,
+                            );
                             ui.add(
                                 egui::TextEdit::multiline(&mut self.launch_arguments)
                                     .font(FontId::monospace(13.0))
@@ -482,7 +649,15 @@ impl App {
                                 .filter(|s| !s.is_empty())
                                 .map(String::from)
                                 .collect();
-                            let result = apps::save(&self.paths, &self.app, &self.launch_draft);
+                            let result = if self.launch_build_options {
+                                craft_apps_manager::builder::save_launch_options(
+                                    &self.paths,
+                                    &self.app,
+                                    &self.launch_draft,
+                                )
+                            } else {
+                                apps::save(&self.paths, &self.app, &self.launch_draft)
+                            };
                             if result.is_ok() {
                                 self.launch_settings_open = false;
                             }
@@ -556,7 +731,7 @@ impl App {
                                         let title = ui.add_enabled(
                                             enabled,
                                             egui::Label::new(
-                                                RichText::new(&label).size(14.0).color(theme::TEXT),
+                                                RichText::new(&label).size(14.0).color(theme::palette().text),
                                             )
                                             .sense(Sense::click()),
                                         );
@@ -593,7 +768,7 @@ impl App {
                                                             target.path.display().to_string(),
                                                         )
                                                         .font(FontId::monospace(12.0))
-                                                        .color(theme::TEXT_2),
+                                                        .color(theme::palette().text_2),
                                                     );
                                                     ui.painter().circle_filled(
                                                         egui::pos2(
@@ -601,7 +776,7 @@ impl App {
                                                             response.rect.center().y,
                                                         ),
                                                         2.5,
-                                                        theme::TEXT_2,
+                                                        theme::palette().text_2,
                                                     );
                                                 }
                                             },
@@ -675,7 +850,7 @@ impl App {
                                 ui,
                                 "Choose which source ZIPs to update. ArtCraft X is source only.",
                                 13.0,
-                                theme::TEXT_3,
+                                theme::palette().text_3,
                             );
                         }
                         ui.horizontal(|ui| {
@@ -687,7 +862,7 @@ impl App {
                                     choices.len()
                                 ),
                                 13.0,
-                                theme::MUTED,
+                                theme::palette().muted,
                             );
                             ui.with_layout(
                                 egui::Layout::right_to_left(egui::Align::Center),
@@ -733,7 +908,7 @@ impl App {
                                         ui.painter().rect_filled(
                                             rect,
                                             CornerRadius::same(8),
-                                            theme::HOVER,
+                                            theme::palette().hover,
                                         );
                                         ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                                     }
@@ -741,7 +916,7 @@ impl App {
                                         ui.painter().rect_stroke(
                                             rect,
                                             CornerRadius::same(8),
-                                            Stroke::new(2.0_f32, theme::LINK),
+                                            Stroke::new(2.0_f32, theme::palette().link),
                                             StrokeKind::Inside,
                                         );
                                     }
@@ -749,7 +924,13 @@ impl App {
                                         egui::pos2(rect.left() + 12.0, rect.center().y - 8.0),
                                         egui::Vec2::splat(16.0),
                                     );
-                                    theme::paint_check(ui, mark, checked, theme::ACCENT, true);
+                                    theme::paint_check(
+                                        ui,
+                                        mark,
+                                        checked,
+                                        theme::palette().accent,
+                                        true,
+                                    );
                                     if let Some(texture) = self.icons.get(name) {
                                         ui.painter().image(
                                             texture.id(),
@@ -773,7 +954,7 @@ impl App {
                                         egui::Align2::LEFT_CENTER,
                                         model::title(name),
                                         14.0,
-                                        theme::TEXT,
+                                        theme::palette().text,
                                     );
                                     if response.clicked() {
                                         if checked {
@@ -840,7 +1021,7 @@ impl App {
                                         "Choose one backup to restore. It replaces the current managed copy and the backup is kept."
                                     })
                                     .size(13.0)
-                                    .color(theme::TEXT_3),
+                                    .color(theme::palette().text_3),
                                 )
                                 .wrap(),
                             );
@@ -849,7 +1030,7 @@ impl App {
                                     ui,
                                     "No backups are available for this app.",
                                     14.0,
-                                    theme::TEXT_2,
+                                    theme::palette().text_2,
                                 );
                             }
                             self.backup_rows(ui, &app);
@@ -869,7 +1050,7 @@ impl App {
                                         ui,
                                         format!("{} selected", self.backup_delete_selected.len()),
                                         13.0,
-                                        theme::MUTED,
+                                        theme::palette().muted,
                                     );
                                 });
                             }
@@ -880,7 +1061,7 @@ impl App {
                                     } else {
                                         "This replaces the current managed copy. Continue?"
                                     })
-                                    .color(theme::AMBER),
+                                    .color(theme::palette().amber),
                                 );
                             }
                         },
@@ -974,7 +1155,12 @@ impl App {
                 band(ui, BODY, 280.0 - 2.0 - BAR_HEIGHT, |ui| {
                     header(
                         ui,
-                        Art::Icon(Icon::ArrowUp, theme::ACCENT_SOFT, theme::ACCENT_TEXT, 48.0),
+                        Art::Icon(
+                            Icon::ArrowUp,
+                            theme::palette().accent_soft,
+                            theme::palette().accent_text,
+                            48.0,
+                        ),
                         "Update Craft Apps Manager?",
                         &format!(
                             "Version {} is available. {} Your library and settings are kept.",
@@ -995,11 +1181,11 @@ impl App {
                                 ui,
                                 "Close other manager and builder windows first.",
                                 13.0,
-                                theme::MUTED,
+                                theme::palette().muted,
                             );
                             ui.horizontal(|ui| {
                                 ui.spacing_mut().item_spacing.x = 0.0;
-                                theme::text(ui, "From ", 13.0, theme::MUTED);
+                                theme::text(ui, "From ", 13.0, theme::palette().muted);
                                 theme::hyperlink(
                                     ui,
                                     self_update::REPOSITORY_NAME,
@@ -1096,7 +1282,12 @@ impl App {
                 band(ui, BODY, 220.0 - 2.0 - BAR_HEIGHT, |ui| {
                     header(
                         ui,
-                        Art::Icon(Icon::Alert, theme::ACCENT_SOFT, theme::ACCENT_TEXT, 40.0),
+                        Art::Icon(
+                            Icon::Alert,
+                            theme::palette().accent_soft,
+                            theme::palette().accent_text,
+                            40.0,
+                        ),
                         "No apps selected",
                         &message,
                         |_| {},
@@ -1117,7 +1308,12 @@ impl App {
                 band(ui, BODY, 220.0 - 2.0 - BAR_HEIGHT, |ui| {
                     header(
                         ui,
-                        Art::Icon(Icon::Alert, theme::RED_BG, theme::RED, 40.0),
+                        Art::Icon(
+                            Icon::Alert,
+                            theme::palette().red_bg,
+                            theme::palette().red,
+                            40.0,
+                        ),
                         "Something went wrong",
                         "",
                         |ui| {
@@ -1128,7 +1324,7 @@ impl App {
                                         egui::Label::new(
                                             RichText::new(error)
                                                 .size(14.0)
-                                                .color(theme::RED_TEXT)
+                                                .color(theme::palette().red_text)
                                                 .line_height(Some(21.0)),
                                         )
                                         .selectable(true),
@@ -1198,7 +1394,7 @@ impl App {
                                     sw: round(i + 1 == count),
                                     se: round(i + 1 == count),
                                 },
-                                theme::HOVER,
+                                theme::palette().hover,
                             );
                             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                         }
@@ -1206,7 +1402,7 @@ impl App {
                             ui.painter().rect_stroke(
                                 rect.shrink(1.0),
                                 CornerRadius::same(6),
-                                Stroke::new(2.0_f32, theme::LINK),
+                                Stroke::new(2.0_f32, theme::palette().link),
                                 StrokeKind::Inside,
                             );
                         }
@@ -1228,7 +1424,7 @@ impl App {
                             egui::Align2::LEFT_BOTTOM,
                             &title,
                             14.0,
-                            theme::TEXT,
+                            theme::palette().text,
                         );
                         theme::painter_text(
                             ui.painter(),
@@ -1236,12 +1432,12 @@ impl App {
                             egui::Align2::LEFT_TOP,
                             &detail,
                             12.0,
-                            theme::MUTED,
+                            theme::palette().muted,
                         );
                         let galley = ui.painter().layout_no_wrap(
                             kind.to_owned(),
                             theme::bold(11.0),
-                            theme::TEXT_3,
+                            theme::palette().text_3,
                         );
                         let chip = egui::Rect::from_min_size(
                             egui::pos2(
@@ -1250,11 +1446,15 @@ impl App {
                             ),
                             egui::vec2(galley.size().x + 16.0, 22.0),
                         );
-                        ui.painter().rect_filled(chip, CornerRadius::same(11), CHIP);
+                        ui.painter().rect_filled(
+                            chip,
+                            CornerRadius::same(11),
+                            theme::palette().button,
+                        );
                         ui.painter().galley(
                             chip.center() - galley.size() / 2.0,
                             galley,
-                            theme::TEXT_3,
+                            theme::palette().text_3,
                         );
                         if response.clicked() {
                             if self.backup_delete_mode {
@@ -1282,13 +1482,13 @@ pub(super) fn field_style(ui: &mut egui::Ui) {
         &mut visuals.widgets.active,
         &mut visuals.widgets.open,
     ] {
-        widget.bg_fill = theme::FIELD;
-        widget.weak_bg_fill = theme::FIELD;
+        widget.bg_fill = theme::palette().field;
+        widget.weak_bg_fill = theme::palette().field;
         widget.corner_radius = CornerRadius::same(8);
         widget.expansion = 0.0;
     }
-    visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, theme::BORDER_STRONG);
-    visuals.widgets.open.bg_stroke = Stroke::new(1.0_f32, theme::BORDER_STRONG);
+    visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, theme::palette().border_strong);
+    visuals.widgets.open.bg_stroke = Stroke::new(1.0_f32, theme::palette().border_strong);
 }
 
 /// What an uninstall removes: the app inside its install folder, or the
