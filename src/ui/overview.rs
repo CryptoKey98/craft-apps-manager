@@ -302,7 +302,16 @@ impl App {
         } else {
             &state.stage
         };
-        let title_height = row_height(ui, &FontId::proportional(14.0));
+        let title_height = ui.fonts(|f| {
+            f.layout(
+                title.to_owned(),
+                FontId::proportional(14.0),
+                theme::TEXT,
+                text_width,
+            )
+            .size()
+            .y
+        });
         let detail_height = if state.detail.is_empty() {
             0.0
         } else {
@@ -317,7 +326,12 @@ impl App {
                 .y
             })
         };
-        let text_height = title_height + detail_height;
+        let detail_gap = if state.detail.is_empty() {
+            0.0
+        } else {
+            ui.spacing().item_spacing.y
+        };
+        let text_height = title_height + detail_gap + detail_height;
         let height = text_height.max(if state.busy { 32.0 } else { 0.0 });
         let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), Sense::hover());
         ui.painter().circle_filled(
