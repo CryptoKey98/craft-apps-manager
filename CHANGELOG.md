@@ -16,6 +16,7 @@ App discovery and ArtCraft support contributed by [carpaaaaa](https://github.com
 - Add optional startup and hourly app-list checks with a shared six-hour cache.
 - Include Linux x64/x86 ZIP, DEB and RPM packages and experimental Arch x64 packaging in release automation.
 - Match ArtCraft Linux assets to the selected architecture and system package format.
+- Keep Windows MSI upgrade file identities stable across build folders and verify that upgrading preserves both Start menu shortcuts and the installed program.
 
 ## 0.5.1
 

@@ -21,7 +21,9 @@ foreach ($path in @($exe, $seven)) {
 $version = [regex]::Match([IO.File]::ReadAllText((Join-Path $projectRoot 'Cargo.toml')), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
 $stage = Join-Path $OutputFolder "msi-payload-$version"
 if (Test-Path -LiteralPath $stage) { throw "Package staging folder already exists: $stage" }
-New-Item -ItemType Directory -Path $stage -Force | Out-Null
+# DirectoryInfo.FullName normalizes relative output paths before deriving stable
+# component identities from paths relative to the payload root.
+$stage = (New-Item -ItemType Directory -Path $stage -Force).FullName
 Copy-Item -LiteralPath $exe -Destination (Join-Path $stage 'CraftApps-Manager.exe')
 Set-Content -LiteralPath (Join-Path $stage 'installation-msi.json') -Value '{"format":"msi"}' -Encoding ascii
 foreach ($name in @('README.md','CHANGELOG.md','LICENSE','THIRD-PARTY-NOTICES.txt')) {
@@ -53,7 +55,7 @@ function Write-PayloadDirectory([string]$Path) {
         $remove = if ($first) { "<RemoveFolder Id='Remove$id' On='uninstall'/>" } else { '' }
         $first = $false
         $components.Add($id)
-        $xml += "<Component Id='$id' Guid='$guid'><File Source='$(Escape-Xml $file.FullName)'/>$remove<RegistryValue Root='HKCU' Key='Software\CraftAppsManager\$Architecture\Files' Name='$(Escape-Xml $relative)' Type='integer' Value='1' KeyPath='yes'/></Component>"
+        $xml += "<Component Id='$id' Guid='$guid'><File Id='File$id' Source='$(Escape-Xml $file.FullName)'/>$remove<RegistryValue Root='HKCU' Key='Software\CraftAppsManager\$Architecture\Files' Name='$(Escape-Xml $relative)' Type='integer' Value='1' KeyPath='yes'/></Component>"
     }
     foreach ($folder in Get-ChildItem -LiteralPath $Path -Directory | Sort-Object Name) {
         $script:counter++
@@ -64,10 +66,12 @@ function Write-PayloadDirectory([string]$Path) {
 $payload = Write-PayloadDirectory $stage
 $references = ($components | ForEach-Object { "<ComponentRef Id='$_'/>" }) -join ''
 $icon = Escape-Xml (Join-Path $projectRoot 'assets/icon.ico')
+# Remove the previous product inside the rollback transaction, before copying
+# new files. Older packages may have derived different component identities.
 $xml = @"
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="Craft Apps Manager ($Architecture)" Manufacturer="CryptoKey98" Version="$version" UpgradeCode="$upgrade" Scope="perUser">
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Craft Apps Manager is already installed." Schedule="afterInstallExecute"/>
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Craft Apps Manager is already installed." Schedule="afterInstallInitialize"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
     <Icon Id="ManagerIcon" SourceFile="$icon"/>
     <Property Id="ARPPRODUCTICON" Value="ManagerIcon"/>
