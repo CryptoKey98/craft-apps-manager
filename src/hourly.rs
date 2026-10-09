@@ -4,7 +4,7 @@ use crate::{
     model::{Config, Paths, Preferences},
     platform, updates,
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -50,7 +50,7 @@ pub fn run(paths: &Paths, job: &Job) -> Result<()> {
     let prefs = paths.preferences()?;
     let config = paths.config()?;
     let mut checks = read(paths)?;
-    job.log("Hourly app availability check (no downloads or installation)");
+    job.log("App availability check (no downloads or installation)");
     scan(
         &config,
         &prefs,
@@ -61,87 +61,11 @@ pub fn run(paths: &Paths, job: &Job) -> Result<()> {
     )?;
     files::write_json(&paths.at("runtime/app-update-checks.json"), &checks)
 }
-pub fn sources(paths: &Paths, job: &Job) -> Result<()> {
-    source_checks(paths, job, |message| {
-        platform::notify(&std::env::current_exe()?, message)
-    })
-}
-fn source_checks(
-    paths: &Paths,
-    job: &Job,
-    mut notify: impl FnMut(&str) -> Result<()>,
-) -> Result<()> {
-    let _lock = platform::Lock::take("Local\\CraftAppsManagerHourlySources")?;
-    let prefs = paths.preferences()?;
-    let index: BTreeMap<String, crate::model::Source> =
-        files::read_or_default(&paths.at("sources/source-index.json"))?;
-    let network = crate::network::Network::new(&paths.root)?;
-    let file = paths.at("runtime/source-update-checks.json");
-    let mut checks: Checks = files::read_or_default(&file)?;
-    job.log("Hourly source availability check (no downloads)");
-    for name in &prefs.selected_sources {
-        crate::model::valid_app(name)?;
-        let Some(old) = index
-            .get(name)
-            .filter(|_| paths.at(format!("sources/{name}-source.zip")).is_file())
-        else {
-            continue;
-        };
-        job.check()?;
-        let result = (|| -> Result<String> {
-            let repo = crate::model::repository(name);
-            let metadata: serde_json::Value =
-                network.json(&format!("https://api.github.com/repos/storytold/{repo}"))?;
-            let branch = metadata["default_branch"]
-                .as_str()
-                .context("No default branch")?;
-            let mut url = reqwest::Url::parse(&format!(
-                "https://api.github.com/repos/storytold/{repo}/commits/"
-            ))?;
-            url.path_segments_mut()
-                .map_err(|_| anyhow::anyhow!("Invalid API endpoint"))?
-                .pop_if_empty()
-                .push(branch);
-            let commit: serde_json::Value = network.json(url.as_str())?;
-            let sha = commit["sha"].as_str().context("No commit")?;
-            anyhow::ensure!(
-                sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit()),
-                "Invalid source commit"
-            );
-            Ok(sha.into())
-        })();
-        match result {
-            Ok(sha) => {
-                let state = checks.entry(name.clone()).or_default();
-                state.installed = old.sha.clone();
-                state.latest = (sha != old.sha).then_some(sha.clone());
-                if state.latest.is_some()
-                    && prefs.notify_updates
-                    && state.notified.as_deref() != Some(&sha)
-                {
-                    let message = format!(
-                        "{} has newer source files ({}). Open Craft Apps Manager to download them.",
-                        crate::model::title(name),
-                        &sha[..7]
-                    );
-                    match notify(&message) {
-                        Ok(()) => state.notified = Some(sha),
-                        Err(error) => job.log(&format!("Notification warning: {error:#}")),
-                    }
-                }
-                job.log(&format!(
-                    "{name}: {}",
-                    if state.latest.is_some() {
-                        "source update available"
-                    } else {
-                        "source up to date"
-                    }
-                ));
-            }
-            Err(error) => job.log(&format!("{name}: source check failed: {error:#}")),
-        }
-    }
-    files::write_json(&file, &checks)
+pub fn sources(_paths: &Paths, job: &Job) -> Result<()> {
+    job.log(
+        "Automatic source checks are disabled. Download sources from the app tools when needed.",
+    );
+    Ok(())
 }
 fn scan(
     config: &Config,
@@ -187,73 +111,17 @@ fn scan(
 mod tests {
     use super::*;
     #[test]
-    fn source_checks_notify_once_per_commit_without_changing_archives_or_index() {
-        use sha2::{Digest, Sha256};
+    fn legacy_source_check_does_not_create_files_or_fetch_updates() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
         let paths = Paths::new(root.clone(), None);
         let job = Job::new(root.join("checks.log"), &Default::default());
-        files::write_json(
-            &paths.at("manager-settings.json"),
-            &Preferences {
-                selected_sources: vec!["filmcraft".into(), "artcraftx".into()],
-                ..Default::default()
-            },
-        )
-        .unwrap();
-        let old_sha = "a".repeat(40);
-        let index = BTreeMap::from([(
-            "filmcraft",
-            crate::model::Source {
-                sha: old_sha,
-                branch: "main".into(),
-                repository: "storytold/filmcraft".into(),
-                archive_sha256: String::new(),
-                downloaded_at: String::new(),
-            },
-        )]);
-        files::write_json(&paths.at("sources/source-index.json"), &index).unwrap();
-        std::fs::write(
-            paths.at("sources/filmcraft-source.zip"),
-            b"original source bytes",
-        )
-        .unwrap();
-        let index_before = std::fs::read(paths.at("sources/source-index.json")).unwrap();
-        let cache = |url: &str, value: serde_json::Value| {
-            files::write_json(
-                &paths.at(format!(
-                    "runtime/api-cache/{:x}.json",
-                    Sha256::digest(url.as_bytes())
-                )),
-                &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":value}),
-            )
-            .unwrap();
-        };
-        cache(
-            "https://api.github.com/repos/storytold/filmcraft",
-            serde_json::json!({"default_branch":"main"}),
-        );
-        let mut notifications = 0;
-        for sha in ["b".repeat(40), "b".repeat(40), "c".repeat(40)] {
-            cache(
-                "https://api.github.com/repos/storytold/filmcraft/commits/main",
-                serde_json::json!({"sha":sha}),
-            );
-            source_checks(&paths, &job, |_| {
-                notifications += 1;
-                Ok(())
-            })
-            .unwrap();
-        }
-        assert_eq!(notifications, 2);
-        assert_eq!(
-            std::fs::read(paths.at("sources/source-index.json")).unwrap(),
-            index_before
-        );
-        assert_eq!(
-            std::fs::read(paths.at("sources/filmcraft-source.zip")).unwrap(),
-            b"original source bytes"
-        );
-        assert!(!paths.at("sources/artcraftx-source.zip").exists());
+        sources(&paths, &job).unwrap();
+        assert!(!paths.at("runtime/source-update-checks.json").exists());
+        assert!(!paths.at("sources").exists());
+        let prefs = Preferences::default();
+        assert!(prefs.check_catalog_on_startup);
+        assert!(prefs.check_installed_apps_periodically);
+        assert!(prefs.notify_updates);
         std::fs::remove_dir_all(root).unwrap();
     }
     #[test]

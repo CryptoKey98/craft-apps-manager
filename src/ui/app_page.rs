@@ -394,6 +394,165 @@ impl App {
         }
     }
 
+    fn version_split(
+        &mut self,
+        ui: &mut Ui,
+        button: theme::Btn<'_>,
+        status: &super::AppStatus,
+    ) -> bool {
+        let app = self.app.clone();
+        let popup_id = ui.make_persistent_id((
+            "app-version-menu",
+            &app,
+            &self.preferences.release_format,
+            &self.preferences.architecture,
+        ));
+        let (main, arrow) = button.split(ui, &format!("Choose {} version", model::title(&app)));
+        if arrow.clicked() {
+            let opening = !ui.memory(|memory| memory.is_popup_open(popup_id));
+            ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+            if opening {
+                self.open_versions(ui.ctx());
+            }
+        }
+        let anchor = main.clone().union(arrow.clone());
+        egui::popup::popup_below_widget(
+            ui,
+            popup_id,
+            &anchor,
+            egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+            |ui| {
+                ui.set_width(278.0);
+                ui.spacing_mut().item_spacing.y = 4.0;
+                theme::text(ui, "CHOOSE A VERSION", 12.0, theme::palette().muted);
+                ui.add_space(6.0);
+                if self.versions_app.as_deref() != Some(app.as_str())
+                    || self.versions_result.is_none()
+                {
+                    ui.horizontal(|ui| {
+                        ui.spinner();
+                        theme::text(ui, "Loading versions…", 13.0, theme::palette().text_2);
+                    });
+                } else {
+                    match self.versions_result.clone().unwrap() {
+                        Err(error) => {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(error).size(12.0).color(theme::palette().red),
+                                )
+                                .wrap(),
+                            );
+                            if btn("Retry").show(ui).clicked() {
+                                self.open_versions(ui.ctx());
+                            }
+                        }
+                        Ok(versions) => {
+                            if versions.is_empty() {
+                                ui.add(
+                                    egui::Label::new(
+                                        RichText::new(
+                                            "No compatible releases with published checksums.",
+                                        )
+                                        .size(13.0)
+                                        .color(theme::palette().muted),
+                                    )
+                                    .wrap(),
+                                );
+                            }
+                            egui::ScrollArea::vertical()
+                                .id_salt((&app, "version-menu-scroll"))
+                                .max_height(288.0)
+                                .show(ui, |ui| {
+                                    for (index, release) in versions.into_iter().enumerate() {
+                                        let version = craft_apps_manager::updates::release_version(
+                                            &release.tag_name,
+                                        )
+                                        .unwrap_or_default();
+                                        let current = status
+                                            .installed
+                                            .as_ref()
+                                            .is_some_and(|i| i.version == version);
+                                        let (rect, response) = ui.allocate_exact_size(
+                                            vec2(ui.available_width(), 40.0),
+                                            Sense::click(),
+                                        );
+                                        if response.hovered() && !current {
+                                            ui.painter().rect_filled(
+                                                rect,
+                                                CornerRadius::same(5),
+                                                theme::palette().button_hover,
+                                            );
+                                            ui.ctx()
+                                                .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                        }
+                                        response.widget_info(|| {
+                                            egui::WidgetInfo::labeled(
+                                                egui::WidgetType::Button,
+                                                !current,
+                                                format!(
+                                                    "Install {} {}",
+                                                    model::title(&app),
+                                                    version
+                                                ),
+                                            )
+                                        });
+                                        let color = if current {
+                                            theme::palette().muted
+                                        } else {
+                                            theme::palette().text
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.left() + 10.0, rect.center().y),
+                                            egui::Align2::LEFT_CENTER,
+                                            format!("Version {version}"),
+                                            FontId::proportional(14.0),
+                                            color,
+                                        );
+                                        let tag = if current {
+                                            "Installed"
+                                        } else if index == 0 {
+                                            "Latest"
+                                        } else {
+                                            ""
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.right() - 10.0, rect.center().y),
+                                            egui::Align2::RIGHT_CENTER,
+                                            tag,
+                                            FontId::proportional(12.0),
+                                            if current {
+                                                theme::palette().muted
+                                            } else {
+                                                theme::palette().link
+                                            },
+                                        );
+                                        if response.clicked() && !current {
+                                            ui.memory_mut(|memory| memory.close_popup());
+                                            self.review_version(app.clone(), release.tag_name);
+                                        }
+                                    }
+                                });
+                        }
+                    }
+                }
+                ui.add_space(6.0);
+                super::dialogs::rule(ui);
+                ui.add_space(6.0);
+                theme::text(
+                    ui,
+                    format!(
+                        "{} · {} · {}",
+                        model::release_os(),
+                        release_format_label(&self.preferences.release_format),
+                        model::architecture_label(&self.preferences.architecture)
+                    ),
+                    12.0,
+                    theme::palette().muted,
+                );
+            },
+        );
+        main.clicked()
+    }
     fn app_actions(&mut self, ui: &mut Ui, state: &State, status: &super::AppStatus) {
         let app = self.app.clone();
         let title = model::title(&app);
@@ -407,29 +566,32 @@ impl App {
             ui.spacing_mut().interact_size.y = 0.0;
             match &installed {
                 None => {
-                    if btn(&format!("Install {title}"))
-                        .primary()
-                        .size(Size::Card)
-                        .icon(Icon::Download)
-                        .enabled(!state.busy)
-                        .show(ui)
-                        .on_disabled_hover_text("Wait for the current operation to finish.")
-                        .clicked()
-                    {
+                    if self.version_split(
+                        ui,
+                        btn(&format!("Install {title}"))
+                            .primary()
+                            .size(Size::Card)
+                            .icon(Icon::Download)
+                            .enabled(!state.busy && !self.release_pending()),
+                        status,
+                    ) {
                         self.confirm_install = Some(app.clone());
                     }
                 }
                 Some(installed) => {
                     let update = status.update.clone().filter(|_| matching_format);
-                    if let Some(version) = &update {
-                        if btn(&format!("Update to {version}"))
-                            .primary()
-                            .size(Size::Card)
-                            .icon(Icon::Refresh)
-                            .enabled(!state.busy && !status.checking)
-                            .show(ui)
-                            .clicked()
-                        {
+                    if update.is_some() {
+                        if self.version_split(
+                            ui,
+                            btn(&format!("Update {title}"))
+                                .primary()
+                                .size(Size::Card)
+                                .icon(Icon::Refresh)
+                                .enabled(
+                                    !state.busy && !status.checking && !self.release_pending(),
+                                ),
+                            status,
+                        ) {
                             self.confirm_install = Some(app.clone());
                         }
                         if btn("Open")
@@ -457,13 +619,13 @@ impl App {
                         } else {
                             "Install (latest release)"
                         };
-                        if btn(label)
-                            .size(Size::Card)
-                            .icon(Icon::Refresh)
-                            .enabled(!state.busy && !status.checking)
-                            .show(ui)
-                            .clicked()
-                        {
+                        if self.version_split(
+                            ui,
+                            btn(label).size(Size::Card).icon(Icon::Refresh).enabled(
+                                !state.busy && !status.checking && !self.release_pending(),
+                            ),
+                            status,
+                        ) {
                             if matching_format {
                                 self.check_selected_app(ui.ctx(), installed.version.clone());
                             } else {

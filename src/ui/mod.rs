@@ -1,6 +1,6 @@
 use anyhow::Result;
 use craft_apps_manager::{
-    apps, backups, builder, catalog,
+    apps, backups, builder, catalog, hourly,
     jobs::Job,
     model::{self, BuilderPreferences, Paths, Preferences},
     platform, scheduler, self_update, tools, updates,
@@ -8,7 +8,11 @@ use craft_apps_manager::{
 use eframe::egui;
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeMap, path::PathBuf, process::Command, sync::atomic::Ordering, time::Duration,
+    collections::BTreeMap,
+    path::PathBuf,
+    process::Command,
+    sync::atomic::Ordering,
+    time::{Duration, Instant},
 };
 
 mod app_page;
@@ -175,7 +179,6 @@ pub struct App {
     settings_draft: Preferences,
     build_draft: BuilderPreferences,
     auto: bool,
-    auto_source: bool,
     error: Option<String>,
     selection_notice: Option<String>,
     root_text: String,
@@ -193,12 +196,17 @@ pub struct App {
     confirm_uninstall: bool,
     delete_profile: bool,
     confirm_install: Option<String>,
+    versions_app: Option<String>,
+    versions_receiver: Option<std::sync::mpsc::Receiver<Result<Vec<model::Release>, String>>>,
+    versions_result: Option<Result<Vec<model::Release>, String>>,
     release_checks: BTreeMap<String, (String, ReleaseCheck)>,
     check_receiver: std::sync::mpsc::Receiver<CheckMessage>,
     check_sender: std::sync::mpsc::Sender<CheckMessage>,
     checking_apps: std::collections::BTreeSet<String>,
     check_generation: u64,
     apps_startup_pending: bool,
+    app_check_at: Instant,
+    periodic_receiver: Option<std::sync::mpsc::Receiver<Result<hourly::Checks, String>>>,
     manager_receiver:
         Option<std::sync::mpsc::Receiver<Result<Option<self_update::Available>, String>>>,
     manager_available: Option<self_update::Available>,
@@ -306,7 +314,6 @@ impl App {
         }
         let build_job = Job::new(paths.at(format!("logs/{app}.log")), &build_preferences);
         let auto = scheduler::enabled(false);
-        let auto_source = scheduler::enabled(true);
         let manager_startup_pending = !builder && preferences.check_manager_on_startup;
         let apps_startup_pending = !builder && preferences.check_installed_apps_on_startup;
         let (check_sender, check_receiver) = std::sync::mpsc::channel();
@@ -381,7 +388,6 @@ impl App {
             preferences,
             build_preferences,
             auto,
-            auto_source,
             error: self_update::startup_message(),
             selection_notice: None,
             confirm_clear: false,
@@ -397,12 +403,17 @@ impl App {
             confirm_uninstall: false,
             delete_profile: false,
             confirm_install: None,
+            versions_app: None,
+            versions_receiver: None,
+            versions_result: None,
             release_checks: Default::default(),
             check_receiver,
             check_sender,
             checking_apps: Default::default(),
             check_generation: 0,
             apps_startup_pending,
+            app_check_at: Instant::now(),
+            periodic_receiver: None,
             manager_receiver: None,
             manager_available: None,
             manager_message: String::new(),
@@ -615,6 +626,41 @@ impl App {
             _ => unreachable!(),
         });
     }
+    fn open_versions(&mut self, ctx: &egui::Context) {
+        if self.job.state.lock().unwrap().busy || self.release_pending() {
+            return;
+        }
+        let app = self.app.clone();
+        self.versions_app = Some(app.clone());
+        self.versions_result = None;
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.versions_receiver = Some(rx);
+        std::thread::spawn(move || {
+            let result = updates::available_versions(&paths, &app).map_err(|e| format!("{e:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+    }
+    fn review_version(&mut self, app: String, tag: String) {
+        if self.job.state.lock().unwrap().busy || self.release_pending() {
+            return;
+        }
+        let paths = self.paths.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.plan_receiver = Some(rx);
+        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+        self.job_target = Some((app.clone(), "install-app".into()));
+        self.failure_dismissed = false;
+        self.job_action = "releases".into();
+        self.versions_app = None;
+        self.job.spawn(move |job| {
+            let result = updates::plan_version(&paths, &job, &app, &tag);
+            let _ = tx.send(result_for_display(&result));
+            result.map(|_| ())
+        });
+    }
     fn begin_release_review(&mut self) {
         let paths = self.paths.clone();
         let (tx, rx) = std::sync::mpsc::channel();
@@ -775,6 +821,20 @@ impl App {
             self.icons.insert(name, handle);
         }
         self.request_icons(ctx);
+        if let Some(receiver) = &self.versions_receiver {
+            match receiver.try_recv() {
+                Ok(result) => {
+                    self.versions_receiver = None;
+                    self.versions_result = Some(result);
+                }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.versions_receiver = None;
+                    self.versions_result =
+                        Some(Err("Version list could not be loaded. Try again.".into()));
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            }
+        }
         if let Some(receiver) = &self.plan_receiver {
             match receiver.try_recv() {
                 Ok(result) => {
@@ -905,6 +965,54 @@ impl App {
                 self.apps_startup_pending = false;
                 self.check_apps(ctx, apps);
             }
+        }
+        if let Some(receiver) = &self.periodic_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                self.periodic_receiver = None;
+                self.app_check_at = Instant::now();
+                match result {
+                    Ok(checks) => {
+                        for (key, check) in checks {
+                            let prefix = format!(
+                                "{}:{}:",
+                                self.preferences.release_format, self.preferences.architecture
+                            );
+                            if let Some(app) = key.strip_prefix(&prefix) {
+                                self.release_checks
+                                    .insert(app.to_owned(), (check.installed, Ok(check.latest)));
+                            }
+                        }
+                    }
+                    Err(error) => self
+                        .job
+                        .log(&format!("Background app check failed: {error}")),
+                }
+            }
+        }
+        if !self.builder
+            && self.preferences.check_installed_apps_periodically
+            && self.app_check_at.elapsed() >= Duration::from_secs(20 * 60)
+            && self.periodic_receiver.is_none()
+            && self.checking_apps.is_empty()
+            && !self.job.state.lock().unwrap().busy
+            && !self.build_job.state.lock().unwrap().busy
+            && !self.release_pending()
+            && self.manager_plan.is_none()
+            && self.display_config.is_some()
+        {
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.periodic_receiver = Some(rx);
+            let paths = self.paths.clone();
+            let ctx = ctx.clone();
+            std::thread::spawn(move || {
+                let job = Job::new(
+                    paths.at("runtime/background-app-check.log"),
+                    &Default::default(),
+                );
+                let result = hourly::run(&paths, &job).and_then(|_| hourly::read(&paths));
+                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
+                ctx.request_repaint();
+            });
         }
         if self.manager_startup_pending {
             self.manager_startup_pending = false;

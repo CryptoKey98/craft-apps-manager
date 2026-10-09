@@ -117,6 +117,35 @@ pub fn reorder(paths: &Paths, dragged: &str, target: &str, before: bool) -> Resu
     )?;
     Ok(preferences)
 }
+pub fn reorder_home(
+    paths: &Paths,
+    dragged: &str,
+    target: &str,
+    before: bool,
+) -> Result<Preferences> {
+    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    let mut preferences = paths.read_preferences()?;
+    crate::model::valid_app(dragged)?;
+    crate::model::valid_app(target)?;
+    preferences.home_app_order.retain(|name| name != dragged);
+    let index = preferences
+        .home_app_order
+        .iter()
+        .position(|name| name == target)
+        .context("Reorder target missing")?;
+    preferences
+        .home_app_order
+        .insert(index + usize::from(!before), dragged.into());
+    preferences.validate()?;
+    commit(
+        &[(
+            paths.at("manager-settings.json"),
+            serde_json::to_vec_pretty(&preferences)?,
+        )],
+        atomic_bytes,
+    )?;
+    Ok(preferences)
+}
 fn atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
     fs::create_dir_all(path.parent().context("Missing settings parent")?)?;
     let temp = path.with_extension(format!("{}.tmp", uuid::Uuid::new_v4()));
@@ -227,6 +256,23 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
     use super::*;
+    #[test]
+    fn home_reorder_is_independent_and_persists() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let current = Preferences::default();
+        files::write_json(&paths.at("manager-settings.json"), &current).unwrap();
+        let home = reorder_home(&paths, "photocraft", "designcraft", true).unwrap();
+        assert_eq!(home.app_order, current.app_order);
+        assert_eq!(home.home_app_order[0], "photocraft");
+        let sidebar = reorder(&paths, "filmcraft", "designcraft", true).unwrap();
+        assert_eq!(sidebar.home_app_order, home.home_app_order);
+        assert_eq!(
+            paths.read_preferences().unwrap().home_app_order,
+            home.home_app_order
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn reorder_preserves_other_window_preferences_and_obeys_operation_lock() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
