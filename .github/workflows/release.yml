@@ -1,0 +1,87 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+env:
+  # Packages self-update from the releases of the repository that built them.
+  CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+jobs:
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            target: x86_64-pc-windows-msvc
+            seven: 7zip/x64
+          - arch: x86
+            target: i686-pc-windows-msvc
+            seven: 7zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Download the 7-Zip console tools bundled with the manager
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo ip7z/7zip --pattern '*-extra.7z' --dir 7zip-download
+          & 'C:\Program Files\7-Zip\7z.exe' x (Get-ChildItem 7zip-download/*-extra.7z).FullName -o7zip -y
+          if ($LASTEXITCODE -ne 0) { throw '7-Zip extraction failed' }
+      - name: Install WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add --global WixToolset.UI.wixext/5.0.2
+      - name: Package
+        shell: pwsh
+        run: |
+          $out = "dist/windows-${{ matrix.arch }}"
+          ./scripts/package-windows.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
+          ./scripts/package-windows-msi.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
+          Get-ChildItem $out -File
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.arch }}
+          path: |
+            dist/windows-${{ matrix.arch }}/*.zip
+            dist/windows-${{ matrix.arch }}/*.msi
+          if-no-files-found: error
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - run: ./scripts/package-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal
+          path: dist/macos/*.zip
+          if-no-files-found: error
+  publish:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Checksums
+        run: cd packages && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Release notes from the changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v heading="## $version" '$0 == heading {found = 1; next} found && /^## / {exit} found {print}' CHANGELOG.md > notes.md
+          test -s notes.md || echo "Craft Apps Manager $version" > notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" packages/* --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md

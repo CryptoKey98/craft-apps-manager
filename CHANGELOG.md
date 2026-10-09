@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0
+
+Fork release from [carpaaaaa/craft-apps-manager](https://github.com/carpaaaaa/craft-apps-manager), based on 0.5.1.
+
+- Read the app list from the Storytold repositories on GitHub, so Craft apps published after this version appear without a manager update. A built-in list is used offline.
+- Add newly found apps to Update all and Update all sources automatically (can be turned off in Settings) and announce them in hourly checks.
+- Add Settings → App list → Refresh to look for new apps at any time.
+- Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_…`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
+- Accept a release whose files switched to a single new name and remember that name, so renamed apps keep installing and updating.
+- Download icons for apps without a bundled one, with a neutral tile when a repository has none.
+- Accept an optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) to raise GitHub's API limit.
+- Add `--list-apps`, `--install-app`, `--uninstall-app` and `--release-format` for scripts and end-to-end checks.
+- Self-update from carpaaaaa/craft-apps-manager releases.
+
 ## 0.5.1
 
 - Add a saved light and dark theme with a slim toggle beside Settings.

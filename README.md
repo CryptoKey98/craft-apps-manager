@@ -6,7 +6,9 @@ A desktop app for downloading, updating, and building the Craft apps from Storyt
 
 The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. Version 0.5.1 adds light and dark themes, an About page, local build launch options and experimental Arch packaging. This is an independent project, not an official Storytold or Adobe app.
 
-[Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
+This fork, [carpaaaaa/craft-apps-manager](https://github.com/carpaaaaa/craft-apps-manager), follows [CryptoKey98/craft-apps-manager](https://github.com/CryptoKey98/craft-apps-manager) and adds automatic app discovery: every Craft app published under [github.com/storytold](https://github.com/storytold), including apps released after this version and ArtCraft, is listed, installed and updated. Its releases update themselves from this fork.
+
+[Download the latest release](https://github.com/carpaaaaa/craft-apps-manager/releases/latest)
 
 ![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.5.0)
 
@@ -39,17 +41,21 @@ Screenshots show the macOS 0.5.0 release with a demo library.
 
 ## Getting started
 
-Version **0.5.1** includes Windows x64/x86 packages, experimental Linux x64/x86 packages and an experimental macOS package for Apple silicon and Intel Macs. Download the format for your system from the Releases page:
+Version **0.6.0** includes Windows x64/x86 packages and a macOS package for Apple silicon and Intel Macs in this fork's releases. Download the format for your system from the Releases page:
 
 | System | Installation | Portable |
 | --- | --- | --- |
 | Windows 64-bit | x64 MSI | x64 ZIP |
 | Windows 32-bit | x86 MSI | x86 ZIP |
-| Ubuntu 26.04 / Debian family, 64-bit | amd64 DEB | linux-x64 ZIP |
-| Ubuntu 26.04 / Debian family, 32-bit | i386 DEB | linux-x86 ZIP |
-| Fedora 44 / RPM family, 64-bit | x86_64 RPM | linux-x64 ZIP |
-| Fedora 44 / RPM family, 32-bit | i686 RPM | linux-x86 ZIP |
 | macOS 11 or newer, Apple silicon and Intel | — | macos-universal ZIP |
+
+Linux is supported by the same source; build its packages with the scripts in `scripts/` (see [docs/linux.md](docs/linux.md)).
+
+On macOS you can also install or update the manager from Terminal. The script downloads the latest release, checks it against `SHA256SUMS.txt` and copies the app into `/Applications` (or `~/Applications`); a copy installed this way opens without the first-launch steps below:
+
+```text
+curl -fsSL https://raw.githubusercontent.com/carpaaaaa/craft-apps-manager/main/scripts/install-macos.sh | bash
+```
 
 For Windows, run the MSI or extract the ZIP and open `CraftApps-Manager.exe`. Keep the portable package's `workspace/tools/7zip` folder with the app. Rust and a separate 7-Zip installation are not needed to run Manager.
 
@@ -73,9 +79,17 @@ Version 0.3.2 renames the app to Craft Apps Manager. Download this release manua
 
 ## Supported apps
 
-DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, VectorCraft, WordCraft, GridCraft, DeckCraft, CADCraft, and SoundCraft are available for release and source updates. ArtCraft X is available for source updates and builds. Release formats and architectures depend on what each upstream app publishes.
+Every Craft app published under [github.com/storytold](https://github.com/storytold) is supported, including apps released after this version:
 
-PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
+- **Release and source updates:** DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, VectorCraft, WordCraft, GridCraft, DeckCraft, CADCraft and SoundCraft.
+- **Releases only:** ArtCraft, whose Windows installers and macOS disk images use their own naming (`ArtCraft_<version>_…`). On Windows it is installed with its installer.
+- **Source only:** ArtCraft X.
+
+Release formats and architectures depend on what each upstream app publishes.
+
+The manager keeps this list current by itself. When the window opens (at most every six hours) and during hourly checks, it lists the Storytold repositories whose name contains `craft` and classifies each new one from its latest release. New apps appear in the app list with their description, are added to Update all and Update all sources (turn off **Settings → Updates → Include newly published Craft apps automatically** to choose them yourself), and hourly checks announce them with a notification. **Settings → Updates → App list → Refresh** checks immediately. The list built into the manager is used when GitHub cannot be reached. Setting a `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) environment variable raises GitHub's hourly API limit; the token is sent only to `api.github.com`.
+
+PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. More generally, when an app's release uses a single new file name, the manager installs it as the same app and remembers the new name. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 
 ## Updating apps
 

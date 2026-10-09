@@ -5,12 +5,7 @@
 //! hairline above right-aligned buttons.
 use super::theme::{self, btn, Icon, Kind};
 use super::{modal, result_for_display, App};
-use craft_apps_manager::{
-    apps, backups,
-    jobs::Job,
-    model::{self, APPS, SOURCES},
-    profiles, self_update, updates,
-};
+use craft_apps_manager::{apps, backups, jobs::Job, model, profiles, self_update, updates};
 use eframe::egui::{self, Color32, CornerRadius, FontId, RichText, Sense, Stroke, StrokeKind};
 
 /// Accent of the destructive checkboxes (`accent-color: #d9534f` in the mockups).
@@ -818,10 +813,10 @@ impl App {
             }
         }
         if self.selection {
-            let choices: &[&str] = if self.source_selection {
-                &SOURCES
+            let choices = if self.source_selection {
+                model::sources()
             } else {
-                &APPS
+                model::apps()
             };
             let modal = modal(
                 ctx,
@@ -872,8 +867,7 @@ impl App {
                                         self.selection_draft.clear();
                                     }
                                     if theme::link(ui, "Select all").clicked() {
-                                        self.selection_draft =
-                                            choices.iter().map(|s| s.to_string()).collect();
+                                        self.selection_draft = choices.clone();
                                     }
                                 },
                             );
@@ -890,7 +884,8 @@ impl App {
                         .min_scrolled_height(height)
                         .show(ui, |ui| {
                             band(ui, egui::Margin::symmetric(12, 8), height, |ui| {
-                                for &name in choices {
+                                for name in &choices {
+                                    let name = name.as_str();
                                     let checked = self.selection_draft.iter().any(|s| s == name);
                                     let (rect, response) = ui.allocate_exact_size(
                                         egui::vec2(ui.available_width(), 48.0),

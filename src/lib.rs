@@ -1,6 +1,7 @@
 pub mod apps;
 pub mod backups;
 pub mod builder;
+pub mod catalog;
 pub mod files;
 pub mod hourly;
 pub mod installers;

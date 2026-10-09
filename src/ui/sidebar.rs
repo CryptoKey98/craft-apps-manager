@@ -734,7 +734,7 @@ fn dimmed_icon(ctx: &egui::Context, name: &str) -> Option<egui::TextureHandle> {
     if let Some(texture) = ctx.data(|d| d.get_temp::<egui::TextureHandle>(id)) {
         return Some(texture);
     }
-    let image = image::load_from_memory(super::app_icon(name))
+    let image = image::load_from_memory(super::app_icon(name)?)
         .ok()?
         .into_rgba8();
     let size = [image.width() as usize, image.height() as usize];

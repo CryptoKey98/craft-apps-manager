@@ -1,11 +1,7 @@
 //! The Overview page: bulk updates in the middle, status, hourly checks and activity on the right.
 use super::theme::{self, btn, Icon, Size};
 use super::App;
-use craft_apps_manager::{
-    jobs::State,
-    model::{self, APPS, SOURCES},
-    scheduler,
-};
+use craft_apps_manager::{jobs::State, model, scheduler};
 use eframe::egui::{
     self, Align, Color32, CornerRadius, FontId, Layout, Rect, RichText, Sense, Ui, UiBuilder, Vec2,
 };
@@ -78,7 +74,7 @@ impl App {
             egui::Label::new(
                 RichText::new(format!(
                     "{} apps · {installed} installed · {} · {}, {}",
-                    APPS.len(),
+                    model::apps().len(),
                     match updates.len() {
                         0 => "no updates found".to_owned(),
                         1 => "1 update available".to_owned(),
@@ -99,7 +95,7 @@ impl App {
             let subtitle = format!(
                 "Installs or updates the {} of {} apps chosen in Settings. You review each step first.",
                 self.preferences.selected_apps.len(),
-                APPS.len()
+                model::apps().len()
             );
             let label = if updates.is_empty() {
                 "Update all".to_owned()
@@ -177,9 +173,10 @@ impl App {
             }
         });
         ui.add_space(24.0);
-        let downloaded = SOURCES
+        let sources = model::sources();
+        let downloaded = sources
             .iter()
-            .filter(|name| self.display_sources.contains_key(**name))
+            .filter(|name| self.display_sources.contains_key(*name))
             .count();
         theme::card().show(ui, |ui| {
             ui.set_width(card_width - 2.0);
@@ -190,7 +187,7 @@ impl App {
                     n => format!("{n} downloaded"),
                 },
                 self.preferences.selected_sources.len(),
-                SOURCES.len()
+                sources.len()
             );
             let button = btn("Update all sources")
                 .size(Size::Card)

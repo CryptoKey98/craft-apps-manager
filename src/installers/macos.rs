@@ -11,12 +11,10 @@ pub fn installer_extension() -> Result<&'static str> {
 pub fn installer_label() -> &'static str {
     "macOS"
 }
-/// Upstream bundles use `ai.storyteller.<repository>` identifiers.
-fn identities(app: &str) -> [String; 2] {
-    [
-        format!("ai.storyteller.{}", crate::model::repository(app)),
-        format!("ai.storyteller.{app}"),
-    ]
+/// Upstream bundles use `ai.storyteller.<name>` identifiers; the catalog lists
+/// other ones, such as ArtCraft's `ai.artcraft.app`.
+fn identities(app: &str) -> Vec<String> {
+    crate::catalog::bundle_ids(app)
 }
 fn verify_identity(bundle: &Path, app: &str) -> Result<String> {
     if !bundle.is_dir()
@@ -89,7 +87,7 @@ fn installed_bundle(bundle: &Path, app: &str) -> Result<Installed> {
     })
 }
 fn detect_in_folders(app: &str, folders: &[PathBuf]) -> Result<Option<Installed>> {
-    if !crate::model::APPS.contains(&app) {
+    if !crate::model::apps().iter().any(|a| a == app) {
         return Ok(None);
     }
     for folder in folders {

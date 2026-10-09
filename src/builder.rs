@@ -1,7 +1,7 @@
 use crate::{
     files,
     jobs::Job,
-    model::{BuildInfo, Paths, Source, SOURCES},
+    model::{BuildInfo, Paths, Source},
     platform, tools, updates,
 };
 use anyhow::{bail, Context, Result};
@@ -271,7 +271,10 @@ pub fn history(paths: &Paths, app: &str) -> Option<PathBuf> {
 pub fn clean(paths: &Paths) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsSourceBuilder")?;
     let workspace = paths.at("workspace");
-    for name in SOURCES.into_iter().chain(["cache", "cache-previous"]) {
+    for name in crate::model::sources()
+        .into_iter()
+        .chain(["cache".into(), "cache-previous".into()])
+    {
         files::remove_managed(&workspace.join(name), &workspace)?;
     }
     Ok(())

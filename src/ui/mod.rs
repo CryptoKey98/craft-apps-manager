@@ -1,8 +1,8 @@
 use anyhow::Result;
 use craft_apps_manager::{
-    apps, backups, builder,
+    apps, backups, builder, catalog,
     jobs::Job,
-    model::{self, BuilderPreferences, Paths, Preferences, APPS},
+    model::{self, BuilderPreferences, Paths, Preferences},
     platform, scheduler, self_update, tools, updates,
 };
 use eframe::egui;
@@ -19,8 +19,8 @@ mod settings;
 mod sidebar;
 mod theme;
 
-fn app_icon(name: &str) -> &'static [u8] {
-    match name {
+fn app_icon(name: &str) -> Option<&'static [u8]> {
+    Some(match name {
         "designcraft" => include_bytes!("../../assets/app-icons/designcraft.png"),
         "effectcraft" => include_bytes!("../../assets/app-icons/effectcraft.png"),
         "filmcraft" => include_bytes!("../../assets/app-icons/filmcraft.png"),
@@ -32,8 +32,69 @@ fn app_icon(name: &str) -> &'static [u8] {
         "deckcraft" => include_bytes!("../../assets/app-icons/deckcraft.png"),
         "cadcraft" => include_bytes!("../../assets/app-icons/cadcraft.png"),
         "soundcraft" => include_bytes!("../../assets/app-icons/soundcraft.png"),
-        _ => include_bytes!("../../assets/app-icons/pdfcraft.png"),
+        "printcraft" => include_bytes!("../../assets/app-icons/pdfcraft.png"),
+        _ => return None,
+    })
+}
+/// Icon for an app without a bundled one, downloaded once from its repository.
+fn icon_bytes(paths: &Paths, name: &str) -> Option<Vec<u8>> {
+    let cached = paths.at(format!("runtime/icons/{name}.png"));
+    if let Ok(bytes) = std::fs::read(&cached) {
+        return Some(bytes);
     }
+    let entry = catalog::get(name)?;
+    let url = format!(
+        "https://raw.githubusercontent.com/{}/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
+        catalog::ORG,
+        entry.repository,
+        entry.repository
+    );
+    let bytes = reqwest::blocking::get(url)
+        .ok()?
+        .error_for_status()
+        .ok()?
+        .bytes()
+        .ok()?
+        .to_vec();
+    image::load_from_memory(&bytes).ok()?;
+    craft_apps_manager::files::write_bytes(&cached, &bytes).ok()?;
+    Some(bytes)
+}
+fn texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> Option<egui::TextureHandle> {
+    let image = image::load_from_memory(bytes).ok()?.into_rgba8();
+    let size = [image.width() as usize, image.height() as usize];
+    let pixels = egui::ColorImage::from_rgba_unmultiplied(size, image.as_raw());
+    Some(ctx.load_texture(name, pixels, egui::TextureOptions::LINEAR))
+}
+/// A neutral rounded tile for apps whose repository has no icon.
+fn placeholder(ctx: &egui::Context, name: &str) -> egui::TextureHandle {
+    const SIZE: usize = 64;
+    let hue = name
+        .bytes()
+        .fold(0u32, |h, b| h.wrapping_mul(31).wrapping_add(b.into()))
+        % 360;
+    let color = egui::ecolor::Hsva::new(hue as f32 / 360.0, 0.35, 0.62, 1.0);
+    let [r, g, b, _] = egui::Color32::from(color).to_array();
+    let mut pixels = vec![egui::Color32::TRANSPARENT; SIZE * SIZE];
+    let radius = 14.0f32;
+    for y in 0..SIZE {
+        for x in 0..SIZE {
+            let dx = (x as f32 + 0.5 - SIZE as f32 / 2.0).abs() - (SIZE as f32 / 2.0 - radius);
+            let dy = (y as f32 + 0.5 - SIZE as f32 / 2.0).abs() - (SIZE as f32 / 2.0 - radius);
+            let outside = (dx.max(0.0).powi(2) + dy.max(0.0).powi(2)).sqrt() - radius;
+            let alpha = (0.5 - outside).clamp(0.0, 1.0);
+            pixels[y * SIZE + x] =
+                egui::Color32::from_rgba_unmultiplied(r, g, b, (alpha * 255.0) as u8);
+        }
+    }
+    ctx.load_texture(
+        format!("placeholder-{name}"),
+        egui::ColorImage {
+            size: [SIZE, SIZE],
+            pixels,
+        },
+        egui::TextureOptions::LINEAR,
+    )
 }
 
 type ReleaseCheck = Result<Option<String>, String>;
@@ -77,6 +138,11 @@ struct AppStatus {
 
 pub struct App {
     icons: BTreeMap<String, egui::TextureHandle>,
+    icon_receiver: std::sync::mpsc::Receiver<(String, Option<Vec<u8>>)>,
+    icon_sender: std::sync::mpsc::Sender<(String, Option<Vec<u8>>)>,
+    icons_requested: std::collections::BTreeSet<String>,
+    catalog_receiver: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
+    catalog_message: String,
     paths: Paths,
     home: PathBuf,
     builder: bool,
@@ -250,21 +316,38 @@ impl App {
             Vec::new()
         };
         let restore_app = preview_backups.then(|| app.clone());
-        let icons = APPS
+        let icons = model::apps()
             .into_iter()
-            .map(|name| -> Result<_> {
-                let image = image::load_from_memory(app_icon(name))?.into_rgba8();
-                let size = [image.width() as usize, image.height() as usize];
-                let pixels = egui::ColorImage::from_rgba_unmultiplied(size, image.as_raw());
-                Ok((
-                    name.to_owned(),
-                    cc.egui_ctx
-                        .load_texture(name, pixels, egui::TextureOptions::LINEAR),
-                ))
+            .chain(model::sources())
+            .filter_map(|name| {
+                let handle = texture(&cc.egui_ctx, &name, app_icon(&name)?)?;
+                Some((name, handle))
             })
-            .collect::<Result<_>>()?;
+            .collect();
+        let (icon_sender, icon_receiver) = std::sync::mpsc::channel();
+        // The app list is refreshed in the background; newer apps appear when it finishes.
+        let catalog_receiver = std::env::args()
+            .all(|a| !a.starts_with("--preview"))
+            .then(|| {
+                let (tx, rx) = std::sync::mpsc::channel();
+                let root = paths.root.clone();
+                let ctx = cc.egui_ctx.clone();
+                std::thread::spawn(move || {
+                    let result = catalog::refresh_if_older(&root, 6 * 3600)
+                        .map(|_| ())
+                        .map_err(|e| format!("{e:#}"));
+                    let _ = tx.send(result);
+                    ctx.request_repaint();
+                });
+                rx
+            });
         let mut window = Self {
             icons,
+            icon_receiver,
+            icon_sender,
+            icons_requested: Default::default(),
+            catalog_receiver,
+            catalog_message: String::new(),
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
             paths,
@@ -607,8 +690,84 @@ impl App {
             loaded: config.is_some(),
         }
     }
+    /// Re-reads settings after the app list changed, adopting newly found apps.
+    fn catalog_changed(&mut self) {
+        match self.paths.preferences() {
+            Ok(preferences) => {
+                if !self.settings {
+                    self.settings_draft = preferences.clone();
+                }
+                self.preferences = preferences;
+            }
+            Err(error) => self.error = Some(format!("{error:#}")),
+        }
+        self.display_config = None;
+        self.config_receiver = None;
+        self.config_refresh_at = std::time::Instant::now();
+    }
+    /// Looks for Craft apps on GitHub now.
+    pub(crate) fn refresh_catalog(&mut self, ctx: &egui::Context) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let root = self.paths.root.clone();
+        let ctx = ctx.clone();
+        self.catalog_message = "Looking for Craft apps on GitHub…".into();
+        std::thread::spawn(move || {
+            let result = catalog::refresh(&root)
+                .map(|_| ())
+                .map_err(|e| format!("{e:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+        self.catalog_receiver = Some(rx);
+    }
+    /// Loads icons for apps without a bundled one, off the interface thread.
+    fn request_icons(&mut self, ctx: &egui::Context) {
+        let missing: Vec<_> = model::apps()
+            .into_iter()
+            .chain(model::sources())
+            .filter(|name| {
+                !self.icons.contains_key(name) && self.icons_requested.insert(name.clone())
+            })
+            .collect();
+        if missing.is_empty() {
+            return;
+        }
+        let paths = self.paths.clone();
+        let tx = self.icon_sender.clone();
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            for name in missing {
+                let bytes = icon_bytes(&paths, &name);
+                if tx.send((name, bytes)).is_err() {
+                    break;
+                }
+                ctx.request_repaint();
+            }
+        });
+    }
     /// Polls background work and keeps the snapshot of disk state fresh.
     fn poll(&mut self, ctx: &egui::Context) {
+        if let Some(receiver) = &self.catalog_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                self.catalog_receiver = None;
+                match result {
+                    Ok(()) => {
+                        self.catalog_message.clear();
+                        self.catalog_changed();
+                    }
+                    Err(error) => {
+                        self.catalog_message = format!("Could not refresh the app list: {error}")
+                    }
+                }
+            }
+        }
+        while let Ok((name, bytes)) = self.icon_receiver.try_recv() {
+            let handle = bytes
+                .and_then(|bytes| texture(ctx, &name, &bytes))
+                .unwrap_or_else(|| placeholder(ctx, &name));
+            self.icons.insert(name, handle);
+        }
+        self.request_icons(ctx);
         if let Some(receiver) = &self.plan_receiver {
             match receiver.try_recv() {
                 Ok(result) => {
@@ -687,11 +846,9 @@ impl App {
                 let result = (|| -> Result<Snapshot> {
                     let config = paths.config()?;
                     let alternates = paths.alternate_installations(&config)?;
-                    let backups = APPS
+                    let backups = model::apps()
                         .into_iter()
-                        .map(|name| {
-                            backups::list(&paths, name).map(|items| (name.to_owned(), items))
-                        })
+                        .map(|name| backups::list(&paths, &name).map(|items| (name, items)))
                         .collect::<Result<_>>()?;
                     let checks = craft_apps_manager::hourly::read(&paths)?;
                     // Display-only extras: an unreadable file just leaves its row empty.
@@ -699,23 +856,23 @@ impl App {
                         &paths.at("sources/source-index.json"),
                     )
                     .unwrap_or_default();
-                    let builds = APPS
+                    let builds = model::apps()
                         .into_iter()
                         .filter_map(|name| {
-                            let folder = builder::history(&paths, name)?;
+                            let folder = builder::history(&paths, &name)?;
                             let info = craft_apps_manager::files::read_json(
                                 &folder.join("build-info.json"),
                             )
                             .ok();
-                            Some((name.to_owned(), (folder, info)))
+                            Some((name, (folder, info)))
                         })
                         .collect();
-                    let launch = APPS
+                    let launch = model::apps()
                         .into_iter()
                         .filter_map(|name| {
-                            apps::settings(&paths, name)
+                            apps::settings(&paths, &name)
                                 .ok()
-                                .map(|settings| (name.to_owned(), settings))
+                                .map(|settings| (name, settings))
                         })
                         .collect();
                     Ok(Snapshot {

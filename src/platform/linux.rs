@@ -148,7 +148,7 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
     let app = target
         .file_name()
         .and_then(|s| s.to_str())
-        .filter(|s| crate::model::APPS.contains(s));
+        .filter(|s| crate::model::apps().iter().any(|a| a == s));
     let title = if let Some(app) = app {
         crate::model::title(app)
     } else if args.is_empty() {

@@ -983,6 +983,7 @@ mod tests {
         let arch = crate::model::MANAGER_ARCH;
         let release = |extension: &str| Release {
             tag_name: "v0.5.0".into(),
+            name: None,
             draft: false,
             prerelease: false,
             assets: vec![Asset {
@@ -1018,6 +1019,7 @@ mod tests {
         };
         let mut release = Release {
             tag_name: "v0.4.0".into(),
+            name: None,
             draft: false,
             prerelease: false,
             assets: vec![asset(other)],
@@ -1034,6 +1036,7 @@ mod tests {
     fn only_new_stable_release_from_our_repository() {
         let release = |tag: &str, prerelease, url: &str| Release {
             tag_name: tag.into(),
+            name: None,
             draft: false,
             prerelease,
             assets: vec![Asset {
@@ -1071,6 +1074,7 @@ mod macos_tests {
     fn selects_universal_zip_from_configured_repository() {
         let release = |name: &str, url: &str| Release {
             tag_name: "v0.5.0".into(),
+            name: None,
             draft: false,
             prerelease: false,
             assets: vec![Asset {

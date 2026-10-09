@@ -1,7 +1,7 @@
 use crate::{
     files,
     jobs::Job,
-    model::{Paths, Preferences, SOURCES},
+    model::{Paths, Preferences},
     tools,
 };
 use anyhow::{bail, Context, Result};
@@ -70,7 +70,7 @@ fn managed_name(s: &str, source: bool, app: Option<&str>) -> bool {
     };
     let re = regex::Regex::new(pattern).unwrap();
     re.captures(s)
-        .is_some_and(|c| SOURCES.contains(&&c[1]) && app.is_none_or(|n| n == &c[1]))
+        .is_some_and(|c| crate::catalog::get(&c[1]).is_some() && app.is_none_or(|n| n == &c[1]))
 }
 #[derive(Clone)]
 pub struct Backup {

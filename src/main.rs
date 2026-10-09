@@ -18,7 +18,11 @@ fn main() {
                 || a == "--check-app-updates"
                 || a == "--check-source-updates"
                 || a == "--apply-self-update"
+                || a == "--list-apps"
+                || a == "--install-app"
+                || a == "--uninstall-app"
         }) {
+            eprintln!("{message}");
             std::process::exit(1);
         }
         #[cfg(unix)]
@@ -72,6 +76,8 @@ fn run() -> Result<()> {
     let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
     let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
     let paths = Paths::new(root, arg("--tools").or(saved.tools));
+    // The app list saved by the last discovery; the window refreshes it in the background.
+    craft_apps_manager::catalog::load(&paths.root);
     #[cfg(target_os = "linux")]
     craft_apps_manager::apps::repair_linux_shortcuts(&paths)?;
     // Old scheduled tasks keep their command line after an executable update.
@@ -124,6 +130,45 @@ fn run() -> Result<()> {
             "--builder",
             &home,
         )?;
+        return Ok(());
+    }
+    // Commands for scripts and end-to-end checks.
+    let text = |key: &str| {
+        args.iter()
+            .position(|s| s == key)
+            .and_then(|i| args.get(i + 1))
+            .cloned()
+    };
+    if args.iter().any(|s| s == "--list-apps") {
+        let entries = craft_apps_manager::catalog::refresh(&paths.root)?;
+        println!("{}", serde_json::to_string_pretty(&entries)?);
+        return Ok(());
+    }
+    if let Some(format) = text("--release-format") {
+        let mut preferences = paths.preferences()?;
+        preferences.release_format = format;
+        preferences.validate()?;
+        files::write_json(&paths.at("manager-settings.json"), &preferences)?;
+    }
+    if let Some(app) = text("--install-app") {
+        let job = Job::new(paths.at("logs/updates.log"), &paths.builder_preferences()?);
+        if let Err(error) = craft_apps_manager::catalog::refresh_if_older(&paths.root, 3600) {
+            job.log(&format!(
+                "App list refresh failed; using the saved list: {error:#}"
+            ));
+        }
+        updates::install_app(&paths, &app, &job)
+            .with_context(|| format!("See {}", job.log_path.display()))?;
+        let installed = craft_apps_manager::apps::installed(&paths, &app)?;
+        println!(
+            "{} {} {} {}",
+            installed.name, installed.version, installed.install_kind, installed.path
+        );
+        return Ok(());
+    }
+    if let Some(app) = text("--uninstall-app") {
+        craft_apps_manager::apps::uninstall(&paths, &app)?;
+        println!("{app} uninstalled");
         return Ok(());
     }
     if args
