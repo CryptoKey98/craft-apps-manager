@@ -21,6 +21,7 @@ fn main() {
                 || a == "--list-apps"
                 || a == "--install-app"
                 || a == "--uninstall-app"
+                || a == "--restore-relocation-files"
         }) {
             eprintln!("{message}");
             std::process::exit(1);
@@ -76,6 +77,10 @@ fn run() -> Result<()> {
     let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
     let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
     let paths = Paths::new(root, arg("--tools").or(saved.tools));
+    #[cfg(target_os = "windows")]
+    if let Some(plan) = arg("--restore-relocation-files") {
+        return craft_apps_manager::relocation::restore_elevated(&paths, &plan);
+    }
     // The app list saved by the last discovery; the window refreshes it in the background.
     craft_apps_manager::catalog::load(&paths.root);
     #[cfg(target_os = "linux")]
@@ -206,7 +211,7 @@ fn run() -> Result<()> {
             .with_inner_size(screenshot_size.unwrap_or(if builder {
                 [1050.0, 740.0]
             } else {
-                [1240.0, 760.0]
+                [1320.0, 820.0]
             }))
             .with_min_inner_size(if builder {
                 [780.0, 580.0]

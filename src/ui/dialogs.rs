@@ -776,10 +776,10 @@ impl App {
                         if plan.requested_tag.is_some() {
                             "Review version change"
                         } else {
-                            "Review install and update"
+                            "Review app updates"
                         },
                         &format!(
-                            "{} · {}. Only the Install and Update entries below will run.",
+                            "{} · {}",
                             plan.preferences.release_format,
                             model::architecture_label(&plan.preferences.architecture)
                         ),
@@ -795,7 +795,39 @@ impl App {
                         note(ui, format!("Installed: {installed} → Selected: {tag}."));
                     }
                     ui.add_space(18.0);
-                    theme::group().show(ui, |ui| {
+                    if plan.entries.is_empty() {
+                        theme::group().show(ui, |ui| {
+                            egui::Frame::new()
+                                .inner_margin(egui::Margin::same(18))
+                                .show(ui, |ui| {
+                                    ui.set_width(ui.available_width());
+                                    ui.vertical_centered(|ui| {
+                                        ui.add_space(6.0);
+                                        let (rect, _) = ui.allocate_exact_size(
+                                            egui::vec2(24.0, 24.0),
+                                            egui::Sense::hover(),
+                                        );
+                                        theme::paint_icon(
+                                            ui.painter(),
+                                            rect,
+                                            Icon::Grid,
+                                            theme::palette().text_3,
+                                        );
+                                        ui.add_space(12.0);
+                                        theme::text(
+                                            ui,
+                                            "No apps selected",
+                                            15.0,
+                                            theme::palette().text,
+                                        );
+                                        ui.add_space(6.0);
+                                        note(ui, "Choose installed apps to include in Update All.");
+                                        ui.add_space(6.0);
+                                    });
+                                });
+                        });
+                    } else {
+                        theme::group().show(ui, |ui| {
                         ui.set_width(ui.available_width());
                         egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
                             for (index, entry) in plan.entries.iter().enumerate() {
@@ -803,7 +835,7 @@ impl App {
                                     rule(ui);
                                 }
                                 egui::Frame::new()
-                                    .inner_margin(egui::Margin::symmetric(14, 10))
+                                    .inner_margin(egui::Margin::symmetric(18, 14))
                                     .show(ui, |ui| {
                                         ui.set_width(ui.available_width());
                                         ui.spacing_mut().item_spacing.y = 4.0;
@@ -864,12 +896,17 @@ impl App {
                             }
                         });
                     });
+                    }
                 });
                 footer(ui, |ui| {
                     let count = plan.executable_count();
                     if action(
                         ui,
-                        &format!("Run {count} operation{}", if count == 1 { "" } else { "s" }),
+                        &if count == 0 {
+                            "Update".into()
+                        } else {
+                            format!("Run {count} operation{}", if count == 1 { "" } else { "s" })
+                        },
                         Kind::Primary,
                         count > 0,
                     )
@@ -925,6 +962,160 @@ impl App {
             }
         }
 
+        if let Some(installed) = self.confirm_move.clone() {
+            if let Some(receiver) = &self.move_folder {
+                if let Ok(result) = receiver.try_recv() {
+                    self.move_folder = None;
+                    match result {
+                        Ok(Some(path)) => self.move_parent = path.display().to_string(),
+                        Ok(None) => {}
+                        Err(error) => self.error = Some(error),
+                    }
+                }
+            }
+            if let Some(receiver) = &self.move_probe {
+                if let Ok(result) = receiver.try_recv() {
+                    self.move_probe = None;
+                    self.move_running = Some(result.unwrap_or(true));
+                    self.move_probe_at =
+                        std::time::Instant::now() + std::time::Duration::from_secs(1);
+                }
+            }
+            if self.move_probe.is_none() && std::time::Instant::now() >= self.move_probe_at {
+                let (tx, rx) = std::sync::mpsc::channel();
+                self.move_probe = Some(rx);
+                let app = installed.name.clone();
+                let ctx = ctx.clone();
+                std::thread::spawn(move || {
+                    let _ = tx.send(
+                        craft_apps_manager::platform::running_app(&app)
+                            .map_err(|e| format!("{e:#}")),
+                    );
+                    ctx.request_repaint();
+                });
+            }
+            let supported = craft_apps_manager::relocation::supported(&installed);
+            let target = craft_apps_manager::relocation::destination(
+                &self.paths,
+                &installed,
+                std::path::Path::new(&self.move_parent),
+            );
+            let response = modal(ctx, "Move app", 570.0, |ui| {
+                band(ui, BODY, 0.0, |ui| {
+                    header(
+                        ui,
+                        self.icons
+                            .get(&installed.name)
+                            .map(|texture| Art::Texture(texture.id()))
+                            .unwrap_or(Art::None),
+                        &format!("Move {}", model::title(&installed.name)),
+                        "Choose a new location for this app.",
+                        |_| {},
+                    );
+                    ui.add_space(24.0);
+                    theme::text(ui, "Current location", 13.0, theme::palette().text);
+                    ui.add_space(8.0);
+                    folder_path_row(ui, std::path::Path::new(&installed.path), |path| {
+                        self.result(craft_apps_manager::platform::open(path));
+                    });
+                    ui.add_space(20.0);
+                    theme::text(ui, "New install location", 13.0, theme::palette().text);
+                    ui.add_space(8.0);
+                    ui.add_enabled_ui(supported, |ui| {
+                        ui.horizontal(|ui| {
+                            let width = (ui.available_width() - 106.0).max(40.0);
+                            ui.add_sized(
+                                egui::vec2(width, 36.0),
+                                egui::TextEdit::singleline(&mut self.move_parent)
+                                    .font(egui::TextStyle::Body)
+                                    .vertical_align(egui::Align::Center)
+                                    .margin(egui::Margin::symmetric(10, 8)),
+                            );
+                            if action(ui, "Browse…", Kind::Secondary, self.move_folder.is_none())
+                                .clicked()
+                            {
+                                let initial = std::path::PathBuf::from(&self.move_parent);
+                                let (tx, rx) = std::sync::mpsc::channel();
+                                self.move_folder = Some(rx);
+                                let ctx = ctx.clone();
+                                std::thread::spawn(move || {
+                                    let result =
+                                        craft_apps_manager::portable::pick_folder(&initial)
+                                            .map_err(|e| format!("{e:#}"));
+                                    let _ = tx.send(result);
+                                    ctx.request_repaint();
+                                });
+                            }
+                        });
+                    });
+                    ui.add_space(8.0);
+                    if let Ok(target) = &target {
+                        note(
+                            ui,
+                            format!(
+                                "App folder: {}",
+                                compact_path(&target.display().to_string())
+                            ),
+                        );
+                    } else if supported {
+                        note(ui, target.as_ref().unwrap_err().to_string());
+                    }
+                    ui.add_space(24.0);
+                    if !supported {
+                        note(ui, "This system-managed package has a fixed install location. Portable apps can be moved.");
+                    } else if self.move_running == Some(true) {
+                        note(
+                            ui,
+                            format!("Close {} to enable Move.", model::title(&installed.name)),
+                        );
+                    } else if self.move_running.is_none() {
+                        note(ui, "Checking whether the app is running…");
+                    } else {
+                        note(ui, "The manager will update its location and shortcuts. Project files outside the app folder stay where they are.");
+                    }
+                    if installed.install_kind == "installer" && supported {
+                        ui.add_space(8.0);
+                        note(ui, "Uses a verified installer of the same version. Windows may ask for administrator permission.");
+                    }
+                });
+                footer(ui, |ui| {
+                    if action(
+                        ui,
+                        "Move",
+                        Kind::Primary,
+                        supported
+                            && target.is_ok()
+                            && self.move_running == Some(false)
+                            && self.move_folder.is_none()
+                            && !self.job.state.lock().unwrap().busy,
+                    )
+                    .clicked()
+                    {
+                        self.confirm_move = None;
+                        self.job =
+                            Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
+                        self.job_target = Some((installed.name.clone(), "move-app".into()));
+                        self.job_action = "move-app".into();
+                        self.operation_was_busy = true;
+                        self.failure_dismissed = false;
+                        let paths = self.paths.clone();
+                        let installed = installed.clone();
+                        let parent = std::path::PathBuf::from(&self.move_parent);
+                        self.job.spawn(move |job| {
+                            craft_apps_manager::relocation::move_app(
+                                &paths, &installed, &parent, &job,
+                            )
+                        });
+                    }
+                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.confirm_move = None;
+                    }
+                });
+            });
+            if response.should_close() {
+                self.confirm_move = None;
+            }
+        }
         if let Some(app) = self.confirm_install.clone() {
             let installer = self.preferences.release_format == "installer";
             let current = self
@@ -959,6 +1150,20 @@ impl App {
                 .cloned();
             let entry = plan.as_ref().and_then(|p| p.entries.first());
             let update = entry.is_some_and(|e| e.action == "Update");
+            let downgrade = entry.zip(current.as_ref()).is_some_and(|(entry, current)| {
+                entry.action == "Update"
+                    && updates::version(&current.version)
+                        .ok()
+                        .zip(updates::version(&entry.version).ok())
+                        .is_some_and(|(installed, selected)| selected < installed)
+            });
+            let install_action = if downgrade {
+                "Downgrade"
+            } else if update {
+                "Update"
+            } else {
+                "Install"
+            };
             #[cfg(target_os = "windows")]
             let custom_installer = installer
                 && craft_apps_manager::installers::custom_location_supported(&app)
@@ -967,11 +1172,7 @@ impl App {
                     .is_some_and(|a| a.install_kind == "installer" && !a.path.is_empty());
             #[cfg(not(target_os = "windows"))]
             let custom_installer = false;
-            let title = format!(
-                "{} {}",
-                if update { "Update" } else { "Install" },
-                model::title(&app)
-            );
+            let title = format!("{} {}", install_action, model::title(&app));
             let details = entry
                 .filter(|e| !e.version.is_empty())
                 .map(|e| {
@@ -1190,14 +1391,7 @@ impl App {
                         e.error.is_none() && matches!(e.action.as_str(), "Install" | "Update")
                     }) && self.folder_receiver.is_none()
                         && !self.job.state.lock().unwrap().busy;
-                    if action(
-                        ui,
-                        if update { "Update" } else { "Install" },
-                        Kind::Primary,
-                        ready,
-                    )
-                    .clicked()
-                    {
+                    if action(ui, install_action, Kind::Primary, ready).clicked() {
                         if let Some(mut plan) = plan.clone() {
                             plan.desktop_shortcut = self.install_shortcut;
                             let result = if custom_installer {
@@ -1575,6 +1769,22 @@ impl App {
             } else {
                 model::apps()
             };
+            let eligible: Vec<String> = if self.source_selection {
+                choices.clone()
+            } else {
+                self.display_config
+                    .as_ref()
+                    .map(|config| {
+                        config
+                            .apps
+                            .iter()
+                            .filter(|app| updates::installed_for_updates(app, &self.settings_draft))
+                            .map(|app| app.name.clone())
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            };
+            self.selection_draft.retain(|app| eligible.contains(app));
             let modal = modal(
                 ctx,
                 if self.source_selection {
@@ -1605,6 +1815,9 @@ impl App {
                                 theme::palette().text_3,
                             );
                         }
+                        if !self.source_selection {
+                            note(ui, "Update All only updates installed apps. Uninstalled apps cannot be selected.");
+                        }
                         ui.horizontal(|ui| {
                             theme::text(
                                 ui,
@@ -1624,7 +1837,7 @@ impl App {
                                         self.selection_draft.clear();
                                     }
                                     if theme::link(ui, "Select all").clicked() {
-                                        self.selection_draft = choices.clone();
+                                        self.selection_draft = eligible.clone();
                                     }
                                 },
                             );
@@ -1643,20 +1856,21 @@ impl App {
                             band(ui, egui::Margin::symmetric(12, 8), height, |ui| {
                                 for name in &choices {
                                     let name = name.as_str();
-                                    let checked = self.selection_draft.iter().any(|s| s == name);
+                                    let enabled = eligible.iter().any(|app| app == name);
+                                    let checked = enabled && self.selection_draft.iter().any(|s| s == name);
                                     let (rect, response) = ui.allocate_exact_size(
                                         egui::vec2(ui.available_width(), 48.0),
-                                        Sense::click(),
+                                        if enabled { Sense::click() } else { Sense::hover() },
                                     );
                                     response.widget_info(|| {
                                         egui::WidgetInfo::selected(
                                             egui::WidgetType::Checkbox,
-                                            true,
+                                            enabled,
                                             checked,
                                             model::title(name),
                                         )
                                     });
-                                    if response.hovered() {
+                                    if response.hovered() && enabled {
                                         ui.painter().rect_filled(
                                             rect,
                                             CornerRadius::same(8),
@@ -1681,7 +1895,7 @@ impl App {
                                         mark,
                                         checked,
                                         theme::palette().accent,
-                                        true,
+                                        enabled,
                                     );
                                     if let Some(texture) = self.icons.get(name) {
                                         ui.painter().image(
@@ -1697,7 +1911,7 @@ impl App {
                                                 egui::pos2(0.0, 0.0),
                                                 egui::pos2(1.0, 1.0),
                                             ),
-                                            Color32::WHITE,
+                                            if enabled { Color32::WHITE } else { Color32::from_white_alpha(80) },
                                         );
                                     }
                                     theme::painter_text(
@@ -1706,9 +1920,10 @@ impl App {
                                         egui::Align2::LEFT_CENTER,
                                         model::title(name),
                                         14.0,
-                                        theme::palette().text,
+                                        if enabled { theme::palette().text } else { theme::palette().muted },
                                     );
-                                    if response.clicked() {
+                                    if !enabled { response.clone().on_hover_text("Not installed in the selected format. Install this app from its app page first."); }
+                                    if response.clicked() && enabled {
                                         if checked {
                                             self.selection_draft.retain(|s| s != name)
                                         } else {

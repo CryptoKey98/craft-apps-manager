@@ -477,6 +477,13 @@ impl App {
         });
     }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
+        group(ui, "Window behavior", |ui| {
+            check_row(ui, &mut self.settings_draft.close_to_tray, "Keep running in the system tray when closed", Some("Closing hides the window. Periodic checks continue; choose Exit in the tray menu to quit."));
+            if let Some(message) = &self.tray_error {
+                note(ui, message);
+            }
+        });
+        ui.add_space(16.0);
         group(ui, "Releases", |ui| {
             let hint = if self.settings_draft.release_format == "installer" {
                 if cfg!(target_os = "macos") {
@@ -664,11 +671,27 @@ impl App {
         });
         ui.add_space(16.0);
         group(ui, "Update all", |ui| {
-            let apps = format!(
-                "{} of {} included",
-                self.settings_draft.selected_apps.len(),
-                model::apps().len()
-            );
+            let eligible = self
+                .display_config
+                .as_ref()
+                .map(|config| {
+                    config
+                        .apps
+                        .iter()
+                        .filter(|app| {
+                            craft_apps_manager::updates::installed_for_updates(
+                                app,
+                                &self.settings_draft,
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            let included = eligible
+                .iter()
+                .filter(|app| self.settings_draft.selected_apps.contains(&app.name))
+                .count();
+            let apps = format!("{} of {} installed apps included", included, eligible.len());
             if row(ui, "Apps", Some(&apps), 52.0, |ui| {
                 btn("Choose…").show(ui).clicked()
             }) {

@@ -116,6 +116,38 @@ pub fn desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     let owner: Ownership = files::read_json(&marker)?;
     create_shortcut(&marker, owner, target, &desktop()?)
 }
+pub fn refresh_moved_shortcut(
+    paths: &Paths,
+    app: &str,
+    target: &Path,
+    installer: bool,
+) -> Result<()> {
+    let marker = if installer {
+        paths.at(format!("runtime/desktop-shortcuts/{app}.json"))
+    } else {
+        target.join(MARKER)
+    };
+    if !marker.exists() {
+        return Ok(());
+    }
+    let owner: Ownership = files::read_json(&marker)?;
+    if owner.shortcut.is_some() {
+        create_shortcut(&marker, owner, target, &desktop()?)?;
+    }
+    Ok(())
+}
+pub fn mark_moved(paths: &Paths, app: &str, target: &Path) -> Result<()> {
+    let marker = target.join(MARKER);
+    if marker.exists() {
+        let owner: Ownership = files::read_json(&marker)?;
+        anyhow::ensure!(
+            owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+            "App folder belongs to another library"
+        );
+        return Ok(());
+    }
+    mark(paths, app, target)
+}
 pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     crate::model::valid_app(app)?;
     let marker = paths.at(format!("runtime/desktop-shortcuts/{app}.json"));

@@ -10,3 +10,9 @@ pub use linux::*;
 mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::*;
+
+// Exercise Linux package command contracts on Windows CI as well.
+#[cfg(all(test, target_os = "windows"))]
+#[allow(dead_code)]
+#[path = "installers/linux.rs"]
+mod linux_contract_tests;

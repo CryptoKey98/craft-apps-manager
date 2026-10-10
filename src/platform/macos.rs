@@ -114,17 +114,21 @@ pub fn running_app(name: &str) -> Result<bool> {
         .map(str::to_lowercase)
         .any(|line| bundles.iter().any(|bundle| line.contains(bundle))))
 }
-pub fn notify(_: &Path, message: &str) -> Result<()> {
+pub fn notify(exe: &Path, message: &str) -> Result<()> {
+    notify_with_title(exe, "Craft updates available", message)
+}
+pub fn notify_with_title(_: &Path, title: &str, message: &str) -> Result<()> {
     // Pass the message as an argument so it is never parsed as AppleScript.
     let status = Command::new("/usr/bin/osascript")
         .args([
             "-e",
             "on run argv",
             "-e",
-            "display notification (item 1 of argv) with title \"Craft Apps Manager\" subtitle \"Craft updates available\"",
+            "display notification (item 1 of argv) with title \"Craft Apps Manager\" subtitle (item 2 of argv)",
             "-e",
             "end run",
             message,
+            title,
         ])
         .status()?;
     if !status.success() {

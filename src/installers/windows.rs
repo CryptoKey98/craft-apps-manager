@@ -1,9 +1,22 @@
 use crate::{model::Installed, platform};
 use anyhow::{bail, Context, Result};
-use std::{path::Path, process::Command};
+use std::path::Path;
 use winreg::{enums::*, RegKey};
 #[link(name = "msi")]
 unsafe extern "system" {
+    fn MsiInstallProductW(package: *const u16, properties: *const u16) -> u32;
+    fn MsiConfigureProductExW(
+        product: *const u16,
+        level: i32,
+        state: i32,
+        properties: *const u16,
+    ) -> u32;
+    fn MsiSetInternalUI(level: u32, owner: *mut *mut std::ffi::c_void) -> u32;
+    fn MsiSetExternalUIW(
+        handler: MsiUiHandler,
+        filter: u32,
+        context: *mut std::ffi::c_void,
+    ) -> MsiUiHandler;
     fn MsiQueryProductStateW(product: *const u16) -> i32;
     fn MsiGetProductInfoW(
         product: *const u16,
@@ -23,6 +36,71 @@ unsafe extern "system" {
         size: *mut u32,
     ) -> i32;
     fn MsiCloseHandle(handle: u32) -> u32;
+}
+type MsiUiHandler =
+    Option<unsafe extern "system" fn(*mut std::ffi::c_void, u32, *const u16) -> i32>;
+static MSI_UI_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+struct MsiUiGuard {
+    previous: MsiUiHandler,
+    level: u32,
+}
+impl Drop for MsiUiGuard {
+    fn drop(&mut self) {
+        unsafe {
+            MsiSetExternalUIW(self.previous, 0, std::ptr::null_mut());
+            MsiSetInternalUI(self.level, std::ptr::null_mut());
+        }
+    }
+}
+unsafe extern "system" fn installer_ui(
+    context: *mut std::ffi::c_void,
+    message_type: u32,
+    _message: *const u16,
+) -> i32 {
+    if context.is_null() {
+        return 0;
+    }
+    // Only action/progress messages accept IDCANCEL; errors remain Windows' responsibility.
+    if !matches!(
+        message_type & 0xff00_0000,
+        0x0800_0000 | 0x0900_0000 | 0x0a00_0000
+    ) {
+        return 0;
+    }
+    let job = &*(context as *const crate::jobs::Job);
+    if job.cancel.load(std::sync::atomic::Ordering::Relaxed) {
+        2
+    } else {
+        0
+    }
+}
+fn msi_transaction(
+    job: Option<&crate::jobs::Job>,
+    basic: bool,
+    run: impl FnOnce() -> u32,
+) -> Result<i32> {
+    let _lock = MSI_UI_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Windows Installer UI lock failed"))?;
+    if let Some(job) = job {
+        job.check()?;
+    }
+    let context = job.map_or(std::ptr::null_mut(), |j| {
+        j as *const _ as *mut std::ffi::c_void
+    });
+    let guard = unsafe {
+        MsiUiGuard {
+            level: MsiSetInternalUI(if basic { 3 } else { 5 }, std::ptr::null_mut()),
+            previous: MsiSetExternalUIW(
+                Some(installer_ui),
+                (1 << 8) | (1 << 9) | (1 << 10),
+                context,
+            ),
+        }
+    };
+    let result = run();
+    drop(guard);
+    Ok(result as i32)
 }
 struct MsiHandle(u32);
 impl Drop for MsiHandle {
@@ -109,7 +187,8 @@ fn msi_app_folder(product: &str, app: &str) -> Option<String> {
 pub fn custom_location_supported(app: &str) -> bool {
     matches!(
         app,
-        "designcraft"
+        "artcraft"
+            | "designcraft"
             | "effectcraft"
             | "filmcraft"
             | "lightcraft"
@@ -123,34 +202,44 @@ pub fn custom_location_supported(app: &str) -> bool {
             | "soundcraft"
     )
 }
-fn supports_installfolder(file: &Path) -> bool {
+pub fn package_location_supported(file: &Path) -> bool {
+    install_directory_property(file).is_some()
+}
+fn install_directory_property(file: &Path) -> Option<&'static str> {
     let file = platform::wide(file);
     let mut db = 0;
     if unsafe { MsiOpenDatabaseW(file.as_ptr(), std::ptr::null(), &mut db) } != 0 {
-        return false;
+        return None;
     }
     let db = MsiHandle(db);
-    let query =
-        platform::wide("SELECT `Directory` FROM `Directory` WHERE `Directory` = 'INSTALLFOLDER'");
-    let mut view = 0;
-    if unsafe { MsiDatabaseOpenViewW(db.0, query.as_ptr(), &mut view) } != 0 {
-        return false;
+    for property in ["INSTALLFOLDER", "INSTALLDIR"] {
+        let query = platform::wide(format!(
+            "SELECT `Directory` FROM `Directory` WHERE `Directory` = '{property}'"
+        ));
+        let mut view = 0;
+        if unsafe { MsiDatabaseOpenViewW(db.0, query.as_ptr(), &mut view) } != 0 {
+            continue;
+        }
+        let view = MsiHandle(view);
+        if unsafe { MsiViewExecute(view.0, 0) } != 0 {
+            continue;
+        }
+        let mut record = 0;
+        if unsafe { MsiViewFetch(view.0, &mut record) } == 0 {
+            let _record = MsiHandle(record);
+            return Some(property);
+        }
     }
-    let view = MsiHandle(view);
-    if unsafe { MsiViewExecute(view.0, 0) } != 0 {
-        return false;
-    }
-    let mut record = 0;
-    let ok = unsafe { MsiViewFetch(view.0, &mut record) } == 0;
-    if ok {
-        let _record = MsiHandle(record);
-    }
-    ok
+    None
 }
+
 pub fn validate_custom_location(target: &Path) -> Result<()> {
+    validate_location(target, true)
+}
+fn validate_location(target: &Path, must_be_new: bool) -> Result<()> {
     anyhow::ensure!(target.is_absolute(), "Choose an absolute install location");
     anyhow::ensure!(
-        !target.exists(),
+        !must_be_new || !target.exists(),
         "Choose an empty, new app folder for this installation"
     );
     anyhow::ensure!(
@@ -159,7 +248,7 @@ pub fn validate_custom_location(target: &Path) -> Result<()> {
             .any(|c| matches!(c, std::path::Component::ParentDir)),
         "The location cannot contain parent-directory segments"
     );
-    let mut parent = target.parent();
+    let mut parent = Some(target);
     while let Some(path) = parent {
         anyhow::ensure!(
             !path.exists() || !crate::files::linked(path)?,
@@ -416,9 +505,32 @@ pub fn run_with_destination(
     job: Option<&crate::jobs::Job>,
     destination: Option<&Path>,
 ) -> Result<Installed> {
+    run_with_destination_inner(file, app, job, destination, false)
+}
+/// Replace an already verified native installation without relocating its files.
+pub fn run_replacement(
+    file: &Path,
+    previous: &Installed,
+    job: Option<&crate::jobs::Job>,
+) -> Result<Installed> {
+    run_with_destination_inner(
+        file,
+        &previous.name,
+        job,
+        Some(Path::new(&previous.path)),
+        true,
+    )
+}
+fn run_with_destination_inner(
+    file: &Path,
+    app: &str,
+    job: Option<&crate::jobs::Job>,
+    destination: Option<&Path>,
+    replacing: bool,
+) -> Result<Installed> {
     if let Some(target) = destination {
         anyhow::ensure!(
-            custom_location_supported(app)
+            (replacing || custom_location_supported(app))
                 && file
                     .extension()
                     .is_some_and(|e| e.eq_ignore_ascii_case("msi")),
@@ -428,7 +540,7 @@ pub fn run_with_destination(
             detect(app)?.is_none(),
             "Existing installer updates keep their current location"
         );
-        validate_custom_location(target)?;
+        validate_location(target, !replacing)?;
     }
     // Pass the registered component directory again during upgrades so a major
     // upgrade cannot silently move a custom installation back to Program Files.
@@ -455,20 +567,20 @@ pub fn run_with_destination(
     }
     .replace('/', r"\");
     let file = Path::new(&normalized);
-    if destination.is_some() {
-        anyhow::ensure!(
-            supports_installfolder(file),
-            "This MSI no longer exposes a supported install location"
-        );
+    let directory_property = install_directory_property(file);
+    let managed_location = directory_property.is_some();
+    let destination = destination.filter(|_| managed_location);
+    if !managed_location {
+        if let Some(job) = job {
+            job.log("This package controls its installation location. The manager will use the registered installed path.");
+        }
     }
     let code = if file
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
     {
-        let mut command = Command::new("msiexec.exe");
-        command.arg("/i").arg(file).arg("/norestart");
+        let mut properties = "REBOOT=ReallySuppress".to_string();
         if let Some(target) = destination {
-            use std::os::windows::process::CommandExt;
             let path = target
                 .to_str()
                 .context("Install location must be valid Unicode")?;
@@ -476,13 +588,16 @@ pub fn run_with_destination(
                 !path.contains(['"', '\0', '\r', '\n']),
                 "Invalid install location"
             );
-            // MSI parses PROPERTY="value" itself. Command::arg would quote the
-            // entire PROPERTY=value token, which msiexec rejects for spaced paths.
-            command.raw_arg(format!("INSTALLFOLDER=\"{}\"", path.trim_end_matches('\\')));
+            properties.push_str(&format!(
+                " {}=\"{}\"",
+                directory_property.unwrap(),
+                path.trim_end_matches('\\')
+            ));
         }
-        let mut child = platform::hidden(&mut command).spawn()?;
-        wait_installer(job, child.id(), || {
-            Ok(child.try_wait()?.map(|status| status.code().unwrap_or(-1)))
+        let package = platform::wide(file);
+        let properties = platform::wide(properties);
+        msi_transaction(job, managed_location, || unsafe {
+            MsiInstallProductW(package.as_ptr(), properties.as_ptr())
         })?
     } else {
         run_exe(file, job)?
@@ -490,10 +605,14 @@ pub fn run_with_destination(
     installer_result(code)?;
     let installed = detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")?;
     if let Some(target) = destination {
-        anyhow::ensure!(
-            std::fs::canonicalize(&installed.path)? == std::fs::canonicalize(target)?,
-            "The installer did not use the selected app folder"
-        );
+        if std::fs::canonicalize(&installed.path).ok() != std::fs::canonicalize(target).ok() {
+            if let Some(job) = job {
+                job.log(&format!(
+                    "Installer selected a different folder. Using the actual installation: {}",
+                    installed.path
+                ));
+            }
+        }
     }
     Ok(installed)
 }
@@ -613,16 +732,12 @@ pub fn uninstall(app: &Installed) -> Result<()> {
     {
         bail!("This installer must be removed through Windows Installed apps.");
     }
-    let status = platform::hidden(
-        Command::new("msiexec.exe")
-            .arg("/x")
-            .arg(code)
-            .arg("/norestart"),
-    )
-    .status()?;
-    if !matches!(status.code(), Some(0 | 3010 | 1641)) {
-        bail!("Uninstall did not complete: {status}");
-    }
+    let product = platform::wide(code);
+    let properties = platform::wide("REBOOT=ReallySuppress");
+    let code = msi_transaction(None, true, || unsafe {
+        MsiConfigureProductExW(product.as_ptr(), 0, 2, properties.as_ptr())
+    })?;
+    installer_result(code)?;
     if detect(&app.name)?.is_some() {
         bail!("Windows still reports the app installed");
     }
@@ -637,6 +752,121 @@ pub fn installer_extension() -> Result<&'static str> {
 }
 #[cfg(test)]
 mod cancellation_tests {
+    #[test]
+    #[ignore = "Requires a per-user test MSI specified by CRAFT_TEST_MSI (product CF7C536E-50DA-4A9F-B315-ABF9C07C707D)"]
+    fn native_msi_transaction_honors_folder_and_completes_cancel_rollback() {
+        use super::*;
+        let package = std::path::PathBuf::from(
+            std::env::var_os("CRAFT_TEST_MSI")
+                .expect("Set CRAFT_TEST_MSI to the temporary per-user fixture"),
+        );
+        assert_eq!(install_directory_property(&package), Some("INSTALLFOLDER"));
+        let folder = std::env::temp_dir().join(format!("craft MSI test {}", uuid::Uuid::new_v4()));
+        let product = platform::wide("{CF7C536E-50DA-4A9F-B315-ABF9C07C707D}");
+        let package = platform::wide(package.to_string_lossy().replace('/', r"\"));
+        let properties = platform::wide(format!(
+            "REBOOT=ReallySuppress INSTALLFOLDER=\"{}\"",
+            folder.display()
+        ));
+        let remove_properties = platform::wide("REBOOT=ReallySuppress");
+        struct Cleanup(Vec<u16>, Vec<u16>, std::path::PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = msi_transaction(None, true, || unsafe {
+                    MsiConfigureProductExW(self.0.as_ptr(), 0, 2, self.1.as_ptr())
+                });
+                let _ = std::fs::remove_dir_all(&self.2);
+            }
+        }
+        let _cleanup = Cleanup(product.clone(), remove_properties.clone(), folder.clone());
+        let code = msi_transaction(None, true, || unsafe {
+            MsiInstallProductW(package.as_ptr(), properties.as_ptr())
+        })
+        .unwrap();
+        installer_result(code).unwrap();
+        assert!(folder.join("payload.txt").is_file());
+        assert_eq!(unsafe { MsiQueryProductStateW(product.as_ptr()) }, 5);
+        // Exercise the relocation strategy with a per-user fixture, preserving
+        // local user settings while Windows updates component registration.
+        std::fs::write(folder.join("settings.json"), b"user settings").unwrap();
+        let backup = folder.with_extension("recovery");
+        crate::files::copy_directory_verified(&folder, &backup).unwrap();
+        let code = msi_transaction(None, true, || unsafe {
+            MsiConfigureProductExW(product.as_ptr(), 0, 2, remove_properties.as_ptr())
+        })
+        .unwrap();
+        installer_result(code).unwrap();
+        assert!(!folder.join("payload.txt").exists());
+        let relocated = folder.with_extension("relocated");
+        let _relocated_cleanup = Cleanup(
+            product.clone(),
+            remove_properties.clone(),
+            relocated.clone(),
+        );
+        let relocated_properties = platform::wide(format!(
+            "REBOOT=ReallySuppress INSTALLFOLDER=\"{}\"",
+            relocated.display()
+        ));
+        let code = msi_transaction(None, true, || unsafe {
+            MsiInstallProductW(package.as_ptr(), relocated_properties.as_ptr())
+        })
+        .unwrap();
+        installer_result(code).unwrap();
+        crate::relocation::restore_extra_files(&backup, &relocated).unwrap();
+        assert!(relocated.join("payload.txt").is_file());
+        assert_eq!(
+            std::fs::read(relocated.join("settings.json")).unwrap(),
+            b"user settings"
+        );
+        let code = msi_transaction(None, true, || unsafe {
+            MsiConfigureProductExW(product.as_ptr(), 0, 2, remove_properties.as_ptr())
+        })
+        .unwrap();
+        installer_result(code).unwrap();
+        std::fs::remove_dir_all(backup).unwrap();
+        let job = crate::jobs::Job::new(folder.with_extension("log"), &Default::default());
+        let code = msi_transaction(Some(&job), true, || {
+            job.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+            unsafe { MsiInstallProductW(package.as_ptr(), properties.as_ptr()) }
+        })
+        .unwrap();
+        assert_eq!(code, 1602);
+        assert!(crate::jobs::is_cancelled(
+            &installer_result(code).unwrap_err()
+        ));
+        assert!(!folder.join("payload.txt").exists());
+        assert_ne!(unsafe { MsiQueryProductStateW(product.as_ptr()) }, 5);
+    }
+    #[test]
+    fn msi_callback_only_cancels_progress_and_preserves_native_errors() {
+        let job = crate::jobs::Job::new(
+            std::env::temp_dir().join("craft-msi-callback.log"),
+            &Default::default(),
+        );
+        let context = &job as *const _ as *mut std::ffi::c_void;
+        unsafe {
+            assert_eq!(
+                super::installer_ui(context, 0x0a00_0000, std::ptr::null()),
+                0
+            );
+        }
+        job.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+        for message in [0x0800_0000, 0x0900_0000, 0x0a00_0000] {
+            unsafe {
+                assert_eq!(super::installer_ui(context, message, std::ptr::null()), 2);
+            }
+        }
+        unsafe {
+            assert_eq!(
+                super::installer_ui(context, 0x0100_0000, std::ptr::null()),
+                0
+            );
+            assert_eq!(
+                super::installer_ui(std::ptr::null_mut(), 0x0a00_0000, std::ptr::null()),
+                0
+            );
+        }
+    }
     #[test]
     fn explicit_windows_cancel_is_typed_but_failures_and_success_stay_distinct() {
         assert!(crate::jobs::is_cancelled(

@@ -180,6 +180,7 @@ impl App {
             if let Some(action) = mine.clone() {
                 let verb = match action.as_str() {
                     "uninstall-app" => "uninstall",
+                    "move-app" => "move",
                     "source-app" => "download the source for",
                     "restore" => "restore a backup of",
                     "delete-backups" => "delete backups of",
@@ -288,6 +289,7 @@ impl App {
         if show_progress {
             let verb = match mine.as_deref() {
                 Some("uninstall-app") => "Uninstalling",
+                Some("move-app") => "Moving",
                 Some("source-app") => "Downloading source for",
                 Some("restore") => "Restoring",
                 Some("delete-backups") => "Deleting backups of",
@@ -376,7 +378,7 @@ impl App {
         let replaces_actions = state.busy
             && matches!(
                 mine.as_deref(),
-                Some("install-app" | "uninstall-app" | "restore")
+                Some("install-app" | "uninstall-app" | "restore" | "move-app")
             );
         if !replaces_actions {
             if show_progress {
@@ -444,7 +446,8 @@ impl App {
                 self.open_versions(ui.ctx());
             }
         }
-        let anchor = main.clone().union(arrow.clone());
+        let mut anchor = main.clone().union(arrow.clone());
+        anchor.rect = anchor.rect.translate(egui::vec2(0.0, 6.0));
         egui::popup::popup_below_widget(
             ui,
             popup_id,
@@ -662,6 +665,22 @@ impl App {
                             }
                         }
                     }
+                    if btn("Move…")
+                        .size(Size::Card)
+                        .icon(Icon::Folder)
+                        .enabled(!state.busy && !self.release_pending())
+                        .show(ui)
+                        .clicked()
+                    {
+                        self.confirm_move = Some(installed.clone());
+                        self.move_parent = PathBuf::from(&installed.path)
+                            .parent()
+                            .map(|p| p.display().to_string())
+                            .unwrap_or_default();
+                        self.move_running = None;
+                        self.move_probe = None;
+                        self.move_probe_at = std::time::Instant::now();
+                    }
                     if btn("Uninstall…")
                         .size(Size::Card)
                         .icon_colored(Icon::Trash, theme::palette().red)
@@ -820,7 +839,8 @@ impl App {
         ui.painter()
             .rect_filled(rect, CornerRadius::same(10), theme::palette().border);
         let inner = rect.shrink(1.0);
-        let cell = (inner.width() - (columns - 1) as f32) / columns as f32;
+        let cell = (inner.width() - (columns - 1) as f32)
+            / if columns == 4 { 4.7 } else { columns as f32 };
         for (index, (label, value, hover)) in cells.iter().enumerate() {
             let (row, column) = (index / columns, index % columns);
             let cell_rect = Rect::from_min_size(
@@ -828,7 +848,14 @@ impl App {
                     inner.left() + column as f32 * (cell + 1.0),
                     inner.top() + row as f32 * (row_height + 1.0),
                 ),
-                vec2(cell, row_height),
+                vec2(
+                    if columns == 4 && column == 3 {
+                        cell * 1.7
+                    } else {
+                        cell
+                    },
+                    row_height,
+                ),
             );
             // Only the grid's outer corners are rounded.
             let corner = |at_row: bool, at_column: bool| if at_row && at_column { 9 } else { 0 };
@@ -866,13 +893,15 @@ impl App {
                             Icon::Folder,
                             theme::palette().link,
                         );
-                        let text_response = ui.add(
-                            egui::Label::new(
-                                RichText::new(value).size(14.0).color(theme::palette().link),
-                            )
-                            .truncate()
-                            .sense(Sense::click()),
-                        );
+                        // Paint the truncated label directly: Label::ui adds its
+                        // own tooltip, which overlaps our full-path tooltip.
+                        let (text_pos, galley, text_response) = egui::Label::new(
+                            RichText::new(value).size(14.0).color(theme::palette().link),
+                        )
+                        .truncate()
+                        .sense(Sense::click())
+                        .layout_in_ui(ui);
+                        ui.painter().galley(text_pos, galley, theme::palette().link);
                         icon_response.union(text_response)
                     })
                     .inner

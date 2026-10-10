@@ -232,6 +232,9 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
     }
 }
 pub fn notify(exe: &Path, message: &str) -> Result<()> {
+    notify_with_title(exe, "Craft updates available", message)
+}
+pub fn notify_with_title(exe: &Path, title: &str, message: &str) -> Result<()> {
     use winreg::{enums::HKEY_CURRENT_USER, RegKey};
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let (key, _) =
@@ -248,7 +251,7 @@ pub fn notify(exe: &Path, message: &str) -> Result<()> {
         UI::Notifications::{ToastNotification, ToastNotificationManager},
     };
     let xml = XmlDocument::new()?;
-    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>Craft updates available</text><text>{}</text></binding></visual></toast>",escape(message))))?;
+    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>{}</text><text>{}</text></binding></visual></toast>",escape(title),escape(message))))?;
     let toast = ToastNotification::CreateToastNotification(&xml)?;
     ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from("CraftApps.Manager.Rust"))?
         .Show(&toast)?;

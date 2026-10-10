@@ -22,6 +22,7 @@ mod overview;
 mod settings;
 mod sidebar;
 mod theme;
+mod tray;
 
 fn app_icon(name: &str) -> Option<&'static [u8]> {
     Some(match name {
@@ -188,6 +189,14 @@ pub struct App {
     confirm_clear: bool,
     confirm_clean: bool,
     closing: bool,
+    tray: Option<tray::Tray>,
+    tray_wake: tray::Wake,
+    tray_attempted: bool,
+    tray_error: Option<String>,
+    tray_hidden: bool,
+    tray_notice_shown: bool,
+    tray_probe_at: Instant,
+    tray_probe: Option<std::sync::mpsc::Receiver<bool>>,
     capture_frame: usize,
     launch_settings_open: bool,
     launch_build_options: bool,
@@ -202,6 +211,12 @@ pub struct App {
     remove_source_confirm: Option<String>,
     launch_draft: apps::LaunchSettings,
     launch_arguments: String,
+    confirm_move: Option<model::Installed>,
+    move_parent: String,
+    move_running: Option<bool>,
+    move_probe: Option<std::sync::mpsc::Receiver<std::result::Result<bool, String>>>,
+    move_probe_at: std::time::Instant,
+    move_folder: Option<std::sync::mpsc::Receiver<std::result::Result<Option<PathBuf>, String>>>,
     confirm_uninstall: bool,
     delete_profile: bool,
     confirm_install: Option<String>,
@@ -412,6 +427,14 @@ impl App {
             confirm_clear: false,
             confirm_clean: false,
             closing: false,
+            tray: None,
+            tray_wake: tray::Wake::new(cc),
+            tray_attempted: false,
+            tray_error: None,
+            tray_hidden: false,
+            tray_notice_shown: false,
+            tray_probe_at: Instant::now(),
+            tray_probe: None,
             capture_frame: 0,
             launch_settings_open: false,
             launch_build_options: false,
@@ -426,6 +449,12 @@ impl App {
             remove_source_confirm: None,
             launch_draft: Default::default(),
             launch_arguments: String::new(),
+            confirm_move: None,
+            move_parent: String::new(),
+            move_running: None,
+            move_probe: None,
+            move_probe_at: std::time::Instant::now(),
+            move_folder: None,
             confirm_uninstall: false,
             delete_profile: false,
             confirm_install: None,
@@ -1018,6 +1047,9 @@ impl App {
         // snapshot; either kind finishing refreshes it.
         let busy = self.job.state.lock().unwrap().busy;
         let building = self.build_job.state.lock().unwrap().busy;
+        if self.operation_was_busy && !busy {
+            self.catalog_changed();
+        }
         if (self.operation_was_busy && !busy) || (self.build_was_busy && !building) {
             self.config_refresh_at = std::time::Instant::now();
         }
@@ -1059,8 +1091,7 @@ impl App {
                 self.config_receiver = None;
             }
         }
-        if !self.builder
-            && !busy
+        if !busy
             && self.config_receiver.is_none()
             && std::time::Instant::now() >= self.config_refresh_at
         {
@@ -1125,7 +1156,7 @@ impl App {
                 ctx.request_repaint();
             });
         }
-        if self.apps_startup_pending && !self.job.state.lock().unwrap().busy {
+        if !self.builder && self.apps_startup_pending && !self.job.state.lock().unwrap().busy {
             if let Some(config) = &self.display_config {
                 let apps = updates::installed_check_targets(config)
                     .into_iter()
@@ -1211,7 +1242,10 @@ impl App {
                 self.manager_plan = None;
                 match result {
                     Ok(plan) => match self_update::launch(&plan) {
-                        Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
+                        Ok(()) => {
+                            self.closing = true;
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                        }
                         Err(error) => self.result(Err(error)),
                     },
                     Err((cancelled, error)) => {
@@ -1300,11 +1334,33 @@ impl eframe::App for App {
             data.insert_temp(egui::Id::new("active-dialogs"), Vec::<egui::Id>::new())
         });
         self.poll(ctx);
+        self.poll_tray(ctx);
         self.screenshot(ctx);
         let mut state = self.job.state.lock().unwrap().clone();
         state.busy |= self.release_pending();
         let building = self.build_job.state.lock().unwrap().busy;
-        if ctx.input(|i| i.viewport().close_requested()) && (state.busy || building) {
+        let close_requested = ctx.input(|i| i.viewport().close_requested());
+        if close_requested
+            && tray::hide_on_close(
+                self.preferences.close_to_tray,
+                self.tray
+                    .as_ref()
+                    .is_some_and(|tray| tray.set_visible(true).is_ok()),
+                self.closing,
+            )
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            ctx.send_viewport_cmd(egui::ViewportCommand::Visible(false));
+            self.tray_hidden = true;
+            if !self.tray_notice_shown {
+                self.tray_notice_shown = true;
+                std::thread::spawn(|| {
+                    if let Ok(exe) = std::env::current_exe() {
+                        let _ = platform::notify_with_title(&exe, "Craft Apps Manager is still running", "Use the tray icon to reopen the manager or choose Exit to quit. Periodic update checks continue when enabled.");
+                    }
+                });
+            }
+        } else if close_requested && (state.busy || building) {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.closing = true;
             self.release_plan = None;

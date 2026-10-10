@@ -102,13 +102,12 @@ pub fn running_app(name: &str) -> Result<bool> {
     }
     Ok(false)
 }
-pub fn notify(_: &Path, message: &str) -> Result<()> {
+pub fn notify(exe: &Path, message: &str) -> Result<()> {
+    notify_with_title(exe, "Craft updates available", message)
+}
+pub fn notify_with_title(_: &Path, title: &str, message: &str) -> Result<()> {
     let status = Command::new("notify-send")
-        .args([
-            "--app-name=Craft Apps Manager",
-            "Craft updates available",
-            message,
-        ])
+        .args(["--app-name=Craft Apps Manager", title, message])
         .status()?;
     if !status.success() {
         bail!("Desktop notification could not be delivered");

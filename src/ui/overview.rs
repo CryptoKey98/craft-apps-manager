@@ -67,6 +67,19 @@ impl App {
             .iter()
             .filter(|status| status.installed.is_some())
             .count();
+        let chosen = self.display_config.as_ref().map_or(0, |config| {
+            config
+                .apps
+                .iter()
+                .filter(|app| {
+                    self.preferences.selected_apps.contains(&app.name)
+                        && craft_apps_manager::updates::installed_for_updates(
+                            app,
+                            &self.preferences,
+                        )
+                })
+                .count()
+        });
         let updates = statuses
             .iter()
             .filter(|status| status.update.is_some())
@@ -99,15 +112,24 @@ impl App {
                             _ => "Keep your apps current".to_owned(),
                         }
                     };
-                    let detail = format!(
-                        "{} apps chosen · Review changes before installing",
-                        self.preferences.selected_apps.len()
-                    );
+                    let detail = if self.display_config.is_none() {
+                        "Loading installed apps…".to_owned()
+                    } else if installed == 0 {
+                        "No apps installed. Install an app to get started.".to_owned()
+                    } else if chosen == 0 {
+                        "No apps selected. Choose apps to include in Update All.".to_owned()
+                    } else {
+                        format!(
+                            "{} {} chosen · Review changes before updating",
+                            chosen,
+                            if chosen == 1 { "app" } else { "apps" }
+                        )
+                    };
                     let action = btn("Update All…")
                         .primary()
                         .size(Size::Medium)
                         .icon(Icon::Refresh)
-                        .enabled(!state.busy);
+                        .enabled(!state.busy && installed > 0);
                     let action_size = action.desired_size(ui);
                     // Reserve the full bar width; anchor a fixed-size action to its right edge.
                     let (bar, _) = ui.allocate_exact_size(
@@ -148,10 +170,12 @@ impl App {
                     );
                     let requested = action
                         .show(&mut right)
-                        .on_hover_text(
-                            "Review installs and updates for the apps chosen in Settings",
-                        )
-                        .on_disabled_hover_text("Wait for the current operation to finish.")
+                        .on_hover_text("Review updates for installed apps chosen in Settings")
+                        .on_disabled_hover_text(if installed == 0 {
+                            "Install an app before using Update All."
+                        } else {
+                            "Wait for the current operation to finish."
+                        })
                         .clicked();
                     if requested {
                         self.start("releases");

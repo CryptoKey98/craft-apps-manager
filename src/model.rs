@@ -90,6 +90,7 @@ impl Theme {
 #[serde(default, rename_all = "camelCase")]
 pub struct Preferences {
     pub theme: Theme,
+    pub close_to_tray: bool,
     pub keep_app_backups: bool,
     pub keep_source_backups: bool,
     pub compress_backups: bool,
@@ -122,6 +123,7 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             theme: Theme::System,
+            close_to_tray: false,
             keep_app_backups: false,
             keep_source_backups: false,
             compress_backups: true,
