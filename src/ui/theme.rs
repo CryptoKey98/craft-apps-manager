@@ -667,6 +667,7 @@ pub struct Btn<'a> {
     height: Option<f32>,
     icon: Option<(Icon, Option<Color32>)>,
     icon_weight: f32,
+    text_color: Option<Color32>,
     enabled: bool,
     min_width: f32,
     corners: Option<CornerRadius>,
@@ -680,6 +681,7 @@ pub fn btn(text: &str) -> Btn<'_> {
         height: None,
         icon: None,
         icon_weight: 2.0,
+        text_color: None,
         enabled: true,
         min_width: 0.0,
         corners: None,
@@ -716,6 +718,10 @@ impl<'a> Btn<'a> {
     }
     pub fn icon_weight(mut self, weight: f32) -> Self {
         self.icon_weight = weight;
+        self
+    }
+    pub fn text_color(mut self, color: Color32) -> Self {
+        self.text_color = Some(color);
         self
     }
     pub fn enabled(mut self, enabled: bool) -> Self {
@@ -880,6 +886,7 @@ impl<'a> Btn<'a> {
     fn show_in_rect(self, ui: &mut Ui, rect: Rect, id: egui::Id) -> Response {
         let (_, _, _, icon_size, _, radius) = self.metrics();
         let (fill, hover_fill, stroke, text_color) = self.colors();
+        let text_color = self.text_color.unwrap_or(text_color);
         let (galley, icon_space, _) = self.layout(ui);
         // Reserve the space in this layout first, so wrapping rows can move the
         // button to their next line. The click area then goes in a disabled child

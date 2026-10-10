@@ -13,6 +13,90 @@ pub(super) const CHECK_RED: Color32 = Color32::from_rgb(0xd9, 0x53, 0x4f);
 /// Footer, title bar and the dialog's own height, from the mockups.
 pub(super) const BAR_HEIGHT: f32 = 61.0;
 
+fn desktop_shortcut_option(ui: &mut egui::Ui, checked: &mut bool) {
+    ui.horizontal(|ui| {
+        ui.set_min_height(24.0);
+        theme::checkbox(
+            ui,
+            checked,
+            16.0,
+            theme::palette().accent,
+            "Create desktop shortcut",
+            true,
+        );
+        if ui
+            .add(egui::Label::new("Create desktop shortcut").sense(Sense::click()))
+            .clicked()
+        {
+            *checked = !*checked;
+        }
+    });
+}
+fn open_folder_button(ui: &mut egui::Ui) -> egui::Response {
+    btn("Open folder")
+        .kind(Kind::Ghost)
+        .icon(Icon::Folder)
+        .icon_weight(1.5)
+        .text_color(theme::palette().link)
+        .show(ui)
+}
+
+fn compact_path(display: &str) -> String {
+    if display.chars().count() <= 64 {
+        return display.to_owned();
+    }
+    let beginning: String = display.chars().take(10).collect();
+    let ending: String = display
+        .chars()
+        .rev()
+        .take(32)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
+    format!("{beginning}…{ending}")
+}
+
+fn folder_path_row(
+    ui: &mut egui::Ui,
+    path: &std::path::Path,
+    mut open: impl FnMut(&std::path::Path),
+) {
+    ui.horizontal(|ui| {
+        let path_width = (ui.available_width() - 112.0 - ui.spacing().item_spacing.x).max(20.0);
+        ui.allocate_ui_with_layout(
+            egui::vec2(path_width, 32.0),
+            egui::Layout::left_to_right(egui::Align::Center),
+            |ui| {
+                ui.set_min_width(path_width);
+                let display = path.display().to_string();
+                let compact = compact_path(&display);
+                ui.add(egui::Label::new(RichText::new(compact).size(14.0)).truncate())
+                    .on_hover_text(display);
+            },
+        );
+        if btn("Open folder")
+            .kind(Kind::Ghost)
+            .icon(Icon::Folder)
+            .icon_weight(1.5)
+            .text_color(theme::palette().link)
+            .min_width(112.0)
+            .show(ui)
+            .clicked()
+        {
+            let mut existing = path;
+            while !existing.is_dir() {
+                if let Some(parent) = existing.parent() {
+                    existing = parent;
+                } else {
+                    return;
+                }
+            }
+            open(existing);
+        }
+    });
+}
+
 /// A padded band of a dialog that is at least `height` tall, borders included.
 pub(super) fn band<R>(
     ui: &mut egui::Ui,
@@ -196,10 +280,309 @@ fn danger() -> (Icon, Color32, Color32) {
 impl App {
     pub(super) fn dialogs(&mut self, ctx: &egui::Context) {
         let busy = self.job.state.lock().unwrap().busy;
+        if let Some(app) = self.confirm_build.clone() {
+            if let Some(receiver) = &self.build_folder_receiver {
+                match receiver.try_recv() {
+                    Ok(result) => {
+                        self.build_folder_receiver = None;
+                        match result {
+                            Ok(Some(path)) => self.build_parent = path.display().to_string(),
+                            Ok(None) => {}
+                            Err(error) => self.error = Some(error),
+                        }
+                    }
+                    Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                        self.build_folder_receiver = None
+                    }
+                    Err(std::sync::mpsc::TryRecvError::Empty) => {}
+                }
+            }
+            let source = self.display_sources.get(&app).cloned();
+            let archive = self.paths.at(format!("sources/{app}-source.zip"));
+            let has_source = source.is_some() && archive.is_file();
+            let state = self.job.state.lock().unwrap().clone();
+            let source_job = self.job_action == "source-app"
+                && self
+                    .job_target
+                    .as_ref()
+                    .is_some_and(|(target, _)| target == &app);
+            let downloading = state.busy && source_job;
+            let completed_alpha =
+                if source_job && self.build_source_fresh && state.stage == "Complete" {
+                    self.completed_progress_opacity(ctx)
+                } else {
+                    0.0
+                };
+            let progress_visible = downloading || completed_alpha > 0.0;
+            let reveal = ctx.animate_bool_with_time(
+                egui::Id::new(("build-source-progress", &app)),
+                progress_visible,
+                0.18,
+            );
+            if self.build_source_fresh && !state.busy && state.stage == "Failed" {
+                self.build_source_fresh = false;
+            }
+            let busy = state.busy || self.build_job.state.lock().unwrap().busy;
+            let art = self
+                .icons
+                .get(&app)
+                .map(|t| Art::Texture(t.id()))
+                .unwrap_or(Art::None);
+            let response = modal(ctx, "Build app", 520.0, |ui| {
+                band(
+                    ui,
+                    egui::Margin {
+                        left: 24,
+                        right: 24,
+                        top: 28,
+                        bottom: 26,
+                    },
+                    0.0,
+                    |ui| {
+                        ui.spacing_mut().item_spacing = egui::vec2(8.0, 0.0);
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 16.0;
+                            if let Art::Texture(texture) = art {
+                                ui.add(
+                                    egui::Image::new((texture, egui::vec2(48.0, 48.0)))
+                                        .corner_radius(CornerRadius::same(10)),
+                                );
+                            }
+                            ui.vertical(|ui| {
+                                theme::heading(ui, format!("Build {}", model::title(&app)), 18.0);
+                                ui.add_space(4.0);
+                                let os = if cfg!(target_os = "windows") {
+                                    "Windows"
+                                } else if cfg!(target_os = "macos") {
+                                    "macOS"
+                                } else {
+                                    "Linux"
+                                };
+                                theme::text(
+                                    ui,
+                                    format!("Local build · {os} · {}", model::MANAGER_ARCH),
+                                    13.0,
+                                    theme::palette().muted,
+                                );
+                            });
+                        });
+                        ui.add_space(26.0);
+                        if has_source {
+                            theme::text(ui, "Source location", 12.0, theme::palette().muted);
+                            ui.add_space(6.0);
+                            folder_path_row(ui, &archive, |path| {
+                                self.result(craft_apps_manager::platform::open(path))
+                            });
+                            if let Some(source) = &source {
+                                note(
+                                    ui,
+                                    format!(
+                                        "Downloaded source · {} · {}",
+                                        source.branch,
+                                        &source.sha[..7.min(source.sha.len())]
+                                    ),
+                                );
+                            }
+                            if !self.build_source_fresh {
+                                ui.add_space(12.0);
+                                ui.add_enabled(
+                                    !busy,
+                                    egui::Checkbox::new(
+                                        &mut self.latest,
+                                        "Download latest source first",
+                                    ),
+                                );
+                            }
+                        } else {
+                            theme::text(ui, "Source", 12.0, theme::palette().muted);
+                            ui.add_space(6.0);
+                            ui.horizontal(|ui| {
+                                theme::text(ui, "Not downloaded", 14.0, theme::palette().text);
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui| {
+                                        if btn("Download source")
+                                            .kind(Kind::Secondary)
+                                            .medium()
+                                            .enabled(!busy)
+                                            .show(ui)
+                                            .clicked()
+                                        {
+                                            self.app = app.clone();
+                                            self.start("source-app");
+                                            self.build_source_fresh = true;
+                                            self.latest = false;
+                                        }
+                                    },
+                                );
+                            });
+                            ui.add_space(6.0);
+                            if theme::link(
+                                ui,
+                                format!("storytold/{} · main", model::repository(&app)),
+                            )
+                            .clicked()
+                            {
+                                ui.ctx().open_url(egui::OpenUrl::new_tab(format!(
+                                    "https://github.com/storytold/{}/tree/main",
+                                    model::repository(&app)
+                                )));
+                            }
+                        }
+                        if reveal > 0.001 {
+                            // Animate the reserved height too, so the section closes without a jump.
+                            let (rect, _) = ui.allocate_exact_size(
+                                egui::vec2(ui.available_width(), 62.0 * reveal),
+                                Sense::hover(),
+                            );
+                            let mut progress_ui = ui.new_child(
+                                egui::UiBuilder::new()
+                                    .max_rect(egui::Rect::from_min_size(
+                                        rect.min,
+                                        egui::vec2(rect.width(), 62.0),
+                                    ))
+                                    .layout(egui::Layout::top_down(egui::Align::Min)),
+                            );
+                            progress_ui.set_clip_rect(rect.intersect(ui.clip_rect()));
+                            progress_ui.multiply_opacity(if downloading {
+                                reveal
+                            } else {
+                                completed_alpha * reveal
+                            });
+                            progress_ui.spacing_mut().item_spacing.y = 0.0;
+                            progress_ui.add_space(12.0);
+                            theme::text(
+                                &mut progress_ui,
+                                if downloading {
+                                    &state.stage
+                                } else {
+                                    "Source downloaded"
+                                },
+                                12.0,
+                                theme::palette().muted,
+                            );
+                            progress_ui.add_space(6.0);
+                            theme::progress(
+                                &mut progress_ui,
+                                if downloading {
+                                    state.progress
+                                } else {
+                                    Some(1.0)
+                                },
+                                4.0,
+                            );
+                            progress_ui.add_space(8.0);
+                            progress_ui.add(
+                                egui::Label::new(
+                                    RichText::new(if downloading {
+                                        state.detail.as_str()
+                                    } else {
+                                        "Ready to build."
+                                    })
+                                    .size(12.0)
+                                    .color(theme::palette().muted),
+                                )
+                                .truncate(),
+                            );
+                        }
+                        ui.add_space(20.0);
+                        rule(ui);
+                        ui.add_space(12.0);
+                        theme::text(ui, "Build location", 12.0, theme::palette().muted);
+                        ui.add_space(8.0);
+                        field_style(ui);
+                        ui.horizontal(|ui| {
+                            ui.add_enabled(
+                                !busy,
+                                egui::TextEdit::singleline(&mut self.build_parent)
+                                    .font(FontId::proportional(14.0))
+                                    .margin(egui::vec2(10.0, 9.0))
+                                    .desired_width(ui.available_width() - 114.0),
+                            );
+                            if btn("Browse…")
+                                .kind(Kind::Secondary)
+                                .medium()
+                                .min_width(92.0)
+                                .enabled(!busy && self.build_folder_receiver.is_none())
+                                .show(ui)
+                                .clicked()
+                            {
+                                let initial = std::path::PathBuf::from(&self.build_parent);
+                                let (tx, rx) = std::sync::mpsc::channel();
+                                self.build_folder_receiver = Some(rx);
+                                let ctx = ctx.clone();
+                                std::thread::spawn(move || {
+                                    let _ = tx.send(
+                                        craft_apps_manager::portable::pick_folder(&initial)
+                                            .map_err(|e| format!("{e:#}")),
+                                    );
+                                    ctx.request_repaint();
+                                });
+                            }
+                        });
+                        ui.add_space(20.0);
+                        rule(ui);
+                        ui.add_space(12.0);
+                        theme::text(ui, "Build folder", 12.0, theme::palette().muted);
+                        let folder = std::path::PathBuf::from(&self.build_parent).join(&app);
+                        ui.add_space(6.0);
+                        folder_path_row(ui, &folder, |path| {
+                            self.result(craft_apps_manager::platform::open(path))
+                        });
+                        ui.add_space(20.0);
+                        rule(ui);
+                        ui.add_space(12.0);
+                        desktop_shortcut_option(ui, &mut self.build_shortcut);
+                        ui.add_space(6.0);
+                        ui.horizontal(|ui| {
+                            ui.add_space(25.0);
+                            note(ui, "Available after the build finishes successfully.");
+                        });
+                        ui.add_space(18.0);
+                        note(
+                            ui,
+                            "Compiles a separate local copy. Your installed app stays unchanged.",
+                        );
+                    },
+                );
+                footer(ui, |ui| {
+                    let valid = craft_apps_manager::portable::destination(
+                        std::path::Path::new(&self.build_parent),
+                        &app,
+                    )
+                    .is_ok();
+                    if action(
+                        ui,
+                        "Build",
+                        Kind::Primary,
+                        has_source && valid && !busy && self.build_folder_receiver.is_none(),
+                    )
+                    .clicked()
+                    {
+                        self.app = app.clone();
+                        if self.build_source_fresh {
+                            self.latest = false;
+                        }
+                        if self.builder {
+                            self.start("build");
+                        } else {
+                            self.start_build("build");
+                        }
+                        self.confirm_build = None;
+                    }
+                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.confirm_build = None;
+                    }
+                });
+            });
+            if response.should_close() {
+                self.confirm_build = None;
+            }
+        }
         if self.build_options_open {
             let app = self.app.clone();
             let last = self.display_builds.get(&app).cloned();
-            let build_busy = self.build_job.state.lock().unwrap().busy || self.cleaning();
+            let build_busy = self.build_job.state.lock().unwrap().busy || busy;
             let response = modal(ctx, "Local build options", 560.0, |ui| {
                 title_bar(ui, &format!("{} build options", model::title(&app)), |ui| {
                     if close_button(ui).clicked() {
@@ -249,7 +632,7 @@ impl App {
                                 ui.add(egui::Label::new(RichText::new("Delete the compiled copy to free up space. Source files, installed releases, and other builds are kept.").size(13.0).color(theme::palette().text_2)).wrap());
                                 ui.add_space(6.0);
                     if self.delete_build_confirm {
-                        ui.add(egui::Label::new("Delete this local build?").wrap());
+                        ui.add(egui::Label::new("Delete this compiled build?").wrap());
                         ui.horizontal(|ui| {
                             ui.spacing_mut().item_spacing.x = 10.0;
                         if action(
@@ -283,15 +666,38 @@ impl App {
                         });
                     } else if action(
                         ui,
-                        "Delete local build…",
+                        "Delete compiled build…",
                         Kind::DangerOutline,
                         !build_busy && last.is_some(),
                     )
                     .clicked()
                     {
                         self.delete_build_confirm = true;
+                        self.clean_build_confirm = false;
                     }
-
+                                ui.add_space(12.0);
+                                rule(ui);
+                                ui.add_space(12.0);
+                                ui.add(egui::Label::new(RichText::new("Build cache").font(theme::bold(13.0)).color(theme::palette().text)).wrap());
+                                ui.add(egui::Label::new(RichText::new("Clear this app’s build cache and temporary workspace. Keeps compiled builds and source ZIPs.").size(12.0).color(theme::palette().muted)).wrap());
+                                ui.add_space(6.0);
+                                if self.clean_build_confirm {
+                                    ui.label("Delete cache files for this build?");
+                                    ui.horizontal(|ui| {
+                                        if action(ui, "Yes", Kind::Primary, !build_busy).clicked() {
+                                            self.start("clean-build");
+                                            self.clean_build_confirm = false;
+                                            self.display_build_cache.remove(&app);
+                                        }
+                                        if action(ui, "No", Kind::Secondary, true).clicked() {
+                                            self.clean_build_confirm = false;
+                                        }
+                                    });
+                                } else if action(ui, "Delete cache files…", Kind::Secondary, !build_busy && self.display_build_cache.contains(&app))
+                                    .on_disabled_hover_text("No cache files to delete, or an operation is still running.").clicked() {
+                                    self.clean_build_confirm = true;
+                                    self.delete_build_confirm = false;
+                                }
                             });
                         });
                     });
@@ -321,6 +727,35 @@ impl App {
             });
             if response.should_close() {
                 self.build_options_open = false;
+            }
+        }
+        if let Some(app) = self.remove_source_confirm.clone() {
+            let response = modal(ctx, "Remove downloaded source", 460.0, |ui| {
+                band(ui, BODY, 0.0, |ui| {
+                    header(ui, Art::Icon(Icon::Trash, theme::palette().red_bg, theme::palette().red, 40.0),
+                        &format!("Remove {} source?", model::title(&app)),
+                        "Deletes this app’s downloaded source ZIP. Compiled builds, extracted workspaces, installed apps, and backups are kept.", |_| {});
+                });
+                footer(ui, |ui| {
+                    if action(ui, "No", Kind::Secondary, true).clicked() {
+                        self.remove_source_confirm = None;
+                    }
+                    if action(
+                        ui,
+                        "Yes",
+                        Kind::Danger,
+                        !busy && !self.build_job.state.lock().unwrap().busy,
+                    )
+                    .clicked()
+                    {
+                        self.app = app.clone();
+                        self.start("remove-source");
+                        self.remove_source_confirm = None;
+                    }
+                });
+            });
+            if response.should_close() {
+                self.remove_source_confirm = None;
             }
         }
         if let Some(plan) = self
@@ -492,91 +927,320 @@ impl App {
 
         if let Some(app) = self.confirm_install.clone() {
             let installer = self.preferences.release_format == "installer";
-            let update = self.status(&app).update;
-            let modal = modal(ctx, "Confirm installation", 480.0, |ui| {
-                let title = match &update {
-                    Some(version) => format!("Update {} to {version}?", model::title(&app)),
-                    None => format!("Install {}?", model::title(&app)),
-                };
-                let text = if installer {
-                    if cfg!(target_os = "linux") {
-                        format!(
-                            "Downloads the latest {} {} package. You will be asked to authorize the installation.",
-                            model::title(&app),
-                            craft_apps_manager::installers::installer_label()
-                        )
-                    } else if cfg!(target_os = "macos") {
-                        format!(
-                            "Downloads the latest release and copies {} to your Applications folder.",
-                            model::executable_name(&app)
-                        )
-                    } else {
-                        format!(
-                            "Downloads the latest {} {} and opens its installer wizard. Windows may ask for administrator permission.",
-                            model::title(&app),
-                            craft_apps_manager::installers::installer_label()
-                        )
-                    }
+            let current = self
+                .display_config
+                .as_ref()
+                .and_then(|c| c.apps.iter().find(|a| a.name == app))
+                .cloned();
+            let installed_portable = !installer
+                && current
+                    .as_ref()
+                    .is_some_and(|a| !a.path.is_empty() && a.install_kind != "installer");
+            if self.install_draft_app.as_deref() != Some(&app) {
+                self.install_draft_app = Some(app.clone());
+                let target = current
+                    .as_ref()
+                    .filter(|a| !a.path.is_empty() && a.install_kind != "installer")
+                    .map(|a| std::path::PathBuf::from(&a.path))
+                    .unwrap_or_else(|| self.paths.at(format!("releases/{app}")));
+                self.install_parent = if installer && cfg!(target_os = "windows") {
+                    std::env::var("ProgramFiles")
+                        .unwrap_or_else(|_| target.parent().unwrap().display().to_string())
                 } else {
+                    target.parent().unwrap().display().to_string()
+                };
+                self.install_shortcut = true;
+                self.load_install(&app, ctx);
+            }
+            let plan = self
+                .install_result
+                .as_ref()
+                .and_then(|r| r.as_ref().ok())
+                .cloned();
+            let entry = plan.as_ref().and_then(|p| p.entries.first());
+            let update = entry.is_some_and(|e| e.action == "Update");
+            #[cfg(target_os = "windows")]
+            let custom_installer = installer
+                && craft_apps_manager::installers::custom_location_supported(&app)
+                && !current
+                    .as_ref()
+                    .is_some_and(|a| a.install_kind == "installer" && !a.path.is_empty());
+            #[cfg(not(target_os = "windows"))]
+            let custom_installer = false;
+            let title = format!(
+                "{} {}",
+                if update { "Update" } else { "Install" },
+                model::title(&app)
+            );
+            let details = entry
+                .filter(|e| !e.version.is_empty())
+                .map(|e| {
                     format!(
-                        "Downloads the latest release of {} into your library as a portable app.",
-                        model::title(&app)
+                        "Version {} · {} · {}",
+                        e.version,
+                        if installer {
+                            craft_apps_manager::installers::installer_label()
+                        } else {
+                            "Portable"
+                        },
+                        model::architecture_label(&self.preferences.architecture)
                     )
-                };
-                let art = match self.icons.get(&app) {
-                    Some(texture) => Art::Texture(texture.id()),
-                    None => Art::None,
-                };
-                band(ui, BODY, 240.0 - 2.0 - BAR_HEIGHT, |ui| {
-                    header(ui, art, &title, &text, |ui| {
-                        ui.spacing_mut().item_spacing.y = 2.0;
-                        ui.label(
-                            RichText::new(format!(
-                                "Latest stable release · {} · {}",
-                                model::architecture_label(&self.preferences.architecture),
-                                self.preferences.release_format
-                            ))
-                            .size(13.0)
-                            .color(theme::palette().muted),
-                        );
-                        theme::hyperlink(
+                })
+                .unwrap_or_else(|| "Loading verified release details…".into());
+            let native_location = current
+                .as_ref()
+                .filter(|a| a.install_kind == "installer" && !a.path.is_empty())
+                .map(|a| a.path.clone())
+                .unwrap_or_else(|| {
+                    if cfg!(target_os = "linux") {
+                        "System-managed location".into()
+                    } else if cfg!(target_os = "macos") {
+                        "/Applications (or ~/Applications)".into()
+                    } else {
+                        "Set by the installer".into()
+                    }
+                });
+            let art = self
+                .icons
+                .get(&app)
+                .map(|t| Art::Texture(t.id()))
+                .unwrap_or(Art::None);
+            let response = modal(ctx, "Install app", 520.0, |ui| {
+                band(ui, BODY, 0.0, |ui| {
+                    header(ui, art, &title, &details, |_| {});
+                    ui.add_space(8.0);
+                    let download_size = entry
+                        .and_then(|e| e.asset.as_ref())
+                        .map(|a| format!("Download size: {:.1} MB", a.size as f64 / 1_000_000.0))
+                        .unwrap_or_else(|| "Download size: checking…".into());
+                    note(ui, &download_size);
+                    ui.add_space(22.0);
+                    field_style(ui);
+                    if installer && !custom_installer {
+                        ui.horizontal(|ui| {
+                            theme::text(ui, "App folder", 12.0, theme::palette().muted);
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    if open_folder_button(ui).clicked() {
+                                        let folder = current
+                                            .as_ref()
+                                            .filter(|a| !a.path.is_empty())
+                                            .map(|a| std::path::PathBuf::from(&a.path))
+                                            .unwrap_or_else(|| {
+                                                if cfg!(target_os = "linux") {
+                                                    std::path::PathBuf::from("/usr")
+                                                } else if cfg!(target_os = "macos") {
+                                                    std::path::PathBuf::from("/Applications")
+                                                } else {
+                                                    std::path::PathBuf::from(
+                                                        std::env::var_os("ProgramFiles")
+                                                            .unwrap_or_default(),
+                                                    )
+                                                }
+                                            });
+                                        self.result(craft_apps_manager::platform::open(&folder));
+                                    }
+                                },
+                            );
+                        });
+                        ui.add_space(6.0);
+                        ui.add(egui::Label::new(compact_path(&native_location)).truncate())
+                            .on_hover_text(&native_location);
+                        ui.add_space(8.0);
+                        ui.separator();
+                        ui.add_space(16.0);
+                        desktop_shortcut_option(ui, &mut self.install_shortcut);
+                        ui.add_space(10.0);
+                        note(
                             ui,
-                            format!(
-                                "github.com/storytold/{}/releases/latest",
-                                model::repository(&app)
-                            ),
-                            format!(
-                                "https://github.com/storytold/{}/releases/latest",
-                                model::repository(&app)
-                            ),
-                            13.0,
+                            if cfg!(target_os = "linux") {
+                                "The package defines its install paths. Administrator approval is required."
+                            } else if cfg!(target_os = "windows") {
+                                "Windows may ask for administrator approval. Updates keep the existing app folder."
+                            } else {
+                                "The manager installs the app in an Applications folder."
+                            },
                         );
-                    });
+                    } else {
+                        theme::text(ui, "Install location", 13.0, theme::palette().text_3);
+                        ui.add_space(8.0);
+                        ui.horizontal(|ui| {
+                            let width = (ui.available_width() - 98.0).max(80.0);
+                            let response = ui.add_enabled(
+                                !installed_portable,
+                                egui::TextEdit::singleline(&mut self.install_parent)
+                                    .desired_width(width)
+                                    .margin(egui::Margin::symmetric(10, 8)),
+                            );
+                            if response.changed() {
+                                self.install_error = None;
+                            }
+                            if action(
+                                ui,
+                                "Browse…",
+                                Kind::Secondary,
+                                !installed_portable && self.folder_receiver.is_none(),
+                            )
+                            .clicked()
+                            {
+                                let initial = std::path::PathBuf::from(&self.install_parent);
+                                let ctx = ctx.clone();
+                                let (tx, rx) = std::sync::mpsc::channel();
+                                self.folder_receiver = Some(rx);
+                                std::thread::spawn(move || {
+                                    let result =
+                                        craft_apps_manager::portable::pick_folder(&initial)
+                                            .map_err(|e| format!("{e:#}"));
+                                    let _ = tx.send(result);
+                                    ctx.request_repaint();
+                                });
+                            }
+                        });
+                        ui.add_space(16.0);
+                        ui.separator();
+                        ui.add_space(8.0);
+                        let target = if installed_portable {
+                            Ok(std::path::PathBuf::from(&current.as_ref().unwrap().path))
+                        } else {
+                            craft_apps_manager::portable::destination(
+                                std::path::Path::new(&self.install_parent),
+                                &app,
+                            )
+                        };
+                        ui.horizontal(|ui| {
+                            theme::text(ui, "App folder", 12.0, theme::palette().muted);
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    if open_folder_button(ui).clicked() {
+                                        let mut folder =
+                                            std::path::PathBuf::from(&self.install_parent);
+                                        if let Ok(target) = &target {
+                                            if target.is_dir() {
+                                                folder = target.clone();
+                                            }
+                                        }
+                                        while !folder.is_dir() && folder.pop() {}
+                                        if folder.is_dir() {
+                                            self.result(craft_apps_manager::platform::open(
+                                                &folder,
+                                            ));
+                                        }
+                                    }
+                                },
+                            );
+                        });
+                        ui.add_space(6.0);
+                        if let Ok(target) = &target {
+                            let full_path = target.display().to_string();
+                            ui.add(egui::Label::new(compact_path(&full_path)).truncate())
+                                .on_hover_text(full_path);
+                        } else {
+                            note(ui, "Enter an absolute folder path.");
+                        }
+                        ui.add_space(8.0);
+                        ui.separator();
+                        ui.add_space(16.0);
+                        desktop_shortcut_option(ui, &mut self.install_shortcut);
+                        ui.add_space(10.0);
+                        note(
+                            ui,
+                            if custom_installer {
+                                "Windows may ask for administrator approval. Updates keep the selected app folder."
+                            } else if installed_portable {
+                                "Updates keep the existing app folder. Uninstall first to change its location."
+                            } else {
+                                "The app gets its own folder. Other files in this location stay untouched."
+                            },
+                        );
+                    }
+                    let error = self
+                        .install_result
+                        .as_ref()
+                        .and_then(|r| r.as_ref().err())
+                        .cloned()
+                        .or_else(|| entry.and_then(|e| e.error.clone()))
+                        .or_else(|| self.install_error.clone());
+                    if let Some(error) = error {
+                        ui.add_space(14.0);
+                        ui.add(
+                            egui::Label::new(RichText::new(error).color(theme::palette().red))
+                                .wrap(),
+                        );
+                        if plan.is_none()
+                            && action(
+                                ui,
+                                "Retry",
+                                Kind::Secondary,
+                                self.install_receiver.is_none(),
+                            )
+                            .clicked()
+                        {
+                            self.load_install(&app, ctx);
+                        }
+                    }
+                    if entry.is_some_and(|e| e.action == "Skip" && e.error.is_none()) {
+                        ui.add_space(12.0);
+                        note(ui, "This version is already installed.");
+                    }
                 });
                 footer(ui, |ui| {
+                    let ready = entry.is_some_and(|e| {
+                        e.error.is_none() && matches!(e.action.as_str(), "Install" | "Update")
+                    }) && self.folder_receiver.is_none()
+                        && !self.job.state.lock().unwrap().busy;
                     if action(
                         ui,
-                        if update.is_some() {
-                            "Update"
-                        } else {
-                            "Install"
-                        },
+                        if update { "Update" } else { "Install" },
                         Kind::Primary,
-                        true,
+                        ready,
                     )
                     .clicked()
                     {
-                        self.app = app.clone();
-                        self.confirm_install = None;
-                        self.start("install-app");
+                        if let Some(mut plan) = plan.clone() {
+                            plan.desktop_shortcut = self.install_shortcut;
+                            let result = if custom_installer {
+                                #[cfg(target_os = "windows")]
+                                {
+                                    updates::choose_installer_destination(
+                                        &mut plan,
+                                        std::path::Path::new(&self.install_parent),
+                                    )
+                                }
+                                #[cfg(not(target_os = "windows"))]
+                                {
+                                    Ok(())
+                                }
+                            } else if installer {
+                                Ok(())
+                            } else {
+                                updates::choose_destination(
+                                    &self.paths,
+                                    &mut plan,
+                                    std::path::Path::new(&self.install_parent),
+                                    self.install_shortcut,
+                                )
+                            };
+                            match result {
+                                Ok(()) => self.run_install_plan(app.clone(), plan),
+                                Err(e) => self.install_error = Some(format!("{e:#}")),
+                            }
+                        }
                     }
                     if action(ui, "Cancel", Kind::Secondary, true).clicked() {
                         self.confirm_install = None;
                     }
                 });
             });
-            if modal.should_close() {
+            if response.should_close() {
                 self.confirm_install = None;
+            }
+            if self.confirm_install.is_none() {
+                self.install_draft_app = None;
+                self.install_receiver = None;
+                self.folder_receiver = None;
+                self.install_result = None;
             }
         }
         if self.launch_settings_open {
@@ -736,15 +1400,61 @@ impl App {
                             ui,
                             art,
                             &format!("Uninstall {}?", model::title(&self.app)),
-                            &format!(
-                                "Removes {}. Source ZIPs, builds, backups and launch settings are kept.",
-                                installed
-                                    .as_deref()
-                                    .map(|path| removal_target(path, &self.app))
-                                    .unwrap_or_else(|| "the installed copy".into())
-                            ),
+                            &self
+                                .display_config
+                                .as_ref()
+                                .and_then(|c| c.apps.iter().find(|a| a.name == self.app))
+                                .map(|a| {
+                                    format!(
+                                        "Version {} · {} · {}",
+                                        a.version,
+                                        if a.install_kind == "installer" {
+                                            "Installer"
+                                        } else {
+                                            "Portable"
+                                        },
+                                        model::architecture_label(&a.architecture)
+                                    )
+                                })
+                                .unwrap_or_else(|| "Remove the installed app".into()),
                             |_| {},
                         );
+                        ui.add_space(22.0);
+                        theme::text(ui, "Installed location", 13.0, theme::palette().text_3);
+                        ui.add_space(8.0);
+                        if let Some(path) = &installed {
+                            ui.horizontal(|ui| {
+                                let button_width = 112.0;
+                                ui.allocate_ui_with_layout(
+                                    egui::vec2(
+                                        (ui.available_width()
+                                            - button_width
+                                            - ui.spacing().item_spacing.x)
+                                            .max(40.0),
+                                        32.0,
+                                    ),
+                                    egui::Layout::left_to_right(egui::Align::Center),
+                                    |ui| {
+                                        ui.add(egui::Label::new(compact_path(path)).truncate())
+                                            .on_hover_text(path);
+                                    },
+                                );
+                                ui.with_layout(
+                                    egui::Layout::right_to_left(egui::Align::Center),
+                                    |ui| {
+                                        if open_folder_button(ui).clicked() {
+                                            self.result(craft_apps_manager::platform::open(
+                                                std::path::Path::new(path),
+                                            ));
+                                        }
+                                    },
+                                );
+                            });
+                        }
+                        ui.add_space(12.0);
+                        note(ui, "Projects and images saved outside the app folder are kept. Move personal files stored directly inside that folder before uninstalling.");
+                        ui.add_space(8.0);
+                        note(ui, "Source ZIPs, compiled builds, backups and launch settings are also kept.");
                         ui.add_space(18.0);
                         let targets = profiles::targets(&self.paths, &self.app);
                         theme::group().show(ui, |ui| {
@@ -1549,19 +2259,6 @@ pub(super) fn field_style(ui: &mut egui::Ui) {
     }
     visuals.widgets.inactive.bg_stroke = Stroke::new(1.0_f32, theme::palette().border_strong);
     visuals.widgets.open.bg_stroke = Stroke::new(1.0_f32, theme::palette().border_strong);
-}
-
-/// What an uninstall removes: the app inside its install folder, or the
-/// recorded path itself when no app is found there.
-fn removal_target(path: &str, app: &str) -> String {
-    let folder = std::path::Path::new(path);
-    match model::installed_executable(folder, app) {
-        Some(found) if folder.is_dir() => found
-            .file_name()
-            .map(|name| format!("{} from {path}", name.to_string_lossy()))
-            .unwrap_or_else(|| path.to_owned()),
-        _ => path.to_owned(),
-    }
 }
 
 /// Title, date and kind for one backup row.

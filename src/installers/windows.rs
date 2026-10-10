@@ -5,6 +5,169 @@ use winreg::{enums::*, RegKey};
 #[link(name = "msi")]
 unsafe extern "system" {
     fn MsiQueryProductStateW(product: *const u16) -> i32;
+    fn MsiGetProductInfoW(
+        product: *const u16,
+        property: *const u16,
+        value: *mut u16,
+        size: *mut u32,
+    ) -> u32;
+    fn MsiOpenDatabaseW(path: *const u16, mode: *const u16, handle: *mut u32) -> u32;
+    fn MsiDatabaseOpenViewW(db: u32, query: *const u16, view: *mut u32) -> u32;
+    fn MsiViewExecute(view: u32, record: u32) -> u32;
+    fn MsiViewFetch(view: u32, record: *mut u32) -> u32;
+    fn MsiRecordGetStringW(record: u32, field: u32, value: *mut u16, size: *mut u32) -> u32;
+    fn MsiGetComponentPathW(
+        product: *const u16,
+        component: *const u16,
+        path: *mut u16,
+        size: *mut u32,
+    ) -> i32;
+    fn MsiCloseHandle(handle: u32) -> u32;
+}
+struct MsiHandle(u32);
+impl Drop for MsiHandle {
+    fn drop(&mut self) {
+        unsafe {
+            MsiCloseHandle(self.0);
+        }
+    }
+}
+// Read the installed component key path: many MSI packages leave InstallLocation blank.
+fn msi_app_folder(product: &str, app: &str) -> Option<String> {
+    let product = platform::wide(product);
+    let property = platform::wide("LocalPackage");
+    let mut value = vec![0u16; 32768];
+    let mut size = (value.len() - 1) as u32;
+    if unsafe {
+        MsiGetProductInfoW(
+            product.as_ptr(),
+            property.as_ptr(),
+            value.as_mut_ptr(),
+            &mut size,
+        )
+    } != 0
+    {
+        return None;
+    }
+    let mut db = 0;
+    if unsafe { MsiOpenDatabaseW(value.as_ptr(), std::ptr::null(), &mut db) } != 0 {
+        return None;
+    }
+    let db = MsiHandle(db);
+    let query = platform::wide("SELECT `File`.`FileName`, `Component`.`ComponentId` FROM `File`, `Component` WHERE `File`.`Component_` = `Component`.`Component`");
+    let mut view = 0;
+    if unsafe { MsiDatabaseOpenViewW(db.0, query.as_ptr(), &mut view) } != 0 {
+        return None;
+    }
+    let view = MsiHandle(view);
+    if unsafe { MsiViewExecute(view.0, 0) } != 0 {
+        return None;
+    }
+    loop {
+        let mut record = 0;
+        if unsafe { MsiViewFetch(view.0, &mut record) } != 0 {
+            break;
+        }
+        let record = MsiHandle(record);
+        let mut size = (value.len() - 1) as u32;
+        if unsafe { MsiRecordGetStringW(record.0, 1, value.as_mut_ptr(), &mut size) } != 0 {
+            continue;
+        }
+        let name = String::from_utf16_lossy(&value[..size as usize]);
+        let name = name.rsplit('|').next()?;
+        if !crate::model::executable_names(app)
+            .iter()
+            .any(|n| n.eq_ignore_ascii_case(name))
+        {
+            continue;
+        }
+        let mut size = (value.len() - 1) as u32;
+        if unsafe { MsiRecordGetStringW(record.0, 2, value.as_mut_ptr(), &mut size) } != 0 {
+            continue;
+        }
+        let component = value.clone();
+        let mut size = (value.len() - 1) as u32;
+        if unsafe {
+            MsiGetComponentPathW(
+                product.as_ptr(),
+                component.as_ptr(),
+                value.as_mut_ptr(),
+                &mut size,
+            )
+        } != 3
+        {
+            continue;
+        }
+        let path = std::path::PathBuf::from(String::from_utf16_lossy(&value[..size as usize]));
+        let folder = path.parent()?;
+        if crate::model::installed_executable(folder, app).is_some() {
+            return Some(folder.display().to_string());
+        }
+    }
+    None
+}
+pub fn custom_location_supported(app: &str) -> bool {
+    matches!(
+        app,
+        "designcraft"
+            | "effectcraft"
+            | "filmcraft"
+            | "lightcraft"
+            | "photocraft"
+            | "printcraft"
+            | "vectorcraft"
+            | "wordcraft"
+            | "gridcraft"
+            | "deckcraft"
+            | "cadcraft"
+            | "soundcraft"
+    )
+}
+fn supports_installfolder(file: &Path) -> bool {
+    let file = platform::wide(file);
+    let mut db = 0;
+    if unsafe { MsiOpenDatabaseW(file.as_ptr(), std::ptr::null(), &mut db) } != 0 {
+        return false;
+    }
+    let db = MsiHandle(db);
+    let query =
+        platform::wide("SELECT `Directory` FROM `Directory` WHERE `Directory` = 'INSTALLFOLDER'");
+    let mut view = 0;
+    if unsafe { MsiDatabaseOpenViewW(db.0, query.as_ptr(), &mut view) } != 0 {
+        return false;
+    }
+    let view = MsiHandle(view);
+    if unsafe { MsiViewExecute(view.0, 0) } != 0 {
+        return false;
+    }
+    let mut record = 0;
+    let ok = unsafe { MsiViewFetch(view.0, &mut record) } == 0;
+    if ok {
+        let _record = MsiHandle(record);
+    }
+    ok
+}
+pub fn validate_custom_location(target: &Path) -> Result<()> {
+    anyhow::ensure!(target.is_absolute(), "Choose an absolute install location");
+    anyhow::ensure!(
+        !target.exists(),
+        "Choose an empty, new app folder for this installation"
+    );
+    anyhow::ensure!(
+        !target
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir)),
+        "The location cannot contain parent-directory segments"
+    );
+    let mut parent = target.parent();
+    while let Some(path) = parent {
+        anyhow::ensure!(
+            !path.exists() || !crate::files::linked(path)?,
+            "The install location cannot use linked folders"
+        );
+        parent = path.parent();
+    }
+    Ok(())
 }
 fn product_installed(code: &str) -> bool {
     let code = platform::wide(code);
@@ -78,6 +241,17 @@ mod detection_tests {
                 .version,
             "0.2.1"
         );
+    }
+    #[test]
+    fn custom_install_location_rejects_existing_folders() {
+        let root =
+            std::env::temp_dir().join(format!("craft-msi-location-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        assert!(super::validate_custom_location(&root).is_err());
+        assert!(super::validate_custom_location(&root.join("new-app")).is_ok());
+        assert!(super::validate_custom_location(std::path::Path::new("relative")).is_err());
+        assert!(super::validate_custom_location(&root.join("..").join("elsewhere")).is_err());
+        std::fs::remove_dir(&root).unwrap();
     }
     #[test]
     fn installed_versions_compare_numerically() {
@@ -164,6 +338,16 @@ fn detect_in_roots(
                     location = parent.display().to_string();
                 }
             }
+            if crate::model::installed_executable(Path::new(&location), app).is_none()
+                && key
+                    .get_value::<u32, _>("WindowsInstaller")
+                    .unwrap_or_default()
+                    == 1
+            {
+                if let Some(folder) = msi_app_folder(&name, app) {
+                    location = folder;
+                }
+            }
             if crate::model::installed_executable(Path::new(&location), app).is_none() {
                 let mut candidates = Vec::new();
                 for variable in ["ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"] {
@@ -224,6 +408,41 @@ pub fn run(file: &Path, app: &str) -> Result<Installed> {
     run_with_job(file, app, None)
 }
 pub fn run_with_job(file: &Path, app: &str, job: Option<&crate::jobs::Job>) -> Result<Installed> {
+    run_with_destination(file, app, job, None)
+}
+pub fn run_with_destination(
+    file: &Path,
+    app: &str,
+    job: Option<&crate::jobs::Job>,
+    destination: Option<&Path>,
+) -> Result<Installed> {
+    if let Some(target) = destination {
+        anyhow::ensure!(
+            custom_location_supported(app)
+                && file
+                    .extension()
+                    .is_some_and(|e| e.eq_ignore_ascii_case("msi")),
+            "This installer does not support custom locations"
+        );
+        anyhow::ensure!(
+            detect(app)?.is_none(),
+            "Existing installer updates keep their current location"
+        );
+        validate_custom_location(target)?;
+    }
+    // Pass the registered component directory again during upgrades so a major
+    // upgrade cannot silently move a custom installation back to Program Files.
+    let existing = if destination.is_none()
+        && custom_location_supported(app)
+        && file
+            .extension()
+            .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
+    {
+        detect(app)?.map(|a| std::path::PathBuf::from(a.path))
+    } else {
+        None
+    };
+    let destination = destination.or(existing.as_deref());
     if let Some(job) = job {
         job.check()?;
     }
@@ -236,17 +455,32 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&crate::jobs::Job>) -> R
     }
     .replace('/', r"\");
     let file = Path::new(&normalized);
+    if destination.is_some() {
+        anyhow::ensure!(
+            supports_installfolder(file),
+            "This MSI no longer exposes a supported install location"
+        );
+    }
     let code = if file
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
     {
-        let mut child = platform::hidden(
-            Command::new("msiexec.exe")
-                .arg("/i")
-                .arg(file)
-                .arg("/norestart"),
-        )
-        .spawn()?;
+        let mut command = Command::new("msiexec.exe");
+        command.arg("/i").arg(file).arg("/norestart");
+        if let Some(target) = destination {
+            use std::os::windows::process::CommandExt;
+            let path = target
+                .to_str()
+                .context("Install location must be valid Unicode")?;
+            anyhow::ensure!(
+                !path.contains(['"', '\0', '\r', '\n']),
+                "Invalid install location"
+            );
+            // MSI parses PROPERTY="value" itself. Command::arg would quote the
+            // entire PROPERTY=value token, which msiexec rejects for spaced paths.
+            command.raw_arg(format!("INSTALLFOLDER=\"{}\"", path.trim_end_matches('\\')));
+        }
+        let mut child = platform::hidden(&mut command).spawn()?;
         wait_installer(job, child.id(), || {
             Ok(child.try_wait()?.map(|status| status.code().unwrap_or(-1)))
         })?
@@ -254,7 +488,14 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&crate::jobs::Job>) -> R
         run_exe(file, job)?
     };
     installer_result(code)?;
-    detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")
+    let installed = detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")?;
+    if let Some(target) = destination {
+        anyhow::ensure!(
+            std::fs::canonicalize(&installed.path)? == std::fs::canonicalize(target)?,
+            "The installer did not use the selected app folder"
+        );
+    }
+    Ok(installed)
 }
 fn installer_result(code: i32) -> Result<()> {
     match code {

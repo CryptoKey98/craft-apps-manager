@@ -229,9 +229,124 @@ pub fn verify_trees(a: &Path, b: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Moves across volumes only after a complete, hash-verified copy is ready.
+/// The source is untouched if copying fails; activation is a local rename.
+pub fn move_verified(source: &Path, destination: &Path) -> Result<()> {
+    move_verified_with(source, destination, |a, b| fs::rename(a, b))
+}
+fn move_verified_with(
+    source: &Path,
+    destination: &Path,
+    rename: impl FnOnce(&Path, &Path) -> std::io::Result<()>,
+) -> Result<()> {
+    anyhow::ensure!(!destination.exists(), "Move destination already exists");
+    fs::create_dir_all(destination.parent().context("Missing move parent")?)?;
+    match rename(source, destination) {
+        Ok(()) => return Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::CrossesDevices => {}
+        Err(e) => return Err(e.into()),
+    }
+    let temporary = destination.with_extension(format!("{}.moving", uuid::Uuid::new_v4()));
+    let result = (|| -> Result<()> {
+        if source.is_dir() {
+            copy_directory_verified(source, &temporary)?;
+        } else {
+            anyhow::ensure!(!linked(source)?, "Cannot move a linked file");
+            fs::copy(source, &temporary)?;
+            anyhow::ensure!(
+                hash(source)? == hash(&temporary)?,
+                "Copy verification failed"
+            );
+        }
+        // Retire the source by a rename on its own volume. Cleanup failure
+        // must not turn a completed move into a failed transaction.
+        let retired = source.with_extension(format!("{}.retired", uuid::Uuid::new_v4()));
+        fs::rename(source, &retired)?;
+        if let Err(error) = fs::rename(&temporary, destination) {
+            fs::rename(&retired, source)
+                .context("Could not restore the source after failed activation")?;
+            return Err(error.into());
+        }
+        let cleanup = if retired.is_dir() {
+            fs::remove_dir_all(&retired)
+        } else {
+            fs::remove_file(&retired)
+        };
+        if let Err(error) = cleanup {
+            eprintln!("A retired copy was kept at {}: {error}", retired.display());
+        }
+        Ok(())
+    })();
+    if temporary.exists() {
+        let _ = remove_managed(&temporary, destination.parent().unwrap());
+    }
+    result
+}
+
+pub fn copy_directory_verified(source: &Path, destination: &Path) -> Result<()> {
+    anyhow::ensure!(!destination.exists(), "Copy destination already exists");
+    no_links(source)?;
+    fs::create_dir_all(destination)?;
+    for entry in WalkDir::new(source).min_depth(1) {
+        let entry = entry?;
+        let target = destination.join(entry.path().strip_prefix(source)?);
+        if entry.file_type().is_dir() {
+            fs::create_dir(&target)?;
+        } else {
+            fs::copy(entry.path(), &target)?;
+        }
+    }
+    verify_trees(source, destination)?;
+    // Apply directory permissions after children have been written.
+    for entry in WalkDir::new(source).contents_first(true) {
+        let entry = entry?;
+        if entry.file_type().is_dir() {
+            fs::set_permissions(
+                destination.join(entry.path().strip_prefix(source)?),
+                entry.metadata()?.permissions(),
+            )?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn cross_volume_move_verifies_contents_and_preserves_unrelated_files() {
+        let root = std::env::temp_dir().join(format!("craft-move-{}", uuid::Uuid::new_v4()));
+        let source = root.join("source");
+        let destination = root.join("other-drive/app");
+        fs::create_dir_all(source.join("data")).unwrap();
+        fs::create_dir_all(destination.parent().unwrap()).unwrap();
+        fs::write(source.join("data/project.pcraft"), b"project").unwrap();
+        fs::write(
+            destination.parent().unwrap().join("unrelated.png"),
+            b"image",
+        )
+        .unwrap();
+        move_verified_with(&source, &destination, |_, _| {
+            Err(std::io::ErrorKind::CrossesDevices.into())
+        })
+        .unwrap();
+        assert!(!source.exists());
+        assert_eq!(
+            fs::read(destination.join("data/project.pcraft")).unwrap(),
+            b"project"
+        );
+        assert_eq!(
+            fs::read(destination.parent().unwrap().join("unrelated.png")).unwrap(),
+            b"image"
+        );
+        assert!(
+            move_verified_with(&destination, &destination, |_, _| panic!(
+                "must reject existing destination"
+            ))
+            .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn hostile_paths() {
         for s in [

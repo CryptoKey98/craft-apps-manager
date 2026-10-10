@@ -279,7 +279,13 @@ impl App {
         }
 
         // Progress for an operation running on this app, in place of the buttons.
-        if state.busy && mine.is_some() {
+        let completed_opacity = if state.stage == "Complete" {
+            self.completed_progress_opacity(ui.ctx())
+        } else {
+            0.0
+        };
+        let show_progress = mine.is_some() && (state.busy || completed_opacity > 0.0);
+        if show_progress {
             let verb = match mine.as_deref() {
                 Some("uninstall-app") => "Uninstalling",
                 Some("source-app") => "Downloading source for",
@@ -290,57 +296,80 @@ impl App {
             };
             // 560 points of content inside the padding and border, as in the design.
             let width = ui.available_width().min(560.0 + 30.0);
-            egui::Frame::new()
-                .fill(theme::palette().progress_bg)
-                .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
-                .corner_radius(CornerRadius::same(10))
-                .inner_margin(egui::Margin::symmetric(14, 12))
-                .show(ui, |ui| {
-                    let inner = width - 30.0;
-                    ui.set_width(inner);
-                    // Title row, 8 points, then the bar; Cancel centred beside them.
-                    let height = line(14.0) + 8.0 + 6.0;
-                    let (rect, _) = ui.allocate_exact_size(vec2(inner, height), Sense::hover());
-                    let mut cancel = child(ui, rect, Layout::right_to_left(Align::Center));
-                    self.cancel_button(&mut cancel, &state.stage);
-                    let right = cancel.min_rect().left() - 16.0;
-                    let column = Rect::from_min_max(rect.min, pos2(right, rect.max.y));
-                    let mut text = child(
-                        ui,
-                        Rect::from_min_size(column.min, vec2(column.width(), line(14.0))),
-                        Layout::left_to_right(Align::Min),
-                    );
-                    text.spacing_mut().item_spacing.x = 12.0;
-                    theme::text(
-                        &mut text,
-                        format!("{verb} {title}…"),
-                        14.0,
-                        theme::palette().text,
-                    );
-                    text.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new(if state.detail.is_empty() {
-                                    state.stage.clone()
-                                } else {
-                                    format!("{} · {}", state.stage, state.detail)
-                                })
-                                .size(14.0)
-                                .color(theme::palette().text_3),
-                            )
-                            .truncate(),
+            ui.scope(|ui| {
+                if !state.busy {
+                    ui.multiply_opacity(completed_opacity);
+                }
+                egui::Frame::new()
+                    .fill(theme::palette().progress_bg)
+                    .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
+                    .corner_radius(CornerRadius::same(10))
+                    .inner_margin(egui::Margin::symmetric(14, 12))
+                    .show(ui, |ui| {
+                        let inner = width - 30.0;
+                        ui.set_width(inner);
+                        // Title row, 8 points, then the bar; Cancel centred beside them.
+                        let height = line(14.0) + 8.0 + 6.0;
+                        let (rect, _) = ui.allocate_exact_size(vec2(inner, height), Sense::hover());
+                        let mut cancel = child(ui, rect, Layout::right_to_left(Align::Center));
+                        if state.busy {
+                            self.cancel_button(&mut cancel, &state.stage);
+                        } else {
+                            theme::text(&mut cancel, "Done", 13.0, theme::palette().text_3);
+                        }
+                        let right = cancel.min_rect().left() - 16.0;
+                        let column = Rect::from_min_max(rect.min, pos2(right, rect.max.y));
+                        let mut text = child(
+                            ui,
+                            Rect::from_min_size(column.min, vec2(column.width(), line(14.0))),
+                            Layout::left_to_right(Align::Min),
+                        );
+                        text.spacing_mut().item_spacing.x = 12.0;
+                        theme::text(
+                            &mut text,
+                            if state.busy {
+                                format!("{verb} {title}…")
+                            } else if mine.as_deref() == Some("install-app") {
+                                "Installed successfully".into()
+                            } else {
+                                format!("{title} · Complete")
+                            },
+                            14.0,
+                            theme::palette().text,
+                        );
+                        text.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(if state.detail.is_empty() {
+                                        state.stage.clone()
+                                    } else {
+                                        format!("{} · {}", state.stage, state.detail)
+                                    })
+                                    .size(14.0)
+                                    .color(theme::palette().text_3),
+                                )
+                                .truncate(),
+                            );
+                        });
+                        let mut bar = child(
+                            ui,
+                            Rect::from_min_size(
+                                pos2(column.left(), column.top() + line(14.0) + 8.0),
+                                vec2(column.width(), 6.0),
+                            ),
+                            Layout::top_down(Align::Min),
+                        );
+                        theme::progress(
+                            &mut bar,
+                            if state.busy {
+                                state.progress
+                            } else {
+                                Some(1.0)
+                            },
+                            6.0,
                         );
                     });
-                    let mut bar = child(
-                        ui,
-                        Rect::from_min_size(
-                            pos2(column.left(), column.top() + line(14.0) + 8.0),
-                            vec2(column.width(), 6.0),
-                        ),
-                        Layout::top_down(Align::Min),
-                    );
-                    theme::progress(&mut bar, state.progress, 6.0);
-                });
+            });
         }
         // Source downloads and backup deletion leave the installed copy alone,
         // so its actions (Open in particular) stay available beside the progress.
@@ -350,7 +379,7 @@ impl App {
                 Some("install-app" | "uninstall-app" | "restore")
             );
         if !replaces_actions {
-            if state.busy && mine.is_some() {
+            if show_progress {
                 ui.add_space(10.0);
             }
             self.app_actions(ui, state, &status);
@@ -820,12 +849,48 @@ impl App {
             );
             ui.spacing_mut().item_spacing.y = 4.0;
             theme::text(&mut ui, *label, 12.0, theme::palette().muted);
-            let response = ui.add(
-                egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
-                    .truncate(),
-            );
-            if let Some(hover) = hover {
-                response.on_hover_text(hover);
+            let openable = *label == "Location"
+                && installed.is_some()
+                && !location.is_empty()
+                && location != "—"
+                && PathBuf::from(&location).is_dir();
+            if openable {
+                let response = ui
+                    .horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 6.0;
+                        let (rect, icon_response) =
+                            ui.allocate_exact_size(vec2(16.0, line(14.0)), Sense::click());
+                        theme::paint_icon(
+                            ui.painter(),
+                            Rect::from_center_size(rect.center(), vec2(14.0, 14.0)),
+                            Icon::Folder,
+                            theme::palette().link,
+                        );
+                        let text_response = ui.add(
+                            egui::Label::new(
+                                RichText::new(value).size(14.0).color(theme::palette().link),
+                            )
+                            .truncate()
+                            .sense(Sense::click()),
+                        );
+                        icon_response.union(text_response)
+                    })
+                    .inner
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
+                    .on_hover_text(format!("Open folder\n{location}"));
+                if response.clicked() {
+                    self.result(craft_apps_manager::platform::open(std::path::Path::new(
+                        &location,
+                    )));
+                }
+            } else {
+                let response = ui.add(
+                    egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
+                        .truncate(),
+                );
+                if let Some(hover) = hover {
+                    response.on_hover_text(hover);
+                }
             }
         }
         ui.add_space(MAIN_GAP);
@@ -957,6 +1022,29 @@ impl App {
                 .clicked()
             {
                 self.start("source-app");
+            }
+            if source.is_some() {
+                egui::Frame::new()
+                    .inner_margin(egui::Margin {
+                        left: 14,
+                        right: 14,
+                        top: 0,
+                        bottom: 12,
+                    })
+                    .show(ui, |ui| {
+                        if theme::link_enabled(
+                            ui,
+                            "Remove downloaded source…",
+                            !state.busy && !build.busy,
+                        )
+                        .on_hover_text(
+                            "Remove this app’s downloaded source ZIP. Builds and backups are kept.",
+                        )
+                        .clicked()
+                        {
+                            self.remove_source_confirm = Some(app.clone());
+                        }
+                    });
             }
             theme::divider(ui);
             // Build
@@ -1109,15 +1197,6 @@ impl App {
                         theme::progress(ui, build.progress, 4.0);
                     }
                     ui.add_space(6.0);
-                    ui.add_enabled(
-                        !build.busy && !cleaning,
-                        egui::Checkbox::new(
-                            &mut self.latest,
-                            RichText::new("Download latest source before building").size(12.0),
-                        ),
-                    )
-                    .on_hover_text("Turn off to use the source ZIP already in your library.");
-                    ui.add_space(6.0);
                     ui.horizontal(|ui| {
                         if theme::link(ui, "Build options…").clicked() {
                             match builder::launch_options(&self.paths, &app) {
@@ -1131,6 +1210,7 @@ impl App {
                                 }
                             }
                             self.delete_build_confirm = false;
+                            self.clean_build_confirm = false;
                             self.build_options_open = true;
                         }
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -1147,7 +1227,9 @@ impl App {
                     });
                 });
         });
-        ui.add_space(12.0);
+        if installed.is_some() {
+            ui.add_space(8.0);
+        }
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 16.0;
             ui.spacing_mut().interact_size.y = 0.0;
@@ -1178,7 +1260,7 @@ impl App {
             }
         });
         if building_here && (build.busy || !build.stage.is_empty()) {
-            ui.add_space(20.0);
+            ui.add_space(8.0);
             theme::section_label(ui, "Build log");
             ui.add_space(8.0);
             theme::log_view(ui, &build.log, false);

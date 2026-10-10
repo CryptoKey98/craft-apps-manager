@@ -699,10 +699,28 @@ impl App {
             );
 
             self.cancel_button(&mut action, &state.stage);
-
+        }
+        let opacity = if state.busy {
+            1.0
+        } else if state.stage == "Complete" {
+            self.completed_progress_opacity(ui.ctx())
+        } else {
+            0.0
+        };
+        if opacity > 0.0 {
             ui.add_space(10.0);
-
-            theme::progress(ui, state.progress, 4.0);
+            ui.scope(|ui| {
+                ui.multiply_opacity(opacity);
+                theme::progress(
+                    ui,
+                    if state.busy {
+                        state.progress
+                    } else {
+                        Some(1.0)
+                    },
+                    4.0,
+                );
+            });
         }
     }
 }

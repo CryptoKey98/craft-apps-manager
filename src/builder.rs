@@ -7,7 +7,29 @@ use crate::{
 use anyhow::{bail, Context, Result};
 use std::{collections::BTreeMap, fs, path::PathBuf, process::Command};
 pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
+    build_to(paths, app, latest, None, false, job)
+}
+
+pub fn output_root(paths: &Paths, app: &str) -> PathBuf {
+    files::read_json::<PathBuf>(&paths.at(format!("runtime/build-locations/{app}.json")))
+        .ok()
+        .and_then(|p| crate::portable::destination(&p, app).ok())
+        .unwrap_or_else(|| paths.at(format!("builds/{app}")))
+}
+
+pub fn build_to(
+    paths: &Paths,
+    app: &str,
+    latest: bool,
+    parent: Option<&std::path::Path>,
+    shortcut: bool,
+    job: &Job,
+) -> Result<()> {
     crate::model::valid_app(app)?;
+    let root = match parent {
+        Some(parent) => crate::portable::destination(parent, app)?,
+        None => output_root(paths, app),
+    };
     let _lock = platform::Lock::take("Local\\CraftAppsSourceBuilder")?;
     job.log(&format!(
         "\nCraft Apps Builder — {app} — {}",
@@ -54,7 +76,12 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
     }
     let target = paths.at(format!("workspace/cache/{app}"));
     let mut env = tools::environment(paths)?;
-    env.insert("CARGO_TARGET_DIR".into(), target.display().to_string());
+    tools::configure_build_paths(paths, &project, &mut env)?;
+    fs::create_dir_all(&target)?;
+    env.insert(
+        "CARGO_TARGET_DIR".into(),
+        tools::build_path(&target)?.display().to_string(),
+    );
     env.insert("CARGO_BUILD_JOBS".into(), "4".into());
     if app == "artcraftx" {
         env.insert("VITE_ENVIRONMENT_TYPE".into(), "production".into());
@@ -78,7 +105,7 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
             Command::new(&node)
                 .arg(npm)
                 .args(["ci", "--no-audit", "--no-fund"])
-                .current_dir(&frontend)
+                .current_dir(tools::build_path(&frontend)?)
                 .envs(&env),
             false,
         )?;
@@ -86,7 +113,7 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
         job.run(
             Command::new(node)
                 .args(["node_modules/nx/bin/nx.js", "run", "artcraft:build"])
-                .current_dir(&frontend)
+                .current_dir(tools::build_path(&frontend)?)
                 .envs(&env),
             false,
         )?;
@@ -97,7 +124,7 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
     job.stage("Compiling", None, "Starting release compilation");
     job.log(&format!("Source commit: {}", commit.sha));
     let cargo = tools::cargo(paths).unwrap();
-    let mut cmd = Command::new(cargo);
+    let mut cmd = Command::new(tools::build_path(&cargo)?);
     cmd.args([
         "build",
         "--release",
@@ -111,7 +138,7 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
     if app == "artcraftx" {
         cmd.args(["--features", "tauri/custom-protocol"]);
     }
-    cmd.current_dir(&project).envs(&env);
+    cmd.current_dir(tools::build_path(&project)?).envs(&env);
     job.run(&mut cmd, true)?;
     job.check()?;
     let executable = job
@@ -124,13 +151,15 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
     if executable.file_stem().is_none_or(|n| n != app) {
         bail!("Unexpected build executable")
     }
-    let out = paths.at(format!(
-        "builds/{app}/{}-{}-{}",
+    let out = root.join(format!(
+        "{}-{}-{}",
         &commit.sha[..7],
         chrono::Local::now().format("%Y%m%d-%H%M%S"),
         &uuid::Uuid::new_v4().simple().to_string()[..4]
     ));
-    fs::create_dir_all(&out)?;
+    files::inside(&out, &root)?;
+    fs::create_dir_all(&root)?;
+    fs::create_dir(&out)?;
     job.stage("Packaging", None, "Saving the executable and runtime files");
     fs::copy(
         &executable,
@@ -158,6 +187,15 @@ pub fn build(paths: &Paths, app: &str, latest: bool, job: &Job) -> Result<()> {
             log: job.log_path.display().to_string(),
         },
     )?;
+    files::write_json(
+        &paths.at(format!("runtime/build-locations/{app}.json")),
+        &root.parent().context("Missing build parent")?.to_path_buf(),
+    )?;
+    if shortcut {
+        if let Err(error) = crate::portable::build_desktop_shortcut(paths, app, &out) {
+            job.log(&format!("Shortcut warning: {error:#}"));
+        }
+    }
     job.state.lock().unwrap().output = Some(out.clone());
     job.log(&format!("Build complete: {}", out.display()));
     let prefs = paths.builder_preferences()?;
@@ -212,7 +250,7 @@ pub fn launch_local(paths: &Paths, app: &str) -> Result<()> {
     let folder =
         history(paths, app).context("No completed local build was found. Build the app first.")?;
     let executable = folder.join(crate::model::build_executable_name(app));
-    files::inside(&executable, &paths.at(format!("builds/{app}")))?;
+    files::inside(&executable, &output_root(paths, app))?;
     if !executable.is_file() {
         bail!("The build executable is missing. Rebuild the app first.");
     }
@@ -229,7 +267,7 @@ pub fn launch_local(paths: &Paths, app: &str) -> Result<()> {
 pub fn delete_local(paths: &Paths, app: &str, folder: &std::path::Path) -> Result<()> {
     crate::model::valid_app(app)?;
     let _lock = platform::Lock::take("Local\\CraftAppsSourceBuilder")?;
-    let root = paths.at(format!("builds/{app}"));
+    let root = output_root(paths, app);
     files::inside(folder, &root)?;
     if folder.parent() != Some(root.as_path()) {
         bail!("Only a completed build folder can be deleted here.");
@@ -243,8 +281,69 @@ pub fn delete_local(paths: &Paths, app: &str, folder: &std::path::Path) -> Resul
     }
     files::remove_managed(folder, &root)
 }
+/// Clean intermediates for the selected build, never its compiled output.
+/// The compiler cache is shared only within this app.
+pub fn clean_local(paths: &Paths, app: &str, folder: &std::path::Path) -> Result<()> {
+    crate::model::valid_app(app)?;
+    let _lock = platform::Lock::take(r"Local\CraftAppsSourceBuilder")?;
+    let targets = local_cache_paths(paths, app, folder)?;
+    // Validate every boundary before deleting anything.
+    for (path, root) in &targets {
+        files::inside(path, root)?;
+    }
+    for (path, root) in targets {
+        files::remove_managed(&path, &root)?;
+    }
+    Ok(())
+}
+pub fn has_local_cache(paths: &Paths, app: &str, folder: &std::path::Path) -> Result<bool> {
+    Ok(local_cache_paths(paths, app, folder)?
+        .iter()
+        .any(|(path, _)| path.exists()))
+}
+fn local_cache_paths(
+    paths: &Paths,
+    app: &str,
+    folder: &std::path::Path,
+) -> Result<Vec<(PathBuf, PathBuf)>> {
+    crate::model::valid_app(app)?;
+    let root = output_root(paths, app);
+    files::inside(folder, &root)?;
+    anyhow::ensure!(
+        folder.parent() == Some(root.as_path()),
+        "Select a completed build folder"
+    );
+    let info: BuildInfo = files::read_json(&folder.join("build-info.json"))?;
+    anyhow::ensure!(info.app == app, "The build belongs to another app");
+    anyhow::ensure!(
+        info.commit.len() == 40 && info.commit.bytes().all(|b| b.is_ascii_hexdigit()),
+        "Invalid build commit"
+    );
+    let work_root = paths.at(format!("workspace/{app}"));
+    let mut targets = vec![(
+        paths.at(format!("workspace/cache/{app}")),
+        paths.at("workspace/cache"),
+    )];
+    if work_root.exists() {
+        files::inside(&work_root, &paths.at("workspace"))?;
+        for entry in fs::read_dir(&work_root)? {
+            let folder = entry?.path();
+            files::inside(&folder, &work_root)?;
+            if folder.is_dir() && folder.join(".extracted").is_file() {
+                files::inside(&folder.join(".extracted"), &work_root)?;
+                if fs::read_to_string(folder.join(".extracted"))?.trim() == info.commit {
+                    targets.push((folder, work_root.clone()));
+                }
+            }
+        }
+    }
+    for (path, root) in &targets {
+        files::inside(path, root)?;
+    }
+    Ok(targets)
+}
 pub fn history(paths: &Paths, app: &str) -> Option<PathBuf> {
-    let root = paths.at(format!("builds/{app}"));
+    let root = output_root(paths, app);
     let mut builds: Vec<_> = fs::read_dir(root)
         .ok()?
         .filter_map(|e| e.ok())
@@ -284,6 +383,67 @@ pub fn clean(paths: &Paths) -> Result<()> {
 mod local_build_tests {
     use super::*;
 
+    #[test]
+    fn selected_build_cleanup_keeps_outputs_sources_and_other_workspaces() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let commit = "a".repeat(40);
+        let folder = paths.at("builds/filmcraft/selected");
+        files::write_json(
+            &folder.join("build-info.json"),
+            &BuildInfo {
+                app: "filmcraft".into(),
+                commit: commit.clone(),
+                source_branch: "main".into(),
+                built_at: chrono::Utc::now().to_rfc3339(),
+                profile: "release".into(),
+                log: String::new(),
+            },
+        )
+        .unwrap();
+        fs::write(
+            folder.join(crate::model::build_executable_name("filmcraft")),
+            b"compiled",
+        )
+        .unwrap();
+        for name in [
+            "workspace/filmcraft/selected",
+            "workspace/filmcraft/other",
+            "workspace/cache/filmcraft",
+            "workspace/cache/soundcraft",
+            "sources",
+            "builds/filmcraft/other",
+        ] {
+            fs::create_dir_all(paths.at(name)).unwrap();
+            fs::write(paths.at(format!("{name}/keep.txt")), b"data").unwrap();
+        }
+        fs::write(paths.at("workspace/filmcraft/selected/.extracted"), &commit).unwrap();
+        fs::write(
+            paths.at("workspace/filmcraft/other/.extracted"),
+            "b".repeat(40),
+        )
+        .unwrap();
+        assert!(clean_local(&paths, "soundcraft", &folder).is_err());
+        assert!(paths.at("workspace/cache/filmcraft").exists());
+        assert!(has_local_cache(&paths, "filmcraft", &folder).unwrap());
+        clean_local(&paths, "filmcraft", &folder).unwrap();
+        assert!(!has_local_cache(&paths, "filmcraft", &folder).unwrap());
+        assert!(!paths.at("workspace/cache/filmcraft").exists());
+        assert!(!paths.at("workspace/filmcraft/selected").exists());
+        for name in [
+            "workspace/filmcraft/other",
+            "workspace/cache/soundcraft",
+            "sources",
+            "builds/filmcraft/other",
+        ] {
+            assert!(paths.at(format!("{name}/keep.txt")).is_file());
+        }
+        assert!(folder
+            .join(crate::model::build_executable_name("filmcraft"))
+            .is_file());
+        clean_local(&paths, "filmcraft", &folder).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn build_launch_options_are_persisted_separately_from_release_options() {
         let temp =
@@ -349,5 +509,50 @@ mod local_build_tests {
         assert!(wrong.exists());
         assert!(outside.join("keep.txt").exists());
         fs::remove_dir_all(temp).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod destination_tests {
+    use super::*;
+    #[test]
+    fn custom_builds_launch_from_record_and_delete_only_selected_build() {
+        let temporary =
+            std::env::temp_dir().join(format!("craft-build-location-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(temporary.join("library"), None);
+        let parent = temporary.join("Custom Builds");
+        let root = parent.join("photocraft");
+        let folder = root.join("completed");
+        fs::create_dir_all(&folder).unwrap();
+        fs::write(root.join("keep.txt"), b"personal").unwrap();
+        fs::write(
+            folder.join(crate::model::build_executable_name("photocraft")),
+            b"fixture",
+        )
+        .unwrap();
+        files::write_json(
+            &folder.join("build-info.json"),
+            &BuildInfo {
+                app: "photocraft".into(),
+                commit: "a".repeat(40),
+                source_branch: "main".into(),
+                built_at: chrono::Utc::now().to_rfc3339(),
+                profile: "release".into(),
+                log: String::new(),
+            },
+        )
+        .unwrap();
+        files::write_json(
+            &paths.at("runtime/build-locations/photocraft.json"),
+            &parent,
+        )
+        .unwrap();
+        assert_eq!(output_root(&paths, "photocraft"), root);
+        assert_eq!(history(&paths, "photocraft"), Some(folder.clone()));
+        assert!(delete_local(&paths, "photocraft", &root).is_err());
+        assert!(delete_local(&paths, "filmcraft", &folder).is_err());
+        delete_local(&paths, "photocraft", &folder).unwrap();
+        assert_eq!(fs::read(root.join("keep.txt")).unwrap(), b"personal");
+        fs::remove_dir_all(temporary).unwrap();
     }
 }

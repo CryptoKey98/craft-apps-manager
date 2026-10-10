@@ -287,22 +287,24 @@ pub fn replace_transaction(
     if destination.exists() {
         let b = backup.context("Missing rollback path")?;
         fs::create_dir_all(b.parent().unwrap())?;
-        fs::rename(destination, b)?;
+        files::move_verified(destination, b)?;
     }
     fs::create_dir_all(destination.parent().unwrap())?;
-    if let Err(e) = fs::rename(staged, destination) {
+    if let Err(e) = files::move_verified(staged, destination) {
         if let Some(b) = backup {
             if b.exists() {
-                fs::rename(b, destination).context("Could not restore rollback copy")?;
+                files::move_verified(b, destination).context("Could not restore rollback copy")?;
             }
         }
-        return Err(e.into());
+        return Err(e);
     }
     if let Err(e) = commit() {
-        fs::rename(destination, staged).context("Could not remove uncommitted replacement")?;
+        files::move_verified(destination, staged)
+            .context("Could not remove uncommitted replacement")?;
         if let Some(b) = backup {
             if b.exists() {
-                fs::rename(b, destination).context("Could not restore previous version")?;
+                files::move_verified(b, destination)
+                    .context("Could not restore previous version")?;
             }
         }
         return Err(e);
@@ -337,6 +339,8 @@ pub struct ReleasePlan {
     pub preferences: Preferences,
     pub requested_tag: Option<String>,
     snapshot: Vec<u8>,
+    pub desktop_shortcut: bool,
+    pub installer_destination: Option<PathBuf>,
 }
 impl ReleasePlan {
     pub fn executable_count(&self) -> usize {
@@ -391,6 +395,68 @@ pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
             crate::model::repository(name)
         ))
     })
+}
+pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    let network = Network::new(&paths.root)?;
+    plan_with(paths, job, Some(app), |name| {
+        network.json(&format!(
+            "https://api.github.com/repos/storytold/{}/releases/latest",
+            crate::model::repository(name)
+        ))
+    })
+}
+pub fn choose_destination(
+    paths: &Paths,
+    plan: &mut ReleasePlan,
+    parent: &Path,
+    shortcut: bool,
+) -> Result<()> {
+    anyhow::ensure!(
+        plan.entries.len() == 1,
+        "Choose a location for one app at a time"
+    );
+    anyhow::ensure!(
+        plan.preferences.release_format == "portable",
+        "Native installer locations are managed by the installer"
+    );
+    let entry = &mut plan.entries[0];
+    let mut target = crate::portable::destination(parent, &entry.app)?;
+    let current = paths
+        .config()?
+        .apps
+        .into_iter()
+        .find(|a| a.name == entry.app);
+    if let Some(current) = current.filter(|a| a.install_kind != "installer" && !a.path.is_empty()) {
+        let old = Path::new(&current.path);
+        if old.parent() == Some(parent) {
+            target = old.to_path_buf();
+        }
+        anyhow::ensure!(
+            Path::new(&current.path) == target,
+            "Uninstall this portable app before changing its location"
+        );
+    }
+    crate::portable::validate_install(paths, &entry.app, &target)?;
+    entry.destination = Some(target);
+    plan.desktop_shortcut = shortcut;
+    Ok(())
+}
+#[cfg(target_os = "windows")]
+pub fn choose_installer_destination(plan: &mut ReleasePlan, parent: &Path) -> Result<()> {
+    anyhow::ensure!(
+        plan.entries.len() == 1 && plan.preferences.release_format == "installer",
+        "Choose a location for one installer at a time"
+    );
+    let entry = &plan.entries[0];
+    anyhow::ensure!(
+        crate::installers::custom_location_supported(&entry.app) && entry.action == "Install",
+        "This installer keeps its own location"
+    );
+    let target = crate::portable::destination(parent, &entry.app)?;
+    crate::installers::validate_custom_location(&target)?;
+    plan.installer_destination = Some(target);
+    Ok(())
 }
 /// Recent published stable releases compatible with the chosen platform and format.
 /// Older assets without a published digest remain unavailable for verified installs.
@@ -545,7 +611,11 @@ fn plan_with(
                 PathBuf::from(&app.path)
             };
             if !installer {
-                files::inside(&target, &paths.at("releases"))?;
+                if target.exists() {
+                    crate::portable::validate(paths, &app.name, &target)?;
+                } else {
+                    crate::portable::validate_install(paths, &app.name, &target)?;
+                }
                 entry.destination = Some(target.clone());
             }
             let exists = !app.path.is_empty()
@@ -600,6 +670,8 @@ fn plan_with(
     }
     Ok(ReleasePlan {
         requested_tag: None,
+        desktop_shortcut: false,
+        installer_destination: None,
         entries,
         preferences: prefs,
         snapshot,
@@ -620,6 +692,11 @@ fn execute_validated(
     let mut config = paths.config()?;
     if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
         bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
+    }
+    for entry in &plan.entries {
+        if let Some(target) = &entry.destination {
+            crate::portable::validate_install(paths, &entry.app, target)?;
+        }
     }
     execute(&mut config)
 }
@@ -653,6 +730,11 @@ fn execute_entries(
                 }
                 let dest = paths.at(format!("releases/installers/{}/{}", app.name, asset.name));
                 if dest.exists() {
+                    job.stage(
+                        "Verifying checksum",
+                        None,
+                        "Checking SHA-256 of the cached installer",
+                    );
                     crate::network::verify_asset(&dest, asset)?;
                 } else {
                     network.asset(asset, &dest, job)?;
@@ -661,11 +743,19 @@ fn execute_entries(
                     "Installing",
                     None,
                     if cfg!(target_os = "windows") {
-                        "Complete the Windows installer wizard; Windows may ask for administrator permission."
+                        "Complete the Windows installation; Windows may ask for administrator permission."
                     } else {
                         "Installing the app."
                     },
                 );
+                #[cfg(target_os = "windows")]
+                let mut installed = crate::installers::run_with_destination(
+                    &dest,
+                    &app.name,
+                    Some(job),
+                    plan.installer_destination.as_deref(),
+                )?;
+                #[cfg(not(target_os = "windows"))]
                 let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
                 installed.architecture = if cfg!(target_os = "macos") {
                     "universal".into()
@@ -674,6 +764,23 @@ fn execute_entries(
                 };
                 config.apps[i] = installed;
                 paths.save_config(config)?;
+                if plan.desktop_shortcut {
+                    job.stage(
+                        "Creating desktop shortcut",
+                        None,
+                        crate::model::title(&app.name),
+                    );
+                    if let Err(error) = crate::portable::installer_desktop_shortcut(
+                        paths,
+                        &app.name,
+                        Path::new(&config.apps[i].path),
+                    ) {
+                        job.log(&format!(
+                            "{}: installed; desktop shortcut could not be created: {error:#}",
+                            app.name
+                        ));
+                    }
+                }
                 job.log(&format!("{}: installer completed", app.name));
                 return Ok(true);
             }
@@ -731,6 +838,16 @@ fn execute_entries(
                 } else {
                     None
                 };
+                let staged_folder = executables[0].path().parent().unwrap();
+                // PhotoCraft stores user data beside its portable executable.
+                // Copy it before activation; rollback keeps the original intact.
+                if app.name == "photocraft" && target.join("PhotoCraftData").is_dir() {
+                    files::copy_directory_verified(
+                        &target.join("PhotoCraftData"),
+                        &staged_folder.join("PhotoCraftData"),
+                    )?;
+                }
+                crate::portable::mark(paths, &app.name, staged_folder)?;
                 let old = config.apps[i].clone();
                 config.apps[i].path = target.to_string_lossy().into_owned();
                 config.apps[i].version = v.into();
@@ -773,6 +890,17 @@ fn execute_entries(
                     &target,
                 ) {
                     job.log(&format!("Shortcut warning: {e}"))
+                }
+                if plan.desktop_shortcut {
+                    job.stage(
+                        "Creating desktop shortcut",
+                        None,
+                        crate::model::title(&app.name),
+                    );
+                    if let Err(error) = crate::portable::desktop_shortcut(paths, &app.name, &target)
+                    {
+                        job.log(&format!("Desktop shortcut warning: {error:#}"));
+                    }
                 }
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
@@ -892,6 +1020,89 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
         bail!("{} release planning error(s); see the log", errors.len());
     }
     result
+}
+#[cfg(test)]
+mod source_removal_tests {
+    use super::*;
+    #[test]
+    fn removes_only_selected_managed_source_and_rejects_unmanaged_files() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let source = Source {
+            sha: "a".repeat(40),
+            branch: "main".into(),
+            repository: "storytold/filmcraft".into(),
+            archive_sha256: String::new(),
+            downloaded_at: String::new(),
+        };
+        files::write_json(
+            &paths.at("sources/source-index.json"),
+            &BTreeMap::from([("filmcraft", source.clone()), ("soundcraft", source)]),
+        )
+        .unwrap();
+        for name in [
+            "sources/filmcraft-source.zip",
+            "sources/soundcraft-source.zip",
+            "sources/photocraft-source.zip",
+            "builds/filmcraft/keep",
+            "workspace/filmcraft/keep",
+            "backups/sources/filmcraft-keep.zip",
+        ] {
+            let path = paths.at(name);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, b"keep").unwrap();
+        }
+        assert!(remove_source(&paths, "photocraft").is_err());
+        remove_source(&paths, "filmcraft").unwrap();
+        assert!(!paths.at("sources/filmcraft-source.zip").exists());
+        let index: BTreeMap<String, Source> =
+            files::read_json(&paths.at("sources/source-index.json")).unwrap();
+        assert!(!index.contains_key("filmcraft"));
+        assert!(index.contains_key("soundcraft"));
+        for name in [
+            "sources/soundcraft-source.zip",
+            "sources/photocraft-source.zip",
+            "builds/filmcraft/keep",
+            "workspace/filmcraft/keep",
+            "backups/sources/filmcraft-keep.zip",
+        ] {
+            assert_eq!(fs::read(paths.at(name)).unwrap(), b"keep");
+        }
+        assert!(remove_source(&paths, "../filmcraft").is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+}
+/// Remove one managed source archive, keeping builds, workspaces and backups.
+pub fn remove_source(paths: &Paths, app: &str) -> Result<()> {
+    crate::model::valid_app(app)?;
+    // Same lock order as a build which downloads its source first.
+    let _build_lock = platform::Lock::take(r"Local\CraftAppsSourceBuilder")?;
+    let _lock = platform::Lock::take(r"Local\CraftAppsManager")?;
+    let root = paths.at("sources");
+    let archive = root.join(format!("{app}-source.zip"));
+    let index_path = root.join("source-index.json");
+    files::inside(&archive, &root)?;
+    files::inside(&index_path, &root)?;
+    let mut index: BTreeMap<String, Source> = files::read_or_default(&index_path)?;
+    anyhow::ensure!(
+        index.remove(app).is_some(),
+        "No managed source for this app"
+    );
+    let staged = root.join(format!(".{app}-removing-{}.zip", uuid::Uuid::new_v4()));
+    files::inside(&staged, &root)?;
+    let existed = archive.is_file();
+    anyhow::ensure!(!archive.exists() || existed, "Source archive is not a file");
+    if existed {
+        fs::rename(&archive, &staged)?;
+    }
+    if let Err(error) = files::write_json(&index_path, &index) {
+        if existed {
+            fs::rename(&staged, &archive)
+                .context("Could not restore source archive after index save failed")?;
+        }
+        return Err(error);
+    }
+    files::remove_managed(&staged, &root)
 }
 pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
@@ -1454,6 +1665,41 @@ mod planning_tests {
             "must not execute after selection change"
         ))
         .is_err());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn custom_destination_keeps_pinned_release_and_rejects_a_late_folder_collision() {
+        let (paths, job) = fixture();
+        let parent =
+            std::env::temp_dir().join(format!("craft-destination-{}", uuid::Uuid::new_v4()));
+        let mut plan = plan_with(&paths, &job, Some("photocraft"), |app| {
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        let original_asset = plan.entries[0]
+            .asset
+            .as_ref()
+            .unwrap()
+            .browser_download_url
+            .clone();
+        choose_destination(&paths, &mut plan, &parent, true).unwrap();
+        let target = parent.join("photocraft");
+        assert_eq!(plan.entries[0].destination.as_ref(), Some(&target));
+        assert_eq!(plan.entries[0].version, "0.4.0");
+        assert_eq!(
+            plan.entries[0].asset.as_ref().unwrap().browser_download_url,
+            original_asset
+        );
+        assert!(plan.desktop_shortcut);
+        assert!(!parent.exists());
+        execute_validated(&paths, &plan, |_| Ok(())).unwrap();
+        fs::create_dir_all(&target).unwrap();
+        fs::write(target.join("work.png"), b"personal").unwrap();
+        assert!(
+            execute_validated(&paths, &plan, |_| panic!("must not replace a new folder")).is_err()
+        );
+        assert_eq!(fs::read(target.join("work.png")).unwrap(), b"personal");
+        fs::remove_dir_all(parent).unwrap();
         fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
