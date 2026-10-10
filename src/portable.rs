@@ -54,7 +54,14 @@ fn system_directory_alias(path: &Path) -> bool {
             Some("/tmp") => Path::new("/private/tmp"),
             _ => return false,
         };
-        std::fs::read_link(path).is_ok_and(|target| target == expected)
+        std::fs::read_link(path).is_ok_and(|target| {
+            let resolved = if target.is_absolute() {
+                target
+            } else {
+                path.parent().unwrap_or(Path::new("/")).join(target)
+            };
+            resolved == expected
+        })
     }
     #[cfg(not(target_os = "macos"))]
     {
