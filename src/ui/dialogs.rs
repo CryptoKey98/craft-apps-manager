@@ -2262,6 +2262,22 @@ impl App {
                 self.confirm_clean = false;
             }
         }
+        if self.hide_notice_open {
+            let notice = modal(ctx, "App hidden", 400.0, |ui| {
+                band(ui, BODY, 0.0, |ui| {
+                    header(ui, Art::Icon(Icon::EyeOff, theme::palette().accent_soft, theme::palette().accent_text, 36.0),
+                        "App hidden", "To show hidden apps again, go to Settings → Apps → App visibility → Choose… and check the apps you want to see.", |_| {});
+                });
+                footer(ui, |ui| {
+                    if action(ui, "OK", Kind::Primary, true).clicked() {
+                        self.hide_notice_open = false;
+                    }
+                });
+            });
+            if notice.should_close() {
+                self.hide_notice_open = false;
+            }
+        }
         if let Some(message) = self.selection_notice.clone() {
             let modal = modal(ctx, "No apps selected", 440.0, |ui| {
                 band(ui, BODY, 220.0 - 2.0 - BAR_HEIGHT, |ui| {

@@ -7,8 +7,8 @@ use craft_apps_manager::{catalog, model, platform, scheduler, self_update};
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
-const MANAGER_SECTIONS: [&str; 6] = [
-    "General", "Updates", "Backups", "Builds", "Folders", "About",
+const MANAGER_SECTIONS: [&str; 7] = [
+    "General", "Updates", "Apps", "Backups", "Builds", "Folders", "About",
 ];
 const BUILDER_SECTIONS: [&str; 3] = ["Builds", "Folders", "About"];
 /// Width of the section list, its right hairline included.
@@ -286,6 +286,7 @@ impl App {
                                             }
                                             match *section {
                                                 "General" => self.settings_general(ui),
+                                                "Apps" => self.settings_apps(ui),
                                                 "Updates" => self.settings_updates(ui, ctx, busy),
                                                 "Backups" => self.settings_backups(ui, busy),
                                                 "Builds" => self.settings_builds(ui, busy),
@@ -313,7 +314,34 @@ impl App {
                 });
             },
         );
-        if !self.selection
+        if self.visibility_open {
+            let dialog = super::modal(ctx, "App visibility", 480.0, |ui| {
+                dialogs::title_bar(ui, "App visibility", |ui| {
+                    if dialogs::close_button(ui).clicked() {
+                        self.visibility_open = false;
+                    }
+                });
+                dialogs::band(ui, egui::Margin::symmetric(20, 16), 0.0, |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(420.0)
+                        .show(ui, |ui| self.settings_visibility(ui));
+                });
+                dialogs::footer(ui, |ui| {
+                    if dialogs::action(ui, "Save", Kind::Primary, true).clicked() {
+                        self.settings_draft.hidden_apps = self.visibility_draft.clone();
+                        self.visibility_open = false;
+                    }
+                    if dialogs::action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.visibility_open = false;
+                    }
+                });
+            });
+            if dialog.should_close() {
+                self.visibility_open = false;
+            }
+        }
+        if !self.visibility_open
+            && !self.selection
             && !self.confirm_clear
             && !self.confirm_clean
             && !self.confirm_self_update
@@ -322,6 +350,149 @@ impl App {
             && modal.should_close()
         {
             self.settings = false;
+        }
+    }
+
+    pub(super) fn app_visibility_menu(&mut self, response: &egui::Response, name: &str) {
+        response.context_menu(|ui| {
+            if btn("Hide")
+                .kind(Kind::Ghost)
+                .icon(theme::Icon::EyeOff)
+                .show(ui)
+                .clicked()
+            {
+                let result = (|| -> anyhow::Result<()> {
+                    let mut preferences = self.paths.read_preferences()?;
+                    let first_hide = !self.hide_notice_seen;
+                    if !preferences.hidden_apps.iter().any(|app| app == name) {
+                        preferences.hidden_apps.push(name.to_owned());
+                    }
+                    craft_apps_manager::files::write_json(
+                        &self.paths.at("manager-settings.json"),
+                        &preferences,
+                    )?;
+                    if first_hide {
+                        self.hide_notice_open = true;
+                    }
+                    self.hide_notice_seen = true;
+                    self.preferences.hidden_apps = preferences.hidden_apps.clone();
+                    self.settings_draft.hidden_apps = preferences.hidden_apps;
+                    if self.app == name {
+                        self.page = super::Page::Overview;
+                    }
+                    Ok(())
+                })();
+                self.result(result);
+                ui.close_menu();
+            }
+        });
+    }
+
+    fn settings_apps(&mut self, ui: &mut egui::Ui) {
+        let shown = self
+            .settings_draft
+            .app_order
+            .iter()
+            .filter(|name| !self.settings_draft.hidden_apps.contains(name))
+            .count();
+        group(ui, "App visibility", |ui| {
+            if row(
+                ui,
+                "Apps",
+                Some(&format!(
+                    "{shown} of {} shown in sidebar and Home",
+                    self.settings_draft.app_order.len()
+                )),
+                48.0,
+                |ui| btn("Choose…").show(ui).clicked(),
+            ) {
+                self.visibility_draft = self.settings_draft.hidden_apps.clone();
+                self.visibility_open = true;
+            }
+        });
+    }
+
+    fn settings_visibility(&mut self, ui: &mut egui::Ui) {
+        let names = self.settings_draft.app_order.clone();
+        let shown = names
+            .iter()
+            .filter(|name| !self.visibility_draft.contains(name))
+            .count();
+        theme::text(
+            ui,
+            format!("{shown} of {} shown", names.len()),
+            13.0,
+            theme::palette().muted,
+        );
+        ui.horizontal(|ui| {
+            if theme::link(ui, "Select all").clicked() {
+                self.visibility_draft.clear();
+            }
+            if theme::link(ui, "Deselect all").clicked() {
+                self.visibility_draft = names.clone();
+            }
+        });
+        note(
+            ui,
+            "Hidden apps stay installed. Hiding an app does not change its update preferences.",
+        );
+        ui.add_space(12.0);
+        dialogs::rule(ui);
+        for name in names {
+            let visible = !self.visibility_draft.contains(&name);
+            let (rect, response) =
+                ui.allocate_exact_size(egui::vec2(ui.available_width(), 48.0), Sense::click());
+            response.widget_info(|| {
+                egui::WidgetInfo::selected(
+                    egui::WidgetType::Checkbox,
+                    true,
+                    visible,
+                    model::title(&name),
+                )
+            });
+            if response.hovered() {
+                ui.painter()
+                    .rect_filled(rect, CornerRadius::same(8), theme::palette().hover);
+                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+            }
+            if response.has_focus() {
+                ui.painter().rect_stroke(
+                    rect,
+                    CornerRadius::same(8),
+                    egui::Stroke::new(2.0_f32, theme::palette().link),
+                    egui::StrokeKind::Inside,
+                );
+            }
+            let mark = egui::Rect::from_min_size(
+                egui::pos2(rect.left() + 12.0, rect.center().y - 8.0),
+                egui::Vec2::splat(16.0),
+            );
+            theme::paint_check(ui, mark, visible, theme::palette().accent, true);
+            if let Some(texture) = self.icons.get(&name) {
+                ui.painter().image(
+                    texture.id(),
+                    egui::Rect::from_min_size(
+                        egui::pos2(mark.right() + 15.0, rect.center().y - 12.0),
+                        egui::Vec2::splat(24.0),
+                    ),
+                    egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                    egui::Color32::WHITE,
+                );
+            }
+            theme::painter_text(
+                ui.painter(),
+                egui::pos2(mark.right() + 51.0, rect.center().y),
+                egui::Align2::LEFT_CENTER,
+                model::title(&name),
+                14.0,
+                theme::palette().text,
+            );
+            if response.clicked() {
+                self.visibility_draft.retain(|app| app != &name);
+                if visible {
+                    self.visibility_draft.push(name);
+                }
+            }
         }
     }
 

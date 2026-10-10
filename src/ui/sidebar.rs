@@ -279,6 +279,7 @@ impl App {
         let (installed, available): (Vec<_>, Vec<_>) = order
             .iter()
             .filter(|name| matches(name))
+            .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .partition(|name| self.status(name).installed.is_some());
         // Until the first snapshot loads nothing is known to be installed or not.
@@ -841,6 +842,9 @@ impl App {
             ui.new_child(egui::UiBuilder::new().max_rect(spinner))
                 .add(egui::Spinner::new().size(12.0))
                 .on_hover_text("Checking for updates…");
+        }
+        if !floating {
+            self.app_visibility_menu(&response, name);
         }
         if !floating && chip_clicked {
             self.confirm_install = Some(name.into());

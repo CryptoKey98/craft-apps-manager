@@ -256,6 +256,7 @@ pub fn apply(ctx: &egui::Context, mode: Theme) {
     v.window_fill = palette().panel;
     v.window_stroke = Stroke::new(1.0_f32, palette().border_strong);
     v.window_corner_radius = CornerRadius::same(12);
+    v.menu_corner_radius = CornerRadius::same(8);
     v.extreme_bg_color = palette().field;
     v.faint_bg_color = palette().card;
     v.code_bg_color = palette().log;
@@ -345,6 +346,7 @@ pub enum Icon {
     Alert,
     Folder,
     Check,
+    EyeOff,
 }
 
 pub fn theme_toggle(ui: &mut Ui, mode: Theme) -> Response {
@@ -450,6 +452,21 @@ pub fn paint_icon_weight(
             .collect()
     };
     match icon {
+        Icon::EyeOff => {
+            line(vec![
+                p(2.0, 12.0),
+                p(6.0, 7.0),
+                p(12.0, 5.0),
+                p(18.0, 7.0),
+                p(22.0, 12.0),
+                p(18.0, 17.0),
+                p(12.0, 19.0),
+                p(6.0, 17.0),
+                p(2.0, 12.0),
+            ]);
+            painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
+            line(vec![p(3.0, 3.0), p(21.0, 21.0)]);
+        }
         Icon::Sun => {
             painter.circle_stroke(p(12.0, 12.0), 4.0 * scale, stroke);
             for angle in (0..360).step_by(45) {

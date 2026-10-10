@@ -192,6 +192,7 @@ impl App {
         let names: Vec<_> = order
             .iter()
             .filter(|name| self.status(name).installed.is_some() == installed)
+            .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .collect();
         ui.label(
@@ -536,6 +537,9 @@ impl App {
             .clicked()
         {
             self.confirm_install = Some(name.into());
+        }
+        if !floating {
+            self.app_visibility_menu(&response, name);
         }
         if !floating && response.clicked() {
             self.select(name);

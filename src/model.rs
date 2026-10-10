@@ -104,6 +104,8 @@ pub struct Preferences {
     pub app_order: Vec<String>,
     /// Independent ordering for Home tiles; never follows sidebar reordering.
     pub home_app_order: Vec<String>,
+    /// Presentation only: does not affect installation or update selection.
+    pub hidden_apps: Vec<String>,
     #[serde(alias = "checkUpdaterOnStartup")]
     pub check_manager_on_startup: bool,
     pub check_installed_apps_on_startup: bool,
@@ -141,6 +143,7 @@ impl Default for Preferences {
             selected_sources: sources(),
             app_order: apps(),
             home_app_order: apps(),
+            hidden_apps: Vec::new(),
             check_manager_on_startup: false,
             check_installed_apps_on_startup: true,
             check_installed_apps_periodically: true,
@@ -626,6 +629,21 @@ pub fn release_arch(architecture: &str) -> &str {
 
 #[cfg(test)]
 mod detection_tests {
+    #[test]
+    fn visibility_defaults_visible_and_preserves_update_selection_and_order() {
+        let mut preferences: super::Preferences = serde_json::from_str("{}").unwrap();
+        assert!(preferences.hidden_apps.is_empty());
+        preferences.validate().unwrap();
+        let selection = preferences.selected_apps.clone();
+        let order = preferences.app_order.clone();
+        preferences.hidden_apps.push("photocraft".into());
+        preferences.validate().unwrap();
+        let reopened: super::Preferences =
+            serde_json::from_slice(&serde_json::to_vec(&preferences).unwrap()).unwrap();
+        assert_eq!(reopened.hidden_apps, ["photocraft"]);
+        assert_eq!(reopened.selected_apps, selection);
+        assert_eq!(reopened.app_order, order);
+    }
     use super::*;
     #[test]
     fn backup_defaults_are_off_and_saved_choices_are_preserved() {
