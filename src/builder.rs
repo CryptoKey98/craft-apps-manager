@@ -60,7 +60,8 @@ pub fn build_to(
     let project = work.join("src");
     if !work.join(".extracted").exists() {
         files::extract_zip(&archive, &work, job)?;
-        let renamed_root = work.join(format!("{}-{}", crate::model::repository(app), commit.sha));
+        let folder = crate::model::repository_name(app);
+        let renamed_root = work.join(format!("{}-{}", folder, commit.sha));
         let source_root = if renamed_root.exists() {
             renamed_root
         } else {

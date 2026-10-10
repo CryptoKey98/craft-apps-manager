@@ -182,7 +182,7 @@ pub fn verify_source(p: &Path, name: &str, sha: &str) -> Result<()> {
     }
     let mut zip = zip::ZipArchive::new(File::open(p)?)?;
     let prefix = format!("{name}-{sha}/");
-    let renamed_prefix = format!("{}-{sha}/", crate::model::repository(name));
+    let renamed_prefix = format!("{}-{sha}/", crate::model::repository_name(name));
     let mut cargo = false;
     for i in 0..zip.len() {
         let mut e = zip.by_index(i)?;

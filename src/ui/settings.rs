@@ -389,6 +389,7 @@ impl App {
     }
 
     fn settings_apps(&mut self, ui: &mut egui::Ui) {
+        let busy = self.release_pending() || self.job.state.lock().unwrap().busy;
         let shown = self
             .settings_draft
             .app_order
@@ -410,6 +411,155 @@ impl App {
                 self.visibility_open = true;
             }
         });
+        ui.add_space(16.0);
+        let mut add_pressed = false;
+        let mut remove: Option<String> = None;
+        group(ui, "Custom apps", |ui| {
+            // Link entry, shaped like the Folders path rows: pinned to the
+            // available width so the field can never stretch the card.
+            dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
+                ui.spacing_mut().item_spacing.y = 8.0;
+                theme::text(ui, "GitHub repository link", 14.0, theme::palette().text);
+                add_pressed = ui
+                    .allocate_ui_with_layout(
+                        egui::vec2(ui.available_width(), 32.0),
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = 8.0;
+                            let adding = self.custom_receiver.is_some();
+                            let enabled = !busy && !adding && !self.custom_link.trim().is_empty();
+                            let pressed = btn("Add")
+                                .enabled(enabled)
+                                .show(ui)
+                                .on_disabled_hover_text(if busy {
+                                    "Wait for the current operation to finish."
+                                } else {
+                                    "Type or paste a GitHub repository link first."
+                                })
+                                .clicked();
+                            if adding {
+                                ui.spinner();
+                            }
+                            dialogs::field_style(ui);
+                            let field = ui.add(
+                                egui::TextEdit::singleline(&mut self.custom_link)
+                                    .hint_text("https://github.com/owner/repo")
+                                    .font(FontId::monospace(12.0))
+                                    .margin(egui::Margin::symmetric(10, 8))
+                                    .min_size(egui::vec2(0.0, 32.0))
+                                    .desired_width(ui.available_width()),
+                            );
+                            pressed
+                                || (field.lost_focus()
+                                    && ui.input(|input| input.key_pressed(egui::Key::Enter))
+                                    && enabled)
+                        },
+                    )
+                    .inner;
+            });
+            if !self.custom_message.is_empty() {
+                dialogs::rule(ui);
+                dialogs::band(ui, egui::Margin::symmetric(14, 10), 0.0, |ui| {
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(&self.custom_message).size(13.0).color(
+                                if self.custom_failed {
+                                    theme::palette().red
+                                } else {
+                                    theme::palette().text_2
+                                },
+                            ),
+                        )
+                        .wrap(),
+                    );
+                });
+            }
+            let customs = catalog::custom_apps(&self.paths.root);
+            if customs.is_empty() {
+                dialogs::rule(ui);
+                dialogs::band(ui, egui::Margin::symmetric(14, 10), 0.0, |ui| {
+                    theme::text(ui, "No custom apps yet.", 13.0, theme::palette().muted);
+                });
+            } else {
+                for entry in &customs {
+                    dialogs::rule(ui);
+                    if row(ui, &entry.title, Some(&entry.repository), 56.0, |ui| {
+                        btn("Remove")
+                            .enabled(!busy)
+                            .show(ui)
+                            .on_disabled_hover_text("Wait for the current operation to finish.")
+                            .clicked()
+                    }) {
+                        remove = Some(entry.key.clone());
+                    }
+                }
+            }
+        });
+        note(
+            ui,
+            "Track any other GitHub app: paste its repository link and the manager checks its latest stable release for an installable file, then updates it like a built-in app.",
+        );
+        if add_pressed {
+            self.add_custom_app(ui.ctx());
+        }
+        if let Some(key) = remove {
+            self.remove_custom_app(&key);
+        }
+    }
+
+    fn add_custom_app(&mut self, ctx: &egui::Context) {
+        let link = self.custom_link.trim().to_string();
+        let slug = match catalog::parse_github_slug(&link) {
+            Ok(slug) => slug,
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+                self.custom_failed = true;
+                return;
+            }
+        };
+        let root = self.paths.root.clone();
+        let release_format = self.settings_draft.release_format.clone();
+        let architecture = self.settings_draft.architecture.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.custom_receiver = Some(rx);
+        self.custom_message = format!("Adding {slug}…");
+        self.custom_failed = false;
+        std::thread::spawn(move || {
+            let result = catalog::add_custom_app(&root, &slug, &release_format, &architecture)
+                .map(|entry| {
+                    (
+                        entry.key.clone(),
+                        format!("Added {} ({})", entry.title, entry.repository),
+                    )
+                })
+                .map_err(|error| format!("{error:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+    }
+
+    fn remove_custom_app(&mut self, key: &str) {
+        match catalog::remove_custom_app(&self.paths.root, key) {
+            Ok(entry) => {
+                for list in [
+                    &mut self.settings_draft.selected_apps,
+                    &mut self.settings_draft.selected_sources,
+                    &mut self.settings_draft.app_order,
+                    &mut self.settings_draft.home_app_order,
+                    &mut self.settings_draft.known_apps,
+                ] {
+                    list.retain(|name| name != &entry.key);
+                }
+                self.catalog_changed();
+                self.custom_message = format!("Removed {}", entry.title);
+                self.custom_failed = false;
+            }
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+                self.custom_failed = true;
+            }
+        }
     }
 
     fn settings_visibility(&mut self, ui: &mut egui::Ui) {

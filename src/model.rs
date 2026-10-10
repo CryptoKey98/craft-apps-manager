@@ -23,10 +23,24 @@ pub fn title(name: &str) -> String {
         .map(|e| e.title)
         .unwrap_or_else(|| crate::catalog::pretty(name))
 }
-/// Upstream repository names can differ from the published binary names.
+/// The upstream repository as an `owner/name` slug. Storytold apps store a
+/// bare name in the catalog; third-party apps store a full slug.
 pub fn repository(name: &str) -> String {
     crate::catalog::get(name)
-        .map(|e| e.repository)
+        .map(|e| {
+            if e.repository.contains('/') {
+                e.repository
+            } else {
+                format!("{}/{}", crate::catalog::ORG, e.repository)
+            }
+        })
+        .unwrap_or_else(|| format!("{}/{}", crate::catalog::ORG, name))
+}
+/// The bare repository name, without any `owner/` prefix. Used where a single
+/// path segment or file name is required, such as source ZIP folder names.
+pub fn repository_name(name: &str) -> String {
+    crate::catalog::get(name)
+        .map(|e| crate::catalog::repository_name(&e.repository).to_string())
         .unwrap_or_else(|| name.into())
 }
 /// Short category shown under each app, taken from the upstream repository description.

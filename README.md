@@ -87,8 +87,12 @@ Version 0.3.2 renames the app to Craft Apps Manager. Download this release manua
 Every Craft app published under [github.com/storytold](https://github.com/storytold) is supported, including apps released after this version:
 
 - **Release and source updates:** DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, VectorCraft, WordCraft, GridCraft, DeckCraft, CADCraft and SoundCraft.
-- **Releases only:** ArtCraft, whose Windows installers and macOS disk images use their own naming (`ArtCraft_<version>_…`). On Windows it is installed with its installer.
+- **Releases only:** ArtCraft, whose Windows installers and macOS disk images use their own naming (`ArtCraft_<version>_…`). On Windows it is installed with its installer. Third-party apps are not included by default; add compatible repositories through Custom apps in Settings.
 - **Source only:** ArtCraft X.
+
+Apps hosted outside Storytold are listed by their `owner/name` repository, so their releases are checked, downloaded and updated like the rest. Their file names are matched case-insensitively, and the `x86_64`/`aarch64` architecture spellings are accepted alongside `x64`/`arm64`.
+
+You can track your own apps too: paste a GitHub repository link in Settings → Apps → Custom apps. The manager verifies that the repository's latest stable release carries an installable file for your system, then checks, downloads and updates it like a built-in app.
 
 Release formats and architectures depend on what each upstream app publishes.
 

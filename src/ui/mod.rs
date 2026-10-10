@@ -43,16 +43,18 @@ fn app_icon(name: &str) -> Option<&'static [u8]> {
 }
 /// Icon for an app without a bundled one, downloaded once from its repository.
 fn icon_bytes(paths: &Paths, name: &str) -> Option<Vec<u8>> {
+    if let Some(bytes) = app_icon(name) {
+        return Some(bytes.to_vec());
+    }
     let cached = paths.at(format!("runtime/icons/{name}.png"));
     if let Ok(bytes) = std::fs::read(&cached) {
         return Some(bytes);
     }
-    let entry = catalog::get(name)?;
+    catalog::get(name)?;
     let url = format!(
-        "https://raw.githubusercontent.com/{}/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
-        catalog::ORG,
-        entry.repository,
-        entry.repository
+        "https://raw.githubusercontent.com/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
+        model::repository(name),
+        model::repository_name(name)
     );
     let bytes = reqwest::blocking::get(url)
         .ok()?
@@ -149,6 +151,10 @@ pub struct App {
     icons_requested: std::collections::BTreeSet<String>,
     catalog_receiver: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
     catalog_message: String,
+    custom_link: String,
+    custom_message: String,
+    custom_failed: bool,
+    custom_receiver: Option<std::sync::mpsc::Receiver<Result<(String, String), String>>>,
     paths: Paths,
     home: PathBuf,
     builder: bool,
@@ -393,6 +399,10 @@ impl App {
             icons_requested: Default::default(),
             catalog_receiver,
             catalog_message: String::new(),
+            custom_link: String::new(),
+            custom_message: String::new(),
+            custom_failed: false,
+            custom_receiver: None,
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
             paths,
@@ -969,6 +979,32 @@ impl App {
                     }
                     Err(error) => {
                         self.catalog_message = format!("Could not refresh the app list: {error}")
+                    }
+                }
+            }
+        }
+        if let Some(receiver) = &self.custom_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                self.custom_receiver = None;
+                match result {
+                    Ok((key, message)) => {
+                        self.custom_message = message;
+                        self.custom_failed = false;
+                        for list in [
+                            &mut self.settings_draft.known_apps,
+                            &mut self.settings_draft.selected_apps,
+                            &mut self.settings_draft.app_order,
+                            &mut self.settings_draft.home_app_order,
+                        ] {
+                            if !list.contains(&key) {
+                                list.push(key.clone());
+                            }
+                        }
+                        self.catalog_changed();
+                    }
+                    Err(error) => {
+                        self.custom_message = error;
+                        self.custom_failed = true;
                     }
                 }
             }
