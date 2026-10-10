@@ -389,6 +389,7 @@ impl App {
     }
 
     fn settings_apps(&mut self, ui: &mut egui::Ui) {
+        let busy = self.release_pending() || self.job.state.lock().unwrap().busy;
         let shown = self
             .settings_draft
             .app_order
@@ -410,6 +411,146 @@ impl App {
                 self.visibility_open = true;
             }
         });
+        ui.add_space(16.0);
+        let mut add_pressed = false;
+        let mut remove: Option<String> = None;
+        group(ui, "Custom apps", |ui| {
+            dialogs::band(
+                ui,
+                egui::Margin {
+                    left: 14,
+                    right: 14,
+                    top: 8,
+                    bottom: 8,
+                },
+                0.0,
+                |ui| {
+                    ui.horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 8.0;
+                        dialogs::field_style(ui);
+                        let field = ui.add(
+                            egui::TextEdit::singleline(&mut self.custom_link)
+                                .hint_text("https://github.com/owner/repo")
+                                .desired_width(f32::INFINITY),
+                        );
+                        let adding = self.custom_receiver.is_some();
+                        let enabled = !busy && !adding && !self.custom_link.trim().is_empty();
+                        add_pressed = btn("Add")
+                            .enabled(enabled)
+                            .show(ui)
+                            .on_disabled_hover_text(if busy {
+                                "Wait for the current operation to finish."
+                            } else {
+                                "Type or paste a GitHub repository link first."
+                            })
+                            .clicked()
+                            || (field.lost_focus()
+                                && ui.input(|input| input.key_pressed(egui::Key::Enter))
+                                && enabled);
+                    });
+                },
+            );
+            if !self.custom_message.is_empty() {
+                dialogs::band(
+                    ui,
+                    egui::Margin {
+                        left: 14,
+                        right: 14,
+                        top: 8,
+                        bottom: 8,
+                    },
+                    0.0,
+                    |ui| {
+                        theme::text(ui, &self.custom_message, 13.0, theme::palette().text_2);
+                    },
+                );
+            }
+            let customs = catalog::custom_apps(&self.paths.root);
+            if customs.is_empty() {
+                note(ui, "No custom apps yet.");
+            }
+            for (index, entry) in customs.iter().enumerate() {
+                if index > 0 {
+                    dialogs::rule(ui);
+                }
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 8.0;
+                    theme::text(ui, &entry.title, 14.0, theme::palette().text);
+                    theme::text(ui, &entry.repository, 12.0, theme::palette().muted);
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if btn("Remove")
+                            .enabled(!busy)
+                            .show(ui)
+                            .on_disabled_hover_text("Wait for the current operation to finish.")
+                            .clicked()
+                        {
+                            remove = Some(entry.key.clone());
+                        }
+                    });
+                });
+            }
+        });
+        note(
+            ui,
+            "Track any other GitHub app: paste its repository link and the manager checks its latest stable release for an installable file, then updates it like a built-in app.",
+        );
+        if add_pressed {
+            self.add_custom_app(ui.ctx());
+        }
+        if let Some(key) = remove {
+            self.remove_custom_app(&key);
+        }
+    }
+
+    fn add_custom_app(&mut self, ctx: &egui::Context) {
+        let link = self.custom_link.trim().to_string();
+        let slug = match catalog::parse_github_slug(&link) {
+            Ok(slug) => slug,
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+                return;
+            }
+        };
+        let root = self.paths.root.clone();
+        let release_format = self.settings_draft.release_format.clone();
+        let architecture = self.settings_draft.architecture.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.custom_receiver = Some(rx);
+        self.custom_message = format!("Adding {slug}…");
+        std::thread::spawn(move || {
+            let result = catalog::add_custom_app(&root, &slug, &release_format, &architecture)
+                .map(|entry| {
+                    (
+                        entry.key.clone(),
+                        format!("Added {} ({})", entry.title, entry.repository),
+                    )
+                })
+                .map_err(|error| format!("{error:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+    }
+
+    fn remove_custom_app(&mut self, key: &str) {
+        match catalog::remove_custom_app(&self.paths.root, key) {
+            Ok(entry) => {
+                for list in [
+                    &mut self.settings_draft.selected_apps,
+                    &mut self.settings_draft.selected_sources,
+                    &mut self.settings_draft.app_order,
+                    &mut self.settings_draft.home_app_order,
+                    &mut self.settings_draft.known_apps,
+                ] {
+                    list.retain(|name| name != &entry.key);
+                }
+                self.catalog_changed();
+                self.custom_message = format!("Removed {}", entry.title);
+            }
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+            }
+        }
     }
 
     fn settings_visibility(&mut self, ui: &mut egui::Ui) {

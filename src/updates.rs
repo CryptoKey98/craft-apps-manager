@@ -245,6 +245,70 @@ fn tauri_asset<'a>(
         p.release_format
     )
 }
+/// Finds the release file matching Craft-style naming
+/// (`prefix-version-os-arch`) for the given prefixes, format and
+/// architecture, without needing a catalog entry.
+pub fn find_asset<'a>(
+    release: &'a Release,
+    prefixes: &[String],
+    release_format: &str,
+    architecture: &str,
+) -> Option<&'a Asset> {
+    let prefs = Preferences {
+        release_format: release_format.into(),
+        architecture: architecture.into(),
+        ..Preferences::default()
+    };
+    asset_named(release, prefixes, &prefs).ok().flatten()
+}
+/// The Tauri asset prefix (`Foo` in `Foo_1.2.3_x64-setup.exe`) of a release
+/// installable on this machine, if the release uses Tauri-style file names.
+pub fn tauri_prefix(
+    release: &Release,
+    version: &str,
+    release_format: &str,
+    architecture: &str,
+) -> Option<String> {
+    let arch = match architecture {
+        "x86" => "x86",
+        "arm64" => "(?:arm64|aarch64)",
+        _ => "x64",
+    };
+    let version = regex::escape(version);
+    let patterns: Vec<String> = if cfg!(target_os = "macos") {
+        vec![
+            format!("^([A-Za-z0-9]+)_{version}_universal\\.dmg$"),
+            format!("^([A-Za-z0-9]+)_{version}_{arch}\\.dmg$"),
+        ]
+    } else if cfg!(target_os = "windows") {
+        if release_format != "installer" {
+            return None;
+        }
+        vec![
+            format!("^([A-Za-z0-9]+)_{version}_{arch}_[A-Za-z]{{2}}-[A-Za-z]{{2}}\\.msi$"),
+            format!("^([A-Za-z0-9]+)_{version}_{arch}-setup\\.exe$"),
+        ]
+    } else {
+        // Linux packaging varies per distribution; verified separately.
+        Vec::new()
+    };
+    for pattern in patterns {
+        let pattern = regex::Regex::new(&pattern).ok()?;
+        let mut prefix = None;
+        for asset in &release.assets {
+            if let Some(captured) = pattern.captures(&asset.name) {
+                if prefix.replace(captured[1].to_string()).is_some() {
+                    // More than one app in this release: not attributable.
+                    return None;
+                }
+            }
+        }
+        if prefix.is_some() {
+            return prefix;
+        }
+    }
+    None
+}
 #[cfg(target_os = "linux")]
 fn tauri_linux_patterns(
     prefix: &str,

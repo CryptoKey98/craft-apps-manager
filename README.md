@@ -92,6 +92,8 @@ Every Craft app published under [github.com/storytold](https://github.com/storyt
 
 Apps hosted outside Storytold are listed by their `owner/name` repository, so their releases are checked, downloaded and updated like the rest. Their file names are matched case-insensitively, and the `x86_64`/`aarch64` architecture spellings are accepted alongside `x64`/`arm64`.
 
+You can track your own apps too: paste a GitHub repository link in Settings → Apps → Custom apps. The manager verifies that the repository's latest stable release carries an installable file for your system, then checks, downloads and updates it like a built-in app.
+
 Release formats and architectures depend on what each upstream app publishes.
 
 The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery and discovery during hourly app checks are separate opt-in settings with a shared six-hour cache. New apps appear in the list but are not selected for bulk app/source updates unless you enable **Include newly published Craft apps automatically**. Discovery never installs apps. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.

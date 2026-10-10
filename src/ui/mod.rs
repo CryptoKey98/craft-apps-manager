@@ -153,6 +153,9 @@ pub struct App {
     icons_requested: std::collections::BTreeSet<String>,
     catalog_receiver: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
     catalog_message: String,
+    custom_link: String,
+    custom_message: String,
+    custom_receiver: Option<std::sync::mpsc::Receiver<Result<(String, String), String>>>,
     paths: Paths,
     home: PathBuf,
     builder: bool,
@@ -397,6 +400,9 @@ impl App {
             icons_requested: Default::default(),
             catalog_receiver,
             catalog_message: String::new(),
+            custom_link: String::new(),
+            custom_message: String::new(),
+            custom_receiver: None,
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
             paths,
@@ -973,6 +979,30 @@ impl App {
                     }
                     Err(error) => {
                         self.catalog_message = format!("Could not refresh the app list: {error}")
+                    }
+                }
+            }
+        }
+        if let Some(receiver) = &self.custom_receiver {
+            if let Ok(result) = receiver.try_recv() {
+                self.custom_receiver = None;
+                match result {
+                    Ok((key, message)) => {
+                        self.custom_message = message;
+                        for list in [
+                            &mut self.settings_draft.known_apps,
+                            &mut self.settings_draft.selected_apps,
+                            &mut self.settings_draft.app_order,
+                            &mut self.settings_draft.home_app_order,
+                        ] {
+                            if !list.contains(&key) {
+                                list.push(key.clone());
+                            }
+                        }
+                        self.catalog_changed();
+                    }
+                    Err(error) => {
+                        self.custom_message = error;
                     }
                 }
             }

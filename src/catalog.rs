@@ -7,7 +7,11 @@
 use crate::{files, model::Release, network::Network};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{path::Path, sync::RwLock};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+    sync::RwLock,
+};
 
 pub const ORG: &str = "storytold";
 pub const REFRESH_INTERVAL: i64 = 6 * 3600;
@@ -216,6 +220,13 @@ struct Cache {
 fn cache_path(root: &Path) -> std::path::PathBuf {
     root.join("runtime/catalog.json")
 }
+/// One `owner` or repository name segment: lowercase, digits, `-_.`.
+fn repository_part(part: &str) -> bool {
+    !part.is_empty()
+        && part.bytes().all(|b| {
+            b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-' || b == b'_' || b == b'.'
+        })
+}
 fn valid(entry: &Entry) -> bool {
     let simple = |s: &str| {
         !s.is_empty()
@@ -226,17 +237,7 @@ fn valid(entry: &Entry) -> bool {
     // for an app hosted under a different account.
     let repository = |s: &str| {
         let (owner, name) = s.split_once('/').unwrap_or(("", s));
-        let part = |p: &str| {
-            !p.is_empty()
-                && p.bytes().all(|b| {
-                    b.is_ascii_lowercase()
-                        || b.is_ascii_digit()
-                        || b == b'-'
-                        || b == b'_'
-                        || b == b'.'
-                })
-        };
-        (owner.is_empty() || part(owner)) && part(name)
+        (owner.is_empty() || repository_part(owner)) && repository_part(name)
     };
     simple(&entry.key)
         && repository(&entry.repository)
@@ -256,9 +257,12 @@ fn valid(entry: &Entry) -> bool {
                     .all(|b| b.is_ascii_alphanumeric())))
 }
 /// Built-in apps stay authoritative; discovery only adds apps they do not cover.
+/// User-added apps follow discovery and win over discovered duplicates, so a
+/// repository the user tracks explicitly is never shadowed by classification.
 fn merge(
     discovered: Vec<Entry>,
-    learned: &std::collections::BTreeMap<String, Vec<String>>,
+    learned: &BTreeMap<String, Vec<String>>,
+    custom: &[Entry],
 ) -> Vec<Entry> {
     let mut entries = builtin();
     let mut found: Vec<Entry> = Vec::new();
@@ -268,6 +272,7 @@ fn merge(
                 .iter()
                 .chain(&found)
                 .any(|e| e.key == entry.key || e.repository == entry.repository)
+            && !custom.iter().any(|e| e.repository == entry.repository)
         {
             found.push(entry);
         }
@@ -275,6 +280,18 @@ fn merge(
     // Newly published apps follow the built-in ones.
     found.sort_by(|a, b| a.key.cmp(&b.key));
     entries.extend(found);
+    let mut customs: Vec<Entry> = custom
+        .iter()
+        .filter(|e| {
+            valid(e)
+                && !entries
+                    .iter()
+                    .any(|x| x.key == e.key || x.repository == e.repository)
+        })
+        .cloned()
+        .collect();
+    customs.sort_by(|a, b| a.key.cmp(&b.key));
+    entries.extend(customs);
     for entry in &mut entries {
         for alias in learned.get(&entry.key).into_iter().flatten() {
             if valid_alias(alias) && !entry.aliases.contains(alias) {
@@ -302,13 +319,205 @@ pub fn learn_alias(root: &Path, key: &str, alias: &str) -> Result<()> {
         aliases.push(alias.to_string());
     }
     files::write_json(&cache_path(root), &cache)?;
-    *CURRENT.write().unwrap() = merge(cache.entries, &cache.learned);
+    reload(root, &cache);
     Ok(())
 }
 /// Uses the saved discovery result without contacting GitHub.
 pub fn load(root: &Path) {
     let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
-    *CURRENT.write().unwrap() = merge(cache.entries, &cache.learned);
+    reload(root, &cache);
+}
+/// Rebuilds the process-wide catalog from saved discovery plus user apps.
+fn reload(root: &Path, cache: &Cache) {
+    *CURRENT.write().unwrap() = merge(cache.entries.clone(), &cache.learned, &custom_apps(root));
+}
+/// Apps the user added from GitHub links in Settings, newest last.
+fn custom_path(root: &Path) -> PathBuf {
+    root.join("runtime/custom-apps.json")
+}
+pub fn custom_apps(root: &Path) -> Vec<Entry> {
+    files::read_or_default(&custom_path(root)).unwrap_or_default()
+}
+fn write_custom_apps(root: &Path, apps: &Vec<Entry>) -> Result<()> {
+    files::write_json(&custom_path(root), apps)
+}
+/// Accepts `https://github.com/owner/repo`, `github.com/owner/repo` or a bare
+/// `owner/repo` slug. Anything deeper (a release page, a file) is rejected so
+/// people paste repository links, not subpages.
+pub fn parse_github_slug(link: &str) -> Result<String> {
+    let rest = link.trim();
+    let rest = match rest.split(['?', '#']).next() {
+        Some(first) => first.trim_end_matches('/'),
+        None => rest,
+    };
+    let lower = rest.to_ascii_lowercase();
+    let mut rest = rest;
+    for scheme in ["https://", "http://"] {
+        if lower.starts_with(scheme) {
+            rest = &rest[scheme.len()..];
+            break;
+        }
+    }
+    rest = rest.strip_prefix("www.").unwrap_or(rest);
+    let path = match rest.split_once('/') {
+        Some((host, path)) if host.contains('.') => {
+            if !host.eq_ignore_ascii_case("github.com") {
+                anyhow::bail!("Only github.com repository links are supported, got {host}");
+            }
+            path
+        }
+        _ => rest,
+    };
+    let mut segments = path.split('/').filter(|s| !s.is_empty());
+    let (Some(owner), Some(repo), None) = (segments.next(), segments.next(), segments.next())
+    else {
+        anyhow::bail!("Paste a repository link like https://github.com/owner/repo");
+    };
+    let repo = repo.strip_suffix(".git").unwrap_or(repo);
+    if !repository_part(&owner.to_ascii_lowercase()) || !repository_part(&repo.to_ascii_lowercase())
+    {
+        anyhow::bail!("{owner}/{repo} is not a valid owner/repository name");
+    }
+    Ok(format!(
+        "{}/{}",
+        owner.to_ascii_lowercase(),
+        repo.to_ascii_lowercase()
+    ))
+}
+/// The catalog key for a repository name: lowercase alphanumeric only, so the
+/// entry stays valid and usable in folders and settings.
+fn key_for_repo(repo: &str) -> Result<String> {
+    let key: String = repo
+        .to_ascii_lowercase()
+        .bytes()
+        .filter(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
+        .map(char::from)
+        .collect();
+    if key.is_empty() {
+        anyhow::bail!("The repository name {repo} has no usable characters");
+    }
+    Ok(key)
+}
+/// Readable title from a release name: `MapCraft v1.2.0` → `MapCraft`.
+fn release_title(name: Option<&str>, repo: &str) -> String {
+    if let Some(name) = name {
+        let name = regex::Regex::new(r"\s+v?\d+\.\d+\.\d+.*$")
+            .unwrap()
+            .replace(name.trim(), "");
+        if !name.is_empty() && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b' ') {
+            return name.into_owned();
+        }
+    }
+    let pretty = pretty(repo);
+    if !pretty.trim().is_empty() {
+        pretty
+    } else {
+        repo.into()
+    }
+}
+/// Builds a release-tracking entry for a user-supplied repository, verifying
+/// that its latest stable release has an installable file for this machine.
+fn classify_custom(
+    slug: &str,
+    repository: &Repository,
+    release: &Release,
+    release_format: &str,
+    architecture: &str,
+) -> Result<Entry> {
+    if release.draft || release.prerelease {
+        anyhow::bail!("{slug} has no stable release yet");
+    }
+    let version = crate::updates::release_version(&release.tag_name).map_err(|_| {
+        anyhow::anyhow!("{slug} tags its releases in a way the manager cannot read")
+    })?;
+    let key = key_for_repo(&repository.name)?;
+    let repo_lower = repository.name.to_ascii_lowercase();
+    let (scheme, asset_prefix) = if crate::updates::find_asset(
+        release,
+        &[key.clone(), repo_lower],
+        release_format,
+        architecture,
+    )
+    .is_some()
+    {
+        (Scheme::Craft, key.clone())
+    } else if let Some(prefix) =
+        crate::updates::tauri_prefix(release, &version, release_format, architecture)
+    {
+        (Scheme::Tauri, prefix)
+    } else {
+        anyhow::bail!(
+            "{slug} {version} has no installable file for this system. The manager tracks repositories whose releases carry Craft-style files ({key}-{version}-…​) or Tauri-style files."
+        );
+    };
+    Ok(Entry {
+        key,
+        repository: slug.into(),
+        title: release_title(release.name.as_deref(), &repository.name),
+        category: String::new(),
+        description: repository
+            .description
+            .clone()
+            .unwrap_or_default()
+            .trim()
+            .into(),
+        scheme,
+        asset_prefix,
+        aliases: Vec::new(),
+        bundle_ids: Vec::new(),
+        release: true,
+        source: false,
+    })
+}
+/// Adds a user-supplied GitHub repository to the catalog after verifying it.
+pub fn add_custom_app(
+    root: &Path,
+    link: &str,
+    release_format: &str,
+    architecture: &str,
+) -> Result<Entry> {
+    let slug = parse_github_slug(link)?;
+    if let Some(known) = all().iter().find(|e| e.repository == slug) {
+        anyhow::bail!("{} is already in your app list", known.title);
+    }
+    let network = Network::new(root)?;
+    let repository: Repository = network.json(&format!("https://api.github.com/repos/{slug}"))?;
+    if repository.archived || repository.fork || repository.disabled {
+        anyhow::bail!("{slug} is archived, disabled or a fork; pick the upstream repository");
+    }
+    let release: Option<Release> = network.json_optional(&format!(
+        "https://api.github.com/repos/{slug}/releases/latest"
+    ))?;
+    let Some(release) = release else {
+        anyhow::bail!("{slug} has no releases yet");
+    };
+    let entry = classify_custom(&slug, &repository, &release, release_format, architecture)?;
+    if let Some(known) = all().iter().find(|e| e.key == entry.key) {
+        anyhow::bail!("{} is already tracked as {}", known.title, known.repository);
+    }
+    let mut apps = custom_apps(root);
+    apps.retain(|e| e.key != entry.key && e.repository != entry.repository);
+    apps.push(entry.clone());
+    apps.sort_by(|a, b| a.key.cmp(&b.key));
+    write_custom_apps(root, &apps)?;
+    let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
+    reload(root, &cache);
+    Ok(entry)
+}
+/// Removes a user-added app. Built-in and discovered apps cannot be removed.
+pub fn remove_custom_app(root: &Path, key: &str) -> Result<Entry> {
+    let mut apps = custom_apps(root);
+    let Some(position) = apps.iter().position(|e| e.key == key) else {
+        if all().iter().any(|e| e.key == key) {
+            anyhow::bail!("{key} is built in and cannot be removed; hide it instead");
+        }
+        anyhow::bail!("Unknown custom app: {key}");
+    };
+    let removed = apps.remove(position);
+    write_custom_apps(root, &apps)?;
+    let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
+    reload(root, &cache);
+    Ok(removed)
 }
 /// Seconds since the last successful discovery, if any.
 pub fn age(root: &Path) -> Option<i64> {
@@ -384,17 +593,14 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
             .to_string();
         discovered.push(entry);
     }
-    files::write_json(
-        &cache_path(root),
-        &Cache {
-            checked_at: chrono::Utc::now().timestamp(),
-            entries: discovered.clone(),
-            learned: previous.learned.clone(),
-        },
-    )?;
-    let merged = merge(discovered, &previous.learned);
-    *CURRENT.write().unwrap() = merged.clone();
-    Ok(merged)
+    let cache = Cache {
+        checked_at: chrono::Utc::now().timestamp(),
+        entries: discovered,
+        learned: previous.learned,
+    };
+    files::write_json(&cache_path(root), &cache)?;
+    reload(root, &cache);
+    Ok(all())
 }
 
 /// Readable name for a repository without a curated title: `mapcraft` → `MapCraft`.
@@ -660,6 +866,7 @@ mod tests {
                 craft("../x", "X", "", ""),
             ],
             &learned,
+            &[],
         );
         let light = merged.iter().find(|e| e.key == "lightcraft").unwrap();
         assert_eq!(light.aliases, ["lumencraft"]);
@@ -672,6 +879,141 @@ mod tests {
         assert_eq!(merged.last().unwrap().key, "mapcraft");
         assert_eq!(pretty("cadcraft"), "CadCraft");
         assert_eq!(names("printcraft"), ["printcraft", "pdfcraft"]);
+    }
+    #[test]
+    fn parses_github_links_to_owner_slugs() {
+        assert_eq!(
+            parse_github_slug("https://github.com/Bherbruck/SolveCraft").unwrap(),
+            "bherbruck/solvecraft"
+        );
+        assert_eq!(
+            parse_github_slug("github.com/jub0t/concat/").unwrap(),
+            "jub0t/concat"
+        );
+        assert_eq!(parse_github_slug("jub0t/concat").unwrap(), "jub0t/concat");
+        assert_eq!(
+            parse_github_slug("https://github.com/jub0t/concat.git").unwrap(),
+            "jub0t/concat"
+        );
+        assert_eq!(
+            parse_github_slug("https://github.com/jub0t/concat?tab=releases").unwrap(),
+            "jub0t/concat"
+        );
+        for bad in [
+            "",
+            "not a link",
+            "https://gitlab.com/owner/repo",
+            "https://github.com/just-an-owner",
+            "https://github.com/owner/repo/releases",
+            "https://github.com/owner/repo/blob/main/README.md",
+            "owner/repo/extra",
+            "https://github.com/BAD OWNER/repo",
+        ] {
+            assert!(parse_github_slug(bad).is_err(), "{bad}");
+        }
+    }
+    #[test]
+    fn classifies_custom_apps_from_their_release() {
+        fn platform_asset() -> (&'static str, &'static str) {
+            if cfg!(target_os = "macos") {
+                ("zookraft-1.2.0-macos-universal.dmg", "portable")
+            } else if cfg!(target_os = "linux") {
+                ("zookraft-1.2.0-linux-x86_64.AppImage", "portable")
+            } else {
+                ("zookraft-1.2.0-windows-x64.msi", "installer")
+            }
+        }
+        let repo = Repository {
+            name: "ZooKraft".into(),
+            description: Some(" Puzzles ".into()),
+            archived: false,
+            fork: false,
+            disabled: false,
+        };
+        let (asset, format) = platform_asset();
+        let craft_release = release("v1.2.0", "ZooKraft v1.2.0", &[asset]);
+        let entry =
+            classify_custom("someone/zookraft", &repo, &craft_release, format, "x64").unwrap();
+        assert_eq!(
+            (entry.key.as_str(), entry.repository.as_str()),
+            ("zookraft", "someone/zookraft")
+        );
+        assert_eq!(
+            (entry.scheme, entry.release, entry.source),
+            (Scheme::Craft, true, false)
+        );
+        assert_eq!(entry.asset_prefix.as_str(), "zookraft");
+        assert_eq!(entry.title.as_str(), "ZooKraft");
+        assert_eq!(entry.description.as_str(), "Puzzles");
+        if cfg!(target_os = "macos") {
+            let tauri_release = release("1.2.0", "", &["Zoo_1.2.0_universal.dmg"]);
+            let entry =
+                classify_custom("someone/zookraft", &repo, &tauri_release, "portable", "x64")
+                    .unwrap();
+            assert_eq!(
+                (entry.scheme, entry.asset_prefix.as_str()),
+                (Scheme::Tauri, "Zoo")
+            );
+        } else if cfg!(target_os = "windows") {
+            let tauri_release = release("1.2.0", "", &["Zoo_1.2.0_x64-setup.exe"]);
+            let entry = classify_custom(
+                "someone/zookraft",
+                &repo,
+                &tauri_release,
+                "installer",
+                "x64",
+            )
+            .unwrap();
+            assert_eq!(
+                (entry.scheme, entry.asset_prefix.as_str()),
+                (Scheme::Tauri, "Zoo")
+            );
+        }
+        let web = release("v1.2.0", "", &["zookraft-1.2.0-web.zip"]);
+        assert!(classify_custom("someone/zookraft", &repo, &web, format, "x64").is_err());
+        let draft = Release {
+            draft: true,
+            ..release("v1.2.0", "", &[asset])
+        };
+        assert!(classify_custom("someone/zookraft", &repo, &draft, format, "x64").is_err());
+    }
+    #[test]
+    fn custom_apps_persist_and_win_over_discovery() {
+        let root =
+            std::env::temp_dir().join(format!("craft-catalog-custom-{}", uuid::Uuid::new_v4()));
+        let mine = Entry {
+            key: "zookraft".into(),
+            repository: "someone/zookraft".into(),
+            title: "Zoo".into(),
+            category: String::new(),
+            description: String::new(),
+            scheme: Scheme::Craft,
+            asset_prefix: "zookraft".into(),
+            aliases: Vec::new(),
+            bundle_ids: Vec::new(),
+            release: true,
+            source: false,
+        };
+        files::write_json(&custom_path(&root), &vec![mine.clone()]).unwrap();
+        load(&root);
+        assert!(all()
+            .iter()
+            .any(|e| e.key == "zookraft" && e.repository == "someone/zookraft"));
+        // A discovered entry for the same repository is dropped, never duplicated.
+        let merged = merge(
+            vec![mine.clone()],
+            &std::collections::BTreeMap::new(),
+            &custom_apps(&root),
+        );
+        assert_eq!(merged.iter().filter(|e| e.key == "zookraft").count(), 1);
+        let removed = remove_custom_app(&root, "zookraft").unwrap();
+        assert_eq!(removed.repository, "someone/zookraft");
+        assert!(remove_custom_app(&root, "zookraft").is_err());
+        assert!(remove_custom_app(&root, "designcraft").is_err());
+        // Restore the process-wide catalog for the remaining serial tests.
+        load(&root.join("unused"));
+        assert!(all().iter().all(|e| e.key != "zookraft"));
+        std::fs::remove_dir_all(root).unwrap();
     }
     #[test]
     fn third_party_apps_use_an_owner_slug_and_bare_file_names() {
