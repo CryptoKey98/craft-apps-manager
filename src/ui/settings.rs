@@ -415,52 +415,62 @@ impl App {
         let mut add_pressed = false;
         let mut remove: Option<String> = None;
         group(ui, "Custom apps", |ui| {
-            // Link entry, shaped like the Folders path rows.
+            // Link entry, shaped like the Folders path rows: pinned to the
+            // available width so the field can never stretch the card.
             dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
                 ui.spacing_mut().item_spacing.y = 8.0;
                 theme::text(ui, "GitHub repository link", 14.0, theme::palette().text);
-                ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 8.0;
-                    dialogs::field_style(ui);
-                    let field = ui.add(
-                        egui::TextEdit::singleline(&mut self.custom_link)
-                            .hint_text("https://github.com/owner/repo")
-                            .font(FontId::monospace(12.0))
-                            .margin(egui::Margin::symmetric(10, 8))
-                            .min_size(egui::vec2(0.0, 32.0))
-                            .desired_width(f32::INFINITY),
-                    );
-                    let adding = self.custom_receiver.is_some();
-                    let enabled = !busy && !adding && !self.custom_link.trim().is_empty();
-                    add_pressed = btn("Add")
-                        .enabled(enabled)
-                        .show(ui)
-                        .on_disabled_hover_text(if busy {
-                            "Wait for the current operation to finish."
-                        } else {
-                            "Type or paste a GitHub repository link first."
-                        })
-                        .clicked()
-                        || (field.lost_focus()
-                            && ui.input(|input| input.key_pressed(egui::Key::Enter))
-                            && enabled);
-                    if adding {
-                        ui.spinner();
-                    }
-                });
+                add_pressed = ui
+                    .allocate_ui_with_layout(
+                        egui::vec2(ui.available_width(), 32.0),
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = 8.0;
+                            let adding = self.custom_receiver.is_some();
+                            let enabled = !busy && !adding && !self.custom_link.trim().is_empty();
+                            let pressed = btn("Add")
+                                .enabled(enabled)
+                                .show(ui)
+                                .on_disabled_hover_text(if busy {
+                                    "Wait for the current operation to finish."
+                                } else {
+                                    "Type or paste a GitHub repository link first."
+                                })
+                                .clicked();
+                            if adding {
+                                ui.spinner();
+                            }
+                            dialogs::field_style(ui);
+                            let field = ui.add(
+                                egui::TextEdit::singleline(&mut self.custom_link)
+                                    .hint_text("https://github.com/owner/repo")
+                                    .font(FontId::monospace(12.0))
+                                    .margin(egui::Margin::symmetric(10, 8))
+                                    .min_size(egui::vec2(0.0, 32.0))
+                                    .desired_width(ui.available_width()),
+                            );
+                            pressed
+                                || (field.lost_focus()
+                                    && ui.input(|input| input.key_pressed(egui::Key::Enter))
+                                    && enabled)
+                        },
+                    )
+                    .inner;
             });
             if !self.custom_message.is_empty() {
                 dialogs::rule(ui);
                 dialogs::band(ui, egui::Margin::symmetric(14, 10), 0.0, |ui| {
-                    theme::text(
-                        ui,
-                        &self.custom_message,
-                        13.0,
-                        if self.custom_failed {
-                            theme::palette().red
-                        } else {
-                            theme::palette().text_2
-                        },
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(&self.custom_message).size(13.0).color(
+                                if self.custom_failed {
+                                    theme::palette().red
+                                } else {
+                                    theme::palette().text_2
+                                },
+                            ),
+                        )
+                        .wrap(),
                     );
                 });
             }
