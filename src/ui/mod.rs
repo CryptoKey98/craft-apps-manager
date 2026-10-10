@@ -155,6 +155,7 @@ pub struct App {
     catalog_message: String,
     custom_link: String,
     custom_message: String,
+    custom_failed: bool,
     custom_receiver: Option<std::sync::mpsc::Receiver<Result<(String, String), String>>>,
     paths: Paths,
     home: PathBuf,
@@ -402,6 +403,7 @@ impl App {
             catalog_message: String::new(),
             custom_link: String::new(),
             custom_message: String::new(),
+            custom_failed: false,
             custom_receiver: None,
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
@@ -989,6 +991,7 @@ impl App {
                 match result {
                     Ok((key, message)) => {
                         self.custom_message = message;
+                        self.custom_failed = false;
                         for list in [
                             &mut self.settings_draft.known_apps,
                             &mut self.settings_draft.selected_apps,
@@ -1003,6 +1006,7 @@ impl App {
                     }
                     Err(error) => {
                         self.custom_message = error;
+                        self.custom_failed = true;
                     }
                 }
             }
