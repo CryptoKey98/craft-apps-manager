@@ -763,7 +763,10 @@ impl App {
         let (tx, rx) = std::sync::mpsc::channel();
         self.install_receiver = Some(rx);
         self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
-        self.job_target = Some((app.clone(), "install-app".into()));
+        // Selecting a version only prepares a plan; installation starts after approval.
+        self.job_target = None;
+        self.operation_completed_at = None;
+        self.operation_was_busy = false;
         self.failure_dismissed = false;
         self.job_action = "releases".into();
         self.job.spawn(move |job| {
