@@ -999,7 +999,7 @@ mod tests {
             repository: "someone/customcraft".into(),
             ..craft("customcraft", "CustomCraft", "", "")
         };
-        let merged = merge(Vec::new(), &BTreeMap::new(), &[custom.clone()]);
+        let merged = merge(Vec::new(), &BTreeMap::new(), std::slice::from_ref(&custom));
         assert!(merged.contains(&custom));
         assert_eq!(repository_name(&custom.repository), "customcraft");
     }
