@@ -11,6 +11,33 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+fn expected_asset_url(value: &str, repository: &str) -> bool {
+    let Ok(url) = reqwest::Url::parse(value) else {
+        return false;
+    };
+    let Some((owner, repo)) = repository.split_once('/') else {
+        return false;
+    };
+    if url.scheme() != "https"
+        || url.host_str() != Some("github.com")
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.port().is_some()
+    {
+        return false;
+    }
+    let mut segments = url.path().trim_start_matches('/').split('/');
+    segments
+        .next()
+        .is_some_and(|s| s.eq_ignore_ascii_case(owner))
+        && segments
+            .next()
+            .is_some_and(|s| s.eq_ignore_ascii_case(repo))
+        && segments.next() == Some("releases")
+        && segments.next() == Some("download")
+        && segments.next().is_some_and(|s| !s.is_empty())
+        && segments.next().is_some_and(|s| !s.is_empty())
+}
 /// Parses `1.2.3`, `v1.2.3` and app-prefixed tags such as `artcraft-v0.41.0`.
 pub fn version(v: &str) -> Result<(u64, u64, u64)> {
     let nums: Vec<_> = v
@@ -665,10 +692,10 @@ fn plan_with(
             if let Some(parsed) = crate::catalog::parse_asset(&asset.name) {
                 crate::catalog::learn_alias(&paths.root, &app.name, &parsed.prefix)?;
             }
-            if !asset.browser_download_url.starts_with(&format!(
-                "https://github.com/{}/releases/download/",
-                crate::model::repository(&app.name)
-            )) {
+            if !expected_asset_url(
+                &asset.browser_download_url,
+                &crate::model::repository(&app.name),
+            ) {
                 bail!("Unexpected asset URL");
             }
             files::safe_relative(&asset.name)?;
@@ -1435,6 +1462,20 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn release_url_matches_repository_case_only() {
+        let url = "https://github.com/EcoPasteHub/EcoPaste/releases/download/v1.1.0/EcoPaste_1.1.0_x64-setup.exe";
+        assert!(super::expected_asset_url(url, "ecopastehub/ecopaste"));
+        assert!(!super::expected_asset_url(url, "another/ecopaste"));
+        for invalid in [
+            url.replace("github.com", "github.com.example.org"),
+            url.replace("https://", "http://"),
+            url.replace("/releases/", "/Releases/"),
+            url.replace("github.com/", "github.com@evil.example/"),
+        ] {
+            assert!(!super::expected_asset_url(&invalid, "ecopastehub/ecopaste"));
+        }
+    }
     #[cfg(target_os = "linux")]
     #[test]
     fn tauri_linux_assets_match_distribution_and_architecture() {
@@ -1555,17 +1596,19 @@ mod tests {
             }],
         };
         // Uppercase file names and the `x86_64` spelling still match.
-        let solvecraft = release("solvecraft", "v0.1.2", "SolveCraft-0.1.2-windows-x64.exe");
+        let photocraft = release("photocraft", "v0.1.2", "PhotoCraft-0.1.2-windows-x64.exe");
         assert_eq!(
-            select_asset(&solvecraft, "solvecraft", &preferences)
+            select_asset(&photocraft, "photocraft", &preferences)
                 .unwrap()
                 .name,
-            "SolveCraft-0.1.2-windows-x64.exe"
+            "PhotoCraft-0.1.2-windows-x64.exe"
         );
-        let concat = release("concat", "v0.2.6", "Concat-0.2.6-windows-x86_64.msi");
+        let filmcraft = release("filmcraft", "v0.2.6", "FilmCraft-0.2.6-windows-x86_64.msi");
         assert_eq!(
-            select_asset(&concat, "concat", &preferences).unwrap().name,
-            "Concat-0.2.6-windows-x86_64.msi"
+            select_asset(&filmcraft, "filmcraft", &preferences)
+                .unwrap()
+                .name,
+            "FilmCraft-0.2.6-windows-x86_64.msi"
         );
     }
     #[test]

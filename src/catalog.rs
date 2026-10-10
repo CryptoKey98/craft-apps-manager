@@ -119,34 +119,6 @@ pub fn builtin() -> Vec<Entry> {
             release: false,
             source: true,
         },
-        // Third-party apps hosted outside the Storytold organization. Their
-        // releases follow the Craft asset naming, so they update like the rest.
-        Entry {
-            key: "solvecraft".into(),
-            repository: "bherbruck/solvecraft".into(),
-            title: "SolveCraft".into(),
-            category: "Crossword puzzles".into(),
-            description: "Create, solve, and print crosswords with a free and open-source crossword editor built in Rust.".into(),
-            scheme: Scheme::Craft,
-            asset_prefix: "solvecraft".into(),
-            aliases: Vec::new(),
-            bundle_ids: Vec::new(),
-            release: true,
-            source: false,
-        },
-        Entry {
-            key: "concat".into(),
-            repository: "jub0t/concat".into(),
-            title: "Concat".into(),
-            category: "Version control".into(),
-            description: "A fast, native desktop Git client written in Rust.".into(),
-            scheme: Scheme::Craft,
-            asset_prefix: "Concat".into(),
-            aliases: Vec::new(),
-            bundle_ids: Vec::new(),
-            release: true,
-            source: false,
-        },
     ]
 }
 
@@ -1016,17 +988,19 @@ mod tests {
         std::fs::remove_dir_all(root).unwrap();
     }
     #[test]
-    fn third_party_apps_use_an_owner_slug_and_bare_file_names() {
-        assert_eq!(crate::model::repository("filmcraft"), "storytold/filmcraft");
-        assert_eq!(
-            crate::model::repository("solvecraft"),
-            "bherbruck/solvecraft"
-        );
-        assert_eq!(crate::model::repository("concat"), "jub0t/concat");
-        assert_eq!(crate::model::repository_name("solvecraft"), "solvecraft");
-        assert_eq!(crate::model::repository_name("concat"), "concat");
-        assert_eq!(names("concat"), ["concat"]);
-        assert!(crate::model::apps().iter().any(|a| a == "solvecraft"));
-        assert!(crate::model::apps().iter().any(|a| a == "concat"));
+    fn third_party_apps_are_only_added_explicitly() {
+        let defaults = builtin();
+        assert!(defaults.iter().all(|e| !e.repository.contains('/')));
+        assert!(!defaults
+            .iter()
+            .any(|e| matches!(e.key.as_str(), "solvecraft" | "concat")));
+
+        let custom = Entry {
+            repository: "someone/customcraft".into(),
+            ..craft("customcraft", "CustomCraft", "", "")
+        };
+        let merged = merge(Vec::new(), &BTreeMap::new(), &[custom.clone()]);
+        assert!(merged.contains(&custom));
+        assert_eq!(repository_name(&custom.repository), "customcraft");
     }
 }

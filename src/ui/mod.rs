@@ -38,8 +38,6 @@ fn app_icon(name: &str) -> Option<&'static [u8]> {
         "cadcraft" => include_bytes!("../../assets/app-icons/cadcraft.png"),
         "soundcraft" => include_bytes!("../../assets/app-icons/soundcraft.png"),
         "printcraft" => include_bytes!("../../assets/app-icons/pdfcraft.png"),
-        "solvecraft" => include_bytes!("../../assets/app-icons/solvecraft.png"),
-        "concat" => include_bytes!("../../assets/app-icons/concat.png"),
         _ => return None,
     })
 }
