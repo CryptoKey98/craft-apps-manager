@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.7.0
+
+- Redesign Home with installed and discoverable app tiles, independent drag ordering, update indicators and a clearer Update All review.
+- Add a version picker for published releases, including explicit downgrade confirmation and installer downgrade recovery.
+- Update only installed apps in Update All and automatically include newly installed apps in its selection.
+- Add optional close-to-tray behavior with Open, Check for updates and Exit actions; show the tray icon only while the manager is hidden.
+- Hide apps from the sidebar and Home through a right-click menu and restore them in Settings → Apps → App visibility → Choose….
+- Redesign install and uninstall dialogs with app icons, folder previews, folder opening, download sizes and verification stages.
+- Support custom Windows MSI destinations where the installer provides a supported directory property, and manager-created desktop shortcuts.
+- Add installation relocation for portable apps and supported Windows MSI apps, with running-app checks, verified transfers and recovery copies.
+- Improve Windows installer cancellation, installation detection and restoration into protected folders.
+- Redesign build confirmation with source and build locations, source download status, folder browsing and matching progress feedback.
+- Add per-app source removal, compiled build deletion and build cache deletion controls.
+- Clarify startup, periodic and background update checks; allow a 10–60 minute interval while the manager is open.
+- Use the system theme on first launch, refine dark checkbox styling and enlarge the default manager window.
+- Default app and source backups to off while preserving existing saved preferences.
+- Fix version-preview completion indicators, long path display and duplicate folder tooltips.
+
 ## 0.6.0
 
 App discovery and ArtCraft support contributed by [carpaaaaa](https://github.com/carpaaaaa).
