@@ -8,7 +8,7 @@ pub struct Target {
     pub root: PathBuf,
 }
 #[cfg(target_os = "windows")]
-fn known_folder(id: &windows::core::GUID) -> Result<PathBuf> {
+pub(crate) fn known_folder(id: &windows::core::GUID) -> Result<PathBuf> {
     use windows::Win32::{
         System::Com::CoTaskMemFree,
         UI::Shell::{SHGetKnownFolderPath, KF_FLAG_DEFAULT},
@@ -61,7 +61,7 @@ pub fn targets(paths: &Paths, app: &str) -> Result<Vec<Target>> {
         if let Ok(installed) = apps::installed(paths, app) {
             if installed.install_kind != "installer" {
                 let root = PathBuf::from(installed.path);
-                files::inside(&root, &paths.at("releases"))?;
+                crate::portable::validate(paths, app, &root)?;
                 targets.push(Target {
                     path: root.join("PhotoCraftData"),
                     root,
@@ -104,14 +104,15 @@ pub fn preserve_portable(paths: &Paths, app: &str) -> Result<Option<(PathBuf, Pa
     if !data.exists() {
         return Ok(None);
     }
-    files::inside(&data, &paths.at("releases"))?;
+    crate::portable::validate(paths, app, data.parent().unwrap())?;
+    files::inside(&data, data.parent().unwrap())?;
     let kept = paths.at("runtime/app-profiles/photocraft");
     files::inside(&kept, &paths.at("runtime/app-profiles"))?;
     if kept.exists() {
         bail!("A retained PhotoCraft profile already exists; leaving both profiles intact");
     }
     std::fs::create_dir_all(kept.parent().unwrap())?;
-    std::fs::rename(&data, &kept)?;
+    files::move_verified(&data, &kept)?;
     Ok(Some((data, kept)))
 }
 pub fn restore_portable(paths: &Paths, app: &str, target: &Path) -> Result<()> {
@@ -124,11 +125,12 @@ pub fn restore_portable(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     }
     files::inside(&kept, &paths.at("runtime/app-profiles"))?;
     let data = target.join("PhotoCraftData");
-    files::inside(&data, &paths.at("releases"))?;
+    crate::portable::validate(paths, app, data.parent().unwrap())?;
+    files::inside(&data, data.parent().unwrap())?;
     if data.exists() {
         bail!("PhotoCraftData already exists; retained profile was not overwritten");
     }
-    std::fs::rename(kept, data)?;
+    files::move_verified(&kept, &data)?;
     Ok(())
 }
 

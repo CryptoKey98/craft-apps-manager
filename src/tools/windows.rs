@@ -92,6 +92,66 @@ pub fn visual_cpp() -> Result<Option<PathBuf>> {
         .map(|s| PathBuf::from(s).join("Common7/Tools/VsDevCmd.bat"))
         .find(|p| p.exists()))
 }
+/// Older Windows build tools still impose MAX_PATH despite long-path support.
+/// Use filesystem-provided aliases without relocating or linking user folders.
+pub fn compiler_path(path: &Path) -> Result<PathBuf> {
+    use std::os::windows::ffi::{OsStrExt, OsStringExt};
+    use windows::{core::PCWSTR, Win32::Storage::FileSystem::GetShortPathNameW};
+    let absolute = std::path::absolute(path)?;
+    let wide: Vec<u16> = absolute.as_os_str().encode_wide().chain([0]).collect();
+    let mut buffer = vec![0u16; 32768];
+    let count = unsafe { GetShortPathNameW(PCWSTR(wide.as_ptr()), Some(&mut buffer)) } as usize;
+    let result = if count > 0 && count < buffer.len() {
+        PathBuf::from(std::ffi::OsString::from_wide(&buffer[..count]))
+    } else {
+        absolute
+    };
+    anyhow::ensure!(result.as_os_str().encode_wide().count() <= 140,
+        "Windows build path is too long and a short folder alias is unavailable: {}. Choose a shorter library or build-tools folder in Settings > Folders (for example C:/CraftBuildTools).", path.display());
+    Ok(result)
+}
+/// Rustup canonicalizes its home, so explicitly shorten rustc's sysroot too.
+pub fn configure_rust_paths(
+    paths: &Paths,
+    project: &Path,
+    env: &mut BTreeMap<String, String>,
+) -> Result<()> {
+    let rustc = paths.tools.join("cargo/bin/rustc.exe");
+    let rustc = if rustc.is_file() {
+        rustc
+    } else {
+        system("rustc.exe").context("Rust compiler is missing")?
+    };
+    let out = platform::output(
+        Command::new(compiler_path(&rustc)?)
+            .args(["--print", "sysroot"])
+            .current_dir(compiler_path(project)?)
+            .envs(&*env),
+    )?;
+    anyhow::ensure!(
+        out.status.success(),
+        "Could not locate the Rust system libraries: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let sysroot = PathBuf::from(String::from_utf8(out.stdout)?.trim());
+    let alias = compiler_path(&sysroot)?;
+    let mut flags = env
+        .get("CARGO_ENCODED_RUSTFLAGS")
+        .cloned()
+        .unwrap_or_else(|| {
+            env.get("RUSTFLAGS")
+                .map(|flags| flags.split_whitespace().collect::<Vec<_>>().join("\x1f"))
+                .unwrap_or_default()
+        });
+    if !flags.is_empty() {
+        flags.push('\x1f');
+    }
+    flags.push_str("--sysroot");
+    flags.push('\x1f');
+    flags.push_str(&alias.display().to_string());
+    env.insert("CARGO_ENCODED_RUSTFLAGS".into(), flags);
+    Ok(())
+}
 pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
     use std::os::windows::process::CommandExt;
     let vs = visual_cpp()?
@@ -119,11 +179,15 @@ pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
     if paths.tools.join("cargo/bin/cargo.exe").exists() {
         env.insert(
             "CARGO_HOME".into(),
-            paths.tools.join("cargo").display().to_string(),
+            compiler_path(&paths.tools.join("cargo"))?
+                .display()
+                .to_string(),
         );
         env.insert(
             "RUSTUP_HOME".into(),
-            paths.tools.join("rustup").display().to_string(),
+            compiler_path(&paths.tools.join("rustup"))?
+                .display()
+                .to_string(),
         );
         bins.push(paths.tools.join("cargo/bin"));
     }
@@ -266,11 +330,15 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
         }
         env.insert(
             "CARGO_HOME".into(),
-            paths.tools.join("cargo").display().to_string(),
+            compiler_path(&paths.tools.join("cargo"))?
+                .display()
+                .to_string(),
         );
         env.insert(
             "RUSTUP_HOME".into(),
-            paths.tools.join("rustup").display().to_string(),
+            compiler_path(&paths.tools.join("rustup"))?
+                .display()
+                .to_string(),
         );
         job.run(
             Command::new(&exe)
@@ -527,4 +595,25 @@ fn install_cpp(network: &Network, cache: &Path, job: &Job) -> Result<()> {
     }
     fs::remove_file(exe)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod build_path_tests {
+    use super::*;
+    #[test]
+    fn compiler_alias_preserves_file_identity_and_reports_unsupported_long_paths() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        fs::create_dir_all(&root).unwrap();
+        let file = root.join("compiler-path-test.txt");
+        fs::write(&file, b"same file").unwrap();
+        assert_eq!(
+            fs::read(compiler_path(&file).unwrap()).unwrap(),
+            b"same file"
+        );
+        let nonexistent = root.join("long-name".repeat(25)).join("missing");
+        let error = compiler_path(&nonexistent).unwrap_err().to_string();
+        assert!(error.contains("short folder alias is unavailable"));
+        assert!(error.contains("Settings > Folders"));
+        fs::remove_dir_all(root).unwrap();
+    }
 }

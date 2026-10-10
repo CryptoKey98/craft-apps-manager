@@ -1,6 +1,6 @@
 [package]
 name = "craft-apps-manager"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 license = "MIT"
 description = "Release and source manager for the Craft apps"
@@ -17,6 +17,7 @@ path = "src/bin/release-tool.rs"
 required-features = ["release-tools"]
 
 [dependencies]
+raw-window-handle = "0.6"
 toml_edit = { version = "0.25", optional = true }
 semver = { version = "1", optional = true }
 anyhow = "1"
@@ -31,6 +32,13 @@ sha2 = "0.10"
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 zip = { version = "2.4", default-features = false, features = ["deflate"] }
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+tray-icon = { version = "0.26.1", default-features = false }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+tray-icon = { version = "0.26.1", default-features = false, features = ["ksni"] }
+zbus = { version = "5", default-features = false, features = ["tokio", "blocking-api"] }
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 

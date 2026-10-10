@@ -254,6 +254,14 @@ pub fn run(file: &Path, app: &str) -> Result<Installed> {
     run_with_job(file, app, None)
 }
 pub fn run_with_job(file: &Path, app: &str, job: Option<&Job>) -> Result<Installed> {
+    run_selected_with_job(file, app, job, false)
+}
+pub fn run_selected_with_job(
+    file: &Path,
+    app: &str,
+    job: Option<&Job>,
+    downgrade: bool,
+) -> Result<Installed> {
     crate::model::valid_app(app)?;
     let kind = package_kind()?;
     let file = file.canonicalize()?;
@@ -298,13 +306,21 @@ pub fn run_with_job(file: &Path, app: &str, job: Option<&Job>) -> Result<Install
         ));
     }
     let status = Command::new("pkexec")
-        .args([manager(kind), "install", "-y"])
+        .args(installation_arguments(kind, downgrade))
         .arg(&file)
         .status()?;
     if !status.success() {
         bail!("Package installation failed or authorization was cancelled ({status})");
     }
     detect(app)?.context("Package command completed, but the app executable could not be detected")
+}
+fn installation_arguments(kind: PackageKind, downgrade: bool) -> Vec<&'static str> {
+    match (kind, downgrade) {
+        (PackageKind::Debian, true) => vec!["apt-get", "install", "-y", "--allow-downgrades"],
+        (PackageKind::Rpm, true) => vec!["dnf", "downgrade", "-y"],
+        (PackageKind::Arch, _) => vec!["pacman", "-U", "--noconfirm"],
+        _ => vec![manager(kind), "install", "-y"],
+    }
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
     crate::model::valid_app(&app.name)?;
@@ -329,6 +345,25 @@ pub fn uninstall(app: &Installed) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn explicit_downgrades_use_native_package_manager_support() {
+        assert_eq!(
+            installation_arguments(PackageKind::Debian, true),
+            ["apt-get", "install", "-y", "--allow-downgrades"]
+        );
+        assert_eq!(
+            installation_arguments(PackageKind::Rpm, true),
+            ["dnf", "downgrade", "-y"]
+        );
+        assert_eq!(
+            installation_arguments(PackageKind::Rpm, false),
+            ["dnf", "install", "-y"]
+        );
+        assert_eq!(
+            installation_arguments(PackageKind::Arch, true),
+            ["pacman", "-U", "--noconfirm"]
+        );
+    }
     #[test]
     fn arch_metadata_requires_unique_identity_fields() {
         let info = "pkgname = pdfcraft\npkgver = 1:0.4.1-2\narch = x86_64\ndepend = glibc\n";

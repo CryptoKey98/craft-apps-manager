@@ -107,17 +107,6 @@ impl App {
                     self.job.state.lock().unwrap().output =
                         builder::history(&self.paths, &self.app);
                 }
-                ui.add_enabled(
-                    !state.busy,
-                    egui::Checkbox::new(&mut self.latest, "Use latest source"),
-                );
-                theme::text(
-                    ui,
-                    "Unchecked builds from your local source ZIP without contacting GitHub.",
-                    12.0,
-                    theme::palette().muted,
-                );
-                ui.add_space(4.0);
                 let width = ui.available_width();
                 if btn("Build executable")
                     .primary()

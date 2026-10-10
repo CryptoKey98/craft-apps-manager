@@ -35,8 +35,18 @@ pub fn output(c: &mut Command) -> Result<Output> {
     Ok(hidden(c).output()?)
 }
 pub fn atomic_replace(from: &Path, to: &Path) -> Result<()> {
-    let a = wide(from);
-    let b = wide(to);
+    // Rust filesystem calls accept long paths; the Win32 move must receive
+    // the same extended absolute form, including for the temporary filename.
+    let a = wide(std::fs::canonicalize(from)?);
+    let destination = std::fs::canonicalize(
+        to.parent()
+            .ok_or_else(|| anyhow::anyhow!("Missing destination parent"))?,
+    )?
+    .join(
+        to.file_name()
+            .ok_or_else(|| anyhow::anyhow!("Missing destination filename"))?,
+    );
+    let b = wide(destination);
     for i in 0..50 {
         let result = unsafe {
             MoveFileExW(
@@ -55,6 +65,7 @@ pub fn atomic_replace(from: &Path, to: &Path) -> Result<()> {
     }
     unreachable!()
 }
+
 pub struct Lock(HANDLE);
 impl Lock {
     pub fn take(name: &str) -> Result<Self> {
@@ -221,6 +232,9 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
     }
 }
 pub fn notify(exe: &Path, message: &str) -> Result<()> {
+    notify_with_title(exe, "Craft updates available", message)
+}
+pub fn notify_with_title(exe: &Path, title: &str, message: &str) -> Result<()> {
     use winreg::{enums::HKEY_CURRENT_USER, RegKey};
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let (key, _) =
@@ -237,7 +251,7 @@ pub fn notify(exe: &Path, message: &str) -> Result<()> {
         UI::Notifications::{ToastNotification, ToastNotificationManager},
     };
     let xml = XmlDocument::new()?;
-    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>Craft updates available</text><text>{}</text></binding></visual></toast>",escape(message))))?;
+    xml.LoadXml(&HSTRING::from(format!("<toast activationType='protocol' launch='craft-apps-manager-rust:'><visual><binding template='ToastGeneric'><text>{}</text><text>{}</text></binding></visual></toast>",escape(title),escape(message))))?;
     let toast = ToastNotification::CreateToastNotification(&xml)?;
     ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from("CraftApps.Manager.Rust"))?
         .Show(&toast)?;
@@ -355,4 +369,20 @@ pub fn shortcut_extension() -> &'static str {
 
 pub fn relaunch_executable() -> Result<std::path::PathBuf> {
     Ok(std::env::current_exe()?)
+}
+
+#[cfg(test)]
+mod atomic_path_tests {
+    #[test]
+    fn atomic_writes_work_beyond_max_path_without_changing_file_identity() {
+        let root = std::env::temp_dir().join(format!("craft-atomic-{}", uuid::Uuid::new_v4()));
+        let parent = root.join("a".repeat(90)).join("b".repeat(90));
+        let file = parent.join("c".repeat(70));
+        assert!(file.as_os_str().len() > 260);
+        crate::files::write_bytes(&file, b"first").unwrap();
+        crate::files::write_bytes(&file, b"second").unwrap();
+        assert_eq!(std::fs::read(&file).unwrap(), b"second");
+        assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 1);
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

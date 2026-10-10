@@ -291,8 +291,13 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
                 .context("Missing version")?
                 .into();
             updates::version(&record.version)?;
-            let target = paths.at(format!("releases/{app}"));
-            files::inside(&target, &paths.at("releases"))?;
+            let target = if record.install_kind != "installer" && !record.path.is_empty() {
+                std::path::PathBuf::from(&record.path)
+            } else {
+                paths.at(format!("releases/{app}"))
+            };
+            crate::portable::validate_install(paths, app, &target)?;
+            crate::portable::mark_restored(paths, app, matches[0].path().parent().unwrap())?;
             record.path = target.to_string_lossy().into_owned();
             record.install_kind = "portable".into();
             record.product_code.clear();

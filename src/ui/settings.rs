@@ -3,12 +3,12 @@ use super::dialogs;
 use super::overview::release_format_label;
 use super::theme::{self, btn, Kind};
 use super::{modal, App, Locations};
-use craft_apps_manager::{catalog, model, platform, self_update};
+use craft_apps_manager::{catalog, model, platform, scheduler, self_update};
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
-const MANAGER_SECTIONS: [&str; 6] = [
-    "General", "Updates", "Backups", "Builds", "Folders", "About",
+const MANAGER_SECTIONS: [&str; 7] = [
+    "General", "Updates", "Apps", "Backups", "Builds", "Folders", "About",
 ];
 const BUILDER_SECTIONS: [&str; 3] = ["Builds", "Folders", "About"];
 /// Width of the section list, its right hairline included.
@@ -286,6 +286,7 @@ impl App {
                                             }
                                             match *section {
                                                 "General" => self.settings_general(ui),
+                                                "Apps" => self.settings_apps(ui),
                                                 "Updates" => self.settings_updates(ui, ctx, busy),
                                                 "Backups" => self.settings_backups(ui, busy),
                                                 "Builds" => self.settings_builds(ui, busy),
@@ -313,7 +314,34 @@ impl App {
                 });
             },
         );
-        if !self.selection
+        if self.visibility_open {
+            let dialog = super::modal(ctx, "App visibility", 480.0, |ui| {
+                dialogs::title_bar(ui, "App visibility", |ui| {
+                    if dialogs::close_button(ui).clicked() {
+                        self.visibility_open = false;
+                    }
+                });
+                dialogs::band(ui, egui::Margin::symmetric(20, 16), 0.0, |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(420.0)
+                        .show(ui, |ui| self.settings_visibility(ui));
+                });
+                dialogs::footer(ui, |ui| {
+                    if dialogs::action(ui, "Save", Kind::Primary, true).clicked() {
+                        self.settings_draft.hidden_apps = self.visibility_draft.clone();
+                        self.visibility_open = false;
+                    }
+                    if dialogs::action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.visibility_open = false;
+                    }
+                });
+            });
+            if dialog.should_close() {
+                self.visibility_open = false;
+            }
+        }
+        if !self.visibility_open
+            && !self.selection
             && !self.confirm_clear
             && !self.confirm_clean
             && !self.confirm_self_update
@@ -322,6 +350,149 @@ impl App {
             && modal.should_close()
         {
             self.settings = false;
+        }
+    }
+
+    pub(super) fn app_visibility_menu(&mut self, response: &egui::Response, name: &str) {
+        response.context_menu(|ui| {
+            if btn("Hide")
+                .kind(Kind::Ghost)
+                .icon(theme::Icon::EyeOff)
+                .show(ui)
+                .clicked()
+            {
+                let result = (|| -> anyhow::Result<()> {
+                    let mut preferences = self.paths.read_preferences()?;
+                    let first_hide = !self.hide_notice_seen;
+                    if !preferences.hidden_apps.iter().any(|app| app == name) {
+                        preferences.hidden_apps.push(name.to_owned());
+                    }
+                    craft_apps_manager::files::write_json(
+                        &self.paths.at("manager-settings.json"),
+                        &preferences,
+                    )?;
+                    if first_hide {
+                        self.hide_notice_open = true;
+                    }
+                    self.hide_notice_seen = true;
+                    self.preferences.hidden_apps = preferences.hidden_apps.clone();
+                    self.settings_draft.hidden_apps = preferences.hidden_apps;
+                    if self.app == name {
+                        self.page = super::Page::Overview;
+                    }
+                    Ok(())
+                })();
+                self.result(result);
+                ui.close_menu();
+            }
+        });
+    }
+
+    fn settings_apps(&mut self, ui: &mut egui::Ui) {
+        let shown = self
+            .settings_draft
+            .app_order
+            .iter()
+            .filter(|name| !self.settings_draft.hidden_apps.contains(name))
+            .count();
+        group(ui, "App visibility", |ui| {
+            if row(
+                ui,
+                "Apps",
+                Some(&format!(
+                    "{shown} of {} shown in sidebar and Home",
+                    self.settings_draft.app_order.len()
+                )),
+                48.0,
+                |ui| btn("Choose…").show(ui).clicked(),
+            ) {
+                self.visibility_draft = self.settings_draft.hidden_apps.clone();
+                self.visibility_open = true;
+            }
+        });
+    }
+
+    fn settings_visibility(&mut self, ui: &mut egui::Ui) {
+        let names = self.settings_draft.app_order.clone();
+        let shown = names
+            .iter()
+            .filter(|name| !self.visibility_draft.contains(name))
+            .count();
+        theme::text(
+            ui,
+            format!("{shown} of {} shown", names.len()),
+            13.0,
+            theme::palette().muted,
+        );
+        ui.horizontal(|ui| {
+            if theme::link(ui, "Select all").clicked() {
+                self.visibility_draft.clear();
+            }
+            if theme::link(ui, "Deselect all").clicked() {
+                self.visibility_draft = names.clone();
+            }
+        });
+        note(
+            ui,
+            "Hidden apps stay installed. Hiding an app does not change its update preferences.",
+        );
+        ui.add_space(12.0);
+        dialogs::rule(ui);
+        for name in names {
+            let visible = !self.visibility_draft.contains(&name);
+            let (rect, response) =
+                ui.allocate_exact_size(egui::vec2(ui.available_width(), 48.0), Sense::click());
+            response.widget_info(|| {
+                egui::WidgetInfo::selected(
+                    egui::WidgetType::Checkbox,
+                    true,
+                    visible,
+                    model::title(&name),
+                )
+            });
+            if response.hovered() {
+                ui.painter()
+                    .rect_filled(rect, CornerRadius::same(8), theme::palette().hover);
+                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+            }
+            if response.has_focus() {
+                ui.painter().rect_stroke(
+                    rect,
+                    CornerRadius::same(8),
+                    egui::Stroke::new(2.0_f32, theme::palette().link),
+                    egui::StrokeKind::Inside,
+                );
+            }
+            let mark = egui::Rect::from_min_size(
+                egui::pos2(rect.left() + 12.0, rect.center().y - 8.0),
+                egui::Vec2::splat(16.0),
+            );
+            theme::paint_check(ui, mark, visible, theme::palette().accent, true);
+            if let Some(texture) = self.icons.get(&name) {
+                ui.painter().image(
+                    texture.id(),
+                    egui::Rect::from_min_size(
+                        egui::pos2(mark.right() + 15.0, rect.center().y - 12.0),
+                        egui::Vec2::splat(24.0),
+                    ),
+                    egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                    egui::Color32::WHITE,
+                );
+            }
+            theme::painter_text(
+                ui.painter(),
+                egui::pos2(mark.right() + 51.0, rect.center().y),
+                egui::Align2::LEFT_CENTER,
+                model::title(&name),
+                14.0,
+                theme::palette().text,
+            );
+            if response.clicked() {
+                self.visibility_draft.retain(|app| app != &name);
+                if visible {
+                    self.visibility_draft.push(name);
+                }
+            }
         }
     }
 
@@ -357,9 +528,23 @@ impl App {
                     self.checking_apps.clear();
                     self.release_checks.clear();
                 }
-                self.display_config = None;
-                self.config_receiver = None;
+                // Appearance/selection saves must not temporarily empty the app lists.
+                if changed || root != self.paths.root {
+                    self.display_config = None;
+                    self.config_receiver = None;
+                }
                 self.config_refresh_at = std::time::Instant::now();
+            }
+            if !self.builder && self.auto_draft != self.auto {
+                if let Err(error) = scheduler::set(&self.paths, false, self.auto_draft) {
+                    self.auto = scheduler::enabled(false);
+                    self.auto_draft = self.auto;
+                    self.result(Err(error.context(
+                        "Preferences saved, but the background scheduler could not be changed",
+                    )));
+                    return;
+                }
+                self.auto = self.auto_draft;
             }
             self.settings = false;
         }
@@ -463,6 +648,13 @@ impl App {
         });
     }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
+        group(ui, "Window behavior", |ui| {
+            check_row(ui, &mut self.settings_draft.close_to_tray, "Keep running in the system tray when closed", Some("Closing hides the window. Periodic checks continue; choose Exit in the tray menu to quit."));
+            if let Some(message) = &self.tray_error {
+                note(ui, message);
+            }
+        });
+        ui.add_space(16.0);
         group(ui, "Releases", |ui| {
             let hint = if self.settings_draft.release_format == "installer" {
                 if cfg!(target_os = "macos") {
@@ -650,29 +842,32 @@ impl App {
         });
         ui.add_space(16.0);
         group(ui, "Update all", |ui| {
-            let apps = format!(
-                "{} of {} included",
-                self.settings_draft.selected_apps.len(),
-                model::apps().len()
-            );
+            let eligible = self
+                .display_config
+                .as_ref()
+                .map(|config| {
+                    config
+                        .apps
+                        .iter()
+                        .filter(|app| {
+                            craft_apps_manager::updates::installed_for_updates(
+                                app,
+                                &self.settings_draft,
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            let included = eligible
+                .iter()
+                .filter(|app| self.settings_draft.selected_apps.contains(&app.name))
+                .count();
+            let apps = format!("{} of {} installed apps included", included, eligible.len());
             if row(ui, "Apps", Some(&apps), 52.0, |ui| {
                 btn("Choose…").show(ui).clicked()
             }) {
                 self.source_selection = false;
                 self.selection_draft = self.settings_draft.selected_apps.clone();
-                self.selection = true;
-            }
-            dialogs::rule(ui);
-            let sources = format!(
-                "{} of {} included",
-                self.settings_draft.selected_sources.len(),
-                model::sources().len()
-            );
-            if row(ui, "Sources", Some(&sources), 52.0, |ui| {
-                btn("Choose…").show(ui).clicked()
-            }) {
-                self.source_selection = true;
-                self.selection_draft = self.settings_draft.selected_sources.clone();
                 self.selection = true;
             }
             dialogs::rule(ui);
@@ -682,7 +877,9 @@ impl App {
                 "Include newly published Craft apps automatically",
                 None,
             )
-            .on_hover_text("Apps that appear on github.com/storytold after this version are added to Update all and Update all sources the first time they are found.");
+            .on_hover_text(
+                "New Craft apps are included in Update All when they are first discovered.",
+            );
             dialogs::rule(ui);
             check_row(
                 ui,
@@ -695,10 +892,10 @@ impl App {
             check_row(
                 ui,
                 &mut self.settings_draft.check_catalog_with_app_updates,
-                "Look for new Craft apps during hourly app checks",
+                "Look for new Craft apps during automatic update checks",
                 None,
             )
-            .on_hover_text("Requires hourly App updates to be enabled. Shares the six-hour cache with startup checks. Refresh below checks immediately.");
+            .on_hover_text("Uses periodic or background update checks. Shares the six-hour discovery cache with startup checks. Refresh below checks immediately.");
             dialogs::rule(ui);
             let known = catalog::all().len();
             let status = if self.catalog_message.is_empty() {
@@ -727,19 +924,60 @@ impl App {
             }
         });
         ui.add_space(16.0);
-        group(ui, "Checks and notifications", |ui| {
+        group(ui, "Automatic update checks", |ui| {
             check_row(
                 ui,
                 &mut self.settings_draft.check_installed_apps_on_startup,
-                "Check installed apps on startup",
-                None,
-            )
-            .on_hover_text("Checks installed apps in the selected release format. Reports availability only; downloads and installation require confirmation.");
+                "When the manager opens",
+                Some("Check installed apps for newer versions."),
+            );
             dialogs::rule(ui);
             check_row(
                 ui,
+                &mut self.settings_draft.check_installed_apps_periodically,
+                "Periodically while the manager is open",
+                Some("Checks wait until downloads and builds finish."),
+            );
+            row_with(
+                ui,
+                "Check every",
+                Some("Minutes · 10–60"),
+                44.0,
+                true,
+                |ui| {
+                    ui.add_enabled_ui(
+                        self.settings_draft.check_installed_apps_periodically,
+                        |ui| {
+                            number(
+                                ui,
+                                egui::DragValue::new(
+                                    &mut self.settings_draft.app_check_interval_minutes,
+                                )
+                                .range(10..=60),
+                            )
+                        },
+                    )
+                    .inner
+                },
+            );
+            dialogs::rule(ui);
+            check_row(
+                ui,
+                &mut self.auto_draft,
+                "Check even when the manager is closed",
+                Some("Every hour using your system’s background scheduler."),
+            );
+        });
+        note(
+            ui,
+            "Checks only look for updates. Downloads and installations require your approval.",
+        );
+        ui.add_space(16.0);
+        group(ui, "Notifications", |ui| {
+            check_row(
+                ui,
                 &mut self.settings_draft.notify_updates,
-                "Notify me when app or source updates are available",
+                "Notify me when app updates are available",
                 None,
             );
         });

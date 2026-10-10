@@ -180,6 +180,7 @@ impl App {
             if let Some(action) = mine.clone() {
                 let verb = match action.as_str() {
                     "uninstall-app" => "uninstall",
+                    "move-app" => "move",
                     "source-app" => "download the source for",
                     "restore" => "restore a backup of",
                     "delete-backups" => "delete backups of",
@@ -279,9 +280,16 @@ impl App {
         }
 
         // Progress for an operation running on this app, in place of the buttons.
-        if state.busy && mine.is_some() {
+        let completed_opacity = if state.stage == "Complete" {
+            self.completed_progress_opacity(ui.ctx())
+        } else {
+            0.0
+        };
+        let show_progress = mine.is_some() && (state.busy || completed_opacity > 0.0);
+        if show_progress {
             let verb = match mine.as_deref() {
                 Some("uninstall-app") => "Uninstalling",
+                Some("move-app") => "Moving",
                 Some("source-app") => "Downloading source for",
                 Some("restore") => "Restoring",
                 Some("delete-backups") => "Deleting backups of",
@@ -290,67 +298,90 @@ impl App {
             };
             // 560 points of content inside the padding and border, as in the design.
             let width = ui.available_width().min(560.0 + 30.0);
-            egui::Frame::new()
-                .fill(theme::palette().progress_bg)
-                .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
-                .corner_radius(CornerRadius::same(10))
-                .inner_margin(egui::Margin::symmetric(14, 12))
-                .show(ui, |ui| {
-                    let inner = width - 30.0;
-                    ui.set_width(inner);
-                    // Title row, 8 points, then the bar; Cancel centred beside them.
-                    let height = line(14.0) + 8.0 + 6.0;
-                    let (rect, _) = ui.allocate_exact_size(vec2(inner, height), Sense::hover());
-                    let mut cancel = child(ui, rect, Layout::right_to_left(Align::Center));
-                    self.cancel_button(&mut cancel, &state.stage);
-                    let right = cancel.min_rect().left() - 16.0;
-                    let column = Rect::from_min_max(rect.min, pos2(right, rect.max.y));
-                    let mut text = child(
-                        ui,
-                        Rect::from_min_size(column.min, vec2(column.width(), line(14.0))),
-                        Layout::left_to_right(Align::Min),
-                    );
-                    text.spacing_mut().item_spacing.x = 12.0;
-                    theme::text(
-                        &mut text,
-                        format!("{verb} {title}…"),
-                        14.0,
-                        theme::palette().text,
-                    );
-                    text.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new(if state.detail.is_empty() {
-                                    state.stage.clone()
-                                } else {
-                                    format!("{} · {}", state.stage, state.detail)
-                                })
-                                .size(14.0)
-                                .color(theme::palette().text_3),
-                            )
-                            .truncate(),
+            ui.scope(|ui| {
+                if !state.busy {
+                    ui.multiply_opacity(completed_opacity);
+                }
+                egui::Frame::new()
+                    .fill(theme::palette().progress_bg)
+                    .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
+                    .corner_radius(CornerRadius::same(10))
+                    .inner_margin(egui::Margin::symmetric(14, 12))
+                    .show(ui, |ui| {
+                        let inner = width - 30.0;
+                        ui.set_width(inner);
+                        // Title row, 8 points, then the bar; Cancel centred beside them.
+                        let height = line(14.0) + 8.0 + 6.0;
+                        let (rect, _) = ui.allocate_exact_size(vec2(inner, height), Sense::hover());
+                        let mut cancel = child(ui, rect, Layout::right_to_left(Align::Center));
+                        if state.busy {
+                            self.cancel_button(&mut cancel, &state.stage);
+                        } else {
+                            theme::text(&mut cancel, "Done", 13.0, theme::palette().text_3);
+                        }
+                        let right = cancel.min_rect().left() - 16.0;
+                        let column = Rect::from_min_max(rect.min, pos2(right, rect.max.y));
+                        let mut text = child(
+                            ui,
+                            Rect::from_min_size(column.min, vec2(column.width(), line(14.0))),
+                            Layout::left_to_right(Align::Min),
+                        );
+                        text.spacing_mut().item_spacing.x = 12.0;
+                        theme::text(
+                            &mut text,
+                            if state.busy {
+                                format!("{verb} {title}…")
+                            } else if mine.as_deref() == Some("install-app") {
+                                "Installed successfully".into()
+                            } else {
+                                format!("{title} · Complete")
+                            },
+                            14.0,
+                            theme::palette().text,
+                        );
+                        text.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(if state.detail.is_empty() {
+                                        state.stage.clone()
+                                    } else {
+                                        format!("{} · {}", state.stage, state.detail)
+                                    })
+                                    .size(14.0)
+                                    .color(theme::palette().text_3),
+                                )
+                                .truncate(),
+                            );
+                        });
+                        let mut bar = child(
+                            ui,
+                            Rect::from_min_size(
+                                pos2(column.left(), column.top() + line(14.0) + 8.0),
+                                vec2(column.width(), 6.0),
+                            ),
+                            Layout::top_down(Align::Min),
+                        );
+                        theme::progress(
+                            &mut bar,
+                            if state.busy {
+                                state.progress
+                            } else {
+                                Some(1.0)
+                            },
+                            6.0,
                         );
                     });
-                    let mut bar = child(
-                        ui,
-                        Rect::from_min_size(
-                            pos2(column.left(), column.top() + line(14.0) + 8.0),
-                            vec2(column.width(), 6.0),
-                        ),
-                        Layout::top_down(Align::Min),
-                    );
-                    theme::progress(&mut bar, state.progress, 6.0);
-                });
+            });
         }
         // Source downloads and backup deletion leave the installed copy alone,
         // so its actions (Open in particular) stay available beside the progress.
         let replaces_actions = state.busy
             && matches!(
                 mine.as_deref(),
-                Some("install-app" | "uninstall-app" | "restore")
+                Some("install-app" | "uninstall-app" | "restore" | "move-app")
             );
         if !replaces_actions {
-            if state.busy && mine.is_some() {
+            if show_progress {
                 ui.add_space(10.0);
             }
             self.app_actions(ui, state, &status);
@@ -394,6 +425,166 @@ impl App {
         }
     }
 
+    fn version_split(
+        &mut self,
+        ui: &mut Ui,
+        button: theme::Btn<'_>,
+        status: &super::AppStatus,
+    ) -> bool {
+        let app = self.app.clone();
+        let popup_id = ui.make_persistent_id((
+            "app-version-menu",
+            &app,
+            &self.preferences.release_format,
+            &self.preferences.architecture,
+        ));
+        let (main, arrow) = button.split(ui, &format!("Choose {} version", model::title(&app)));
+        if arrow.clicked() {
+            let opening = !ui.memory(|memory| memory.is_popup_open(popup_id));
+            ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+            if opening {
+                self.open_versions(ui.ctx());
+            }
+        }
+        let mut anchor = main.clone().union(arrow.clone());
+        anchor.rect = anchor.rect.translate(egui::vec2(0.0, 6.0));
+        egui::popup::popup_below_widget(
+            ui,
+            popup_id,
+            &anchor,
+            egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+            |ui| {
+                ui.set_width(278.0);
+                ui.spacing_mut().item_spacing.y = 4.0;
+                theme::text(ui, "CHOOSE A VERSION", 12.0, theme::palette().muted);
+                ui.add_space(6.0);
+                if self.versions_app.as_deref() != Some(app.as_str())
+                    || self.versions_result.is_none()
+                {
+                    ui.horizontal(|ui| {
+                        ui.spinner();
+                        theme::text(ui, "Loading versions…", 13.0, theme::palette().text_2);
+                    });
+                } else {
+                    match self.versions_result.clone().unwrap() {
+                        Err(error) => {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(error).size(12.0).color(theme::palette().red),
+                                )
+                                .wrap(),
+                            );
+                            if btn("Retry").show(ui).clicked() {
+                                self.open_versions(ui.ctx());
+                            }
+                        }
+                        Ok(versions) => {
+                            if versions.is_empty() {
+                                ui.add(
+                                    egui::Label::new(
+                                        RichText::new(
+                                            "No compatible releases with published checksums.",
+                                        )
+                                        .size(13.0)
+                                        .color(theme::palette().muted),
+                                    )
+                                    .wrap(),
+                                );
+                            }
+                            egui::ScrollArea::vertical()
+                                .id_salt((&app, "version-menu-scroll"))
+                                .max_height(288.0)
+                                .show(ui, |ui| {
+                                    for (index, release) in versions.into_iter().enumerate() {
+                                        let version = craft_apps_manager::updates::release_version(
+                                            &release.tag_name,
+                                        )
+                                        .unwrap_or_default();
+                                        let current = status
+                                            .installed
+                                            .as_ref()
+                                            .is_some_and(|i| i.version == version);
+                                        let (rect, response) = ui.allocate_exact_size(
+                                            vec2(ui.available_width(), 40.0),
+                                            Sense::click(),
+                                        );
+                                        if response.hovered() && !current {
+                                            ui.painter().rect_filled(
+                                                rect,
+                                                CornerRadius::same(5),
+                                                theme::palette().button_hover,
+                                            );
+                                            ui.ctx()
+                                                .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                        }
+                                        response.widget_info(|| {
+                                            egui::WidgetInfo::labeled(
+                                                egui::WidgetType::Button,
+                                                !current,
+                                                format!(
+                                                    "Install {} {}",
+                                                    model::title(&app),
+                                                    version
+                                                ),
+                                            )
+                                        });
+                                        let color = if current {
+                                            theme::palette().muted
+                                        } else {
+                                            theme::palette().text
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.left() + 10.0, rect.center().y),
+                                            egui::Align2::LEFT_CENTER,
+                                            format!("Version {version}"),
+                                            FontId::proportional(14.0),
+                                            color,
+                                        );
+                                        let tag = if current {
+                                            "Installed"
+                                        } else if index == 0 {
+                                            "Latest"
+                                        } else {
+                                            ""
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.right() - 10.0, rect.center().y),
+                                            egui::Align2::RIGHT_CENTER,
+                                            tag,
+                                            FontId::proportional(12.0),
+                                            if current {
+                                                theme::palette().muted
+                                            } else {
+                                                theme::palette().link
+                                            },
+                                        );
+                                        if response.clicked() && !current {
+                                            ui.memory_mut(|memory| memory.close_popup());
+                                            self.review_version(app.clone(), release.tag_name);
+                                        }
+                                    }
+                                });
+                        }
+                    }
+                }
+                ui.add_space(6.0);
+                super::dialogs::rule(ui);
+                ui.add_space(6.0);
+                theme::text(
+                    ui,
+                    format!(
+                        "{} · {} · {}",
+                        model::release_os(),
+                        release_format_label(&self.preferences.release_format),
+                        model::architecture_label(&self.preferences.architecture)
+                    ),
+                    12.0,
+                    theme::palette().muted,
+                );
+            },
+        );
+        main.clicked()
+    }
     fn app_actions(&mut self, ui: &mut Ui, state: &State, status: &super::AppStatus) {
         let app = self.app.clone();
         let title = model::title(&app);
@@ -407,29 +598,32 @@ impl App {
             ui.spacing_mut().interact_size.y = 0.0;
             match &installed {
                 None => {
-                    if btn(&format!("Install {title}"))
-                        .primary()
-                        .size(Size::Card)
-                        .icon(Icon::Download)
-                        .enabled(!state.busy)
-                        .show(ui)
-                        .on_disabled_hover_text("Wait for the current operation to finish.")
-                        .clicked()
-                    {
+                    if self.version_split(
+                        ui,
+                        btn(&format!("Install {title}"))
+                            .primary()
+                            .size(Size::Card)
+                            .icon(Icon::Download)
+                            .enabled(!state.busy && !self.release_pending()),
+                        status,
+                    ) {
                         self.confirm_install = Some(app.clone());
                     }
                 }
                 Some(installed) => {
                     let update = status.update.clone().filter(|_| matching_format);
-                    if let Some(version) = &update {
-                        if btn(&format!("Update to {version}"))
-                            .primary()
-                            .size(Size::Card)
-                            .icon(Icon::Refresh)
-                            .enabled(!state.busy && !status.checking)
-                            .show(ui)
-                            .clicked()
-                        {
+                    if update.is_some() {
+                        if self.version_split(
+                            ui,
+                            btn(&format!("Update {title}"))
+                                .primary()
+                                .size(Size::Card)
+                                .icon(Icon::Refresh)
+                                .enabled(
+                                    !state.busy && !status.checking && !self.release_pending(),
+                                ),
+                            status,
+                        ) {
                             self.confirm_install = Some(app.clone());
                         }
                         if btn("Open")
@@ -457,19 +651,35 @@ impl App {
                         } else {
                             "Install (latest release)"
                         };
-                        if btn(label)
-                            .size(Size::Card)
-                            .icon(Icon::Refresh)
-                            .enabled(!state.busy && !status.checking)
-                            .show(ui)
-                            .clicked()
-                        {
+                        if self.version_split(
+                            ui,
+                            btn(label).size(Size::Card).icon(Icon::Refresh).enabled(
+                                !state.busy && !status.checking && !self.release_pending(),
+                            ),
+                            status,
+                        ) {
                             if matching_format {
                                 self.check_selected_app(ui.ctx(), installed.version.clone());
                             } else {
                                 self.confirm_install = Some(app.clone());
                             }
                         }
+                    }
+                    if btn("Move…")
+                        .size(Size::Card)
+                        .icon(Icon::Folder)
+                        .enabled(!state.busy && !self.release_pending())
+                        .show(ui)
+                        .clicked()
+                    {
+                        self.confirm_move = Some(installed.clone());
+                        self.move_parent = PathBuf::from(&installed.path)
+                            .parent()
+                            .map(|p| p.display().to_string())
+                            .unwrap_or_default();
+                        self.move_running = None;
+                        self.move_probe = None;
+                        self.move_probe_at = std::time::Instant::now();
                     }
                     if btn("Uninstall…")
                         .size(Size::Card)
@@ -629,7 +839,8 @@ impl App {
         ui.painter()
             .rect_filled(rect, CornerRadius::same(10), theme::palette().border);
         let inner = rect.shrink(1.0);
-        let cell = (inner.width() - (columns - 1) as f32) / columns as f32;
+        let cell = (inner.width() - (columns - 1) as f32)
+            / if columns == 4 { 4.7 } else { columns as f32 };
         for (index, (label, value, hover)) in cells.iter().enumerate() {
             let (row, column) = (index / columns, index % columns);
             let cell_rect = Rect::from_min_size(
@@ -637,7 +848,14 @@ impl App {
                     inner.left() + column as f32 * (cell + 1.0),
                     inner.top() + row as f32 * (row_height + 1.0),
                 ),
-                vec2(cell, row_height),
+                vec2(
+                    if columns == 4 && column == 3 {
+                        cell * 1.7
+                    } else {
+                        cell
+                    },
+                    row_height,
+                ),
             );
             // Only the grid's outer corners are rounded.
             let corner = |at_row: bool, at_column: bool| if at_row && at_column { 9 } else { 0 };
@@ -658,12 +876,50 @@ impl App {
             );
             ui.spacing_mut().item_spacing.y = 4.0;
             theme::text(&mut ui, *label, 12.0, theme::palette().muted);
-            let response = ui.add(
-                egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
-                    .truncate(),
-            );
-            if let Some(hover) = hover {
-                response.on_hover_text(hover);
+            let openable = *label == "Location"
+                && installed.is_some()
+                && !location.is_empty()
+                && location != "—"
+                && PathBuf::from(&location).is_dir();
+            if openable {
+                let response = ui
+                    .horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 6.0;
+                        let (rect, icon_response) =
+                            ui.allocate_exact_size(vec2(16.0, line(14.0)), Sense::click());
+                        theme::paint_icon(
+                            ui.painter(),
+                            Rect::from_center_size(rect.center(), vec2(14.0, 14.0)),
+                            Icon::Folder,
+                            theme::palette().link,
+                        );
+                        // Paint the truncated label directly: Label::ui adds its
+                        // own tooltip, which overlaps our full-path tooltip.
+                        let (text_pos, galley, text_response) = egui::Label::new(
+                            RichText::new(value).size(14.0).color(theme::palette().link),
+                        )
+                        .truncate()
+                        .sense(Sense::click())
+                        .layout_in_ui(ui);
+                        ui.painter().galley(text_pos, galley, theme::palette().link);
+                        icon_response.union(text_response)
+                    })
+                    .inner
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
+                    .on_hover_text(format!("Open folder\n{location}"));
+                if response.clicked() {
+                    self.result(craft_apps_manager::platform::open(std::path::Path::new(
+                        &location,
+                    )));
+                }
+            } else {
+                let response = ui.add(
+                    egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
+                        .truncate(),
+                );
+                if let Some(hover) = hover {
+                    response.on_hover_text(hover);
+                }
             }
         }
         ui.add_space(MAIN_GAP);
@@ -795,6 +1051,29 @@ impl App {
                 .clicked()
             {
                 self.start("source-app");
+            }
+            if source.is_some() {
+                egui::Frame::new()
+                    .inner_margin(egui::Margin {
+                        left: 14,
+                        right: 14,
+                        top: 0,
+                        bottom: 12,
+                    })
+                    .show(ui, |ui| {
+                        if theme::link_enabled(
+                            ui,
+                            "Remove downloaded source…",
+                            !state.busy && !build.busy,
+                        )
+                        .on_hover_text(
+                            "Remove this app’s downloaded source ZIP. Builds and backups are kept.",
+                        )
+                        .clicked()
+                        {
+                            self.remove_source_confirm = Some(app.clone());
+                        }
+                    });
             }
             theme::divider(ui);
             // Build
@@ -947,15 +1226,6 @@ impl App {
                         theme::progress(ui, build.progress, 4.0);
                     }
                     ui.add_space(6.0);
-                    ui.add_enabled(
-                        !build.busy && !cleaning,
-                        egui::Checkbox::new(
-                            &mut self.latest,
-                            RichText::new("Download latest source before building").size(12.0),
-                        ),
-                    )
-                    .on_hover_text("Turn off to use the source ZIP already in your library.");
-                    ui.add_space(6.0);
                     ui.horizontal(|ui| {
                         if theme::link(ui, "Build options…").clicked() {
                             match builder::launch_options(&self.paths, &app) {
@@ -969,6 +1239,7 @@ impl App {
                                 }
                             }
                             self.delete_build_confirm = false;
+                            self.clean_build_confirm = false;
                             self.build_options_open = true;
                         }
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -985,7 +1256,9 @@ impl App {
                     });
                 });
         });
-        ui.add_space(12.0);
+        if installed.is_some() {
+            ui.add_space(8.0);
+        }
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 16.0;
             ui.spacing_mut().interact_size.y = 0.0;
@@ -1016,7 +1289,7 @@ impl App {
             }
         });
         if building_here && (build.busy || !build.stage.is_empty()) {
-            ui.add_space(20.0);
+            ui.add_space(8.0);
             theme::section_label(ui, "Build log");
             ui.add_space(8.0);
             theme::log_view(ui, &build.log, false);

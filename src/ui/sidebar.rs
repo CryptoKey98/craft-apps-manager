@@ -14,6 +14,13 @@ const BUSY_DOT: Color32 = Color32::from_rgb(0x5b, 0x8c, 0xff);
 // The top bar draws its own pill now, which leaves `Size::Pill` without a caller.
 // Remove this line together with that variant in theme.rs.
 
+#[derive(Clone)]
+struct SidebarDrag {
+    name: String,
+    installed: bool,
+    offset: egui::Vec2,
+}
+
 impl App {
     pub(super) fn top_bar(&mut self, ctx: &egui::Context, state: &State) {
         let building = self.build_job.state.lock().unwrap().busy;
@@ -87,7 +94,8 @@ impl App {
                             if theme::theme_toggle(ui, self.preferences.theme).clicked() {
                                 let result = (|| -> anyhow::Result<()> {
                                     let mut preferences = self.paths.read_preferences()?;
-                                    preferences.theme = self.preferences.theme.toggled();
+                                    preferences.theme =
+                                        theme::resolved(ctx, self.preferences.theme).toggled();
                                     craft_apps_manager::files::write_json(
                                         &self.paths.at("manager-settings.json"),
                                         &preferences,
@@ -271,6 +279,7 @@ impl App {
         let (installed, available): (Vec<_>, Vec<_>) = order
             .iter()
             .filter(|name| matches(name))
+            .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .partition(|name| self.status(name).installed.is_some());
         // Until the first snapshot loads nothing is known to be installed or not.
@@ -288,10 +297,135 @@ impl App {
             }
             ui.add_space(14.0);
             group_header(ui, label, group.len());
-            for name in &group {
-                ui.add_space(2.0);
-                if let Some(drop) = self.app_row(ui, state, name, is_installed) {
-                    reorder = Some(drop);
+            let height = if is_installed { 48.0 } else { 47.5 };
+            let step = height + 2.0;
+            ui.add_space(2.0);
+            let (area, _) = ui.allocate_exact_size(
+                egui::vec2(ui.available_width(), group.len() as f32 * step - 2.0),
+                Sense::hover(),
+            );
+            let pointer = ui.ctx().input(|i| i.pointer.interact_pos());
+            let drag = egui::DragAndDrop::payload::<SidebarDrag>(ui.ctx()).filter(|drag| {
+                drag.installed == is_installed && group.contains(&drag.name) && !state.busy
+            });
+            let motion_id = ui.id().with(("sidebar-drag-motion", is_installed));
+            let now = ui.ctx().input(|input| input.time);
+            if drag.is_some() {
+                ui.ctx().data_mut(|data| data.insert_temp(motion_id, now));
+            }
+            let animate = ui
+                .ctx()
+                .data_mut(|data| data.get_temp::<f64>(motion_id))
+                .is_some_and(|time| now - time < 0.22);
+            let duration = if animate { 0.16 } else { 0.0 };
+            let mut preview = group.clone();
+            let drop_id = ui.id().with(("sidebar-drop-position", is_installed));
+            if let Some(drag) = &drag {
+                let mut destination = ui
+                    .ctx()
+                    .data_mut(|data| data.get_temp::<usize>(drop_id))
+                    .unwrap_or_else(|| group.iter().position(|name| *name == drag.name).unwrap());
+                if let Some(pos) = pointer.filter(|pos| area.contains(*pos)) {
+                    destination = (((pos.y - area.top()) / step).floor().max(0.0) as usize)
+                        .min(group.len() - 1);
+                    ui.ctx()
+                        .data_mut(|data| data.insert_temp(drop_id, destination));
+                }
+                preview.retain(|name| *name != drag.name);
+                preview.insert(destination.min(preview.len()), drag.name.clone());
+            } else {
+                ui.ctx().data_mut(|data| data.remove::<usize>(drop_id));
+            }
+            for (index, name) in preview.iter().enumerate() {
+                let y = ui.ctx().animate_value_with_time(
+                    ui.id().with(("sidebar-row-position", is_installed, name)),
+                    index as f32 * step,
+                    duration,
+                );
+                let rect = Rect::from_min_size(
+                    area.min + egui::vec2(0.0, y),
+                    egui::vec2(area.width(), height),
+                );
+                if drag.as_ref().is_some_and(|drag| drag.name == *name) {
+                    let placeholder = Rect::from_min_size(
+                        area.min + egui::vec2(0.0, index as f32 * step),
+                        rect.size(),
+                    );
+                    ui.painter().rect_filled(
+                        placeholder,
+                        CornerRadius::same(8),
+                        theme::palette().field,
+                    );
+                    ui.painter().rect_stroke(
+                        placeholder.shrink(1.0),
+                        CornerRadius::same(8),
+                        Stroke::new(1.0_f32, theme::palette().accent_border),
+                        egui::StrokeKind::Inside,
+                    );
+                    ui.interact(
+                        Rect::from_center_size(
+                            egui::pos2(
+                                rect.left() + (16.0 + if is_installed { 32.0 } else { 28.0 }) / 2.0,
+                                rect.center().y,
+                            ),
+                            egui::vec2(
+                                16.0 + if is_installed { 32.0 } else { 28.0 },
+                                rect.height() - 4.0,
+                            ),
+                        ),
+                        ui.id().with(("sidebar-grip", name)),
+                        Sense::drag(),
+                    );
+                    continue;
+                }
+                ui.ctx()
+                    .animate_bool_with_time(ui.id().with(("sidebar-lift", name)), false, 0.12);
+                self.app_row(ui, state, name, is_installed, rect, false);
+            }
+            if let (Some(drag), Some(pos)) = (&drag, pointer) {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+                let lift = ui.ctx().animate_bool_with_time(
+                    ui.id().with(("sidebar-lift", &drag.name)),
+                    true,
+                    0.12,
+                );
+                let rect = Rect::from_min_size(
+                    pos - drag.offset - egui::vec2(0.0, 3.0 * lift),
+                    egui::vec2(area.width(), height),
+                )
+                .expand(lift);
+                let layer =
+                    egui::LayerId::new(egui::Order::Tooltip, ui.id().with("sidebar-floating-row"));
+                let mut floating =
+                    ui.new_child(egui::UiBuilder::new().layer_id(layer).max_rect(rect));
+                floating.set_clip_rect(ui.ctx().screen_rect());
+                for spread in (1..=7).rev() {
+                    floating.painter().rect_filled(
+                        rect.translate(egui::vec2(0.0, 4.0)).expand(spread as f32),
+                        CornerRadius::same(10),
+                        Color32::from_black_alpha(5),
+                    );
+                }
+                floating
+                    .painter()
+                    .rect_filled(rect, CornerRadius::same(8), theme::palette().card);
+                floating.disable();
+                self.app_row(&mut floating, state, &drag.name, is_installed, rect, true);
+                ui.ctx().request_repaint();
+            }
+            if ui.ctx().input(|i| i.pointer.any_released()) {
+                if let Some(drag) = drag {
+                    if pointer.is_some_and(|pos| area.contains(pos)) && preview != group {
+                        let index = preview.iter().position(|name| *name == drag.name).unwrap();
+                        let (target, before) = if index + 1 < preview.len() {
+                            (preview[index + 1].clone(), true)
+                        } else {
+                            (preview[index - 1].clone(), false)
+                        };
+                        reorder = Some((drag.name.clone(), target, before));
+                    }
+                    egui::DragAndDrop::take_payload::<SidebarDrag>(ui.ctx());
+                    ui.ctx().data_mut(|data| data.remove::<usize>(drop_id));
                 }
             }
         }
@@ -338,9 +472,9 @@ impl App {
                 true,
                 selected,
                 if updates > 0 {
-                    format!("Overview · {updates} update(s) available")
+                    format!("Home · {updates} update(s) available")
                 } else {
-                    "Overview".into()
+                    "Home".into()
                 },
             )
         });
@@ -360,7 +494,7 @@ impl App {
         ui.painter().text(
             egui::pos2(tile.right() + 12.0, rect.center().y),
             egui::Align2::LEFT_CENTER,
-            "Overview",
+            "Home",
             theme::medium(14.0),
             theme::palette().text,
         );
@@ -393,19 +527,12 @@ impl App {
         state: &State,
         name: &str,
         is_installed: bool,
-    ) -> Option<(String, String, bool)> {
+        rect: Rect,
+        floating: bool,
+    ) {
         let status = self.status(name);
         let selected = self.page == Page::App && self.app == name;
-        // Rows grow to fit their two lines of text, as in the mockup.
-        let height = if is_installed { 48.0 } else { 47.5 };
-        let (rect, response) = ui.allocate_exact_size(
-            egui::vec2(ui.available_width(), height),
-            if state.busy {
-                Sense::click()
-            } else {
-                Sense::click_and_drag()
-            },
-        );
+        let response = ui.interact(rect, ui.id().with(("sidebar-row", name)), Sense::click());
         let installing = state.busy
             && self
                 .job_target
@@ -452,42 +579,84 @@ impl App {
                 format!("{} · {hover}", model::title(name)),
             )
         });
-        response.dnd_set_drag_payload(name.to_owned());
-        let mut drop = None;
-        if response.dragged() {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
-            ui.painter().rect_stroke(
-                rect.shrink(1.0),
-                CornerRadius::same(8),
-                Stroke::new(1.0_f32, theme::palette().accent),
-                egui::StrokeKind::Inside,
-            );
+        paint_row_background(ui, rect, selected, response.hovered());
+        let grip_rect = Rect::from_center_size(
+            egui::pos2(rect.left() + 7.0, rect.center().y),
+            egui::vec2(12.0, 26.0),
+        );
+        let grab_rect = Rect::from_min_max(
+            rect.min + egui::vec2(0.0, 2.0),
+            egui::pos2(
+                rect.left() + 16.0 + if is_installed { 32.0 } else { 28.0 },
+                rect.bottom() - 2.0,
+            ),
+        );
+        let mut grip_hot = floating;
+        if !floating && !state.busy {
+            let grip = ui
+                .interact(
+                    grab_rect,
+                    ui.id().with(("sidebar-grip", name)),
+                    Sense::drag(),
+                )
+                .on_hover_cursor(egui::CursorIcon::Grab)
+                .on_hover_text("Drag to arrange sidebar apps");
+            let offset = ui
+                .ctx()
+                .input(|i| i.pointer.press_origin())
+                .unwrap_or(grip_rect.center())
+                - rect.min;
+            grip_hot = grip.hovered() || grip.dragged();
+            grip.dnd_set_drag_payload(SidebarDrag {
+                name: name.into(),
+                installed: is_installed,
+                offset,
+            });
         }
-        let before = ui
-            .ctx()
-            .input(|i| i.pointer.interact_pos())
-            .is_none_or(|pos| pos.y < rect.center().y);
-        if let Some(dragged) = response.dnd_hover_payload::<String>() {
-            if dragged.as_str() != name {
-                let y = if before { rect.top() } else { rect.bottom() };
-                ui.painter().line_segment(
-                    [
-                        egui::pos2(rect.left() + 4.0, y),
-                        egui::pos2(rect.right() - 4.0, y),
-                    ],
-                    Stroke::new(2.0_f32, theme::palette().accent),
+        let hovered = floating
+            || ui
+                .ctx()
+                .input(|i| i.pointer.hover_pos())
+                .is_some_and(|pos| rect.contains(pos));
+        let reveal = ui.ctx().animate_bool_with_time(
+            ui.id().with(("sidebar-grip-reveal", name)),
+            hovered && !state.busy,
+            0.20,
+        );
+        // Ease the grip into its narrow gutter without shifting app content.
+        let reveal = if floating {
+            1.0
+        } else {
+            reveal * reveal * (3.0 - 2.0 * reveal)
+        };
+        let highlight = ui.ctx().animate_bool_with_time(
+            ui.id().with(("sidebar-grip-highlight", name)),
+            grip_hot && !state.busy,
+            0.12,
+        );
+        let grip_color = Color32::from(egui::lerp(
+            egui::Rgba::from(theme::palette().muted)..=egui::Rgba::from(theme::palette().link),
+            highlight,
+        ))
+        .gamma_multiply((0.75 + 0.25 * highlight) * reveal);
+        let grip_painter =
+            ui.painter()
+                .with_clip_rect(ui.clip_rect().intersect(Rect::from_min_max(
+                    egui::pos2(rect.left(), rect.top()),
+                    egui::pos2(rect.left() + 14.0, rect.bottom()),
+                )));
+        for x in [0.0, 3.0] {
+            for y in [0.0, 3.0, 6.0] {
+                grip_painter.circle_filled(
+                    grip_rect.center() + egui::vec2(x - 1.5 - 9.0 * (1.0 - reveal), y - 3.0),
+                    0.8,
+                    grip_color,
                 );
             }
         }
-        if let Some(dragged) = response.dnd_release_payload::<String>() {
-            if dragged.as_str() != name {
-                drop = Some((dragged.as_ref().clone(), name.to_owned(), before));
-            }
-        }
-        paint_row_background(ui, rect, selected, response.hovered());
         let icon_size = if is_installed { 32.0 } else { 28.0 };
         let icon = Rect::from_min_size(
-            egui::pos2(rect.left() + 10.0, rect.center().y - icon_size / 2.0),
+            egui::pos2(rect.left() + 16.0, rect.center().y - icon_size / 2.0),
             egui::vec2(icon_size, icon_size),
         );
         let radius = CornerRadius::same(if is_installed { 8 } else { 7 });
@@ -674,13 +843,15 @@ impl App {
                 .add(egui::Spinner::new().size(12.0))
                 .on_hover_text("Checking for updates…");
         }
-        if chip_clicked {
+        if !floating {
+            self.app_visibility_menu(&response, name);
+        }
+        if !floating && chip_clicked {
             self.confirm_install = Some(name.into());
-        } else if response.clicked() {
+        } else if !floating && response.clicked() {
             response.request_focus();
             self.select(name);
         }
-        drop
     }
 }
 

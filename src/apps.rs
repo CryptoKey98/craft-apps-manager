@@ -36,7 +36,7 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     let installed = installed(paths, app)?;
     let root = PathBuf::from(installed.path);
     if installed.install_kind != "installer" {
-        files::inside(&root, &paths.at("releases"))?;
+        crate::portable::validate(paths, app, &root)?;
     }
     let mut names = Vec::new();
     let aliases = crate::model::executable_names(app);
@@ -130,6 +130,9 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     let installed = installed(paths, app)?;
     if installed.install_kind == "installer" {
         crate::installers::uninstall(&installed)?;
+        if let Err(error) = crate::portable::remove_installer_shortcut(paths, app) {
+            eprintln!("Desktop shortcut cleanup: {error:#}");
+        }
         for entry in config.apps.iter_mut().filter(|a| a.name == app) {
             entry.path.clear();
             entry.version.clear();
@@ -139,11 +142,11 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
         return paths.save_config(&config);
     }
     let root = PathBuf::from(&installed.path);
-    let releases = paths.at("releases");
-    files::inside(&root, &releases)?;
-    if root.parent() != Some(releases.as_path()) {
-        bail!("Only managed portable app folders can be uninstalled here.");
-    }
+    crate::portable::validate(paths, app, &root)?;
+    let releases = root
+        .parent()
+        .context("Missing app parent folder")?
+        .to_path_buf();
     let temporary = releases.join(format!(".uninstall-{app}-{}", uuid::Uuid::new_v4()));
     std::fs::rename(&root, &temporary)?;
     config
@@ -157,6 +160,9 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     if let Err(error) = paths.save_config(&config) {
         std::fs::rename(&temporary, &root)?;
         return Err(error);
+    }
+    if let Err(error) = crate::portable::remove_shortcut(&temporary) {
+        eprintln!("Shortcut cleanup: {error:#}");
     }
     files::remove_managed(&temporary, &releases)
 }
@@ -182,7 +188,7 @@ pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) ->
     };
     if let Err(error) = uninstall_locked(paths, app) {
         if let Some((original, kept)) = preserved {
-            std::fs::rename(kept, original)
+            files::move_verified(&kept, &original)
                 .context("Uninstall failed; could not restore the retained profile")?;
         }
         return Err(error);

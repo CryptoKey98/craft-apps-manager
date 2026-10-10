@@ -287,22 +287,24 @@ pub fn replace_transaction(
     if destination.exists() {
         let b = backup.context("Missing rollback path")?;
         fs::create_dir_all(b.parent().unwrap())?;
-        fs::rename(destination, b)?;
+        files::move_verified(destination, b)?;
     }
     fs::create_dir_all(destination.parent().unwrap())?;
-    if let Err(e) = fs::rename(staged, destination) {
+    if let Err(e) = files::move_verified(staged, destination) {
         if let Some(b) = backup {
             if b.exists() {
-                fs::rename(b, destination).context("Could not restore rollback copy")?;
+                files::move_verified(b, destination).context("Could not restore rollback copy")?;
             }
         }
-        return Err(e.into());
+        return Err(e);
     }
     if let Err(e) = commit() {
-        fs::rename(destination, staged).context("Could not remove uncommitted replacement")?;
+        files::move_verified(destination, staged)
+            .context("Could not remove uncommitted replacement")?;
         if let Some(b) = backup {
             if b.exists() {
-                fs::rename(b, destination).context("Could not restore previous version")?;
+                files::move_verified(b, destination)
+                    .context("Could not restore previous version")?;
             }
         }
         return Err(e);
@@ -335,7 +337,10 @@ pub struct ReleaseEntry {
 pub struct ReleasePlan {
     pub entries: Vec<ReleaseEntry>,
     pub preferences: Preferences,
+    pub requested_tag: Option<String>,
     snapshot: Vec<u8>,
+    pub desktop_shortcut: bool,
+    pub installer_destination: Option<PathBuf>,
 }
 impl ReleasePlan {
     pub fn executable_count(&self) -> usize {
@@ -353,7 +358,6 @@ fn state_snapshot(
     let destinations: Vec<_> = config
         .apps
         .iter()
-        .filter(|a| prefs.selected_apps.contains(&a.name))
         .map(|a| {
             let target = if prefs.release_format == "installer" && !a.path.is_empty() {
                 PathBuf::from(&a.path)
@@ -392,6 +396,149 @@ pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
         ))
     })
 }
+pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    let network = Network::new(&paths.root)?;
+    plan_with(paths, job, Some(app), |name| {
+        network.json(&format!(
+            "https://api.github.com/repos/storytold/{}/releases/latest",
+            crate::model::repository(name)
+        ))
+    })
+}
+pub fn choose_destination(
+    paths: &Paths,
+    plan: &mut ReleasePlan,
+    parent: &Path,
+    shortcut: bool,
+) -> Result<()> {
+    anyhow::ensure!(
+        plan.entries.len() == 1,
+        "Choose a location for one app at a time"
+    );
+    anyhow::ensure!(
+        plan.preferences.release_format == "portable",
+        "Native installer locations are managed by the installer"
+    );
+    let entry = &mut plan.entries[0];
+    let mut target = crate::portable::destination(parent, &entry.app)?;
+    let current = paths
+        .config()?
+        .apps
+        .into_iter()
+        .find(|a| a.name == entry.app);
+    if let Some(current) = current.filter(|a| a.install_kind != "installer" && !a.path.is_empty()) {
+        let old = Path::new(&current.path);
+        if old.parent() == Some(parent) {
+            target = old.to_path_buf();
+        }
+        anyhow::ensure!(
+            Path::new(&current.path) == target,
+            "Uninstall this portable app before changing its location"
+        );
+    }
+    crate::portable::validate_install(paths, &entry.app, &target)?;
+    entry.destination = Some(target);
+    plan.desktop_shortcut = shortcut;
+    Ok(())
+}
+#[cfg(target_os = "windows")]
+pub fn choose_installer_destination(plan: &mut ReleasePlan, parent: &Path) -> Result<()> {
+    anyhow::ensure!(
+        plan.entries.len() == 1 && plan.preferences.release_format == "installer",
+        "Choose a location for one installer at a time"
+    );
+    let entry = &plan.entries[0];
+    anyhow::ensure!(
+        crate::installers::custom_location_supported(&entry.app) && entry.action == "Install",
+        "This installer keeps its own location"
+    );
+    let target = crate::portable::destination(parent, &entry.app)?;
+    crate::installers::validate_custom_location(&target)?;
+    plan.installer_destination = Some(target);
+    Ok(())
+}
+/// Recent published stable releases compatible with the chosen platform and format.
+/// Older assets without a published digest remain unavailable for verified installs.
+pub fn available_versions(paths: &Paths, app: &str) -> Result<Vec<Release>> {
+    crate::model::valid_app(app)?;
+    let prefs = paths.read_preferences()?;
+    let network = Network::new(&paths.root)?;
+    let releases: Vec<Release> = network.json(&format!(
+        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+        crate::model::repository(app)
+    ))?;
+    Ok(compatible_versions(releases, app, &prefs))
+}
+fn compatible_versions(releases: Vec<Release>, app: &str, prefs: &Preferences) -> Vec<Release> {
+    let mut versions: Vec<_> = releases
+        .into_iter()
+        .filter(|r| {
+            !r.draft
+                && !r.prerelease
+                && release_version(&r.tag_name).is_ok()
+                && select_asset(r, app, prefs).is_ok_and(|a| {
+                    a.digest
+                        .as_deref()
+                        .and_then(|d| d.strip_prefix("sha256:"))
+                        .is_some_and(|d| d.len() == 64 && d.bytes().all(|b| b.is_ascii_hexdigit()))
+                })
+        })
+        .collect();
+    versions.sort_by_key(|r| std::cmp::Reverse(version(&r.tag_name).unwrap()));
+    versions
+}
+/// Pin a user-selected release, preserving the normal verification and review flow.
+pub fn plan_version(paths: &Paths, job: &Job, app: &str, tag: &str) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    release_version(tag)?;
+    let mut url = reqwest::Url::parse(&format!(
+        "https://api.github.com/repos/storytold/{}/releases/tags/",
+        crate::model::repository(app)
+    ))?;
+    url.path_segments_mut()
+        .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+        .pop_if_empty()
+        .push(tag);
+    let release: Release = Network::new(&paths.root)?.json(url.as_str())?;
+    anyhow::ensure!(
+        release.tag_name == tag,
+        "The release tag changed; choose the version again"
+    );
+    plan_selected_version(paths, job, app, release)
+}
+fn plan_selected_version(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    release: Release,
+) -> Result<ReleasePlan> {
+    let tag = release.tag_name.clone();
+    let mut plan = plan_with(paths, job, Some(app), |_| Ok(release.clone()))?;
+    anyhow::ensure!(
+        !plan.entries.is_empty(),
+        "App is missing from the current catalog"
+    );
+    let config = paths.config()?;
+    for entry in &mut plan.entries {
+        // Only an explicit selection can downgrade. Update all still skips older versions.
+        if entry.error.is_none() && entry.action == "Skip" {
+            if let Some(installed) = config.apps.iter().find(|a| a.name == app) {
+                if version(&installed.version)? > version(&entry.version)? {
+                    entry.action = "Update".into();
+                }
+            }
+        }
+    }
+    plan.requested_tag = Some(tag);
+    Ok(plan)
+}
+/// Bulk updates operate only on a usable installation in the selected format.
+pub fn installed_for_updates(app: &crate::model::Installed, prefs: &Preferences) -> bool {
+    !app.path.is_empty()
+        && (app.install_kind == "installer") == (prefs.release_format == "installer")
+        && crate::model::installed_executable(Path::new(&app.path), &app.name).is_some()
+}
 fn plan_with(
     paths: &Paths,
     job: &Job,
@@ -403,9 +550,9 @@ fn plan_with(
     let snapshot = state_snapshot(paths, &prefs, &config)?;
     let mut entries = Vec::new();
     for app in config.apps.iter().filter(|a| {
-        selected
-            .map(|name| a.name == name)
-            .unwrap_or_else(|| prefs.selected_apps.contains(&a.name))
+        selected.map(|name| a.name == name).unwrap_or_else(|| {
+            prefs.selected_apps.contains(&a.name) && installed_for_updates(a, &prefs)
+        })
     }) {
         if let Err(error) = job.check() {
             let previous: Vec<_> = entries
@@ -470,7 +617,11 @@ fn plan_with(
                 PathBuf::from(&app.path)
             };
             if !installer {
-                files::inside(&target, &paths.at("releases"))?;
+                if target.exists() {
+                    crate::portable::validate(paths, &app.name, &target)?;
+                } else {
+                    crate::portable::validate_install(paths, &app.name, &target)?;
+                }
                 entry.destination = Some(target.clone());
             }
             let exists = !app.path.is_empty()
@@ -524,6 +675,9 @@ fn plan_with(
         return Err(error);
     }
     Ok(ReleasePlan {
+        requested_tag: None,
+        desktop_shortcut: false,
+        installer_destination: None,
         entries,
         preferences: prefs,
         snapshot,
@@ -545,7 +699,28 @@ fn execute_validated(
     if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
         bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
     }
+    for entry in &plan.entries {
+        if let Some(target) = &entry.destination {
+            crate::portable::validate_install(paths, &entry.app, target)?;
+        }
+    }
     execute(&mut config)
+}
+#[cfg(any(target_os = "windows", test))]
+fn replace_installer_transaction<T>(
+    remove: impl FnOnce() -> Result<()>,
+    install: impl FnOnce() -> Result<T>,
+    restore: impl FnOnce() -> Result<()>,
+) -> Result<T> {
+    match remove().and_then(|()| install()) {
+        Ok(installed) => Ok(installed),
+        Err(error) => match restore() {
+            Ok(()) => Err(error.context("Previous installation restored")),
+            Err(recovery) => Err(anyhow::anyhow!(
+                "Installation failed: {error:#}. Recovery also failed: {recovery:#}"
+            )),
+        },
+    }
 }
 fn execute_entries(
     paths: &Paths,
@@ -577,6 +752,11 @@ fn execute_entries(
                 }
                 let dest = paths.at(format!("releases/installers/{}/{}", app.name, asset.name));
                 if dest.exists() {
+                    job.stage(
+                        "Verifying checksum",
+                        None,
+                        "Checking SHA-256 of the cached installer",
+                    );
                     crate::network::verify_asset(&dest, asset)?;
                 } else {
                     network.asset(asset, &dest, job)?;
@@ -585,12 +765,115 @@ fn execute_entries(
                     "Installing",
                     None,
                     if cfg!(target_os = "windows") {
-                        "Complete the Windows installer wizard; Windows may ask for administrator permission."
+                        "Complete the Windows installation; Windows may ask for administrator permission."
                     } else {
                         "Installing the app."
                     },
                 );
+                #[cfg(target_os = "windows")]
+                let mut installed = if plan.requested_tag.is_some()
+                    && app.install_kind == "installer"
+                    && !app.path.is_empty()
+                    && version(&entry.version)? < version(&app.version)?
+                {
+                    anyhow::ensure!(
+                        dest.extension()
+                            .is_some_and(|e| e.eq_ignore_ascii_case("msi")),
+                        "This installer does not support a safe downgrade"
+                    );
+                    anyhow::ensure!(
+                        crate::model::release_arch(&app.architecture)
+                            == crate::model::release_arch(&prefs.architecture),
+                        "Keep the installed architecture selected when downgrading"
+                    );
+                    // Stage and verify recovery before removing the current version.
+                    let releases: Vec<Release> = network.json(&format!(
+                        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+                        crate::model::repository(&app.name)
+                    ))?;
+                    let current_release = releases.into_iter().find(|r| !r.draft && !r.prerelease && release_version(&r.tag_name).is_ok_and(|v| v == app.version))
+                        .context("Cannot safely downgrade: the installed version is unavailable for recovery")?;
+                    let recovery_plan =
+                        plan_selected_version(paths, job, &app.name, current_release)?;
+                    let recovery_asset = recovery_plan
+                        .entries
+                        .first()
+                        .and_then(|e| {
+                            if e.error.is_none() {
+                                e.asset.as_ref()
+                            } else {
+                                None
+                            }
+                        })
+                        .context("Cannot safely downgrade: no verified recovery installer")?;
+                    anyhow::ensure!(
+                        recovery_asset.name.ends_with(".msi"),
+                        "Recovery requires an MSI installer"
+                    );
+                    let recovery = paths.at(format!(
+                        "releases/installers/{}/{}",
+                        app.name, recovery_asset.name
+                    ));
+                    if recovery.exists() {
+                        crate::network::verify_asset(&recovery, recovery_asset)?;
+                    } else {
+                        network.asset(recovery_asset, &recovery, job)?;
+                    }
+                    job.check()?;
+                    replace_installer_transaction(
+                        || {
+                            job.stage(
+                                "Downgrading",
+                                None,
+                                "Removing the current installation; user data is kept",
+                            );
+                            crate::installers::uninstall(&app)
+                        },
+                        || {
+                            let installed =
+                                crate::installers::run_replacement(&dest, &app, Some(job))?;
+                            anyhow::ensure!(
+                                version(&installed.version)? == version(&entry.version)?,
+                                "Installer did not install the selected version"
+                            );
+                            Ok(installed)
+                        },
+                        || {
+                            job.stage("Restoring previous version", None, "The downgrade did not complete; restoring the verified previous installer");
+                            if let Some(partial) = crate::installers::detect(&app.name)? {
+                                if version(&partial.version)? == version(&app.version)? {
+                                    return Ok(());
+                                }
+                                crate::installers::uninstall(&partial)?;
+                            }
+                            let restored =
+                                crate::installers::run_replacement(&recovery, &app, None)?;
+                            anyhow::ensure!(
+                                version(&restored.version)? == version(&app.version)?,
+                                "Recovery installer did not restore the previous version"
+                            );
+                            Ok(())
+                        },
+                    )?
+                } else {
+                    crate::installers::run_with_destination(
+                        &dest,
+                        &app.name,
+                        Some(job),
+                        plan.installer_destination.as_deref(),
+                    )?
+                };
+                #[cfg(target_os = "macos")]
                 let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
+                #[cfg(target_os = "linux")]
+                let mut installed = crate::installers::run_selected_with_job(
+                    &dest,
+                    &app.name,
+                    Some(job),
+                    plan.requested_tag.is_some()
+                        && !app.version.is_empty()
+                        && version(&entry.version)? < version(&app.version)?,
+                )?;
                 installed.architecture = if cfg!(target_os = "macos") {
                     "universal".into()
                 } else {
@@ -598,6 +881,23 @@ fn execute_entries(
                 };
                 config.apps[i] = installed;
                 paths.save_config(config)?;
+                if plan.desktop_shortcut {
+                    job.stage(
+                        "Creating desktop shortcut",
+                        None,
+                        crate::model::title(&app.name),
+                    );
+                    if let Err(error) = crate::portable::installer_desktop_shortcut(
+                        paths,
+                        &app.name,
+                        Path::new(&config.apps[i].path),
+                    ) {
+                        job.log(&format!(
+                            "{}: installed; desktop shortcut could not be created: {error:#}",
+                            app.name
+                        ));
+                    }
+                }
                 job.log(&format!("{}: installer completed", app.name));
                 return Ok(true);
             }
@@ -655,6 +955,16 @@ fn execute_entries(
                 } else {
                     None
                 };
+                let staged_folder = executables[0].path().parent().unwrap();
+                // PhotoCraft stores user data beside its portable executable.
+                // Copy it before activation; rollback keeps the original intact.
+                if app.name == "photocraft" && target.join("PhotoCraftData").is_dir() {
+                    files::copy_directory_verified(
+                        &target.join("PhotoCraftData"),
+                        &staged_folder.join("PhotoCraftData"),
+                    )?;
+                }
+                crate::portable::mark(paths, &app.name, staged_folder)?;
                 let old = config.apps[i].clone();
                 config.apps[i].path = target.to_string_lossy().into_owned();
                 config.apps[i].version = v.into();
@@ -698,6 +1008,17 @@ fn execute_entries(
                 ) {
                     job.log(&format!("Shortcut warning: {e}"))
                 }
+                if plan.desktop_shortcut {
+                    job.stage(
+                        "Creating desktop shortcut",
+                        None,
+                        crate::model::title(&app.name),
+                    );
+                    if let Err(error) = crate::portable::desktop_shortcut(paths, &app.name, &target)
+                    {
+                        job.log(&format!("Desktop shortcut warning: {error:#}"));
+                    }
+                }
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
             })();
@@ -708,8 +1029,23 @@ fn execute_entries(
             }
             attempt.map(|()| true)
         })();
+        if matches!(result, Ok(true)) && app.path.is_empty() {
+            // Select only a newly installed app, preserving deliberate exclusions
+            // for apps that were already installed and merely updated.
+            if let Err(error) = include_new_install(paths, &app.name) {
+                job.log(&format!("Update All selection warning: {error:#}"));
+            }
+        }
         result
     })
+}
+fn include_new_install(paths: &Paths, app: &str) -> Result<()> {
+    let mut preferences = paths.read_preferences()?;
+    if !preferences.selected_apps.iter().any(|name| name == app) {
+        preferences.selected_apps.push(app.into());
+        crate::files::write_json(&paths.at("manager-settings.json"), &preferences)?;
+    }
+    Ok(())
 }
 #[derive(Debug, Default)]
 pub struct ReleaseSummary {
@@ -816,6 +1152,89 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
         bail!("{} release planning error(s); see the log", errors.len());
     }
     result
+}
+#[cfg(test)]
+mod source_removal_tests {
+    use super::*;
+    #[test]
+    fn removes_only_selected_managed_source_and_rejects_unmanaged_files() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let source = Source {
+            sha: "a".repeat(40),
+            branch: "main".into(),
+            repository: "storytold/filmcraft".into(),
+            archive_sha256: String::new(),
+            downloaded_at: String::new(),
+        };
+        files::write_json(
+            &paths.at("sources/source-index.json"),
+            &BTreeMap::from([("filmcraft", source.clone()), ("soundcraft", source)]),
+        )
+        .unwrap();
+        for name in [
+            "sources/filmcraft-source.zip",
+            "sources/soundcraft-source.zip",
+            "sources/photocraft-source.zip",
+            "builds/filmcraft/keep",
+            "workspace/filmcraft/keep",
+            "backups/sources/filmcraft-keep.zip",
+        ] {
+            let path = paths.at(name);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, b"keep").unwrap();
+        }
+        assert!(remove_source(&paths, "photocraft").is_err());
+        remove_source(&paths, "filmcraft").unwrap();
+        assert!(!paths.at("sources/filmcraft-source.zip").exists());
+        let index: BTreeMap<String, Source> =
+            files::read_json(&paths.at("sources/source-index.json")).unwrap();
+        assert!(!index.contains_key("filmcraft"));
+        assert!(index.contains_key("soundcraft"));
+        for name in [
+            "sources/soundcraft-source.zip",
+            "sources/photocraft-source.zip",
+            "builds/filmcraft/keep",
+            "workspace/filmcraft/keep",
+            "backups/sources/filmcraft-keep.zip",
+        ] {
+            assert_eq!(fs::read(paths.at(name)).unwrap(), b"keep");
+        }
+        assert!(remove_source(&paths, "../filmcraft").is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+}
+/// Remove one managed source archive, keeping builds, workspaces and backups.
+pub fn remove_source(paths: &Paths, app: &str) -> Result<()> {
+    crate::model::valid_app(app)?;
+    // Same lock order as a build which downloads its source first.
+    let _build_lock = platform::Lock::take(r"Local\CraftAppsSourceBuilder")?;
+    let _lock = platform::Lock::take(r"Local\CraftAppsManager")?;
+    let root = paths.at("sources");
+    let archive = root.join(format!("{app}-source.zip"));
+    let index_path = root.join("source-index.json");
+    files::inside(&archive, &root)?;
+    files::inside(&index_path, &root)?;
+    let mut index: BTreeMap<String, Source> = files::read_or_default(&index_path)?;
+    anyhow::ensure!(
+        index.remove(app).is_some(),
+        "No managed source for this app"
+    );
+    let staged = root.join(format!(".{app}-removing-{}.zip", uuid::Uuid::new_v4()));
+    files::inside(&staged, &root)?;
+    let existed = archive.is_file();
+    anyhow::ensure!(!archive.exists() || existed, "Source archive is not a file");
+    if existed {
+        fs::rename(&archive, &staged)?;
+    }
+    if let Err(error) = files::write_json(&index_path, &index) {
+        if existed {
+            fs::rename(&staged, &archive)
+                .context("Could not restore source archive after index save failed")?;
+        }
+        return Err(error);
+    }
+    files::remove_managed(&staged, &root)
 }
 pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
@@ -1080,6 +1499,98 @@ mod planning_tests {
         let job = Job::new(paths.at("log"), &Default::default());
         (paths, job)
     }
+    #[test]
+    fn newly_installed_app_is_selected_once_without_resetting_other_preferences() {
+        let (paths, _) = installed_fixture();
+        let mut preferences = paths.read_preferences().unwrap();
+        preferences.selected_apps.clear();
+        preferences.close_to_tray = true;
+        crate::files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
+        include_new_install(&paths, "photocraft").unwrap();
+        include_new_install(&paths, "photocraft").unwrap();
+        let saved = paths.read_preferences().unwrap();
+        assert_eq!(saved.selected_apps, vec!["photocraft"]);
+        assert!(saved.close_to_tray);
+        std::fs::remove_dir_all(&paths.root).unwrap();
+    }
+
+    fn installed_fixture() -> (Paths, Job) {
+        let (paths, job) = fixture();
+        let apps = ["photocraft", "filmcraft"].into_iter().map(|name| {
+            let folder = paths.at(format!("releases/{name}"));
+            let executable = folder.join(crate::model::executable_name(name));
+            fs::create_dir_all(&folder).unwrap();
+            if cfg!(target_os = "macos") {
+                fs::create_dir_all(executable.join("Contents")).unwrap();
+                fs::write(executable.join("Contents/Info.plist"), format!("<plist><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{name}</string><key>CFBundleShortVersionString</key><string>0.1.0</string></dict></plist>")).unwrap();
+            } else { fs::write(executable, b"installed fixture").unwrap(); }
+            crate::model::Installed { name: name.into(), version: "0.1.0".into(), path: folder.display().to_string(), architecture: crate::model::MANAGER_ARCH.into(), install_kind: "portable".into(), ..Default::default() }
+        }).collect::<Vec<_>>();
+        files::write_json(
+            &paths.at("settings.json"),
+            &crate::model::Config {
+                apps_root: paths.root.display().to_string(),
+                installations: apps.clone(),
+                apps,
+            },
+        )
+        .unwrap();
+        (paths, job)
+    }
+    #[test]
+    fn bulk_updates_never_install_missing_apps_but_explicit_install_still_works() {
+        let (paths, job) = installed_fixture();
+        fs::remove_dir_all(paths.at("releases/filmcraft")).unwrap();
+        let plan = plan_with(&paths, &job, None, |app| {
+            assert_eq!(app, "photocraft");
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        assert_eq!(plan.entries.len(), 1);
+        assert_eq!(plan.entries[0].action, "Update");
+        let explicit = plan_with(&paths, &job, Some("filmcraft"), |app| {
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        assert_eq!(explicit.entries[0].action, "Install");
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn failed_or_cancelled_installer_replacement_restores_previous_version() {
+        use std::cell::Cell;
+        let restored = Cell::new(false);
+        let error = replace_installer_transaction(
+            || Ok(()),
+            || Err::<(), _>(crate::jobs::Cancelled.into()),
+            || {
+                restored.set(true);
+                Ok(())
+            },
+        )
+        .unwrap_err();
+        assert!(restored.get());
+        assert!(crate::jobs::is_cancelled(&error));
+        replace_installer_transaction(
+            || Ok(()),
+            || Ok(()),
+            || panic!("successful install must not restore"),
+        )
+        .unwrap();
+        let error = replace_installer_transaction(
+            || bail!("remove failed"),
+            || -> Result<()> { panic!("must not install after failed removal") },
+            || Ok(()),
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("Previous installation restored"));
+        let error = replace_installer_transaction(
+            || Ok(()),
+            || Err::<(), _>(anyhow::anyhow!("install failed")),
+            || bail!("restore failed"),
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("restore failed"));
+    }
     fn release(app: &str, tag: &str) -> Release {
         let suffix = if cfg!(target_os = "macos") {
             ".dmg"
@@ -1109,8 +1620,107 @@ mod planning_tests {
         }
     }
     #[test]
-    fn invalid_digest_metadata_is_excluded_before_package_download() {
+    fn version_list_excludes_previews_incompatible_packages_and_unverified_assets() {
+        let prefs = Preferences {
+            release_format: "portable".into(),
+            ..Default::default()
+        };
+        let stable = release("photocraft", "0.4.0");
+        let older = release("photocraft", "0.3.0");
+        let mut preview = stable.clone();
+        preview.prerelease = true;
+        let mut draft = stable.clone();
+        draft.draft = true;
+        let mut unverified = stable.clone();
+        unverified.assets[0].digest = None;
+        let mut invalid = stable.clone();
+        invalid.tag_name = "beta".into();
+        let mut incompatible = stable.clone();
+        incompatible.assets.clear();
+        let versions = compatible_versions(
+            vec![
+                older,
+                preview,
+                unverified,
+                draft,
+                incompatible,
+                invalid,
+                stable,
+            ],
+            "photocraft",
+            &prefs,
+        );
+        assert_eq!(
+            versions
+                .iter()
+                .map(|r| r.tag_name.as_str())
+                .collect::<Vec<_>>(),
+            vec!["0.4.0", "0.3.0"]
+        );
+    }
+    #[test]
+    fn only_explicit_version_selection_can_plan_a_downgrade_and_stays_pinned() {
         let (paths, job) = fixture();
+        let folder = paths.at("releases/photocraft");
+        fs::create_dir_all(&folder).unwrap();
+        let executable = folder.join(crate::model::executable_name("photocraft"));
+        if cfg!(target_os = "macos") {
+            fs::create_dir_all(executable.join("Contents")).unwrap();
+            fs::write(executable.join("Contents/Info.plist"), "<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.photocraft</string><key>CFBundleShortVersionString</key><string>9.0.0</string></dict></plist>").unwrap();
+        } else {
+            fs::write(&executable, "current version").unwrap();
+        }
+        let record = crate::model::Installed {
+            name: "photocraft".into(),
+            version: "9.0.0".into(),
+            path: folder.display().to_string(),
+            install_kind: "portable".into(),
+            architecture: crate::model::MANAGER_ARCH.into(),
+            ..Default::default()
+        };
+        files::write_json(
+            &paths.at("settings.json"),
+            &crate::model::Config {
+                apps_root: paths.root.display().to_string(),
+                apps: vec![record.clone()],
+                installations: vec![record],
+            },
+        )
+        .unwrap();
+        let ordinary = plan_with(&paths, &job, Some("photocraft"), |_| {
+            Ok(release("photocraft", "0.3.0"))
+        })
+        .unwrap();
+        assert_eq!(ordinary.entries[0].action, "Skip");
+        let mut prefs = paths.read_preferences().unwrap();
+        prefs.selected_apps = vec!["filmcraft".into()];
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        let explicit =
+            plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.3.0"))
+                .unwrap();
+        assert_eq!(explicit.entries.len(), 1);
+        assert_eq!(explicit.entries[0].action, "Update");
+        assert_eq!(explicit.entries[0].version, "0.3.0");
+        assert_eq!(explicit.requested_tag.as_deref(), Some("0.3.0"));
+        assert_eq!(explicit.executable_count(), 1);
+        let mut unverified = release("photocraft", "0.3.0");
+        unverified.assets[0].digest = None;
+        let denied = plan_selected_version(&paths, &job, "photocraft", unverified).unwrap();
+        assert_eq!(denied.executable_count(), 0);
+        if cfg!(target_os = "macos") {
+            fs::write(executable.join("Contents/Info.plist"), "changed").unwrap();
+        } else {
+            fs::write(&executable, "installation changed after review").unwrap();
+        }
+        assert!(execute_validated(&paths, &explicit, |_| panic!(
+            "changed unselected app must invalidate version plan"
+        ))
+        .is_err());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn invalid_digest_metadata_is_excluded_before_package_download() {
+        let (paths, job) = installed_fixture();
         for digest in [None, Some("sha256:invalid".into())] {
             let plan = plan_with(&paths, &job, None, |app| {
                 let mut release = release(app, "0.4.0");
@@ -1132,7 +1742,7 @@ mod planning_tests {
     }
     #[test]
     fn choosing_apps_rebuilds_review_without_unselected_operations() {
-        let (paths, job) = fixture();
+        let (paths, job) = installed_fixture();
         let original = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
         assert_eq!(original.entries.len(), 2);
         crate::settings::select_release_apps(&paths, &["filmcraft".into()]).unwrap();
@@ -1164,7 +1774,7 @@ mod planning_tests {
         if !cfg!(target_os = "macos") {
             return;
         }
-        let (paths, job) = fixture();
+        let (paths, job) = installed_fixture();
         let folder = paths.at("releases/photocraft");
         let contents = folder
             .join(crate::model::executable_name("photocraft"))
@@ -1211,7 +1821,8 @@ mod planning_tests {
     }
     #[test]
     fn planning_is_read_only_pins_assets_and_excludes_per_app_errors() {
-        let (paths, job) = fixture();
+        let (paths, job) = installed_fixture();
+        let saved = fs::read(paths.at("settings.json")).unwrap();
         let legacy = fs::read(paths.at("updater-settings.json")).unwrap();
         let plan = plan_with(&paths, &job, None, |app| {
             if app == "filmcraft" {
@@ -1239,19 +1850,15 @@ mod planning_tests {
         })
         .unwrap();
         assert_eq!(fs::read(paths.at("updater-settings.json")).unwrap(), legacy);
-        for name in [
-            "manager-settings.json",
-            "settings.json",
-            "releases",
-            "runtime/downloads",
-        ] {
+        assert_eq!(fs::read(paths.at("settings.json")).unwrap(), saved);
+        for name in ["manager-settings.json", "runtime/downloads"] {
             assert!(!paths.at(name).exists(), "{name}");
         }
         fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
     fn changed_preferences_destination_and_lock_reject_before_execution() {
-        let (paths, job) = fixture();
+        let (paths, job) = installed_fixture();
         let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
         let lock = platform::Lock::take("Local\\CraftAppsManager").unwrap();
         // Windows mutexes are recursive on their owning thread. A competing
@@ -1266,12 +1873,12 @@ mod planning_tests {
         });
         assert!(blocked.is_err());
         drop(lock);
-        fs::create_dir_all(paths.at("releases/photocraft")).unwrap();
+        fs::write(paths.at("releases/photocraft/changed.txt"), b"change").unwrap();
         assert!(execute_validated(&paths, &plan, |_| panic!(
             "must not execute after destination change"
         ))
         .is_err());
-        fs::remove_dir_all(paths.at("releases")).unwrap();
+        fs::remove_file(paths.at("releases/photocraft/changed.txt")).unwrap();
         let mut prefs = paths.read_preferences().unwrap();
         prefs.selected_apps.clear();
         files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
@@ -1282,8 +1889,43 @@ mod planning_tests {
         fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
-    fn cancellation_counts_completed_work_and_keeps_real_errors() {
+    fn custom_destination_keeps_pinned_release_and_rejects_a_late_folder_collision() {
         let (paths, job) = fixture();
+        let parent =
+            std::env::temp_dir().join(format!("craft-destination-{}", uuid::Uuid::new_v4()));
+        let mut plan = plan_with(&paths, &job, Some("photocraft"), |app| {
+            Ok(release(app, "0.4.0"))
+        })
+        .unwrap();
+        let original_asset = plan.entries[0]
+            .asset
+            .as_ref()
+            .unwrap()
+            .browser_download_url
+            .clone();
+        choose_destination(&paths, &mut plan, &parent, true).unwrap();
+        let target = parent.join("photocraft");
+        assert_eq!(plan.entries[0].destination.as_ref(), Some(&target));
+        assert_eq!(plan.entries[0].version, "0.4.0");
+        assert_eq!(
+            plan.entries[0].asset.as_ref().unwrap().browser_download_url,
+            original_asset
+        );
+        assert!(plan.desktop_shortcut);
+        assert!(!parent.exists());
+        execute_validated(&paths, &plan, |_| Ok(())).unwrap();
+        fs::create_dir_all(&target).unwrap();
+        fs::write(target.join("work.png"), b"personal").unwrap();
+        assert!(
+            execute_validated(&paths, &plan, |_| panic!("must not replace a new folder")).is_err()
+        );
+        assert_eq!(fs::read(target.join("work.png")).unwrap(), b"personal");
+        fs::remove_dir_all(parent).unwrap();
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+    #[test]
+    fn cancellation_counts_completed_work_and_keeps_real_errors() {
+        let (paths, job) = installed_fixture();
         let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
         let result = execute_with(&plan, &job, |_| {
             job.cancel.store(true, Ordering::Relaxed);
@@ -1321,7 +1963,7 @@ mod planning_tests {
     }
     #[test]
     fn cancelled_planning_never_fetches_packages_and_preserves_prior_metadata_failure() {
-        let (paths, job) = fixture();
+        let (paths, job) = installed_fixture();
         job.cancel.store(true, Ordering::Relaxed);
         let error =
             plan_with(&paths, &job, None, |_| panic!("must not fetch metadata")).unwrap_err();

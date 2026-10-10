@@ -169,7 +169,38 @@ struct ThemeTransition {
     from: Palette,
     started: f64,
 }
+pub fn resolved(ctx: &egui::Context, mode: Theme) -> Theme {
+    if mode == Theme::System {
+        if ctx.system_theme() == Some(egui::Theme::Light) {
+            Theme::Light
+        } else {
+            Theme::Dark
+        }
+    } else {
+        mode
+    }
+}
 pub fn apply(ctx: &egui::Context, mode: Theme) {
+    let requested = mode;
+    let mode = resolved(ctx, mode);
+    let preference_id = egui::Id::new("manager-theme-preference");
+    let changed = ctx.data_mut(|data| {
+        let changed = data.get_temp::<Theme>(preference_id) != Some(requested);
+        data.insert_temp(preference_id, requested);
+        changed
+    });
+    if changed {
+        ctx.send_viewport_cmd(egui::ViewportCommand::SetTheme(
+            if requested == Theme::System {
+                egui::SystemTheme::SystemDefault
+            } else if mode == Theme::Light {
+                egui::SystemTheme::Light
+            } else {
+                egui::SystemTheme::Dark
+            },
+        ));
+    }
+
     let id = egui::Id::new("manager-visual-theme");
     let now = ctx.input(|input| input.time);
     let target = if mode == Theme::Light { LIGHT } else { DARK };
@@ -213,13 +244,6 @@ pub fn apply(ctx: &egui::Context, mode: Theme) {
     if amount < 1.0 {
         ctx.request_repaint();
     }
-    if previous.is_none_or(|state| state.mode != mode) {
-        ctx.send_viewport_cmd(egui::ViewportCommand::SetTheme(if mode == Theme::Light {
-            egui::SystemTheme::Light
-        } else {
-            egui::SystemTheme::Dark
-        }));
-    }
     let mut style = (*ctx.style()).clone();
     style.visuals = if mode == Theme::Light {
         egui::Visuals::light()
@@ -232,6 +256,7 @@ pub fn apply(ctx: &egui::Context, mode: Theme) {
     v.window_fill = palette().panel;
     v.window_stroke = Stroke::new(1.0_f32, palette().border_strong);
     v.window_corner_radius = CornerRadius::same(12);
+    v.menu_corner_radius = CornerRadius::same(8);
     v.extreme_bg_color = palette().field;
     v.faint_bg_color = palette().card;
     v.code_bg_color = palette().log;
@@ -312,6 +337,7 @@ pub enum Icon {
     Play,
     Trash,
     ArrowUp,
+    ChevronDown,
     Close,
     Sliders,
     Archive,
@@ -320,9 +346,11 @@ pub enum Icon {
     Alert,
     Folder,
     Check,
+    EyeOff,
 }
 
 pub fn theme_toggle(ui: &mut Ui, mode: Theme) -> Response {
+    let mode = resolved(ui.ctx(), mode);
     let label = if mode == Theme::Dark {
         "Switch to light theme"
     } else {
@@ -424,6 +452,21 @@ pub fn paint_icon_weight(
             .collect()
     };
     match icon {
+        Icon::EyeOff => {
+            line(vec![
+                p(2.0, 12.0),
+                p(6.0, 7.0),
+                p(12.0, 5.0),
+                p(18.0, 7.0),
+                p(22.0, 12.0),
+                p(18.0, 17.0),
+                p(12.0, 19.0),
+                p(6.0, 17.0),
+                p(2.0, 12.0),
+            ]);
+            painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
+            line(vec![p(3.0, 3.0), p(21.0, 21.0)]);
+        }
         Icon::Sun => {
             painter.circle_stroke(p(12.0, 12.0), 4.0 * scale, stroke);
             for angle in (0..360).step_by(45) {
@@ -458,6 +501,7 @@ pub fn paint_icon_weight(
                 );
             }
         }
+        Icon::ChevronDown => line(vec![p(6.0, 9.0), p(12.0, 15.0), p(18.0, 9.0)]),
         Icon::Download => {
             line(vec![
                 p(3.0, 15.0),
@@ -640,8 +684,10 @@ pub struct Btn<'a> {
     height: Option<f32>,
     icon: Option<(Icon, Option<Color32>)>,
     icon_weight: f32,
+    text_color: Option<Color32>,
     enabled: bool,
     min_width: f32,
+    corners: Option<CornerRadius>,
 }
 
 pub fn btn(text: &str) -> Btn<'_> {
@@ -652,8 +698,10 @@ pub fn btn(text: &str) -> Btn<'_> {
         height: None,
         icon: None,
         icon_weight: 2.0,
+        text_color: None,
         enabled: true,
         min_width: 0.0,
+        corners: None,
     }
 }
 
@@ -687,6 +735,10 @@ impl<'a> Btn<'a> {
     }
     pub fn icon_weight(mut self, weight: f32) -> Self {
         self.icon_weight = weight;
+        self
+    }
+    pub fn text_color(mut self, color: Color32) -> Self {
+        self.text_color = Some(color);
         self
     }
     pub fn enabled(mut self, enabled: bool) -> Self {
@@ -796,21 +848,72 @@ impl<'a> Btn<'a> {
         self.layout(ui).2
     }
 
+    /// Reserve both halves as one widget so wrapping never separates the arrow.
+    pub fn split(mut self, ui: &mut Ui, menu_label: &str) -> (Response, Response) {
+        let (_, _, _, _, _, radius) = self.metrics();
+        let size = self.desired_size(ui);
+        let arrow_width = 36.0;
+        let (rect, placeholder) =
+            ui.allocate_exact_size(egui::vec2(size.x + arrow_width, size.y), Sense::hover());
+        let main_rect = Rect::from_min_size(rect.min, size);
+        let arrow_rect = Rect::from_min_max(egui::pos2(main_rect.right(), rect.top()), rect.max);
+        let mut main_ui = ui.new_child(egui::UiBuilder::new().max_rect(main_rect));
+        let mut arrow_ui = ui.new_child(egui::UiBuilder::new().max_rect(arrow_rect));
+        let kind = self.kind;
+        let mut arrow = btn("")
+            .kind(kind)
+            .size(self.size)
+            .height(size.y)
+            .icon(Icon::ChevronDown)
+            .enabled(self.enabled);
+        arrow.corners = Some(CornerRadius {
+            nw: 0,
+            sw: 0,
+            ne: radius,
+            se: radius,
+        });
+        self.corners = Some(CornerRadius {
+            nw: radius,
+            sw: radius,
+            ne: 0,
+            se: 0,
+        });
+        // Fit the icon-only half to its 36-point hit area.
+        let main = self.show(&mut main_ui);
+        let arrow = arrow.show_in_rect(&mut arrow_ui, arrow_rect, placeholder.id.with("arrow"));
+        arrow.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::Button, arrow.enabled(), menu_label)
+        });
+        if matches!(kind, Kind::Primary) {
+            ui.painter().line_segment(
+                [
+                    egui::pos2(main_rect.right(), rect.top() + 9.0),
+                    egui::pos2(main_rect.right(), rect.bottom() - 9.0),
+                ],
+                Stroke::new(1.0_f32, Color32::WHITE.gamma_multiply(0.3)),
+            );
+        }
+        (main, arrow)
+    }
     pub fn show(self, ui: &mut Ui) -> Response {
+        let size = self.desired_size(ui);
+        let (rect, placeholder) = ui.allocate_exact_size(size, Sense::hover());
+        self.show_in_rect(ui, rect, placeholder.id)
+    }
+    fn show_in_rect(self, ui: &mut Ui, rect: Rect, id: egui::Id) -> Response {
         let (_, _, _, icon_size, _, radius) = self.metrics();
         let (fill, hover_fill, stroke, text_color) = self.colors();
-        let (galley, icon_space, size) = self.layout(ui);
-        let (width, height) = (size.x, size.y);
+        let text_color = self.text_color.unwrap_or(text_color);
+        let (galley, icon_space, _) = self.layout(ui);
         // Reserve the space in this layout first, so wrapping rows can move the
         // button to their next line. The click area then goes in a disabled child
         // when needed, so egui knows the state: disabled-hover tooltips show and
         // plain tooltips do not.
-        let (rect, placeholder) = ui.allocate_exact_size(egui::vec2(width, height), Sense::hover());
         let mut area = ui.new_child(egui::UiBuilder::new().max_rect(rect));
         if !self.enabled {
             area.disable();
         }
-        let response = area.interact(rect, placeholder.id.with("button"), Sense::click());
+        let response = area.interact(rect, id.with("button"), Sense::click());
         response.widget_info(|| {
             egui::WidgetInfo::labeled(egui::WidgetType::Button, self.enabled, self.text)
         });
@@ -833,7 +936,7 @@ impl<'a> Btn<'a> {
             let painter = ui.painter();
             painter.rect(
                 rect,
-                CornerRadius::same(radius),
+                self.corners.unwrap_or(CornerRadius::same(radius)),
                 fill,
                 stroke,
                 StrokeKind::Inside,
@@ -1139,8 +1242,7 @@ pub fn segmented<T: PartialEq + Clone>(
     changed
 }
 
-/// Paints a checkbox the way the mockups render a native one: a white box with a
-/// grey outline, or the accent colour with a white tick.
+/// Neutral Spectrum surface and border, or accent fill with a white tick.
 pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, enabled: bool) {
     let alpha = if enabled { 1.0 } else { 0.5 };
     let painter = ui.painter();
@@ -1156,8 +1258,8 @@ pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, e
         painter.rect(
             rect,
             CornerRadius::same(2),
-            Color32::WHITE.gamma_multiply(alpha),
-            Stroke::new(1.0_f32, palette().control_border),
+            palette().button.gamma_multiply(alpha),
+            Stroke::new(1.0_f32, palette().border_strong.gamma_multiply(alpha)),
             StrokeKind::Inside,
         );
     }
@@ -1210,79 +1312,6 @@ pub fn checkbox(
             CornerRadius::same(4),
             Stroke::new(2.0_f32, palette().link),
             StrokeKind::Outside,
-        );
-    }
-    if enabled && response.hovered() {
-        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-    }
-    response
-}
-
-/// A 16pt checkbox with its label, drawn like the mockup's native checkbox: accent fill and
-/// a white tick when on, white with a grey border when off. The whole row toggles it.
-pub fn check_label(ui: &mut Ui, on: &mut bool, label: &str, enabled: bool) -> Response {
-    let font = FontId::proportional(14.0);
-    let galley = ui
-        .painter()
-        .layout_no_wrap(label.to_owned(), font, Color32::PLACEHOLDER);
-    // 4pt and 3pt margins around the box, then a 10pt gap to the label.
-    let size = egui::vec2(4.0 + 16.0 + 3.0 + 10.0 + galley.size().x, 22.0);
-    let (rect, mut response) = ui
-        .add_enabled_ui(enabled, |ui| ui.allocate_exact_size(size, Sense::click()))
-        .inner;
-    if response.clicked() {
-        *on = !*on;
-        response.mark_changed();
-    }
-    let checked = *on;
-    response.widget_info(|| {
-        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, checked, label)
-    });
-    if ui.is_rect_visible(rect) {
-        let alpha = if enabled { 1.0 } else { 0.45 };
-        let painter = ui.painter();
-        let tick_box = Rect::from_min_size(
-            egui::pos2(rect.left() + 4.0, rect.center().y - 8.0),
-            Vec2::splat(16.0),
-        );
-        if checked {
-            let fill = if enabled && response.hovered() {
-                palette().accent_hover
-            } else {
-                palette().accent
-            };
-            painter.rect_filled(tick_box, CornerRadius::same(2), fill.gamma_multiply(alpha));
-            let p = |x: f32, y: f32| tick_box.min + egui::vec2(x, y) * 16.0;
-            painter.add(egui::Shape::line(
-                vec![p(0.24, 0.52), p(0.42, 0.70), p(0.77, 0.32)],
-                Stroke::new(2.2_f32, Color32::WHITE.gamma_multiply(alpha)),
-            ));
-        } else {
-            painter.rect(
-                tick_box,
-                CornerRadius::same(2),
-                Color32::WHITE.gamma_multiply(alpha),
-                Stroke::new(1.0_f32, palette().control_border.gamma_multiply(alpha)),
-                StrokeKind::Inside,
-            );
-        }
-        if response.has_focus() {
-            painter.rect_stroke(
-                tick_box.expand(2.0),
-                CornerRadius::same(4),
-                Stroke::new(2.0_f32, palette().link),
-                StrokeKind::Outside,
-            );
-        }
-        painter.galley(
-            egui::pos2(
-                tick_box.right() + 3.0 + 10.0,
-                rect.center().y - galley.size().y / 2.0,
-            ),
-            galley,
-            palette()
-                .text_2
-                .gamma_multiply(if enabled { 1.0 } else { 0.5 }),
         );
     }
     if enabled && response.hovered() {
@@ -1377,6 +1406,58 @@ mod tests {
         0.2126 * linear(color.r()) + 0.7152 * linear(color.g()) + 0.0722 * linear(color.b())
     }
     #[test]
+    fn split_button_clicks_are_independent_and_disabled_halves_do_nothing() {
+        fn draw(ctx: &egui::Context, input: egui::RawInput, enabled: bool) -> (Response, Response) {
+            let mut responses = None;
+            let _ = ctx.run(input, |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    responses = Some(
+                        btn("Update PhotoCraft")
+                            .primary()
+                            .size(Size::Card)
+                            .enabled(enabled)
+                            .split(ui, "Choose version"),
+                    );
+                });
+            });
+            responses.unwrap()
+        }
+        for enabled in [true, false] {
+            for arrow in [false, true] {
+                let ctx = egui::Context::default();
+                crate::ui::fonts(&ctx);
+                let (main, menu) = draw(&ctx, Default::default(), enabled);
+                assert_eq!(main.rect.right(), menu.rect.left());
+                assert_eq!(main.rect.height(), menu.rect.height());
+                assert_ne!(main.id, menu.id);
+                let point = if arrow {
+                    menu.rect.center()
+                } else {
+                    main.rect.center()
+                };
+                for pressed in [true, false] {
+                    let input = egui::RawInput {
+                        events: vec![
+                            egui::Event::PointerMoved(point),
+                            egui::Event::PointerButton {
+                                pos: point,
+                                button: egui::PointerButton::Primary,
+                                pressed,
+                                modifiers: Default::default(),
+                            },
+                        ],
+                        ..Default::default()
+                    };
+                    let (main, menu) = draw(&ctx, input, enabled);
+                    if !pressed {
+                        assert_eq!(main.clicked(), enabled && !arrow);
+                        assert_eq!(menu.clicked(), enabled && arrow);
+                    }
+                }
+            }
+        }
+    }
+    #[test]
     fn both_themes_keep_body_text_and_statuses_readable() {
         for palette in [DARK, LIGHT] {
             for background in [palette.bg, palette.panel, palette.card, palette.log] {
@@ -1398,6 +1479,30 @@ mod tests {
                 }
             }
         }
+    }
+    #[test]
+    fn unchecked_dark_checkboxes_never_paint_white_surfaces() {
+        let ctx = egui::Context::default();
+        apply(&ctx, Theme::Dark);
+        let output = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                let mut on = false;
+                checkbox(ui, &mut on, 16.0, DARK.accent, "App backups", true);
+            });
+        });
+        let fills: Vec<_> = output
+            .shapes
+            .iter()
+            .filter_map(|shape| {
+                if let egui::Shape::Rect(rect) = &shape.shape {
+                    Some(rect.fill)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert!(fills.iter().filter(|fill| **fill == DARK.button).count() >= 1);
+        assert!(!fills.contains(&Color32::WHITE));
     }
     #[test]
     fn switching_theme_updates_native_and_custom_widget_colors() {

@@ -73,13 +73,14 @@ fn legacy_known_apps() -> Vec<String> {
 #[serde(rename_all = "lowercase")]
 pub enum Theme {
     #[default]
+    System,
     Dark,
     Light,
 }
 impl Theme {
     pub fn toggled(self) -> Self {
         match self {
-            Self::Dark => Self::Light,
+            Self::System | Self::Dark => Self::Light,
             Self::Light => Self::Dark,
         }
     }
@@ -89,6 +90,7 @@ impl Theme {
 #[serde(default, rename_all = "camelCase")]
 pub struct Preferences {
     pub theme: Theme,
+    pub close_to_tray: bool,
     pub keep_app_backups: bool,
     pub keep_source_backups: bool,
     pub compress_backups: bool,
@@ -100,9 +102,15 @@ pub struct Preferences {
     pub selected_apps: Vec<String>,
     pub selected_sources: Vec<String>,
     pub app_order: Vec<String>,
+    /// Independent ordering for Home tiles; never follows sidebar reordering.
+    pub home_app_order: Vec<String>,
+    /// Presentation only: does not affect installation or update selection.
+    pub hidden_apps: Vec<String>,
     #[serde(alias = "checkUpdaterOnStartup")]
     pub check_manager_on_startup: bool,
     pub check_installed_apps_on_startup: bool,
+    pub check_installed_apps_periodically: bool,
+    pub app_check_interval_minutes: u64,
     /// Apps already offered to the user; newer catalog apps are adopted once.
     #[serde(default = "legacy_known_apps")]
     pub known_apps: Vec<String>,
@@ -116,9 +124,10 @@ pub struct Preferences {
 impl Default for Preferences {
     fn default() -> Self {
         Self {
-            theme: Theme::Dark,
-            keep_app_backups: true,
-            keep_source_backups: true,
+            theme: Theme::System,
+            close_to_tray: false,
+            keep_app_backups: false,
+            keep_source_backups: false,
             compress_backups: true,
             compress_source_backups: true,
             notify_updates: true,
@@ -133,11 +142,15 @@ impl Default for Preferences {
             selected_apps: apps(),
             selected_sources: sources(),
             app_order: apps(),
+            home_app_order: apps(),
+            hidden_apps: Vec::new(),
             check_manager_on_startup: false,
-            check_installed_apps_on_startup: false,
+            check_installed_apps_on_startup: true,
+            check_installed_apps_periodically: true,
+            app_check_interval_minutes: 20,
             known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
             select_new_apps: false,
-            check_catalog_on_startup: false,
+            check_catalog_on_startup: true,
             check_catalog_with_app_updates: false,
         }
     }
@@ -150,6 +163,7 @@ impl Preferences {
     /// Normalizes the settings against the current catalog. Returns `true`
     /// when newly published apps were adopted and the settings should be saved.
     pub fn adopt_new_apps(&mut self) -> Result<bool> {
+        self.app_check_interval_minutes = self.app_check_interval_minutes.clamp(10, 60);
         if !["portable", "installer"].contains(&self.release_format.as_str())
             || !["x64", "x86", "arm64"].contains(&self.architecture.as_str())
         {
@@ -185,6 +199,14 @@ impl Preferences {
         let mut seen = std::collections::BTreeSet::new();
         self.app_order
             .retain(|s| apps.contains(s) && seen.insert(s.clone()));
+        let mut home_seen = std::collections::BTreeSet::new();
+        self.home_app_order
+            .retain(|s| apps.contains(s) && home_seen.insert(s.clone()));
+        for name in &apps {
+            if home_seen.insert(name.clone()) {
+                self.home_app_order.push(name.clone());
+            }
+        }
         for name in apps {
             if seen.insert(name.clone()) {
                 self.app_order.push(name);
@@ -607,12 +629,37 @@ pub fn release_arch(architecture: &str) -> &str {
 
 #[cfg(test)]
 mod detection_tests {
+    #[test]
+    fn visibility_defaults_visible_and_preserves_update_selection_and_order() {
+        let mut preferences: super::Preferences = serde_json::from_str("{}").unwrap();
+        assert!(preferences.hidden_apps.is_empty());
+        preferences.validate().unwrap();
+        let selection = preferences.selected_apps.clone();
+        let order = preferences.app_order.clone();
+        preferences.hidden_apps.push("photocraft".into());
+        preferences.validate().unwrap();
+        let reopened: super::Preferences =
+            serde_json::from_slice(&serde_json::to_vec(&preferences).unwrap()).unwrap();
+        assert_eq!(reopened.hidden_apps, ["photocraft"]);
+        assert_eq!(reopened.selected_apps, selection);
+        assert_eq!(reopened.app_order, order);
+    }
     use super::*;
+    #[test]
+    fn backup_defaults_are_off_and_saved_choices_are_preserved() {
+        let fresh = Preferences::default();
+        assert!(!fresh.keep_app_backups);
+        assert!(!fresh.keep_source_backups);
+        let saved: Preferences =
+            serde_json::from_str(r#"{"keepAppBackups":true,"keepSourceBackups":true}"#).unwrap();
+        assert!(saved.keep_app_backups);
+        assert!(saved.keep_source_backups);
+    }
     #[test]
     fn theme_defaults_for_existing_settings_and_survives_restart() {
         let legacy: Preferences =
             serde_json::from_str(r#"{"selectedApps":["filmcraft"]}"#).unwrap();
-        assert_eq!(legacy.theme, Theme::Dark);
+        assert_eq!(legacy.theme, Theme::System);
         let root = std::env::temp_dir().join(format!("craft-theme-{}", uuid::Uuid::new_v4()));
         let paths = Paths::new(root.clone(), None);
         let mut preferences = legacy;

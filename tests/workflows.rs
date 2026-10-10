@@ -69,11 +69,18 @@ fn renamed_pdfcraft_assets_and_executable_keep_legacy_library_identity() {
         .ends_with(".msi"));
 }
 #[test]
-fn startup_checks_only_target_active_installed_apps_and_are_opt_in() {
+fn startup_checks_default_on_preserve_opt_out_and_target_active_installed_apps() {
     let f = Fixture::new();
     let paths = f.paths();
     let legacy: Preferences = serde_json::from_str(r#"{"selectedApps":[]}"#).unwrap();
-    assert!(!legacy.check_installed_apps_on_startup);
+    assert!(legacy.check_installed_apps_on_startup);
+    assert!(legacy.check_installed_apps_periodically);
+    let opted_out: Preferences = serde_json::from_str(
+        r#"{"checkInstalledAppsOnStartup":false,"checkInstalledAppsPeriodically":false}"#,
+    )
+    .unwrap();
+    assert!(!opted_out.check_installed_apps_on_startup);
+    assert!(!opted_out.check_installed_apps_periodically);
     assert!(!legacy.check_manager_on_startup);
     // Portable mode keeps this check independent of apps installed on the machine.
     files::write_json(
@@ -627,6 +634,7 @@ fn backups_retention_and_disabled() {
     let root = paths.at("backups/releases");
     fs::create_dir_all(&root).unwrap();
     let mut p = Preferences {
+        keep_app_backups: true,
         compress_backups: false,
         backup_versions: 1,
         ..Default::default()
@@ -777,7 +785,10 @@ fn source_backup_7zip_roundtrip() {
             ),
         ],
     );
-    let p = Preferences::default();
+    let p = Preferences {
+        keep_source_backups: true,
+        ..Preferences::default()
+    };
     backups::finish(&paths, &p, Some(&source), "filmcraft", true, &job(&f.0)).unwrap();
     assert!(!source.exists());
     assert!(PathBuf::from(format!("{}.7z", source.display())).exists());
@@ -966,7 +977,7 @@ fn newly_published_apps_are_selected_once_and_remembered() {
     assert!(p.selected_apps.is_empty());
     assert!(p.selected_sources.is_empty());
     assert!(!p.select_new_apps);
-    assert!(!p.check_catalog_on_startup);
+    assert!(p.check_catalog_on_startup);
     assert!(!p.check_catalog_with_app_updates);
     assert!(p.known_apps.iter().any(|a| a == "artcraft"));
 }

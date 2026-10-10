@@ -171,6 +171,12 @@ impl Network {
     }
     pub fn asset(&self, a: &Asset, dest: &Path, job: &Job) -> Result<()> {
         self.download(&a.browser_download_url, dest, job)?;
+        job.check()?;
+        job.stage(
+            "Verifying checksum",
+            None,
+            "Checking SHA-256 before installation",
+        );
         verify_asset(dest, a)
     }
 }

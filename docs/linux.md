@@ -28,7 +28,7 @@ Run the packaging script as a regular user on Arch:
 
 ```sh
 sh scripts/package-linux-arch.sh target/release/craft-apps-manager
-sudo pacman -U ./dist/linux/craft-apps-manager-0.6.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ./dist/linux/craft-apps-manager-0.7.0-1-x86_64.pkg.tar.zst
 ```
 
 The package includes Manager and Builder launchers and license notices. Removing
@@ -87,7 +87,7 @@ Linux packages are experimental. Release DEB, RPM and portable binaries are buil
 
 Run `sh scripts/package-linux-deb.sh path/to/craft-apps-manager` on Ubuntu or Debian. It requires `dpkg-dev` and creates an `amd64` or `i386` DEB based on the executable's ELF architecture. Linked-library requirements are calculated from the binary, so a package built on a newer Ubuntu release may require newer system libraries.
 
-Install the local package with `sudo apt install ./craft-apps-manager_0.5.1_amd64.deb` (or the `i386` package). The package includes both desktop launchers, the icon, and license notices. Removing it keeps the user's library and settings.
+Install the local package with `sudo apt install ./craft-apps-manager_0.7.0_amd64.deb` (or the `i386` package). The package includes both desktop launchers, the icon, and license notices. Removing it keeps the user's library and settings.
 
 ## Fedora RPM development package
 
