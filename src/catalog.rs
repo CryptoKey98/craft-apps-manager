@@ -115,6 +115,34 @@ pub fn builtin() -> Vec<Entry> {
             release: false,
             source: true,
         },
+        // Third-party apps hosted outside the Storytold organization. Their
+        // releases follow the Craft asset naming, so they update like the rest.
+        Entry {
+            key: "solvecraft".into(),
+            repository: "bherbruck/solvecraft".into(),
+            title: "SolveCraft".into(),
+            category: "Crossword puzzles".into(),
+            description: "Create, solve, and print crosswords with a free and open-source crossword editor built in Rust.".into(),
+            scheme: Scheme::Craft,
+            asset_prefix: "solvecraft".into(),
+            aliases: Vec::new(),
+            bundle_ids: Vec::new(),
+            release: true,
+            source: false,
+        },
+        Entry {
+            key: "concat".into(),
+            repository: "jub0t/concat".into(),
+            title: "Concat".into(),
+            category: "Version control".into(),
+            description: "A fast, native desktop Git client written in Rust.".into(),
+            scheme: Scheme::Craft,
+            asset_prefix: "Concat".into(),
+            aliases: Vec::new(),
+            bundle_ids: Vec::new(),
+            release: true,
+            source: false,
+        },
     ]
 }
 
@@ -159,13 +187,17 @@ pub fn source_keys() -> Vec<String> {
         .map(|e| e.key)
         .collect()
 }
+/// The bare repository name, without any `owner/` prefix.
+pub fn repository_name(repository: &str) -> &str {
+    repository.rsplit('/').next().unwrap_or(repository)
+}
 /// Every name an app's release files and programs may use, preferred first.
 pub fn names(key: &str) -> Vec<String> {
     let mut names = vec![key.to_string()];
     if let Some(entry) = get(key) {
         names.push(entry.asset_prefix);
         names.extend(entry.aliases);
-        names.push(entry.repository);
+        names.push(repository_name(&entry.repository).to_string());
     }
     let mut seen = std::collections::BTreeSet::new();
     names.retain(|n| !n.is_empty() && seen.insert(n.to_ascii_lowercase()));
@@ -190,8 +222,24 @@ fn valid(entry: &Entry) -> bool {
             && s.bytes()
                 .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
     };
+    // A repository is either a bare Storytold name or an `owner/name` slug
+    // for an app hosted under a different account.
+    let repository = |s: &str| {
+        let (owner, name) = s.split_once('/').unwrap_or(("", s));
+        let part = |p: &str| {
+            !p.is_empty()
+                && p.bytes().all(|b| {
+                    b.is_ascii_lowercase()
+                        || b.is_ascii_digit()
+                        || b == b'-'
+                        || b == b'_'
+                        || b == b'.'
+                })
+        };
+        (owner.is_empty() || part(owner)) && part(name)
+    };
     simple(&entry.key)
-        && simple(&entry.repository)
+        && repository(&entry.repository)
         && !entry.title.trim().is_empty()
         && entry.aliases.iter().all(|a| simple(a))
         && entry.bundle_ids.iter().all(|id| {
@@ -624,5 +672,19 @@ mod tests {
         assert_eq!(merged.last().unwrap().key, "mapcraft");
         assert_eq!(pretty("cadcraft"), "CadCraft");
         assert_eq!(names("printcraft"), ["printcraft", "pdfcraft"]);
+    }
+    #[test]
+    fn third_party_apps_use_an_owner_slug_and_bare_file_names() {
+        assert_eq!(crate::model::repository("filmcraft"), "storytold/filmcraft");
+        assert_eq!(
+            crate::model::repository("solvecraft"),
+            "bherbruck/solvecraft"
+        );
+        assert_eq!(crate::model::repository("concat"), "jub0t/concat");
+        assert_eq!(crate::model::repository_name("solvecraft"), "solvecraft");
+        assert_eq!(crate::model::repository_name("concat"), "concat");
+        assert_eq!(names("concat"), ["concat"]);
+        assert!(crate::model::apps().iter().any(|a| a == "solvecraft"));
+        assert!(crate::model::apps().iter().any(|a| a == "concat"));
     }
 }

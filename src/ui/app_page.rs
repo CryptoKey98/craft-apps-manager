@@ -165,8 +165,8 @@ impl App {
                     let repository = model::repository(&app);
                     theme::hyperlink(
                         ui,
-                        format!("github.com/storytold/{repository}"),
-                        format!("https://github.com/storytold/{repository}"),
+                        format!("github.com/{repository}"),
+                        format!("https://github.com/{repository}"),
                         13.0,
                     )
                     .on_hover_text("View repository");
@@ -927,7 +927,7 @@ impl App {
             ui,
             "Release notes",
             format!(
-                "https://github.com/storytold/{}/releases/latest",
+                "https://github.com/{}/releases/latest",
                 model::repository(&app)
             ),
             13.0,

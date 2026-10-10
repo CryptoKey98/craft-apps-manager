@@ -417,14 +417,11 @@ impl App {
                                 );
                             });
                             ui.add_space(6.0);
-                            if theme::link(
-                                ui,
-                                format!("storytold/{} · main", model::repository(&app)),
-                            )
-                            .clicked()
+                            if theme::link(ui, format!("{} · main", model::repository(&app)))
+                                .clicked()
                             {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(format!(
-                                    "https://github.com/storytold/{}/tree/main",
+                                    "https://github.com/{}/tree/main",
                                     model::repository(&app)
                                 )));
                             }

@@ -445,7 +445,7 @@ fn detect_in_roots(
                             &display,
                             &crate::model::title(app),
                             &app.to_string(),
-                            &crate::model::repository(app).to_string(),
+                            &crate::model::repository_name(app),
                         ] {
                             candidates.push(std::path::PathBuf::from(&base).join(folder));
                         }

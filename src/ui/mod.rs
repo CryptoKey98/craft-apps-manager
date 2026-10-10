@@ -47,12 +47,11 @@ fn icon_bytes(paths: &Paths, name: &str) -> Option<Vec<u8>> {
     if let Ok(bytes) = std::fs::read(&cached) {
         return Some(bytes);
     }
-    let entry = catalog::get(name)?;
+    catalog::get(name)?;
     let url = format!(
-        "https://raw.githubusercontent.com/{}/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
-        catalog::ORG,
-        entry.repository,
-        entry.repository
+        "https://raw.githubusercontent.com/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
+        model::repository(name),
+        model::repository_name(name)
     );
     let bytes = reqwest::blocking::get(url)
         .ok()?

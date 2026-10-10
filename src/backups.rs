@@ -252,7 +252,7 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
                         .get(app)
                         .map(|s| s.branch.clone())
                         .unwrap_or_else(|| "main".into()),
-                    repository: format!("storytold/{}", crate::model::repository(app)),
+                    repository: crate::model::repository(app),
                     archive_sha256: files::hash(&zip)?,
                     downloaded_at: chrono::Utc::now().to_rfc3339(),
                 },

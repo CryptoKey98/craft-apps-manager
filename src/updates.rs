@@ -34,7 +34,7 @@ pub fn check_app(paths: &Paths, app: &str) -> Result<Option<String>> {
     crate::model::valid_app(app)?;
     let installed = crate::apps::installed(paths, app)?;
     let release: Release = Network::new(&paths.root)?.json(&format!(
-        "https://api.github.com/repos/storytold/{}/releases/latest",
+        "https://api.github.com/repos/{}/releases/latest",
         crate::model::repository(app)
     ))?;
     if release.draft || release.prerelease {
@@ -101,33 +101,40 @@ fn asset_named<'a>(
     p: &Preferences,
 ) -> Result<Option<&'a Asset>> {
     let release = release_version(&r.tag_name)?;
+    // Different projects spell the same target differently: `x64`, `x86_64`
+    // and `amd64` all denote a 64-bit Intel build.
+    let os = crate::model::release_os();
+    let architecture = crate::model::release_arch(&p.architecture);
+    let architectures: Vec<&str> = match architecture {
+        "x64" => vec!["x64", "x86_64", "amd64"],
+        "x86" => vec!["x86", "i686", "i386"],
+        "arm64" => vec!["arm64", "aarch64"],
+        other => vec![other],
+    };
     let mut names = Vec::new();
     for asset_name in prefixes {
-        let prefix = format!(
-            "{asset_name}-{}-{}-{}",
-            release,
-            crate::model::release_os(),
-            crate::model::release_arch(&p.architecture)
-        );
-        let package_names = if cfg!(target_os = "macos") {
-            // The same DMG serves both formats: portable copies its app bundle
-            // into the library, installer copies it into Applications.
-            vec![format!("{prefix}.dmg")]
-        } else if cfg!(target_os = "linux") {
-            vec![format!(
-                "{prefix}{}",
-                if p.release_format == "installer" {
-                    crate::installers::installer_extension()?
-                } else {
-                    ".AppImage"
-                }
-            )]
-        } else if p.release_format == "installer" {
-            vec![format!("{prefix}.msi"), format!("{prefix}.exe")]
-        } else {
-            vec![format!("{prefix}-portable.zip")]
-        };
-        names.extend(package_names);
+        for arch in &architectures {
+            let prefix = format!("{asset_name}-{release}-{os}-{arch}");
+            let package_names = if cfg!(target_os = "macos") {
+                // The same DMG serves both formats: portable copies its app bundle
+                // into the library, installer copies it into Applications.
+                vec![format!("{prefix}.dmg")]
+            } else if cfg!(target_os = "linux") {
+                vec![format!(
+                    "{prefix}{}",
+                    if p.release_format == "installer" {
+                        crate::installers::installer_extension()?
+                    } else {
+                        ".AppImage"
+                    }
+                )]
+            } else if p.release_format == "installer" {
+                vec![format!("{prefix}.msi"), format!("{prefix}.exe")]
+            } else {
+                vec![format!("{prefix}-portable.zip")]
+            };
+            names.extend(package_names);
+        }
         #[cfg(target_os = "linux")]
         if p.release_format == "installer"
             && crate::installers::package_kind()? == crate::installers::PackageKind::Arch
@@ -159,7 +166,11 @@ fn asset_named<'a>(
     }
     names.dedup();
     for n in names {
-        let assets: Vec<_> = r.assets.iter().filter(|a| a.name == n).collect();
+        let assets: Vec<_> = r
+            .assets
+            .iter()
+            .filter(|a| a.name.eq_ignore_ascii_case(&n))
+            .collect();
         if assets.len() > 1 {
             bail!("Ambiguous release assets");
         }
@@ -391,7 +402,7 @@ pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
     let network = Network::new(&paths.root)?;
     plan_with(paths, job, None, |name| {
         network.json(&format!(
-            "https://api.github.com/repos/storytold/{}/releases/latest",
+            "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
     })
@@ -401,7 +412,7 @@ pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
     let network = Network::new(&paths.root)?;
     plan_with(paths, job, Some(app), |name| {
         network.json(&format!(
-            "https://api.github.com/repos/storytold/{}/releases/latest",
+            "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
     })
@@ -465,7 +476,7 @@ pub fn available_versions(paths: &Paths, app: &str) -> Result<Vec<Release>> {
     let prefs = paths.read_preferences()?;
     let network = Network::new(&paths.root)?;
     let releases: Vec<Release> = network.json(&format!(
-        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+        "https://api.github.com/repos/{}/releases?per_page=100",
         crate::model::repository(app)
     ))?;
     Ok(compatible_versions(releases, app, &prefs))
@@ -493,7 +504,7 @@ pub fn plan_version(paths: &Paths, job: &Job, app: &str, tag: &str) -> Result<Re
     crate::model::valid_app(app)?;
     release_version(tag)?;
     let mut url = reqwest::Url::parse(&format!(
-        "https://api.github.com/repos/storytold/{}/releases/tags/",
+        "https://api.github.com/repos/{}/releases/tags/",
         crate::model::repository(app)
     ))?;
     url.path_segments_mut()
@@ -591,7 +602,7 @@ fn plan_with(
                 crate::catalog::learn_alias(&paths.root, &app.name, &parsed.prefix)?;
             }
             if !asset.browser_download_url.starts_with(&format!(
-                "https://github.com/storytold/{}/releases/download/",
+                "https://github.com/{}/releases/download/",
                 crate::model::repository(&app.name)
             )) {
                 bail!("Unexpected asset URL");
@@ -788,7 +799,7 @@ fn execute_entries(
                     );
                     // Stage and verify recovery before removing the current version.
                     let releases: Vec<Release> = network.json(&format!(
-                        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+                        "https://api.github.com/repos/{}/releases?per_page=100",
                         crate::model::repository(&app.name)
                     ))?;
                     let current_release = releases.into_iter().find(|r| !r.draft && !r.prerelease && release_version(&r.tag_name).is_ok_and(|v| v == app.version))
@@ -1134,7 +1145,7 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
     let network = Network::new(&paths.root)?;
     let plan = plan_with(paths, job, selected, |name| {
         network.json(&format!(
-            "https://api.github.com/repos/storytold/{}/releases/latest",
+            "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
     })?;
@@ -1258,14 +1269,13 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
         job.stage("Checking source", None, crate::model::title(name));
         let result = (|| -> Result<()> {
             let repository = crate::model::repository(name);
-            let repo: serde_json::Value = network.json(&format!(
-                "https://api.github.com/repos/storytold/{repository}"
-            ))?;
+            let repo: serde_json::Value =
+                network.json(&format!("https://api.github.com/repos/{repository}"))?;
             let branch = repo["default_branch"]
                 .as_str()
                 .context("No default branch")?;
             let mut endpoint = reqwest::Url::parse(&format!(
-                "https://api.github.com/repos/storytold/{repository}/commits/"
+                "https://api.github.com/repos/{repository}/commits/"
             ))?;
             endpoint
                 .path_segments_mut()
@@ -1299,7 +1309,7 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
             }
             let archive = paths.at(format!("runtime/downloads/{name}-{sha}.zip"));
             network.download(
-                &format!("https://codeload.github.com/storytold/{repository}/zip/{sha}"),
+                &format!("https://codeload.github.com/{repository}/zip/{sha}"),
                 &archive,
                 job,
             )?;
@@ -1314,7 +1324,7 @@ pub fn sources(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
                 Source {
                     sha: sha.into(),
                     branch: branch.into(),
-                    repository: format!("storytold/{repository}"),
+                    repository: repository.clone(),
                     archive_sha256: hash,
                     downloaded_at: chrono::Utc::now().to_rfc3339(),
                 },
@@ -1456,6 +1466,43 @@ mod tests {
                 }
             }
         }
+    }
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn third_party_assets_match_case_and_architecture_aliases() {
+        let preferences = Preferences {
+            architecture: "x64".into(),
+            release_format: "installer".into(),
+            ..Default::default()
+        };
+        let release = |app: &str, tag: &str, asset: &str| Release {
+            tag_name: tag.into(),
+            name: None,
+            draft: false,
+            prerelease: false,
+            assets: vec![crate::model::Asset {
+                name: asset.into(),
+                size: 1,
+                digest: None,
+                browser_download_url: format!(
+                    "https://github.com/{}/releases/download/{tag}/{asset}",
+                    crate::model::repository(app)
+                ),
+            }],
+        };
+        // Uppercase file names and the `x86_64` spelling still match.
+        let solvecraft = release("solvecraft", "v0.1.2", "SolveCraft-0.1.2-windows-x64.exe");
+        assert_eq!(
+            select_asset(&solvecraft, "solvecraft", &preferences)
+                .unwrap()
+                .name,
+            "SolveCraft-0.1.2-windows-x64.exe"
+        );
+        let concat = release("concat", "v0.2.6", "Concat-0.2.6-windows-x86_64.msi");
+        assert_eq!(
+            select_asset(&concat, "concat", &preferences).unwrap().name,
+            "Concat-0.2.6-windows-x86_64.msi"
+        );
     }
     #[test]
     fn rollback() {

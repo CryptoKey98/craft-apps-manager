@@ -165,7 +165,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
         "Finding the installed version's verified installer.",
     );
     let releases: Vec<Release> = network.json(&format!(
-        "https://api.github.com/repos/storytold/{}/releases?per_page=100",
+        "https://api.github.com/repos/{}/releases?per_page=100",
         crate::model::repository(&current.name)
     ))?;
     let release = releases

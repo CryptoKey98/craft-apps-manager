@@ -185,7 +185,7 @@ fn write_release_fixture(folder: &Path, app: &str, payload: &str) {
             .join(craft_apps_manager::model::executable_name(app))
             .join("Contents");
         fs::create_dir_all(&contents).unwrap();
-        let id = craft_apps_manager::model::repository(app);
+        let id = craft_apps_manager::model::repository_name(app);
         fs::write(contents.join("Info.plist"), format!(r#"<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{id}</string><key>CFBundleShortVersionString</key><string>0.1.0</string></dict></plist>"#)).unwrap();
     }
     fs::write(fixture_payload(folder, app), payload).unwrap();
@@ -471,12 +471,12 @@ fn app_management_preserves_other_data_and_launch_settings() {
 fn pdfcraft_repository_rename_preserves_existing_app_identity() {
     assert_eq!(
         craft_apps_manager::model::repository("printcraft"),
-        "pdfcraft"
+        "storytold/pdfcraft"
     );
     assert_eq!(craft_apps_manager::model::title("printcraft"), "PDFCraft");
     assert_eq!(
         craft_apps_manager::model::repository("filmcraft"),
-        "filmcraft"
+        "storytold/filmcraft"
     );
     let f = Fixture::new();
     let sha = "a".repeat(40);
