@@ -4,9 +4,9 @@
 
 A desktop app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
-The interface is written in Rust. Version 0.5.0 introduces a redesigned window: pick an app from the list on the left to see what it is and install, open or update it, with launch options, backups, source downloads and builds alongside. The Overview page holds the bulk updates. Version 0.5.1 adds light and dark themes, an About page, local build launch options and experimental Arch packaging. This is an independent project, not an official Storytold or Adobe app.
+The interface is written in Rust and shares one codebase across Windows, Linux and macOS. Version 0.7.0 adds a redesigned Home screen, release version selection, installation and build dialogs, app visibility controls and optional close-to-tray behavior. Pick an app from the sidebar to install, open or update it, with launch options, backups, sources and builds alongside. This is an independent project, not an official Storytold or Adobe app.
 
-App discovery and ArtCraft support were contributed by [carpaaaaa](https://github.com/carpaaaaa). Use Settings → App list → Refresh to find new Storytold Craft apps. Automatic discovery at startup or during hourly app checks is optional and uses a shared six-hour cache. Newly discovered apps appear in the list; adding them to bulk updates automatically is a separate opt-in setting. Discovery never installs apps.
+App discovery and ArtCraft support were contributed by [carpaaaaa](https://github.com/carpaaaaa). Use Settings → Updates → App list → Refresh to find new Storytold Craft apps. Discovery on startup is enabled by default and uses a shared six-hour cache. Including newly discovered apps in update selections is a separate opt-in setting. Discovery never installs apps.
 
 [Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)
 
@@ -29,7 +29,7 @@ Screenshots show the Windows 0.6.0 release with a separate demo library.
 
 ![Settings](docs/images/settings.png?v=0.6.0)
 
-**App selection** — choose which apps Update all installs or updates. Sources have their own selection.
+**App selection** — choose which installed apps Update All updates. Uninstalled apps cannot be selected.
 
 ![Choose apps for Update all](docs/images/app-selection.png?v=0.6.0)
 
@@ -41,7 +41,7 @@ Screenshots show the Windows 0.6.0 release with a separate demo library.
 
 ## Getting started
 
-Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.6.0** includes these formats:
+Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.7.0** includes these formats:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -109,7 +109,15 @@ The uninstall confirmation has an optional **Delete app profile data** checkbox,
 
 Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
 
-Home has **Update all**, with its app selection under **Settings → Updates**. Update all also installs chosen apps that are missing and lists every step for confirmation. Manual source downloads and builds remain in each app’s tools.
+Home has **Update All**, with its app selection under **Settings → Updates**. It updates only installed apps and lists every step for confirmation; it never installs missing apps. Newly installed apps are included automatically. Manual source downloads and builds remain in each app’s tools.
+
+Use the arrow beside Install or Check for updates to select another published version. Choosing an older version shows a **Downgrade** confirmation. Available versions depend on the app's published packages for your platform and architecture.
+
+Right-click an app in the sidebar or Home and choose **Hide**. Restore hidden apps through **Settings → Apps → App visibility → Choose…**. Hiding an app does not uninstall it or change update preferences. A short explanation appears on the first Hide action in each session.
+
+Enable **Keep running in system tray when closed** in General settings to keep checks running after closing the window. The tray icon appears only while the window is hidden and provides Open, Check for app updates and Exit. If no usable tray is available, closing exits normally.
+
+**Move…** relocates managed portable apps and supported Windows MSI installations. The destination is checked before moving, and an open app must be closed. The manager updates its location and owned shortcuts, while project files outside the app folder stay untouched. Linux native packages and macOS installer copies keep their system-managed locations.
 
 Under **Settings → Updates → Automatic update checks**, choose whether to check when the manager opens, periodically while it is open (10–60 minutes, default 20), or every hour even when closed using the system scheduler. The interval field is inactive when periodic checks are off. Save applies scheduler changes; Cancel leaves them unchanged. In-app periodic checks reuse recent scheduled results for the same package format and architecture. Checks never download or install updates automatically. Notifications are controlled separately.
 
