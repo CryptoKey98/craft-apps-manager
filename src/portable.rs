@@ -30,7 +30,10 @@ fn validate_path(target: &Path) -> Result<()> {
     files::inside(target, parent)?;
     let mut cursor = parent;
     loop {
-        if std::fs::symlink_metadata(cursor).is_ok() && files::linked(cursor)? {
+        if std::fs::symlink_metadata(cursor).is_ok()
+            && files::linked(cursor)?
+            && !system_directory_alias(cursor)
+        {
             bail!("Choose a folder without linked parent directories");
         }
         if let Some(next) = cursor.parent() {
@@ -40,6 +43,24 @@ fn validate_path(target: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+fn system_directory_alias(path: &Path) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        // macOS exposes these OS-owned locations through fixed root aliases.
+        // No user-controlled link below them is accepted.
+        let expected = match path.to_str() {
+            Some("/var") => Path::new("/private/var"),
+            Some("/tmp") => Path::new("/private/tmp"),
+            _ => return false,
+        };
+        std::fs::read_link(path).is_ok_and(|target| target == expected)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = path;
+        false
+    }
 }
 pub fn validate(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     crate::model::valid_app(app)?;
@@ -416,6 +437,16 @@ mod tests {
 
     use super::*;
     use crate::model::Preferences;
+    #[cfg(unix)]
+    #[test]
+    fn destination_rejects_custom_links_even_below_system_temp_directory() {
+        let root = std::env::temp_dir().join(format!("craft-linked-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(root.join("real")).unwrap();
+        std::os::unix::fs::symlink(root.join("real"), root.join("linked")).unwrap();
+        assert!(destination(&root.join("real"), "photocraft").is_ok());
+        assert!(destination(&root.join("linked"), "photocraft").is_err());
+        std::fs::remove_dir_all(root).unwrap();
+    }
     fn fixture() -> (PathBuf, Paths) {
         let root = std::env::temp_dir().join(format!("craft-custom-{}", uuid::Uuid::new_v4()));
         let paths = Paths::new(root.join("library"), None);

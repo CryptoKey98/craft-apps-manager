@@ -785,7 +785,10 @@ fn source_backup_7zip_roundtrip() {
             ),
         ],
     );
-    let p = Preferences::default();
+    let p = Preferences {
+        keep_source_backups: true,
+        ..Preferences::default()
+    };
     backups::finish(&paths, &p, Some(&source), "filmcraft", true, &job(&f.0)).unwrap();
     assert!(!source.exists());
     assert!(PathBuf::from(format!("{}.7z", source.display())).exists());
