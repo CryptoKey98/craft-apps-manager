@@ -21,6 +21,28 @@ pub fn save<T: Serialize>(
     preferences: Option<&Preferences>,
     builder: Option<&BuilderPreferences>,
 ) -> Result<()> {
+    save_with_custom_apps(
+        paths,
+        locations_path,
+        locations,
+        root,
+        tools,
+        preferences,
+        builder,
+        None,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+pub fn save_with_custom_apps<T: Serialize>(
+    paths: &Paths,
+    locations_path: &Path,
+    locations: &T,
+    root: &Path,
+    tools: &Path,
+    preferences: Option<&Preferences>,
+    builder: Option<&BuilderPreferences>,
+    custom_apps: Option<&[crate::catalog::Entry]>,
+) -> Result<()> {
     // Validate every draft before inventory reads, serialization, or filesystem changes.
     if !root.is_absolute() || !tools.is_absolute() {
         bail!("Folder paths must be absolute");
@@ -43,11 +65,13 @@ pub fn save<T: Serialize>(
     let mut writes = Vec::new();
     if let Some(prefs) = preferences {
         let mut config = paths.config()?;
-        let installer = paths.read_preferences()?.release_format == "installer";
         for app in &config.apps {
-            config
-                .installations
-                .retain(|a| !(a.name == app.name && (a.install_kind == "installer") == installer));
+            let installer = app.install_kind == "installer";
+            config.installations.retain(|a| {
+                !(a.name == app.name
+                    && (a.install_kind == "installer") == installer
+                    && (a.architecture == app.architecture || a.path == app.path))
+            });
             if !app.path.is_empty() {
                 config.installations.push(app.clone());
             }
@@ -65,6 +89,12 @@ pub fn save<T: Serialize>(
         writes.push((
             paths.at("builder-settings.json"),
             serde_json::to_vec_pretty(prefs)?,
+        ));
+    }
+    if let Some(apps) = custom_apps {
+        writes.push((
+            paths.at("runtime/custom-apps.json"),
+            serde_json::to_vec_pretty(apps)?,
         ));
     }
     writes.push((

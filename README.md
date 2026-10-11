@@ -4,7 +4,7 @@
 
 A desktop app for downloading, updating, and building the Craft apps from Storytold. I made this to keep the apps, source downloads, and builds in one place without having to manage every release by hand.
 
-The interface is written in Rust and shares one codebase across Windows, Linux and macOS. Version 0.7.0 adds a redesigned Home screen, release version selection, installation and build dialogs, app visibility controls and optional close-to-tray behavior. Pick an app from the sidebar to install, open or update it, with launch options, backups, sources and builds alongside. This is an independent project, not an official Storytold or Adobe app.
+The interface is written in Rust and shares one codebase across Windows, Linux and macOS. Version 0.8.0 adds per-application installation formats and architectures, centralized Activity tracking, and one administrator approval for eligible Windows and Linux update batches. Pick an app from the sidebar to install, open or update it, with launch options, backups, sources and builds alongside. This is an independent project, not an official Storytold or Adobe app.
 
 App discovery and ArtCraft support were contributed by [carpaaaaa](https://github.com/carpaaaaa). Use Settings → Updates → App list → Refresh to find new Storytold Craft apps. Discovery on startup is enabled by default and uses a shared six-hour cache. Including newly discovered apps in update selections is a separate opt-in setting. Discovery never installs apps.
 
@@ -25,7 +25,7 @@ Screenshots show the Windows 0.7.0 release with a separate demo library.
 
 ![Install confirmation](docs/images/install.png?v=0.7.0)
 
-**Settings** — one scrolling page for release format, updates, backups, builds and folders.
+**Settings** — one scrolling page for apps, updates, backups, builds and folders. The screenshot below shows the earlier 0.7.0 settings layout.
 
 ![Settings](docs/images/settings.png?v=0.7.0)
 
@@ -41,7 +41,7 @@ Screenshots show the Windows 0.7.0 release with a separate demo library.
 
 ## Getting started
 
-Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.7.0** includes these formats:
+Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.0** includes these formats:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -78,6 +78,16 @@ You only need to do this once. Right-clicking the app and choosing **Open** no l
 
 Changes are listed in [CHANGELOG.md](CHANGELOG.md). The source is shared across Windows, Linux and macOS.
 
+## Activity and batch updates
+
+The **Activity** button beside Settings shows active operations and recent results, including stages, available progress, cancellation status and expandable details. Its badge counts unread activity until you open the panel. The manager and separate builder observe the same operation records; interrupted work is distinguished from confirmed completion. Closing a progress dialog does not stop the operation. Cancellation requests wait for safe completion or confirmed cancellation, especially during native package transactions.
+
+Under **Settings → Updates → Batch updates**, **Approve administrator access once per batch** is enabled by default. Eligible batches containing at least two installer operations use one temporary elevated worker on Windows or Linux. Packages are downloaded and verified before approval, while portable operations remain unelevated. Linux uses PolicyKit with the distribution’s package manager, including apt, dnf and pacman. Start the GUI from your desktop session so its authentication agent is available. Installer questions or additional publisher prompts can still appear. Single installs, explicit version changes and macOS retain their existing authorization paths.
+
+Downgrading refreshes update availability automatically, reusing cached latest-release metadata when available. Missing compatible updates are reported without changing the existing installation. This system does not add universal automatic rollback; existing recovery and backup workflows remain in place.
+
+See [per-app installation configuration](docs/per-app-installation.md), [operation tracking](docs/operations.md), [Windows batch approval](docs/windows-batch-admin.md), and [Linux batch approval](docs/linux-batch-admin.md) for implementation notes and validation limits.
+
 ## Upgrading from Craft Apps Updater
 
 Version 0.3.2 renames the app to Craft Apps Manager. Download this release manually: older versions may reject the renamed repository or package during their built-in update check. Extract the new package into your existing library folder to retain apps, sources, builds and settings. Open `CraftApps-Manager.exe`; the old startup preferences are migrated automatically. Close the old Updater first. If you used automatic app or source updates, disable those tasks in the old app before switching and enable them again in Manager.
@@ -87,12 +97,16 @@ Version 0.3.2 renames the app to Craft Apps Manager. Download this release manua
 Every Craft app published under [github.com/storytold](https://github.com/storytold) is supported, including apps released after this version:
 
 - **Release and source updates:** DesignCraft, EffectCraft, FilmCraft, LightCraft, PhotoCraft, PDFCraft, VectorCraft, WordCraft, GridCraft, DeckCraft, CADCraft and SoundCraft.
-- **Releases only:** ArtCraft, whose Windows installers and macOS disk images use their own naming (`ArtCraft_<version>_…`). On Windows it is installed with its installer.
+- **Releases only:** ArtCraft, whose Windows installers and macOS disk images use their own naming (`ArtCraft_<version>_…`). On Windows it is installed with its installer. Third-party apps are not included by default; add compatible repositories through Custom apps in Settings.
 - **Source only:** ArtCraft X.
 
-Release formats and architectures depend on what each upstream app publishes.
+Apps hosted outside Storytold are listed by their `owner/name` repository, so their releases are checked, downloaded and updated like the rest. Their file names are matched case-insensitively, and the `x86_64`/`aarch64` architecture spellings are accepted alongside `x64`/`arm64`.
 
-The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery and discovery during hourly app checks are separate opt-in settings with a shared six-hour cache. New apps appear in the list but are not selected for bulk app/source updates unless you enable **Include newly published Craft apps automatically**. Discovery never installs apps. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.
+You can track your own apps too: paste a GitHub repository link in Settings → Apps → Custom apps. The manager verifies that the repository's latest stable release carries an installable file for your system, then checks, downloads and updates it like a built-in app.
+
+Release formats and architectures depend on what each upstream app publishes. Custom-app setup reviews the detected download, package type and architecture, with a download chooser for ambiguous assets. Adding or removing a repository changes the manager’s list; it does not install or uninstall the application. Custom apps are experimental and some installers may not be detected or removed reliably.
+
+The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery is enabled by default; discovery during hourly app checks is a separate setting with a shared six-hour cache. New apps appear in the list but are not selected for bulk app/source updates unless you enable **Include newly published Craft apps automatically**. Discovery never installs apps. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.
 
 PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. More generally, when an app's release uses a single new file name, the manager installs it as the same app and remembers the new name. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 
@@ -100,14 +114,14 @@ PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdf
 
 The list on the left groups apps into **Installed** and **Not installed**; type in the search field to filter it. **Get** next to an app, or **Update** when a newer release is known, installs it after a confirmation. Click an app to open its page:
 
-- **Install** downloads and installs that app using the format selected in Settings.
+- **Install** lets you choose this app’s format and architecture from compatible downloads for the selected release. These choices are saved independently for each repository.
 - **Open** starts the installed app. **Check for updates** checks one installed app; if a newer release exists, the main button becomes **Update to** that version.
-- **Uninstall…** removes a managed portable copy or opens its MSI uninstaller. Other installer types use Windows Installed apps.
+- **Uninstall…** removes a managed portable copy or runs a supported native uninstaller. Detection and removal depend on the installer’s registration; custom-app support is experimental.
 - **Launch options** in the tools column lets you choose the executable and add arguments, one per line.
 
 The uninstall confirmation has an optional **Delete app profile data** checkbox, off by default. It lists the app-specific profile folders that can be removed after uninstall succeeds, including settings, caches, plug-ins and recovery/autosave copies. Some portable and installer copies share the same AppData profile. Custom profile locations outside the listed folders are kept. Portable PhotoCraft profiles are retained in `runtime/app-profiles` when the checkbox is off and restored when that portable app is installed again.
 
-Installer is the default release format. Windows installer wizards may ask for administrator permission. Portable ZIPs are extracted into the app library. Portable and installer copies are tracked separately. Switching the release format selects the matching copy for Launch, update checks, and Uninstall; the other copy stays in place.
+Each app remembers its own package format and architecture. The install dialog offers only combinations available for that release and compatible with the current system. Portable archives are extracted into the app library; native installers may request administrator permission. Updates use verified installed metadata and never silently change format or architecture. Existing installation records are retained; unknown metadata is reported rather than guessed. Changing an installed app’s format or architecture requires removing the existing installation first.
 
 Home has **Update All**, with its app selection under **Settings → Updates**. It updates only installed apps and lists every step for confirmation; it never installs missing apps. Newly installed apps are included automatically. Manual source downloads and builds remain in each app’s tools.
 
@@ -121,7 +135,7 @@ Enable **Keep running in system tray when closed** in General settings to keep c
 
 Under **Settings → Updates → Automatic update checks**, choose whether to check when the manager opens, periodically while it is open (10–60 minutes, default 20), or every hour even when closed using the system scheduler. The interval field is inactive when periodic checks are off. Save applies scheduler changes; Cancel leaves them unchanged. In-app periodic checks reuse recent scheduled results for the same package format and architecture. Checks never download or install updates automatically. Notifications are controlled separately.
 
-Settings also has a separate check for this manager itself. Startup checks are off by default. Enable them to check for a newer stable release matching the manager's architecture when it opens; an **Update available** button then appears next to the version in the top bar. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
+Settings also has a separate check for this manager itself. Startup checks are on by default. They check for a newer stable release matching the manager's architecture when it opens; an **Update available** button then appears next to the version in the top bar. Nothing downloads until you confirm **Download and restart**. The package is verified against GitHub's published SHA-256 digest before a native helper replaces the EXE. Close other manager and builder windows first. Your library and settings stay in place, and the previous EXE is retained under `runtime/self-update` for recovery.
 
 ## Building from source
 
@@ -164,7 +178,7 @@ cargo build --release --locked --target x86_64-pc-windows-msvc
 cargo build --release --locked --target i686-pc-windows-msvc
 ```
 
-Executables are under `target/<target>/release`. Distribution folders are `dist/windows-x64` and `dist/windows-x86`; each contains its matching executable and portable 7-Zip. The builder uses the same executable with `--builder`. An x86 manager defaults to x86 Craft app releases and only accepts x86 self-update packages. A saved release architecture preference still takes precedence.
+Executables are under `target/<target>/release`. Distribution folders are `dist/windows-x64` and `dist/windows-x86`; each contains its matching executable and portable 7-Zip. The builder uses the same executable with `--builder`. An x86 manager defaults to x86 Craft app releases and only accepts x86 self-update packages. Each app’s own saved installation preference and verified installed architecture take precedence.
 
 ```text
 cargo test --locked

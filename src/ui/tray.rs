@@ -276,8 +276,8 @@ impl super::App {
                 }
             }
         }
-        let busy = self.job.state.lock().unwrap().busy
-            || self.build_job.state.lock().unwrap().busy
+        let busy = self.job.snapshot().busy
+            || self.build_job.snapshot().busy
             || self.release_pending()
             || self.manager_plan.is_some();
         let can_check = !busy

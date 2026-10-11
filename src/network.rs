@@ -19,6 +19,15 @@ pub struct Network {
     cache: std::path::PathBuf,
 }
 impl Network {
+    /// Reads known release metadata without constructing a client or contacting GitHub.
+    pub fn cached_json<T: DeserializeOwned>(root: &Path, url: &str) -> Option<T> {
+        use sha2::{Digest, Sha256};
+        let path = root
+            .join("runtime/api-cache")
+            .join(format!("{:x}.json", Sha256::digest(url.as_bytes())));
+        let cached = files::read_json::<Cached>(&path).ok()?;
+        serde_json::from_value(cached.value).ok()
+    }
     pub fn new(root: &Path) -> Result<Self> {
         Ok(Self {
             client: Client::builder()

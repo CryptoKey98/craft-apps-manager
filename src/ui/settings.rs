@@ -1,6 +1,5 @@
 //! Settings: one scrolling page with a jump list, saved together with one Save.
 use super::dialogs;
-use super::overview::release_format_label;
 use super::theme::{self, btn, Kind};
 use super::{modal, App, Locations};
 use craft_apps_manager::{catalog, model, platform, scheduler, self_update};
@@ -177,7 +176,7 @@ impl App {
         } else {
             &MANAGER_SECTIONS
         };
-        let busy = self.release_pending() || self.job.state.lock().unwrap().busy;
+        let busy = self.release_pending() || self.job.snapshot().busy;
         let active_id = egui::Id::new("settings-active-section");
         let active = ctx.data(|d| d.get_temp::<usize>(active_id)).unwrap_or(0);
         let modal = modal(
@@ -302,14 +301,30 @@ impl App {
                         });
                 });
                 dialogs::footer(ui, |ui| {
-                    if dialogs::action(ui, "Save", Kind::Primary, !busy)
-                        .on_disabled_hover_text("Wait for the current operation to finish.")
-                        .clicked()
+                    if dialogs::action(
+                        ui,
+                        "Save",
+                        Kind::Primary,
+                        !busy
+                            && self.custom_receiver.is_none()
+                            && self.custom_download_choice.is_none()
+                            && self.custom_setup.is_none(),
+                    )
+                    .on_disabled_hover_text("Wait for the current operation to finish.")
+                    .clicked()
                     {
                         self.save_settings();
                     }
-                    if dialogs::action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                    if dialogs::action(
+                        ui,
+                        "Cancel",
+                        Kind::Secondary,
+                        self.custom_receiver.is_none(),
+                    )
+                    .clicked()
+                    {
                         self.settings = false;
+                        self.custom_apps_draft.clear();
                     }
                 });
             },
@@ -347,6 +362,9 @@ impl App {
             && !self.confirm_self_update
             && self.error.is_none()
             && self.selection_notice.is_none()
+            && self.custom_download_choice.is_none()
+            && self.custom_setup.is_none()
+            && self.custom_receiver.is_none()
             && modal.should_close()
         {
             self.settings = false;
@@ -354,9 +372,18 @@ impl App {
     }
 
     pub(super) fn app_visibility_menu(&mut self, response: &egui::Response, name: &str) {
+        // The single rounded action is the whole menu, without an outer popup frame.
+        let original_style = response.ctx.style();
+        let mut menu_style = (*original_style).clone();
+        menu_style.spacing.menu_margin = egui::Margin::ZERO;
+        menu_style.spacing.menu_width = 0.0;
+        menu_style.visuals.window_fill = egui::Color32::TRANSPARENT;
+        menu_style.visuals.window_stroke = egui::Stroke::NONE;
+        menu_style.visuals.popup_shadow = egui::epaint::Shadow::NONE;
+        response.ctx.set_style(menu_style);
         response.context_menu(|ui| {
             if btn("Hide")
-                .kind(Kind::Ghost)
+                .kind(Kind::Secondary)
                 .icon(theme::Icon::EyeOff)
                 .show(ui)
                 .clicked()
@@ -386,12 +413,16 @@ impl App {
                 ui.close_menu();
             }
         });
+        response.ctx.set_style(original_style);
     }
 
     fn settings_apps(&mut self, ui: &mut egui::Ui) {
-        let shown = self
-            .settings_draft
-            .app_order
+        let busy = self.release_pending() || self.job.snapshot().busy;
+        let visible_order = model::ordered_release_apps(
+            &self.settings_draft.app_order,
+            &self.settings_draft.release_format,
+        );
+        let shown = visible_order
             .iter()
             .filter(|name| !self.settings_draft.hidden_apps.contains(name))
             .count();
@@ -401,7 +432,7 @@ impl App {
                 "Apps",
                 Some(&format!(
                     "{shown} of {} shown in sidebar and Home",
-                    self.settings_draft.app_order.len()
+                    visible_order.len()
                 )),
                 48.0,
                 |ui| btn("Choose…").show(ui).clicked(),
@@ -410,10 +441,241 @@ impl App {
                 self.visibility_open = true;
             }
         });
+        ui.add_space(16.0);
+        let mut add_pressed = false;
+        let mut remove: Option<String> = None;
+        group(ui, "Custom apps", |ui| {
+            // Link entry, shaped like the Folders path rows: pinned to the
+            // available width so the field can never stretch the card.
+            dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
+                ui.spacing_mut().item_spacing.y = 8.0;
+                ui.add(egui::Label::new(egui::RichText::new(
+                    "Experimental: Some apps may not install, update, or uninstall correctly. Compatibility varies by publisher and package."
+                ).size(12.0).color(theme::palette().amber)).wrap());
+                ui.add_space(4.0);
+                theme::text(ui, "GitHub repository link", 14.0, theme::palette().text);
+                add_pressed = ui
+                    .allocate_ui_with_layout(
+                        egui::vec2(ui.available_width(), 32.0),
+                        egui::Layout::right_to_left(egui::Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = 8.0;
+                            let adding = self.custom_receiver.is_some();
+                            let enabled = !busy
+                                && !adding
+                                && self.custom_download_choice.is_none()
+                                && self.custom_setup.is_none()
+                                && !self.custom_link.trim().is_empty();
+                            let pressed = btn("Add")
+                                .enabled(enabled)
+                                .show(ui)
+                                .on_disabled_hover_text(if busy {
+                                    "Wait for the current operation to finish."
+                                } else if adding {
+                                    "Checking release downloads. Please wait."
+                                } else if self.custom_download_choice.is_some() {
+                                    "Choose or cancel the current download selection first."
+                                } else {
+                                    "Type or paste a GitHub repository link first."
+                                })
+                                .clicked();
+                            if adding {
+                                ui.spinner();
+                            }
+                            dialogs::field_style(ui);
+                            let field = ui.add(
+                                egui::TextEdit::singleline(&mut self.custom_link)
+                                    .hint_text("https://github.com/owner/repo")
+                                    .font(FontId::monospace(12.0))
+                                    .margin(egui::Margin::symmetric(10, 8))
+                                    .min_size(egui::vec2(0.0, 32.0))
+                                    .desired_width(ui.available_width()),
+                            );
+                            pressed
+                                || (field.lost_focus()
+                                    && ui.input(|input| input.key_pressed(egui::Key::Enter))
+                                    && enabled)
+                        },
+                    )
+                    .inner;
+            });
+            if !self.custom_message.is_empty() {
+                dialogs::rule(ui);
+                dialogs::band(ui, egui::Margin::symmetric(14, 10), 0.0, |ui| {
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(&self.custom_message).size(13.0).color(
+                                if self.custom_failed {
+                                    theme::palette().red
+                                } else {
+                                    theme::palette().text_2
+                                },
+                            ),
+                        )
+                        .wrap(),
+                    );
+                });
+            }
+            let customs: Vec<_> = self.custom_apps_draft.clone();
+            if customs.is_empty() {
+                dialogs::rule(ui);
+                dialogs::band(ui, egui::Margin::symmetric(14, 10), 0.0, |ui| {
+                    theme::text(ui, "No custom apps added.", 13.0, theme::palette().muted);
+                });
+            } else {
+                for entry in &customs {
+                    dialogs::rule(ui);
+                    if row(ui, &entry.title, Some(&entry.repository), 56.0, |ui| {
+                        btn("Remove")
+                            .enabled(!busy)
+                            .show(ui)
+                            .on_disabled_hover_text("Wait for the current operation to finish.")
+                            .clicked()
+                    }) {
+                        remove = Some(entry.key.clone());
+                    }
+                }
+            }
+        });
+        note(
+            ui,
+            "Add a GitHub repository, then save Settings. Installation options are chosen separately for each app.",
+        );
+        if add_pressed {
+            self.add_custom_app(ui.ctx());
+        }
+        if let Some(key) = remove {
+            self.remove_custom_confirm = Some(key);
+        }
+    }
+
+    fn add_custom_app(&mut self, ctx: &egui::Context) {
+        let link = self.custom_link.trim().to_string();
+        let slug = match catalog::parse_github_slug(&link) {
+            Ok(slug) => slug,
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+                self.custom_failed = true;
+                return;
+            }
+        };
+        if self
+            .custom_apps_draft
+            .iter()
+            .any(|entry| entry.repository.eq_ignore_ascii_case(&slug))
+        {
+            self.custom_message = "This repository is already added.".into();
+            self.custom_failed = true;
+            return;
+        }
+        let root = self.paths.root.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.custom_receiver = Some(rx);
+        self.custom_message = format!("Adding {slug}…");
+        self.custom_failed = false;
+        std::thread::spawn(move || {
+            let result = (|| -> anyhow::Result<super::CustomAppAddition> {
+                let mut found = None;
+                for architecture in [
+                    craft_apps_manager::install_options::host_architecture(),
+                    "x86".into(),
+                    "x64".into(),
+                    "arm64".into(),
+                ] {
+                    if !craft_apps_manager::install_options::host_supports(&architecture) {
+                        continue;
+                    }
+                    for format in ["installer", "portable"] {
+                        match catalog::inspect_custom_app(&root, &slug, format, &architecture) {
+                            Ok(entry) => {
+                                found = Some((entry, format.to_string(), architecture.clone()));
+                                break;
+                            }
+                            Err(error) => {
+                                if let Some(choice) =
+                                    error.downcast_ref::<catalog::DownloadChoice>()
+                                {
+                                    found = Some((
+                                        choice.entry.clone(),
+                                        format.to_string(),
+                                        architecture.clone(),
+                                    ));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if found.is_some() {
+                        break;
+                    }
+                }
+                let (entry, release_format, architecture) = found.ok_or_else(|| {
+                    anyhow::anyhow!("No compatible desktop release found for this system.")
+                })?;
+                let release: model::Release = craft_apps_manager::network::Network::new(&root)?
+                    .json(&format!(
+                        "https://api.github.com/repos/{slug}/releases/latest"
+                    ))?;
+                let preferences = model::Preferences {
+                    release_format,
+                    architecture,
+                    ..Default::default()
+                };
+                let candidates = craft_apps_manager::downloads::candidates(&release, &preferences);
+                let selected = if candidates.len() == 1 {
+                    candidates[0].name.clone()
+                } else {
+                    String::new()
+                };
+                let architecture_confirmed = !selected.is_empty()
+                    && !craft_apps_manager::downloads::architecture_unspecified(&selected);
+                Ok(super::CustomAppAddition::Setup(Box::new(
+                    super::CustomAppSetup {
+                        entry,
+                        release,
+                        preferences,
+                        selected,
+                        architecture_confirmed,
+                        choosing: false,
+                    },
+                )))
+            })()
+            .map_err(|error| format!("{error:#}"));
+            let _ = tx.send(result);
+            ctx.request_repaint();
+        });
+    }
+
+    pub(super) fn custom_app_added(&mut self, entry: &catalog::Entry) {
+        match catalog::merge_custom_registration(&mut self.custom_apps_draft, entry.clone()) {
+            Ok(()) => {
+                self.custom_message = format!(
+                    "{} added for {}. Save Settings to keep this change.",
+                    entry.title,
+                    entry.registered_formats.join(", ")
+                );
+                self.custom_failed = false;
+            }
+            Err(error) => {
+                self.custom_message = format!("{error:#}");
+                self.custom_failed = true;
+            }
+        }
+    }
+
+    pub(super) fn remove_custom_app(&mut self, key: &str) {
+        self.custom_apps_draft.retain(|entry| entry.key != key);
+        self.custom_message =
+            "App removed from this manager. Save Settings to keep this change.".into();
+        self.custom_failed = false;
     }
 
     fn settings_visibility(&mut self, ui: &mut egui::Ui) {
-        let names = self.settings_draft.app_order.clone();
+        let names = model::ordered_release_apps(
+            &self.settings_draft.app_order,
+            &self.settings_draft.release_format,
+        );
         let shown = names
             .iter()
             .filter(|name| !self.visibility_draft.contains(name))
@@ -503,7 +765,7 @@ impl App {
             root: Some(root.clone()),
             tools: Some(tools.clone()),
         };
-        let result = craft_apps_manager::settings::save(
+        let result = craft_apps_manager::settings::save_with_custom_apps(
             &self.paths,
             &self.home.join("data-root.json"),
             &locations,
@@ -515,13 +777,19 @@ impl App {
                 Some(&self.settings_draft)
             },
             Some(&self.build_draft),
+            if self.builder {
+                None
+            } else {
+                Some(&self.custom_apps_draft)
+            },
         );
         if result.is_ok() {
+            catalog::load(&self.paths.root);
             self.build_preferences = self.build_draft.clone();
             if !self.builder {
                 self.settings_draft.validate().expect("validated settings");
-                let changed = self.preferences.release_format != self.settings_draft.release_format
-                    || self.preferences.architecture != self.settings_draft.architecture;
+                let changed =
+                    self.preferences.app_install_options != self.settings_draft.app_install_options;
                 self.preferences = self.settings_draft.clone();
                 if changed {
                     self.check_generation += 1;
@@ -547,6 +815,7 @@ impl App {
                 self.auto = self.auto_draft;
             }
             self.settings = false;
+            self.catalog_changed();
         }
         self.result(result);
     }
@@ -654,61 +923,6 @@ impl App {
                 note(ui, message);
             }
         });
-        ui.add_space(16.0);
-        group(ui, "Releases", |ui| {
-            let hint = if self.settings_draft.release_format == "installer" {
-                if cfg!(target_os = "macos") {
-                    "Copies apps into Applications"
-                } else if cfg!(target_os = "linux") {
-                    "Installs system packages"
-                } else {
-                    "Opens each app's Windows installer"
-                }
-            } else {
-                "Keeps apps in the library"
-            };
-            row(ui, "Release format", Some(hint), 56.0, |ui| {
-                theme::segmented(
-                    ui,
-                    30.0,
-                    14.0,
-                    &mut self.settings_draft.release_format,
-                    &[
-                        ("installer".to_owned(), "Installer"),
-                        ("portable".to_owned(), release_format_label("portable")),
-                    ],
-                );
-            });
-            dialogs::rule(ui);
-            if cfg!(target_os = "macos") {
-                row(ui, "Architecture", None, 52.0, |ui| {
-                    theme::text(
-                        ui,
-                        "Universal · Apple silicon and Intel",
-                        14.0,
-                        theme::palette().text_3,
-                    );
-                });
-            } else {
-                row(ui, "Architecture", None, 52.0, |ui| {
-                    egui::ComboBox::from_id_salt("arch")
-                        .selected_text(model::architecture_label(&self.settings_draft.architecture))
-                        .show_ui(ui, |ui| {
-                            for (value, label) in [
-                                ("x64", "64-bit (x64)"),
-                                ("x86", "32-bit (x86)"),
-                                ("arm64", "ARM64"),
-                            ] {
-                                ui.selectable_value(
-                                    &mut self.settings_draft.architecture,
-                                    value.into(),
-                                    label,
-                                );
-                            }
-                        });
-                });
-            }
-        });
         note(
             ui,
             if cfg!(target_os = "linux") {
@@ -722,7 +936,7 @@ impl App {
     }
 
     fn settings_updates(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, busy: bool) {
-        let building = self.build_job.state.lock().unwrap().busy;
+        let building = self.build_job.snapshot().busy;
         group(ui, "Craft Apps Manager", |ui| {
             let built = env!("CRAFT_BUILD_TIMESTAMP")
                 .parse::<i64>()
@@ -981,6 +1195,15 @@ impl App {
                 None,
             );
         });
+        #[cfg(any(target_os = "windows", target_os = "linux"))]
+        {
+            ui.add_space(16.0);
+            group(ui, "Batch updates", |ui| {
+                check_row(ui, &mut self.settings_draft.batch_admin,
+                    "Approve administrator access once per batch",
+                    Some("Use one administrator prompt for multiple installer updates. Package or installer questions may still appear."));
+            });
+        }
     }
 
     fn settings_backups(&mut self, ui: &mut egui::Ui, busy: bool) {
@@ -1043,7 +1266,7 @@ impl App {
     }
 
     fn settings_builds(&mut self, ui: &mut egui::Ui, busy: bool) {
-        let building = self.build_job.state.lock().unwrap().busy;
+        let building = self.build_job.snapshot().busy;
         group(ui, "After a successful build", |ui| {
             check_row(
                 ui,

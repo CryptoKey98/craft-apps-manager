@@ -25,6 +25,18 @@ pub fn build_to(
     shortcut: bool,
     job: &Job,
 ) -> Result<()> {
+    job.tracked("Build", app, |job| {
+        build_owned(paths, app, latest, parent, shortcut, job)
+    })
+}
+fn build_owned(
+    paths: &Paths,
+    app: &str,
+    latest: bool,
+    parent: Option<&std::path::Path>,
+    shortcut: bool,
+    job: &Job,
+) -> Result<()> {
     crate::model::valid_app(app)?;
     let root = match parent {
         Some(parent) => crate::portable::destination(parent, app)?,
@@ -60,7 +72,8 @@ pub fn build_to(
     let project = work.join("src");
     if !work.join(".extracted").exists() {
         files::extract_zip(&archive, &work, job)?;
-        let renamed_root = work.join(format!("{}-{}", crate::model::repository(app), commit.sha));
+        let folder = crate::model::repository_name(app);
+        let renamed_root = work.join(format!("{}-{}", folder, commit.sha));
         let source_root = if renamed_root.exists() {
             renamed_root
         } else {
@@ -193,9 +206,18 @@ pub fn build_to(
     )?;
     if shortcut {
         if let Err(error) = crate::portable::build_desktop_shortcut(paths, app, &out) {
+            job.report(
+                "Desktop shortcut",
+                format!("Could not be created: {error:#}"),
+            );
             job.log(&format!("Shortcut warning: {error:#}"));
+        } else {
+            job.report("Desktop shortcut", "Created successfully");
         }
+    } else {
+        job.report("Desktop shortcut", "Not requested");
     }
+    job.report("Build location", out.display().to_string());
     job.state.lock().unwrap().output = Some(out.clone());
     job.log(&format!("Build complete: {}", out.display()));
     let prefs = paths.builder_preferences()?;

@@ -76,12 +76,13 @@ fn startup_checks_default_on_preserve_opt_out_and_target_active_installed_apps()
     assert!(legacy.check_installed_apps_on_startup);
     assert!(legacy.check_installed_apps_periodically);
     let opted_out: Preferences = serde_json::from_str(
-        r#"{"checkInstalledAppsOnStartup":false,"checkInstalledAppsPeriodically":false}"#,
+        r#"{"checkManagerOnStartup":false,"checkInstalledAppsOnStartup":false,"checkInstalledAppsPeriodically":false}"#,
     )
     .unwrap();
     assert!(!opted_out.check_installed_apps_on_startup);
     assert!(!opted_out.check_installed_apps_periodically);
-    assert!(!legacy.check_manager_on_startup);
+    assert!(legacy.check_manager_on_startup);
+    assert!(!opted_out.check_manager_on_startup);
     // Portable mode keeps this check independent of apps installed on the machine.
     files::write_json(
         &paths.at("manager-settings.json"),
@@ -91,7 +92,18 @@ fn startup_checks_default_on_preserve_opt_out_and_target_active_installed_apps()
         },
     )
     .unwrap();
-    let mut config = paths.config().unwrap();
+    // Explicit inventory avoids native discovery of applications installed on the test machine.
+    let mut config = model::Config {
+        apps: ["designcraft", "effectcraft", "filmcraft"]
+            .into_iter()
+            .map(|name| model::Installed {
+                name: name.into(),
+                ..Default::default()
+            })
+            .collect(),
+        apps_root: paths.root.display().to_string(),
+        installations: Vec::new(),
+    };
     config.apps[0].path = "installed/designcraft".into();
     config.apps[0].version = "0.2.0".into();
     config.apps[1].version = "0.4.0".into(); // No active installation path.
@@ -185,7 +197,7 @@ fn write_release_fixture(folder: &Path, app: &str, payload: &str) {
             .join(craft_apps_manager::model::executable_name(app))
             .join("Contents");
         fs::create_dir_all(&contents).unwrap();
-        let id = craft_apps_manager::model::repository(app);
+        let id = craft_apps_manager::model::repository_name(app);
         fs::write(contents.join("Info.plist"), format!(r#"<plist version="1.0"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{id}</string><key>CFBundleShortVersionString</key><string>0.1.0</string></dict></plist>"#)).unwrap();
     }
     fs::write(fixture_payload(folder, app), payload).unwrap();
@@ -240,7 +252,7 @@ fn app_backup_delete_and_restore_are_scoped() {
     let paths = f.paths();
     let prefs = Preferences {
         release_format: "portable".into(),
-        ..Default::default()
+        ..portable_test_preferences()
     };
     files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     let film = paths.at("backups/releases/filmcraft-0.1.0-11111111111111111111111111111111");
@@ -288,7 +300,7 @@ fn app_backup_delete_and_restore_are_scoped() {
     assert!(target.exists());
 }
 #[test]
-fn switching_release_format_remembers_both_installations() {
+fn obsolete_global_format_preserves_portable_and_discards_missing_native_installation() {
     let f = Fixture::new();
     let paths = f.paths();
     let mut prefs = Preferences::default();
@@ -324,7 +336,11 @@ fn switching_release_format_remembers_both_installations() {
     fs::create_dir_all(&app.path).unwrap();
     write_release_fixture(Path::new(&app.path), "craft-test-missing-app", "fixture");
     paths.save_config(&config).unwrap();
-    for (format, expected) in [("installer", ""), ("portable", "1.0.0"), ("installer", "")] {
+    for (format, expected) in [
+        ("installer", "1.0.0"),
+        ("portable", "1.0.0"),
+        ("installer", "1.0.0"),
+    ] {
         prefs.release_format = format.into();
         files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
         let config = paths.config().unwrap();
@@ -334,14 +350,14 @@ fn switching_release_format_remembers_both_installations() {
             .find(|a| a.name == "craft-test-missing-app")
             .unwrap();
         assert_eq!(app.version, expected);
-        assert_eq!(app.install_kind, format);
+        assert_eq!(app.install_kind, "portable");
         assert_eq!(
             config
                 .installations
                 .iter()
                 .filter(|a| a.name == "craft-test-missing-app")
                 .count(),
-            if format == "installer" { 1 } else { 2 }
+            1
         );
     }
 }
@@ -385,13 +401,14 @@ fn individual_check_detects_newer_release_without_downloading() {
     app.path = paths.at("releases/filmcraft").display().to_string();
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
+    app.architecture = craft_apps_manager::model::MANAGER_ARCH.into();
     fs::create_dir_all(&app.path).unwrap();
     write_release_fixture(Path::new(&app.path), "filmcraft", "fixture");
     files::write_json(
         &paths.at("manager-settings.json"),
         &Preferences {
             release_format: "portable".into(),
-            ..Default::default()
+            ..portable_test_preferences()
         },
     )
     .unwrap();
@@ -422,7 +439,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
         &paths.at("manager-settings.json"),
         &Preferences {
             release_format: "portable".into(),
-            ..Default::default()
+            ..portable_test_preferences()
         },
     )
     .unwrap();
@@ -439,6 +456,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
         .unwrap();
     app.path = folder.display().to_string();
     app.version = "1.0.0".into();
+    app.install_kind = "portable".into();
     files::write_json(&paths.at("settings.json"), &config).unwrap();
     let value = craft_apps_manager::apps::LaunchSettings {
         executable: craft_apps_manager::model::executable_name("filmcraft"),
@@ -458,7 +476,13 @@ fn app_management_preserves_other_data_and_launch_settings() {
     craft_apps_manager::apps::uninstall(&paths, "filmcraft").unwrap();
     assert!(!folder.exists());
     assert!(paths.at("sources/filmcraft-source.zip").exists());
-    assert!(craft_apps_manager::apps::installed(&paths, "filmcraft").is_err());
+    let saved: craft_apps_manager::model::Config =
+        files::read_json(&paths.at("settings.json")).unwrap();
+    assert!(saved
+        .apps
+        .iter()
+        .chain(&saved.installations)
+        .all(|record| std::path::Path::new(&record.path) != folder));
     assert_eq!(
         craft_apps_manager::apps::settings(&paths, "filmcraft")
             .unwrap()
@@ -471,12 +495,12 @@ fn app_management_preserves_other_data_and_launch_settings() {
 fn pdfcraft_repository_rename_preserves_existing_app_identity() {
     assert_eq!(
         craft_apps_manager::model::repository("printcraft"),
-        "pdfcraft"
+        "storytold/pdfcraft"
     );
     assert_eq!(craft_apps_manager::model::title("printcraft"), "PDFCraft");
     assert_eq!(
         craft_apps_manager::model::repository("filmcraft"),
-        "filmcraft"
+        "storytold/filmcraft"
     );
     let f = Fixture::new();
     let sha = "a".repeat(40);
@@ -653,11 +677,9 @@ fn backups_retention_and_disabled() {
 #[test]
 fn logs_are_plain_unicode_and_rotate() {
     let f = Fixture::new();
-    let j = Job {
-        max_bytes: 64,
-        archives: 2,
-        ..job(&f.0)
-    };
+    let mut j = job(&f.0);
+    j.max_bytes = 64;
+    j.archives = 2;
     j.log("\x1b[32mBuilt ✓ 日本語\x1b[0m\x07");
     let text = fs::read_to_string(&j.log_path).unwrap();
     assert!(text.contains("✓ 日本語"));
@@ -1052,4 +1074,17 @@ fn artcraft_installers_are_selected() {
         updates::release_version("artcraft-v0.41.0").unwrap(),
         "0.41.0"
     );
+}
+
+// Scope portable fixtures independently of real system-installed FilmCraft.
+fn portable_test_preferences() -> Preferences {
+    let mut prefs = Preferences::default();
+    prefs.app_install_options.insert(
+        craft_apps_manager::install_options::identity("filmcraft"),
+        craft_apps_manager::install_options::InstallOptions {
+            release_format: "portable".into(),
+            architecture: model::MANAGER_ARCH.into(),
+        },
+    );
+    prefs
 }

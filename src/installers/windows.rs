@@ -266,10 +266,21 @@ fn product_installed(code: &str) -> bool {
 fn matches_display_name(app: &str, display: &str) -> bool {
     static SUFFIX: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
     let suffix = SUFFIX.get_or_init(|| {
-        regex::Regex::new(r"^(?:v?\d+\.\d+\.\d+(?:\.\d+)?\s*)?(?:\((?:x64|x86|64-bit|32-bit)\))?$")
+        regex::Regex::new(r"^(?:(?:version\s+)?v?\d+\.\d+\.\d+(?:\.\d+)?\s*)?(?:\([0-9a-f]{8,40}\)\s*)?(?:\((?:x64|x86|64-bit|32-bit)\))?$")
             .unwrap()
     });
-    let display = display.trim().to_ascii_lowercase();
+    let mut display = display.trim().to_ascii_lowercase();
+    for scope in [
+        " (current user)",
+        " (all users)",
+        " (per-user)",
+        " (per-machine)",
+    ] {
+        if let Some(base) = display.strip_suffix(scope) {
+            display = base.trim_end().to_owned();
+            break;
+        }
+    }
     [
         crate::model::title(app).to_ascii_lowercase(),
         app.to_ascii_lowercase(),
@@ -284,6 +295,78 @@ fn matches_display_name(app: &str, display: &str) -> bool {
 }
 #[cfg(test)]
 mod detection_tests {
+    #[test]
+    fn registered_icon_requires_a_desktop_executable_in_the_app_folder() {
+        let folder = std::env::temp_dir().join(format!("craft-icon-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&folder).unwrap();
+        let mut pe = vec![0u8; 158];
+        pe[..2].copy_from_slice(b"MZ");
+        pe[60..64].copy_from_slice(&64u32.to_le_bytes());
+        pe[64..68].copy_from_slice(b"PE\0\0");
+        pe[68..70].copy_from_slice(&0x014cu16.to_le_bytes());
+        pe[84..86].copy_from_slice(&70u16.to_le_bytes());
+        pe[88..90].copy_from_slice(&0x10bu16.to_le_bytes());
+        pe[156..158].copy_from_slice(&2u16.to_le_bytes());
+        let executable = folder.join("UnexpectedName.exe");
+        std::fs::write(&executable, &pe).unwrap();
+        assert!(super::registered_icon_executable(
+            &folder,
+            &format!("\"{}\",0", executable.display())
+        )
+        .is_some());
+        assert!(super::registered_icon_executable(
+            &folder.join("other"),
+            &executable.display().to_string()
+        )
+        .is_none());
+        assert!(super::registered_icon_executable(&folder, "relative.exe").is_none());
+        let uninstall = folder.join("unins000.exe");
+        std::fs::write(&uninstall, &pe).unwrap();
+        assert!(
+            super::registered_icon_executable(&folder, &uninstall.display().to_string()).is_none()
+        );
+        pe[156..158].copy_from_slice(&3u16.to_le_bytes());
+        std::fs::write(&executable, pe).unwrap();
+        assert!(
+            super::registered_icon_executable(&folder, &executable.display().to_string()).is_none()
+        );
+        std::fs::remove_file(executable).unwrap();
+        std::fs::remove_file(uninstall).unwrap();
+        std::fs::remove_dir(folder).unwrap();
+    }
+
+    #[test]
+    fn installer_display_names_accept_version_build_hash_and_architecture() {
+        assert!(super::matches_display_name(
+            "dbeaver",
+            "DBeaver 26.2.2 (current user)"
+        ));
+        assert!(super::matches_display_name(
+            "dbeaver",
+            "DBeaver 26.2.2 (all users)"
+        ));
+        assert!(!super::matches_display_name(
+            "dbeaver",
+            "DBeaver Helper 26.2.2 (current user)"
+        ));
+        assert!(super::matches_display_name(
+            "transmission",
+            "Transmission version 4.1.3"
+        ));
+        assert!(super::matches_display_name(
+            "transmission",
+            "Transmission 4.1.3 (838877323f) (x64)"
+        ));
+        assert!(!super::matches_display_name(
+            "transmission",
+            "Transmission Helper 4.1.3"
+        ));
+        assert!(!super::matches_display_name(
+            "transmission",
+            "Transmission 4.1.3 (not-a-hash) (x64)"
+        ));
+    }
+
     #[test]
     fn renamed_installations_select_newest_across_registry_roots() {
         use super::*;
@@ -321,6 +404,28 @@ mod detection_tests {
             assert_eq!(detected.version, "0.4.1");
             assert_eq!(detected.path, folder.join("new").display().to_string());
         }
+        // PE architecture overrides registry view and preferred architecture overrides newest version.
+        let mut pe = vec![0u8; 158];
+        pe[..2].copy_from_slice(b"MZ");
+        pe[60..64].copy_from_slice(&64u32.to_le_bytes());
+        pe[64..68].copy_from_slice(b"PE\0\0");
+        pe[68..70].copy_from_slice(&0x014cu16.to_le_bytes());
+        pe[84..86].copy_from_slice(&70u16.to_le_bytes());
+        pe[88..90].copy_from_slice(&0x10bu16.to_le_bytes());
+        pe[156..158].copy_from_slice(&2u16.to_le_bytes());
+        std::fs::write(folder.join("new/pdfcraft.exe"), pe).unwrap();
+        let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+        let x86 = detect_in_roots_for_architecture("printcraft", roots, Some("x86"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(x86.architecture, "x86");
+        assert_eq!(x86.version, "0.4.1");
+        let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+        let x64 = detect_in_roots_for_architecture("printcraft", roots, Some("x64"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(x64.architecture, "x64");
+        assert_eq!(x64.version, "0.2.1");
         root.delete_subkey_all(r"new\product").unwrap();
         let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
         assert_eq!(
@@ -375,6 +480,9 @@ mod detection_tests {
     }
 }
 pub fn detect(app: &str) -> Result<Option<Installed>> {
+    detect_for_architecture(app, None)
+}
+pub fn detect_for_architecture(app: &str, architecture: Option<&str>) -> Result<Option<Installed>> {
     let mut roots = Vec::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -386,7 +494,7 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
             }
         }
     }
-    detect_in_roots(app, roots)
+    detect_in_roots_for_architecture(app, roots, architecture)
 }
 // MSI versions can have a fourth numeric component. Compare numbers, not text.
 fn installation_version(value: &str) -> Option<[u64; 4]> {
@@ -404,9 +512,37 @@ fn installation_version(value: &str) -> Option<[u64; 4]> {
     }
     Some(version)
 }
+#[cfg(test)]
 fn detect_in_roots(
     app: &str,
     roots: impl IntoIterator<Item = (RegKey, u32)>,
+) -> Result<Option<Installed>> {
+    detect_in_roots_for_architecture(app, roots, None)
+}
+fn registered_install_folder(key: &RegKey) -> Option<std::path::PathBuf> {
+    let location: String = key.get_value("InstallLocation").unwrap_or_default();
+    if !location.trim().is_empty() {
+        return Some(location.trim().trim_matches('"').into());
+    }
+    let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
+    let icon = icon
+        .split(',')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .trim_matches('"');
+    if Path::new(icon).is_absolute() {
+        return Path::new(icon).parent().map(Path::to_path_buf);
+    }
+    let command: String = key.get_value("UninstallString").unwrap_or_default();
+    let (executable, _) = uninstall_command(&command).ok()?;
+    // This is only a location hint. Detection still requires the app's executable.
+    executable.parent().map(Path::to_path_buf)
+}
+fn detect_in_roots_for_architecture(
+    app: &str,
+    roots: impl IntoIterator<Item = (RegKey, u32)>,
+    architecture: Option<&str>,
 ) -> Result<Option<Installed>> {
     let mut best: Option<Installed> = None;
     for (root, view) in roots {
@@ -418,15 +554,9 @@ fn detect_in_roots(
             if !matches_display_name(app, &display) {
                 continue;
             }
-            let mut location: String = key.get_value("InstallLocation").unwrap_or_default();
-            location = location.trim().trim_matches('"').to_owned();
-            if location.is_empty() {
-                let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
-                let icon = icon.split(',').next().unwrap_or("").trim_matches('"');
-                if let Some(parent) = Path::new(icon).parent() {
-                    location = parent.display().to_string();
-                }
-            }
+            let mut location = registered_install_folder(&key)
+                .map(|folder| folder.display().to_string())
+                .unwrap_or_default();
             if crate::model::installed_executable(Path::new(&location), app).is_none()
                 && key
                     .get_value::<u32, _>("WindowsInstaller")
@@ -445,7 +575,7 @@ fn detect_in_roots(
                             &display,
                             &crate::model::title(app),
                             &app.to_string(),
-                            &crate::model::repository(app).to_string(),
+                            &crate::model::repository_name(app),
                         ] {
                             candidates.push(std::path::PathBuf::from(&base).join(folder));
                         }
@@ -484,6 +614,17 @@ fn detect_in_roots(
                 install_kind: "installer".into(),
                 product_code: if msi == 1 { name } else { String::new() },
             };
+            let mut candidate = candidate;
+            if let Some(executable) =
+                crate::model::installed_executable(Path::new(&candidate.path), app)
+            {
+                if let Some(actual) = executable_architecture(&executable) {
+                    candidate.architecture = actual.into();
+                }
+            }
+            if architecture.is_some_and(|wanted| candidate.architecture != wanted) {
+                continue;
+            }
             if best.as_ref().is_none_or(|current| {
                 installation_version(&candidate.version) > installation_version(&current.version)
             }) {
@@ -492,6 +633,73 @@ fn detect_in_roots(
         }
     }
     Ok(best)
+}
+// Use the matching app's registered executable, rather than guessing its filename.
+// DisplayIcon may reference a DLL or uninstaller, so validate the target before use.
+pub fn registered_launch_executable(folder: &Path, app: &str) -> Option<std::path::PathBuf> {
+    for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+            let Ok(root) = RegKey::predef(hive).open_subkey_with_flags(
+                "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+                KEY_READ | view,
+            ) else {
+                continue;
+            };
+            for name in root.enum_keys().flatten() {
+                let Ok(key) = root.open_subkey(name) else {
+                    continue;
+                };
+                let display: String = key.get_value("DisplayName").unwrap_or_default();
+                if !matches_display_name(app, &display) {
+                    continue;
+                }
+                let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
+                if let Some(path) = registered_icon_executable(folder, &icon) {
+                    return Some(path);
+                }
+            }
+        }
+    }
+    None
+}
+fn registered_icon_executable(folder: &Path, icon: &str) -> Option<std::path::PathBuf> {
+    let raw = icon.trim();
+    let raw = if let Some(quoted) = raw.strip_prefix('"') {
+        let (path, suffix) = quoted.split_once('"')?;
+        if !suffix.trim().is_empty() && !suffix.trim().starts_with(',') {
+            return None;
+        }
+        path
+    } else {
+        raw.rsplit_once(',')
+            .filter(|(_, index)| index.trim().parse::<i32>().is_ok())
+            .map_or(raw, |(path, _)| path)
+    };
+    let path = std::path::PathBuf::from(raw.trim());
+    if !path.is_absolute() || !path.extension()?.eq_ignore_ascii_case("exe") {
+        return None;
+    }
+    let canonical = path.canonicalize().ok()?;
+    let root = folder.canonicalize().ok()?;
+    // A registry entry must not cause another application's executable to be chosen.
+    if canonical.parent()? != root {
+        return None;
+    }
+    let filename = canonical
+        .file_stem()?
+        .to_string_lossy()
+        .to_ascii_lowercase();
+    if filename.starts_with("unins") || filename.contains("uninstall") || filename.contains("setup")
+    {
+        return None;
+    }
+    let architecture = executable_architecture(&canonical)?;
+    crate::downloads::verify_desktop_executable(&canonical, architecture).ok()?;
+    Some(path)
+}
+
+fn executable_architecture(path: &Path) -> Option<&'static str> {
+    crate::downloads::windows_executable_architecture(path).ok()
 }
 pub fn run(file: &Path, app: &str) -> Result<Installed> {
     run_with_job(file, app, None)
@@ -528,6 +736,7 @@ fn run_with_destination_inner(
     destination: Option<&Path>,
     replacing: bool,
 ) -> Result<Installed> {
+    validate_installer_package(file)?;
     if let Some(target) = destination {
         anyhow::ensure!(
             (replacing || custom_location_supported(app))
@@ -616,6 +825,28 @@ fn run_with_destination_inner(
     }
     Ok(installed)
 }
+fn validate_installer_package(file: &Path) -> Result<()> {
+    match file.extension().and_then(|extension| extension.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("exe") => {
+            crate::downloads::verify_installer_executable(file)
+        }
+        Some(extension) if extension.eq_ignore_ascii_case("msi") => {
+            let path = platform::wide(file);
+            let mut database = 0;
+            let code = unsafe { MsiOpenDatabaseW(path.as_ptr(), std::ptr::null(), &mut database) };
+            if code != 0 {
+                bail!("Download is not a readable Windows Installer package ({code})");
+            }
+            unsafe {
+                MsiCloseHandle(database);
+            }
+            Ok(())
+        }
+        _ => bail!(
+            "Unsupported Windows installer package. Choose an MSI or supported EXE installer."
+        ),
+    }
+}
 fn installer_result(code: i32) -> Result<()> {
     match code {
         0 | 3010 | 1641 => Ok(()),
@@ -625,6 +856,13 @@ fn installer_result(code: i32) -> Result<()> {
     }
 }
 fn run_exe(file: &Path, job: Option<&crate::jobs::Job>) -> Result<i32> {
+    run_exe_with_arguments(file, "", job)
+}
+fn run_exe_with_arguments(
+    file: &Path,
+    arguments: &str,
+    job: Option<&crate::jobs::Job>,
+) -> Result<i32> {
     use windows::{
         core::PCWSTR,
         Win32::{
@@ -638,11 +876,13 @@ fn run_exe(file: &Path, job: Option<&crate::jobs::Job>) -> Result<i32> {
     };
     let file = platform::wide(file);
     let verb = platform::wide("open");
+    let arguments = platform::wide(arguments);
     let mut info = SHELLEXECUTEINFOW {
         cbSize: std::mem::size_of::<SHELLEXECUTEINFOW>() as u32,
         fMask: SEE_MASK_NOCLOSEPROCESS,
         lpVerb: PCWSTR(verb.as_ptr()),
         lpFile: PCWSTR(file.as_ptr()),
+        lpParameters: PCWSTR(arguments.as_ptr()),
         nShow: SW_SHOWNORMAL.0,
         ..Default::default()
     };
@@ -719,7 +959,7 @@ fn wait_installer(
     }
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
-    let current = detect(&app.name)?
+    let current = detect_for_architecture(&app.name, Some(&app.architecture))?
         .context("This app is no longer installed. Refresh its status before uninstalling.")?;
     let app = &current;
     let code = &app.product_code;
@@ -730,7 +970,7 @@ pub fn uninstall(app: &Installed) -> Result<()> {
             .bytes()
             .all(|b| b.is_ascii_hexdigit() || b == b'-')
     {
-        bail!("This installer must be removed through Windows Installed apps.");
+        return uninstall_exe(app);
     }
     let product = platform::wide(code);
     let properties = platform::wide("REBOOT=ReallySuppress");
@@ -742,6 +982,138 @@ pub fn uninstall(app: &Installed) -> Result<()> {
         bail!("Windows still reports the app installed");
     }
     Ok(())
+}
+
+// Use the registered interactive command, without a shell or guessed silent switches.
+fn uninstall_command(command: &str) -> Result<(std::path::PathBuf, String)> {
+    let command = command.trim();
+    if command.contains(['\0', '\r', '\n']) {
+        bail!("Invalid registered uninstall command");
+    }
+    let (file, arguments) = if let Some(rest) = command.strip_prefix('"') {
+        let end = rest
+            .find('"')
+            .context("Uninstall command has an unclosed quote")?;
+        let arguments = &rest[end + 1..];
+        if !arguments.is_empty() && !arguments.starts_with(char::is_whitespace) {
+            bail!("Invalid registered uninstall command");
+        }
+        (&rest[..end], arguments.trim())
+    } else {
+        let lower = command.to_ascii_lowercase();
+        let end = lower
+            .match_indices(".exe")
+            .find_map(|(offset, _)| {
+                let end = offset + 4;
+                (command[end..].is_empty() || command[end..].starts_with(char::is_whitespace))
+                    .then_some(end)
+            })
+            .context("Uninstall command must name an executable")?;
+        (&command[..end], command[end..].trim())
+    };
+    let path = std::path::PathBuf::from(file);
+    if !path.is_absolute() || !file.to_ascii_lowercase().ends_with(".exe") {
+        bail!("Uninstall command must name an absolute EXE path");
+    }
+    Ok((path, arguments.to_owned()))
+}
+
+fn registered_uninstaller(app: &Installed) -> Result<Option<(RegKey, String, String)>> {
+    for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+            let Ok(root) = RegKey::predef(hive).open_subkey_with_flags(
+                "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+                KEY_READ | view,
+            ) else {
+                continue;
+            };
+            for name in root.enum_keys().flatten() {
+                let Ok(key) = root.open_subkey(&name) else {
+                    continue;
+                };
+                let display: String = key.get_value("DisplayName").unwrap_or_default();
+                if !matches_display_name(&app.name, &display) {
+                    continue;
+                }
+                let Some(folder) = registered_install_folder(&key) else {
+                    continue;
+                };
+                if !folder
+                    .to_string_lossy()
+                    .trim_end_matches(['\\', '/'])
+                    .eq_ignore_ascii_case(app.path.trim_end_matches(['\\', '/']))
+                {
+                    continue;
+                }
+                let command: String = key.get_value("UninstallString").unwrap_or_default();
+                if !command.trim().is_empty() {
+                    return Ok(Some((root, name, command)));
+                }
+            }
+        }
+    }
+    Ok(None)
+}
+
+fn uninstall_exe(app: &Installed) -> Result<()> {
+    let (root, key, command) = registered_uninstaller(app)?
+        .context("No matching Windows uninstall command was found. Use Windows Installed apps.")?;
+    let (file, arguments) = uninstall_command(&command)?;
+    if !file.is_file() {
+        bail!("The registered uninstaller is missing. Use Windows Installed apps.");
+    }
+    let code = run_exe_with_arguments(&file, &arguments, None)?;
+    installer_result(code)?;
+    // A cancelled wizard can return success. Never discard the installation in that case.
+    for _ in 0..20 {
+        if root.open_subkey(&key).is_err()
+            && detect_for_architecture(&app.name, Some(&app.architecture))?.is_none()
+        {
+            return Ok(());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    bail!("Uninstall did not complete or was cancelled. Windows still reports this app installed.")
+}
+
+#[cfg(test)]
+mod uninstall_command_tests {
+    #[test]
+    fn shared_installer_entry_rejects_unknown_and_invalid_packages() {
+        assert!(super::validate_installer_package(std::path::Path::new("unknown.zip")).is_err());
+        let path = std::env::temp_dir().join(format!("craft-invalid-{}.MSI", uuid::Uuid::new_v4()));
+        std::fs::write(&path, b"not an MSI database").unwrap();
+        assert!(super::validate_installer_package(&path).is_err());
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn preserves_registered_arguments_without_shell_interpretation() {
+        let (file, arguments) = super::uninstall_command(
+            r#""C:\Program Files\Example\unins000.exe" /REMOVE "some value""#,
+        )
+        .unwrap();
+        assert_eq!(
+            file,
+            std::path::PathBuf::from(r"C:\Program Files\Example\unins000.exe")
+        );
+        assert_eq!(arguments, r#"/REMOVE "some value""#);
+        let (file, arguments) =
+            super::uninstall_command(r"C:\Program Files\Example\uninstall.exe /uninstall").unwrap();
+        assert_eq!(
+            file,
+            std::path::PathBuf::from(r"C:\Program Files\Example\uninstall.exe")
+        );
+        assert_eq!(arguments, "/uninstall");
+        for invalid in [
+            "uninstall.exe",
+            "cmd /c uninstall.exe",
+            "https://example.com/uninstall.exe",
+            "\"C:\\app.exe\"/bad",
+            "C:\\app.exe\n/bad",
+        ] {
+            assert!(super::uninstall_command(invalid).is_err(), "{invalid}");
+        }
+    }
 }
 
 pub fn installer_label() -> &'static str {

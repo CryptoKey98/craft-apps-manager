@@ -161,6 +161,8 @@ pub fn shortcut_extension() -> &'static str {
     "alias"
 }
 
+pub fn refresh_file_associations() {}
+
 pub fn relaunch_executable() -> Result<PathBuf> {
     let current = std::env::current_exe()?;
     if current.is_file() {

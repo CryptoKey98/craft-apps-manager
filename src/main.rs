@@ -6,6 +6,12 @@ use std::{fs, path::PathBuf};
 fn main() {
     if let Err(e) = run() {
         let message = format!("{e:#}");
+        #[cfg(target_os = "linux")]
+        if std::env::args().any(|arg| arg == "--approved-admin-batch") {
+            // The root helper reports through its captured stderr, never user settings/log paths.
+            eprintln!("{message}");
+            std::process::exit(1);
+        }
         let path = craft_apps_manager::self_update::startup_log_path();
         if let Some(path) = path {
             let _ = fs::create_dir_all(path.parent().unwrap());
@@ -13,6 +19,7 @@ fn main() {
         }
         if std::env::args().any(|a| {
             a == "--update"
+                || a == "--approved-admin-batch"
                 || a == "--update-source"
                 || a == "--background"
                 || a == "--check-app-updates"
@@ -44,6 +51,13 @@ fn main() {
 }
 fn run() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
+    if let Some(index) = args.iter().position(|arg| arg == "--approved-admin-batch") {
+        return craft_apps_manager::batch_admin::worker(
+            std::path::Path::new(args.get(index + 1).context("Missing batch manifest")?),
+            args.get(index + 2).context("Missing batch checksum")?,
+        );
+    }
     if let Some(i) = args.iter().position(|s| s == "--apply-self-update") {
         return craft_apps_manager::self_update::apply(std::path::Path::new(
             args.get(i + 1).context("Missing update plan")?,
@@ -149,10 +163,21 @@ fn run() -> Result<()> {
         println!("{}", serde_json::to_string_pretty(&entries)?);
         return Ok(());
     }
-    if let Some(format) = text("--release-format") {
-        let mut preferences = paths.preferences()?;
-        preferences.release_format = format;
-        preferences.validate()?;
+    if text("--release-format").is_some() || text("--architecture").is_some() {
+        let app = text("--install-app").context(
+            "Package options require --install-app; there are no global installation settings",
+        )?;
+        craft_apps_manager::model::valid_app(&app)?;
+        let mut preferences = paths.read_preferences()?;
+        let current = craft_apps_manager::install_options::preferred(&preferences, &app);
+        let options = craft_apps_manager::install_options::InstallOptions {
+            release_format: text("--release-format").unwrap_or(current.release_format),
+            architecture: text("--architecture").unwrap_or(current.architecture),
+        };
+        options.validate()?;
+        preferences
+            .app_install_options
+            .insert(craft_apps_manager::install_options::identity(&app), options);
         files::write_json(&paths.at("manager-settings.json"), &preferences)?;
     }
     if let Some(app) = text("--install-app") {
@@ -167,7 +192,10 @@ fn run() -> Result<()> {
         return Ok(());
     }
     if let Some(app) = text("--uninstall-app") {
-        craft_apps_manager::apps::uninstall(&paths, &app)?;
+        let job = Job::new(paths.at("logs/updates.log"), &paths.builder_preferences()?);
+        job.tracked("Uninstall", &app, |_| {
+            craft_apps_manager::apps::uninstall(&paths, &app)
+        })?;
         println!("{app} uninstalled");
         return Ok(());
     }

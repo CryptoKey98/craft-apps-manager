@@ -8,6 +8,7 @@ use eframe::egui::{self, Color32, CornerRadius, FontId, Rect, Sense, Stroke};
 const LINE: f32 = 1.327;
 /// Placeholder colour of the mockup's search field.
 const PLACEHOLDER: Color32 = Color32::from_rgb(0x75, 0x75, 0x75);
+const SEARCH_FIELD_ID: &str = "sidebar-app-search";
 /// Border of the "Get" chip.
 /// Status-bar dot while an operation or a build runs.
 const BUSY_DOT: Color32 = Color32::from_rgb(0x5b, 0x8c, 0xff);
@@ -23,7 +24,7 @@ struct SidebarDrag {
 
 impl App {
     pub(super) fn top_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let building = self.build_job.state.lock().unwrap().busy;
+        let building = self.build_job.snapshot().busy;
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
@@ -83,13 +84,45 @@ impl App {
                             }
                         }
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if btn("Settings")
-                                .size(Size::Toolbar)
-                                .icon(Icon::Gear)
-                                .show(ui)
-                                .clicked()
-                            {
+                            let settings_button =
+                                btn("Settings").size(Size::Toolbar).icon(Icon::Gear);
+                            let activity_button =
+                                btn("Activity").size(Size::Toolbar).icon(Icon::Activity);
+                            let width = settings_button
+                                .desired_size(ui)
+                                .x
+                                .max(activity_button.desired_size(ui).x);
+                            if settings_button.min_width(width).show(ui).clicked() {
                                 self.open_settings();
+                            }
+                            let count = self.activity_notifications.count();
+                            let response = activity_button.min_width(width).show(ui).on_hover_text(
+                                if count == 0 {
+                                    "View recent activity".into()
+                                } else {
+                                    format!("{count} unread activities")
+                                },
+                            );
+                            self.activity_anchor =
+                                Some(response.rect.right_bottom() + egui::vec2(0.0, 8.0));
+                            if count > 0 {
+                                let center = response.rect.right_top() + egui::vec2(-3.0, 3.0);
+                                ui.painter()
+                                    .circle_filled(center, 7.0, theme::palette().accent);
+                                ui.painter().text(
+                                    center,
+                                    egui::Align2::CENTER_CENTER,
+                                    if count > 9 {
+                                        "9+".into()
+                                    } else {
+                                        count.to_string()
+                                    },
+                                    FontId::proportional(9.0),
+                                    Color32::WHITE,
+                                );
+                            }
+                            if response.clicked() {
+                                self.activity_open = !self.activity_open;
                             }
                             if theme::theme_toggle(ui, self.preferences.theme).clicked() {
                                 let result = (|| -> anyhow::Result<()> {
@@ -115,7 +148,7 @@ impl App {
     }
 
     pub(super) fn status_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let build = self.build_job.state.lock().unwrap().clone();
+        let build = self.build_job.snapshot();
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
@@ -187,6 +220,13 @@ impl App {
             .frame(egui::Frame::new().fill(theme::palette().panel))
             .show(ctx, |ui| {
                 ui.spacing_mut().item_spacing.y = 0.0;
+                {
+                    // Match Activity's muted handle in both themes, retaining hover expansion.
+                    let scroll = &mut ui.spacing_mut().scroll;
+                    scroll.dormant_handle_opacity = 0.08;
+                    scroll.active_handle_opacity = 0.35;
+                    scroll.interact_handle_opacity = 0.65;
+                }
                 egui::Frame::new()
                     .inner_margin(egui::Margin {
                         left: 12,
@@ -239,6 +279,9 @@ impl App {
                             .clicked();
                         let response = ui.add(
                             egui::TextEdit::singleline(&mut self.search)
+                                // The clear button appears after typing; do not let
+                                // its widget ID shift the focused text field's ID.
+                                .id_salt(SEARCH_FIELD_ID)
                                 .hint_text(
                                     egui::RichText::new("Search apps")
                                         .size(13.0)
@@ -267,7 +310,10 @@ impl App {
                     .to_lowercase()
                     .contains(&needle)
         };
-        let order = self.preferences.app_order.clone();
+        let order = model::ordered_release_apps(
+            &self.preferences.app_order,
+            &self.preferences.release_format,
+        );
         let updates = order
             .iter()
             .filter(|name| self.status(name).update.is_some())
@@ -444,9 +490,7 @@ impl App {
         if let Some((dragged, target, before)) = reorder {
             match settings::reorder(&self.paths, &dragged, &target, before) {
                 Ok(preferences) => {
-                    if self.preferences.release_format != preferences.release_format
-                        || self.preferences.architecture != preferences.architecture
-                    {
+                    if self.preferences.app_install_options != preferences.app_install_options {
                         self.check_generation += 1;
                         self.checking_apps.clear();
                         self.release_checks.clear();
@@ -531,6 +575,8 @@ impl App {
         floating: bool,
     ) {
         let status = self.status(name);
+        let install_available = self.install_available(name);
+        let unavailable_message = self.unavailable_download_message(name);
         let selected = self.page == Page::App && self.app == name;
         let response = ui.interact(rect, ui.id().with(("sidebar-row", name)), Sense::click());
         let installing = state.busy
@@ -538,7 +584,12 @@ impl App {
                 .job_target
                 .as_ref()
                 .is_some_and(|(app, action)| app == name && action == "install-app");
-        let format = &self.preferences.release_format;
+        let app_preferences = self.app_preferences(name);
+        let format = status
+            .installed
+            .as_ref()
+            .map(|record| record.install_kind.as_str())
+            .unwrap_or(&app_preferences.release_format);
         let other = status.alternate.as_ref().map(|a| {
             (
                 if a.install_kind == "installer" {
@@ -751,6 +802,15 @@ impl App {
                 format!("{label} {version} · no {format} copy"),
                 theme::palette().muted,
             )
+        } else if let Some(copy) = &status.alternate_architecture {
+            (
+                format!(
+                    "Installed {} · selected {}",
+                    copy.architecture,
+                    self.app_preferences(name).architecture
+                ),
+                theme::palette().muted,
+            )
         } else if !status.loaded {
             ("Checking…".into(), theme::palette().muted)
         } else {
@@ -784,15 +844,20 @@ impl App {
                 model::title(name)
             );
             let id = ui.id().with(("install-app", name));
+            let enabled = !state.busy && (chip != "Get" || install_available);
             let chip_response = ui
-                .add_enabled_ui(!state.busy, |ui| ui.interact(chip_rect, id, Sense::click()))
+                .add_enabled_ui(enabled, |ui| ui.interact(chip_rect, id, Sense::click()))
                 .inner
                 .on_hover_text(format!("{label} (latest release)"))
-                .on_disabled_hover_text("Wait for the current operation to finish.");
+                .on_disabled_hover_text(if !install_available {
+                    unavailable_message.as_str()
+                } else {
+                    "Wait for the current operation to finish."
+                });
             chip_response.widget_info(|| {
-                egui::WidgetInfo::labeled(egui::WidgetType::Button, !state.busy, &label)
+                egui::WidgetInfo::labeled(egui::WidgetType::Button, enabled, &label)
             });
-            let hovered = chip_response.hovered() && !state.busy;
+            let hovered = chip_response.hovered() && enabled;
             let (fill, stroke, color, radius) = if chip == "Update" {
                 (
                     if hovered {
@@ -816,7 +881,7 @@ impl App {
                     13,
                 )
             };
-            let alpha = if state.busy { 0.45 } else { 1.0 };
+            let alpha = if !enabled { 0.45 } else { 1.0 };
             ui.painter().rect(
                 chip_rect,
                 CornerRadius::same(radius),
@@ -933,4 +998,46 @@ fn dimmed_icon(ctx: &egui::Context, name: &str) -> Option<egui::TextureHandle> {
     );
     ctx.data_mut(|d| d.insert_temp(id, texture.clone()));
     Some(texture)
+}
+
+#[cfg(test)]
+mod search_tests {
+    use super::*;
+
+    #[test]
+    fn typing_keeps_focus_when_clear_button_appears() {
+        let ctx = egui::Context::default();
+        let mut search = String::new();
+        let mut field_id = None;
+        for (index, text) in [None, Some("a"), Some("b")].into_iter().enumerate() {
+            let input = egui::RawInput {
+                events: text
+                    .map(|text| vec![egui::Event::Text(text.into())])
+                    .unwrap_or_default(),
+                ..Default::default()
+            };
+            let _ = ctx.run(input, |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if !search.is_empty() {
+                                theme::icon_button(ui, Icon::Close, "Clear search", PLACEHOLDER);
+                            }
+                            let response = ui.add(
+                                egui::TextEdit::singleline(&mut search).id_salt(SEARCH_FIELD_ID),
+                            );
+                            if index == 0 {
+                                field_id = Some(response.id);
+                                response.request_focus();
+                            } else {
+                                assert_eq!(Some(response.id), field_id);
+                                assert!(response.has_focus());
+                            }
+                        });
+                    });
+                });
+            });
+        }
+        assert_eq!(search, "ab");
+    }
 }
