@@ -1000,6 +1000,7 @@ fn execute_entries(
                         ));
                     }
                 }
+                platform::refresh_file_associations();
                 job.log(&format!("{}: installer completed", app.name));
                 return Ok(true);
             }
@@ -1121,6 +1122,7 @@ fn execute_entries(
                         job.log(&format!("Desktop shortcut warning: {error:#}"));
                     }
                 }
+                platform::refresh_file_associations();
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
             })();
