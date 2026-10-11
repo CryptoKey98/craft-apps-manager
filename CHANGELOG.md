@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0
+
+- Configure release format and architecture independently for built-in and custom apps, using the selected release’s compatible assets.
+- Preserve installed package facts separately from preferences; updates and bulk checks respect each installed app’s format and architecture.
+- Expand custom GitHub download matching, add setup review and an ambiguous-download chooser, and improve native installer detection and uninstall support.
+- Add centralized operation records, lifecycle validation, cooperative cancellation, parent/child batch results and cross-process builder synchronization.
+- Add a compact Activity panel with progress, expandable results, unread notifications, outside-click dismissal and matching light/dark detail surfaces.
+- Approve administrator access once for eligible multi-installer batches on Windows and Linux; keep portable execution unelevated and preserve verification boundaries.
+- Refresh update availability after a downgrade, using cached release metadata first and retaining results across restarts.
+- Preserve existing installations, settings migration, shortcut repairs, build workflows and existing recovery behavior.
+
 ## 0.7.0
 
 - Redesign Home with installed and discoverable app tiles, independent drag ordering, update indicators and a clearer Update All review.

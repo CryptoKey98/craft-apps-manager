@@ -43,12 +43,9 @@ fn parse_arch_metadata(text: &str) -> Result<(String, String, String)> {
 fn install_arch(file: &Path, app: &str, job: Option<&Job>) -> Result<Installed> {
     if let Some(job) = job {
         job.check()?;
-        job.stage("Installing package", None, "Approve the administrator prompt. The package transaction must finish before another operation.");
+        job.stage("Installing package", None, installation_notice());
     }
-    let status = Command::new("pkexec")
-        .args(["/usr/bin/pacman", "-U", "--noconfirm"])
-        .arg(file)
-        .status()?;
+    let status = package_status(file, PackageKind::Arch, false, job)?;
     if !status.success() {
         bail!("Arch package installation failed or authorization was cancelled ({status})");
     }
@@ -299,20 +296,21 @@ pub fn run_selected_with_job(
     }
     if let Some(job) = job {
         job.check()?;
-        job.stage("Installing package",None,"Approve the desktop authorization prompt. Package installation must finish before another operation.");
-        job.log(&format!(
-            "Approve the desktop authorization prompt to install this {} package",
-            installer_label()
-        ));
+        job.stage("Installing package", None, installation_notice());
+        job.log(installation_notice());
     }
-    let status = Command::new("pkexec")
-        .args(installation_arguments(kind, downgrade))
-        .arg(&file)
-        .status()?;
+    let status = package_status(&file, kind, downgrade, job)?;
     if !status.success() {
         bail!("Package installation failed or authorization was cancelled ({status})");
     }
     detect(app)?.context("Package command completed, but the app executable could not be detected")
+}
+fn installation_notice() -> &'static str {
+    #[cfg(target_os = "linux")]
+    if crate::batch_admin::active() {
+        return "Installing an approved batch package. Cancellation stops remaining packages after this transaction finishes.";
+    }
+    "Approve the desktop authorization prompt. Package installation must finish before another operation."
 }
 fn installation_arguments(kind: PackageKind, downgrade: bool) -> Vec<&'static str> {
     match (kind, downgrade) {
@@ -321,6 +319,40 @@ fn installation_arguments(kind: PackageKind, downgrade: bool) -> Vec<&'static st
         (PackageKind::Arch, _) => vec!["pacman", "-U", "--noconfirm"],
         _ => vec![manager(kind), "install", "-y"],
     }
+}
+fn package_status(
+    file: &Path,
+    kind: PackageKind,
+    downgrade: bool,
+    job: Option<&Job>,
+) -> Result<std::process::ExitStatus> {
+    #[cfg(target_os = "linux")]
+    if let Some(result) = crate::batch_admin::install_package(file, downgrade, job) {
+        use std::os::unix::process::ExitStatusExt;
+        return result.map(|code| std::process::ExitStatus::from_raw(code << 8));
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = job;
+    Ok(Command::new("pkexec")
+        .args(installation_arguments(kind, downgrade))
+        .arg(file)
+        .status()?)
+}
+/// Called only by the approved root helper, with its private verified package copy.
+pub(crate) fn approved_package_command(kind: PackageKind, file: &Path) -> Command {
+    let args = installation_arguments(kind, false);
+    let mut command = Command::new(format!("/usr/bin/{}", args[0]));
+    command
+        .args(&args[1..])
+        .arg(file)
+        .current_dir("/")
+        .env_clear()
+        .env("PATH", "/usr/sbin:/usr/bin:/sbin:/bin")
+        .env("HOME", "/root")
+        .env("LANG", "C.UTF-8")
+        .env("DEBIAN_FRONTEND", "noninteractive")
+        .stdin(std::process::Stdio::null());
+    command
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
     crate::model::valid_app(&app.name)?;

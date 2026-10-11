@@ -7,7 +7,6 @@ use craft_apps_manager::{
     model, platform,
 };
 use eframe::egui::{self, RichText};
-use std::sync::atomic::Ordering;
 
 impl App {
     pub(super) fn builder_view(&mut self, ctx: &egui::Context, state: &State) {
@@ -134,8 +133,14 @@ impl App {
                     .enabled(state.busy)
                     .show(ui)
                     .clicked()
+                    && !self.job.request_cancel()
                 {
-                    self.job.cancel.store(true, Ordering::Relaxed);
+                    if let Some(operation) = self.operation_records.iter().find(|op| {
+                        craft_apps_manager::jobs::Job::builder_operation(op, &self.app)
+                            && op.parent.is_none()
+                    }) {
+                        let _ = self.job.operations.request_cancel(&operation.id);
+                    }
                 }
                 if btn("Open build folder")
                     .medium()
@@ -148,6 +153,9 @@ impl App {
                     if let Some(out) = &state.output {
                         self.result(platform::open(out));
                     }
+                }
+                if btn("Activity").medium().min_width(width).show(ui).clicked() {
+                    self.activity_open = !self.activity_open;
                 }
                 ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
                     if btn("Settings")

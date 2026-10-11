@@ -1,0 +1,31 @@
+# Per-application installation configuration
+
+## Architecture and behavior
+
+`src/install_options.rs` owns installation intent, repository identities, host compatibility, installed-fact resolution, and release compatibility matrices. It reuses the existing Craft/Tauri asset matcher and generic GitHub download classifier rather than adding a second installation implementation.
+
+Preferences persist in `manager-settings.json` under `appInstallOptions`, keyed by the lowercase GitHub owner/repository. Each entry contains `releaseFormat` and `architecture`. Installed records remain separate facts; selecting an option does not rewrite an existing installation's type or architecture. Choices persist immediately in the install dialog, including when the dialog is subsequently cancelled. Custom-app setup preferences are staged until Settings is saved.
+
+The install dialog offers only confirmed host-compatible release combinations. Changing format recalculates architecture choices. Changing version reloads the selected release's combinations and preserves a valid choice when possible. Single available combinations select automatically. Windows x64 supports x64 and x86; other hosts conservatively offer native architecture. Universal macOS assets can satisfy the native architecture. Existing portable/AppImage/native installer execution, checksums, destinations, shortcuts, cancellation, and progress paths are reused.
+
+Built-in and custom applications use the same options resolver and release planner. Custom apps no longer disappear because a library-wide format changed. Existing custom download confirmation remains available for ambiguous packages and incomplete naming; unlabeled architectures are not silently guessed.
+
+Global format/architecture controls were removed from Settings. Old JSON fields remain readable as legacy/context fields but no longer determine library installations. Other settings remain intact. CLI format/architecture arguments now require a specific install target and save only that application's preference.
+
+Bulk updates and background checks derive each app's configuration from its verified installed record. Each planned entry carries its own immutable execution preferences. Missing compatible downloads become per-app errors, without switching packages or architecture, downloading replacements, or blocking unattended operation for a dialog. Explicit version selection retains downgrade behavior. Changing the type or architecture of an existing installation requires uninstalling that installation first, preventing silent overwrite and native-installer conflicts.
+
+Existing installations remain visible. Existing reliable type/architecture metadata is retained, and missing binary architecture can be recovered from PE or ELF headers. Truly unknown configuration fails safely for updates rather than borrowing obsolete global values. Unknown legacy macOS architecture cannot currently be recovered from Mach-O bundles. Existing relocation, removal, backups, source builder, installer cancellation, and portable extraction logic is preserved.
+
+## Source files
+
+Added `src/install_options.rs`.
+
+Modified `src/model.rs`, `src/catalog.rs`, `src/updates.rs`, `src/hourly.rs`, `src/settings.rs`, `src/main.rs`, `src/lib.rs`, `src/ui/mod.rs`, `src/ui/dialogs.rs`, `src/ui/settings.rs`, `src/ui/app_page.rs`, `src/ui/sidebar.rs`, `src/ui/overview.rs`, and `tests/workflows.rs`.
+
+## Validation and compatibility
+
+Tests cover independent preference persistence, actual release combinations, legacy settings, installed facts overriding preference, mixed bulk updates, unavailable updates, version changes, cancellation, destination safety, removal, backups and existing builder workflows. See [Operations](operations.md) for current test counts and manual validation requirements.
+
+Changing package options uses cached metadata and preserves preview details while recalculating. Approval of stale plans is prevented. Installed package labels come from verified records rather than a future preference. Release versions support two-, three- and four-part numeric versions and supported timestamp tags; missing numeric components compare as zero.
+
+Older settings remain readable. Unknown installed architecture is not silently replaced with a global preference. Legacy macOS Mach-O architecture recovery remains a limitation. Custom installer behavior still depends on what publishers register with the operating system.

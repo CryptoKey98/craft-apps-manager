@@ -24,6 +24,8 @@ pub enum Scheme {
     Craft,
     /// `ArtCraft_0.41.0_x64-setup.exe`, `ArtCraft_0.41.0_universal.dmg`
     Tauri,
+    /// User-selected download using common system and architecture labels.
+    Generic,
     /// Source only: the repository has no installable release.
     None,
 }
@@ -43,6 +45,12 @@ pub struct Entry {
     pub description: String,
     #[serde(default)]
     pub scheme: Scheme,
+    #[serde(default)]
+    pub download_rule: Option<crate::downloads::Rule>,
+    #[serde(default)]
+    pub download_rules: Vec<crate::downloads::Rule>,
+    #[serde(default)]
+    pub registered_formats: Vec<String>,
     /// Release asset prefix; `printcraft` for the renamed `pdfcraft` repository.
     #[serde(default)]
     pub asset_prefix: String,
@@ -64,6 +72,9 @@ fn craft(key: &str, title: &str, category: &str, description: &str) -> Entry {
         category: category.into(),
         description: description.into(),
         scheme: Scheme::Craft,
+        download_rule: None,
+        download_rules: Vec::new(),
+        registered_formats: Vec::new(),
         asset_prefix: key.into(),
         aliases: Vec::new(),
         bundle_ids: Vec::new(),
@@ -100,6 +111,9 @@ pub fn builtin() -> Vec<Entry> {
             category: "AI image and video".into(),
             description: "ArtCraft is an intentional crafting engine for artists, designers, and filmmakers.".into(),
             scheme: Scheme::Tauri,
+            download_rule: None,
+        download_rules: Vec::new(),
+        registered_formats: Vec::new(),
             asset_prefix: "ArtCraft".into(),
             aliases: Vec::new(),
             bundle_ids: vec!["ai.artcraft.app".into()],
@@ -113,6 +127,9 @@ pub fn builtin() -> Vec<Entry> {
             category: "Source only".into(),
             description: "ArtCraft-X".into(),
             scheme: Scheme::None,
+            download_rule: None,
+        download_rules: Vec::new(),
+        registered_formats: Vec::new(),
             asset_prefix: String::new(),
             aliases: Vec::new(),
             bundle_ids: Vec::new(),
@@ -125,6 +142,9 @@ pub fn builtin() -> Vec<Entry> {
 static CURRENT: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
 
 pub fn all() -> Vec<Entry> {
+    known_entries()
+}
+pub fn known_entries() -> Vec<Entry> {
     let current = CURRENT.read().unwrap();
     if current.is_empty() {
         builtin()
@@ -301,14 +321,109 @@ pub fn load(root: &Path) {
 }
 /// Rebuilds the process-wide catalog from saved discovery plus user apps.
 fn reload(root: &Path, cache: &Cache) {
-    *CURRENT.write().unwrap() = merge(cache.entries.clone(), &cache.learned, &custom_apps(root));
+    let value: serde_json::Value =
+        files::read_or_default(&root.join("manager-settings.json")).unwrap_or_default();
+    let format = value
+        .get("releaseFormat")
+        .and_then(|v| v.as_str())
+        .unwrap_or("portable")
+        .to_string();
+    *CURRENT.write().unwrap() = merge(
+        cache.entries.clone(),
+        &cache.learned,
+        &custom_apps_for_format_migration(root, &format),
+    );
 }
 /// Apps the user added from GitHub links in Settings, newest last.
 fn custom_path(root: &Path) -> PathBuf {
     root.join("runtime/custom-apps.json")
 }
 pub fn custom_apps(root: &Path) -> Vec<Entry> {
-    files::read_or_default(&custom_path(root)).unwrap_or_default()
+    let value: serde_json::Value =
+        files::read_or_default(&root.join("manager-settings.json")).unwrap_or_default();
+    custom_apps_for_format_migration(
+        root,
+        value
+            .get("releaseFormat")
+            .and_then(|v| v.as_str())
+            .unwrap_or("portable"),
+    )
+}
+fn custom_apps_for_format_migration(root: &Path, format: &str) -> Vec<Entry> {
+    let mut entries: Vec<Entry> = files::read_or_default(&custom_path(root)).unwrap_or_default();
+    for entry in &mut entries {
+        let repo = entry
+            .repository
+            .split('/')
+            .next_back()
+            .unwrap_or(&entry.key);
+        if !same_app_title(&entry.title, repo) {
+            let metadata: Option<Repository> = Network::cached_json(
+                root,
+                &format!("https://api.github.com/repos/{}", entry.repository),
+            );
+            entry.title = release_title(
+                None,
+                metadata.as_ref().map_or(repo, |repo| repo.name.as_str()),
+            );
+        }
+        if entry.registered_formats.is_empty() {
+            entry.registered_formats = entry
+                .download_rules
+                .iter()
+                .chain(entry.download_rule.iter())
+                .map(|r| r.format.clone())
+                .collect();
+            entry.registered_formats.sort();
+            entry.registered_formats.dedup();
+            if entry.registered_formats.is_empty() {
+                entry.registered_formats.push(format.into());
+            }
+        }
+    }
+    entries
+}
+pub fn merge_custom_registration(entries: &mut Vec<Entry>, entry: Entry) -> Result<()> {
+    anyhow::ensure!(
+        !known_entries()
+            .iter()
+            .any(|known| !known.repository.contains('/') && known.key == entry.key),
+        "This app is already in the default catalog"
+    );
+    if let Some(existing) = entries.iter_mut().find(|e| e.key == entry.key) {
+        anyhow::ensure!(
+            existing.repository.eq_ignore_ascii_case(&entry.repository),
+            "Another repository already uses this app name"
+        );
+        if existing.scheme != entry.scheme || entry.scheme == Scheme::Generic {
+            existing.scheme = Scheme::Generic;
+        }
+        for format in entry.registered_formats {
+            if !existing.registered_formats.contains(&format) {
+                existing.registered_formats.push(format);
+            }
+        }
+        for rule in entry.download_rules.into_iter().chain(entry.download_rule) {
+            existing.download_rules.retain(|r| !r.same_target(&rule));
+            existing.download_rules.push(rule);
+        }
+    } else {
+        entries.push(entry);
+    }
+    Ok(())
+}
+pub fn selected_custom_download(choice: &DownloadChoice, index: usize) -> Result<Entry> {
+    let asset = choice
+        .assets
+        .get(index)
+        .ok_or_else(|| anyhow::anyhow!("Choose a download"))?;
+    let mut entry = choice.entry.clone();
+    let rule = crate::downloads::Rule::new(asset, &choice.version, &choice.preferences);
+    entry.download_rules = vec![rule.clone()];
+    entry.download_rule = Some(rule);
+    entry.scheme = Scheme::Generic;
+    entry.registered_formats = vec![choice.preferences.release_format.clone()];
+    Ok(entry)
 }
 fn write_custom_apps(root: &Path, apps: &Vec<Entry>) -> Result<()> {
     files::write_json(&custom_path(root), apps)
@@ -370,23 +485,180 @@ fn key_for_repo(repo: &str) -> Result<String> {
     }
     Ok(key)
 }
-/// Readable title from a release name: `MapCraft v1.2.0` → `MapCraft`.
+/// Accept release titles only when they name the repository's app.
+/// Generic labels and release nicknames must not become app identities.
 fn release_title(name: Option<&str>, repo: &str) -> String {
     if let Some(name) = name {
         let name = regex::Regex::new(r"\s+v?\d+\.\d+\.\d+.*$")
             .unwrap()
             .replace(name.trim(), "");
-        if !name.is_empty() && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b' ') {
+        if same_app_title(&name, repo) {
             return name.into_owned();
         }
     }
-    let pretty = pretty(repo);
-    if !pretty.trim().is_empty() {
-        pretty
-    } else {
-        repo.into()
+    repo.split(['-', '_'])
+        .filter(|part| !part.is_empty())
+        .map(pretty)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+fn same_app_title(title: &str, repo: &str) -> bool {
+    let normalize = |value: &str| {
+        value
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric())
+            .flat_map(char::to_lowercase)
+            .collect::<String>()
+    };
+    !title.trim().is_empty() && normalize(title) == normalize(repo)
+}
+#[cfg(test)]
+mod custom_title_tests {
+    #[test]
+    fn release_labels_cannot_replace_app_names() {
+        use super::release_title;
+        assert_eq!(
+            release_title(Some("Release v0.101.2362.0"), "PowerToys"),
+            "PowerToys"
+        );
+        assert_eq!(release_title(Some("Wordleaf"), "PowerToys"), "PowerToys");
+        assert_eq!(
+            release_title(Some("OBS Studio 32.2.2"), "obs-studio"),
+            "OBS Studio"
+        );
+        assert_eq!(
+            release_title(Some("MapCraft v1.2.0"), "mapcraft"),
+            "MapCraft"
+        );
+        assert_eq!(
+            release_title(Some("Autumn update"), "Example_App"),
+            "Example App"
+        );
+        assert_eq!(release_title(None, "KeePassXC"), "KeePassXC");
     }
 }
+#[derive(Clone, Debug)]
+pub struct DownloadChoice {
+    pub entry: Entry,
+    pub assets: Vec<crate::model::Asset>,
+    pub version: String,
+    pub preferences: crate::model::Preferences,
+}
+impl std::fmt::Display for DownloadChoice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Choose a compatible download for {}", self.entry.title)
+    }
+}
+impl std::error::Error for DownloadChoice {}
+pub fn choose_custom_download(root: &Path, choice: &DownloadChoice, index: usize) -> Result<Entry> {
+    let asset = choice
+        .assets
+        .get(index)
+        .ok_or_else(|| anyhow::anyhow!("Choose a download first"))?;
+    let customs = custom_apps(root);
+    let mut entry = customs
+        .iter()
+        .find(|entry| entry.key == choice.entry.key)
+        .cloned()
+        .unwrap_or_else(|| choice.entry.clone());
+    anyhow::ensure!(
+        entry.repository == choice.entry.repository,
+        "The repository changed while choosing a download"
+    );
+    let rule = crate::downloads::Rule::new(asset, &choice.version, &choice.preferences);
+    if let Some(previous) = &entry.download_rule {
+        if !entry.download_rules.contains(previous) {
+            entry.download_rules.push(previous.clone());
+        }
+    }
+    entry
+        .download_rules
+        .retain(|previous| !previous.same_target(&rule));
+    entry.download_rules.push(rule.clone());
+    entry.download_rule = Some(rule);
+    entry.scheme = Scheme::Generic;
+    if customs.iter().any(|existing| existing.key == entry.key) {
+        let mut apps = customs;
+        if let Some(existing) = apps.iter_mut().find(|existing| existing.key == entry.key) {
+            *existing = entry.clone();
+        }
+        write_custom_apps(root, &apps)?;
+        load(root);
+        Ok(entry)
+    } else {
+        save_custom_app(root, entry)
+    }
+}
+
+/// Resolve a registered custom app for the current package preferences.
+pub fn prepare_custom_download(
+    root: &Path,
+    app: &str,
+    prefs: &crate::model::Preferences,
+    tag: Option<&str>,
+) -> Result<Entry> {
+    let entry = custom_apps(root)
+        .into_iter()
+        .find(|entry| entry.key == app)
+        .ok_or_else(|| anyhow::anyhow!("Custom app is no longer registered"))?;
+    let mut url = reqwest::Url::parse(&format!(
+        "https://api.github.com/repos/{}/releases/",
+        entry.repository
+    ))?;
+    if let Some(tag) = tag {
+        url.path_segments_mut()
+            .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+            .pop_if_empty()
+            .push("tags")
+            .push(tag);
+    } else {
+        url.path_segments_mut()
+            .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+            .pop_if_empty()
+            .push("latest");
+    }
+    let release: Release = Network::new(root)?.json(url.as_str())?;
+    anyhow::ensure!(
+        !release.draft && !release.prerelease,
+        "Choose a stable release"
+    );
+    if let Some(tag) = tag {
+        anyhow::ensure!(release.tag_name == tag, "The requested release changed");
+    }
+    let version = crate::updates::release_version(&release.tag_name)?;
+    if let Ok(asset) = crate::updates::select_asset(&release, app, prefs) {
+        let choice = DownloadChoice {
+            entry,
+            assets: vec![asset.clone()],
+            version,
+            preferences: prefs.clone(),
+        };
+        return choose_custom_download(root, &choice, 0);
+    }
+    let assets: Vec<_> = crate::downloads::candidates(&release, prefs)
+        .into_iter()
+        .cloned()
+        .collect();
+    anyhow::ensure!(
+        !assets.is_empty(),
+        "{} has no compatible {} download for {}. Your existing choices are preserved.",
+        entry.title,
+        prefs.release_format,
+        prefs.architecture
+    );
+    let choice = DownloadChoice {
+        entry,
+        assets,
+        version,
+        preferences: prefs.clone(),
+    };
+    if choice.assets.len() == 1 && !crate::downloads::needs_confirmation(&choice.assets[0], prefs) {
+        choose_custom_download(root, &choice, 0)
+    } else {
+        Err(choice.into())
+    }
+}
+
 /// Builds a release-tracking entry for a user-supplied repository, verifying
 /// that its latest stable release has an installable file for this machine.
 fn classify_custom(
@@ -403,7 +675,20 @@ fn classify_custom(
         anyhow::anyhow!("{slug} tags its releases in a way the manager cannot read")
     })?;
     let key = key_for_repo(&repository.name)?;
+    anyhow::ensure!(
+        !known_entries()
+            .iter()
+            .any(|known| !known.repository.contains('/') && known.key == key),
+        "This app is already in the default catalog"
+    );
     let repo_lower = repository.name.to_ascii_lowercase();
+    let mut download_rule = None;
+    let mut choices = Vec::new();
+    let prefs = crate::model::Preferences {
+        release_format: release_format.into(),
+        architecture: architecture.into(),
+        ..Default::default()
+    };
     let (scheme, asset_prefix) = if crate::updates::find_asset(
         release,
         &[key.clone(), repo_lower],
@@ -418,11 +703,21 @@ fn classify_custom(
     {
         (Scheme::Tauri, prefix)
     } else {
-        anyhow::bail!(
-            "{slug} {version} has no installable file for this system. The manager tracks repositories whose releases carry Craft-style files ({key}-{version}-…​) or Tauri-style files."
+        choices = crate::downloads::candidates(release, &prefs)
+            .into_iter()
+            .cloned()
+            .collect();
+        anyhow::ensure!(
+            !choices.is_empty(),
+            "{slug} has no compatible {release_format} download for {} ({}). Try another architecture or release format.",
+            crate::model::release_os(), crate::model::architecture_label(architecture)
         );
+        if choices.len() == 1 && !crate::downloads::needs_confirmation(&choices[0], &prefs) {
+            download_rule = Some(crate::downloads::Rule::new(&choices[0], &version, &prefs));
+        }
+        (Scheme::Generic, key.clone())
     };
-    Ok(Entry {
+    let entry = Entry {
         key,
         repository: slug.into(),
         title: release_title(release.name.as_deref(), &repository.name),
@@ -434,24 +729,52 @@ fn classify_custom(
             .trim()
             .into(),
         scheme,
+        registered_formats: vec![release_format.into()],
+        download_rules: download_rule.clone().into_iter().collect(),
+        download_rule,
         asset_prefix,
-        aliases: Vec::new(),
+        aliases: if scheme == Scheme::Generic {
+            let base = repository
+                .name
+                .split(['-', '_'])
+                .next()
+                .unwrap_or(&repository.name)
+                .to_ascii_lowercase();
+            if valid_alias(&base) {
+                vec![base.clone(), format!("{base}64"), format!("{base}32")]
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        },
         bundle_ids: Vec::new(),
         release: true,
         source: false,
-    })
+    };
+    if choices.len() > 1
+        || choices
+            .first()
+            .is_some_and(|asset| crate::downloads::needs_confirmation(asset, &prefs))
+    {
+        return Err(DownloadChoice {
+            entry,
+            assets: choices,
+            version,
+            preferences: prefs,
+        }
+        .into());
+    }
+    Ok(entry)
 }
 /// Adds a user-supplied GitHub repository to the catalog after verifying it.
-pub fn add_custom_app(
+pub fn inspect_custom_app(
     root: &Path,
     link: &str,
     release_format: &str,
     architecture: &str,
 ) -> Result<Entry> {
     let slug = parse_github_slug(link)?;
-    if let Some(known) = all().iter().find(|e| e.repository == slug) {
-        anyhow::bail!("{} is already in your app list", known.title);
-    }
     let network = Network::new(root)?;
     let repository: Repository = network.json(&format!("https://api.github.com/repos/{slug}"))?;
     if repository.archived || repository.fork || repository.disabled {
@@ -463,17 +786,67 @@ pub fn add_custom_app(
     let Some(release) = release else {
         anyhow::bail!("{slug} has no releases yet");
     };
+    let description = repository
+        .description
+        .as_deref()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let has_gui = [
+        "gui",
+        "desktop",
+        "electron",
+        "tauri",
+        "qt",
+        "terminal-emulator",
+        "terminal-emulators",
+    ]
+    .iter()
+    .any(|hint| repository.topics.iter().any(|topic| topic == hint))
+        || description.contains("graphical")
+        || description.contains("terminal emulator");
+    let cli = repository
+        .topics
+        .iter()
+        .any(|topic| ["cli", "command-line", "command-line-tool"].contains(&topic.as_str()))
+        || [
+            "command-line",
+            "command line",
+            "a command-line",
+            "a command line",
+        ]
+        .iter()
+        .any(|hint| description.starts_with(hint));
+    anyhow::ensure!(
+        !cli || has_gui,
+        "This repository describes a command-line tool. The manager supports desktop applications."
+    );
     let entry = classify_custom(&slug, &repository, &release, release_format, architecture)?;
-    if let Some(known) = all().iter().find(|e| e.key == entry.key) {
-        anyhow::bail!("{} is already tracked as {}", known.title, known.repository);
-    }
+    Ok(entry)
+}
+pub fn add_custom_app(
+    root: &Path,
+    link: &str,
+    release_format: &str,
+    architecture: &str,
+) -> Result<Entry> {
+    let entry = inspect_custom_app(root, link, release_format, architecture)?;
+    save_custom_app(root, entry)
+}
+
+fn save_custom_app(root: &Path, entry: Entry) -> Result<Entry> {
     let mut apps = custom_apps(root);
-    apps.retain(|e| e.key != entry.key && e.repository != entry.repository);
-    apps.push(entry.clone());
+    anyhow::ensure!(
+        !apps.iter().any(|existing| existing.key == entry.key
+            && existing
+                .registered_formats
+                .iter()
+                .any(|format| entry.registered_formats.contains(format))),
+        "This app is already added for this release format"
+    );
+    merge_custom_registration(&mut apps, entry.clone())?;
     apps.sort_by(|a, b| a.key.cmp(&b.key));
     write_custom_apps(root, &apps)?;
-    let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
-    reload(root, &cache);
+    load(root);
     Ok(entry)
 }
 /// Removes a user-added app. Built-in and discovered apps cannot be removed.
@@ -507,6 +880,8 @@ pub fn refresh_if_older(root: &Path, seconds: i64) -> Result<Vec<Entry>> {
 #[derive(Deserialize)]
 struct Repository {
     name: String,
+    #[serde(default)]
+    topics: Vec<String>,
     #[serde(default)]
     description: Option<String>,
     #[serde(default)]
@@ -575,7 +950,7 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
     Ok(all())
 }
 
-/// Readable name for a repository without a curated title: `mapcraft` → `MapCraft`.
+/// Readable name for a repository without a curated title: `mapcraft` â†’ `MapCraft`.
 pub fn pretty(repository: &str) -> String {
     let mut title = String::new();
     for (i, part) in repository.split("craft").enumerate() {
@@ -600,6 +975,9 @@ pub fn classify(repository: &str, release: Option<&Release>) -> Entry {
         category: String::new(),
         description: String::new(),
         scheme: Scheme::None,
+        download_rule: None,
+        download_rules: Vec::new(),
+        registered_formats: Vec::new(),
         asset_prefix: String::new(),
         aliases: Vec::new(),
         bundle_ids: Vec::new(),
@@ -896,6 +1274,7 @@ mod tests {
             }
         }
         let repo = Repository {
+            topics: Vec::new(),
             name: "ZooKraft".into(),
             description: Some(" Puzzles ".into()),
             archived: false,
@@ -960,6 +1339,9 @@ mod tests {
             category: String::new(),
             description: String::new(),
             scheme: Scheme::Craft,
+            download_rule: None,
+            download_rules: Vec::new(),
+            registered_formats: Vec::new(),
             asset_prefix: "zookraft".into(),
             aliases: Vec::new(),
             bundle_ids: Vec::new(),
@@ -985,6 +1367,352 @@ mod tests {
         // Restore the process-wide catalog for the remaining serial tests.
         load(&root.join("unused"));
         assert!(all().iter().all(|e| e.key != "zookraft"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn common_custom_downloads_support_single_and_ambiguous_releases() {
+        let repository = Repository {
+            topics: Vec::new(),
+            name: "obs-studio".into(),
+            description: None,
+            archived: false,
+            fork: false,
+            disabled: false,
+        };
+        let asset = crate::model::Asset {
+            name: "OBS-Studio-32.2.2-Windows-x64-Installer.exe".into(),
+            size: 1,
+            digest: None,
+            browser_download_url: String::new(),
+        };
+        let mut release = Release {
+            tag_name: "32.2.2".into(),
+            name: Some("OBS Studio 32.2.2".into()),
+            draft: false,
+            prerelease: false,
+            assets: vec![asset.clone()],
+        };
+        let entry = classify_custom(
+            "obsproject/obs-studio",
+            &repository,
+            &release,
+            "installer",
+            "x64",
+        )
+        .unwrap();
+        assert_eq!(entry.scheme, Scheme::Generic);
+        assert_eq!(entry.title, "OBS Studio");
+        assert!(entry.aliases.contains(&"obs64".into()));
+        assert!(entry.download_rule.is_some());
+        release.assets.push(crate::model::Asset {
+            name: "OBS-Studio-32.2.2-x64-Setup.exe".into(),
+            ..asset
+        });
+        let error = classify_custom(
+            "obsproject/obs-studio",
+            &repository,
+            &release,
+            "installer",
+            "x64",
+        )
+        .unwrap_err();
+        let choice = error.downcast_ref::<DownloadChoice>().unwrap();
+        assert_eq!(choice.assets.len(), 2);
+        assert!(choice.entry.download_rule.is_none());
+        let root = std::env::temp_dir().join(format!("craft-choice-{}", uuid::Uuid::new_v4()));
+        let saved = choose_custom_download(&root, choice, 1).unwrap();
+        assert_eq!(
+            saved.download_rule.as_ref().unwrap().template,
+            "OBS-Studio-{version}-x64-Setup.exe"
+        );
+        assert_eq!(custom_apps(&root).len(), 1);
+        let mut second = choice.clone();
+        second.preferences.architecture = "x86".into();
+        second.assets = vec![crate::model::Asset {
+            name: "OBS-Studio-32.2.2-Windows-x86-Installer.exe".into(),
+            ..second.assets[0].clone()
+        }];
+        let updated = choose_custom_download(&root, &second, 0).unwrap();
+        assert_eq!(custom_apps(&root).len(), 1);
+        assert_eq!(updated.download_rules.len(), 2);
+        let original =
+            crate::downloads::select_for_entry(&release, &updated, &choice.preferences).unwrap();
+        assert_eq!(original.name, choice.assets[1].name);
+        assert_eq!(custom_apps(&root)[0].download_rules, updated.download_rules);
+        load(&root.join("unused"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn rejected_architecture_does_not_block_retry_with_compatible_preferences() {
+        let repository = Repository {
+            topics: Vec::new(),
+            name: "exampletool".into(),
+            description: None,
+            archived: false,
+            fork: false,
+            disabled: false,
+        };
+        let installer = crate::model::Asset {
+            name: "ExampleTool-1.2.3-Windows-x64-Installer.exe".into(),
+            size: 1,
+            digest: None,
+            browser_download_url: String::new(),
+        };
+        let release = Release {
+            tag_name: "v1.2.3".into(),
+            name: None,
+            draft: false,
+            prerelease: false,
+            assets: vec![
+                installer.clone(),
+                crate::model::Asset {
+                    name: "ExampleTool-1.2.3-Windows-x64.zip".into(),
+                    ..installer
+                },
+            ],
+        };
+        let error = classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "portable",
+            "x86",
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("portable"));
+        assert!(error.to_string().contains("x86"));
+        assert!(classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "installer",
+            "x86"
+        )
+        .is_err());
+        assert!(classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "installer",
+            "x64"
+        )
+        .is_ok());
+        assert!(classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "portable",
+            "x64"
+        )
+        .is_ok());
+        let root =
+            std::env::temp_dir().join(format!("craft-availability-{}", uuid::Uuid::new_v4()));
+        let paths = crate::model::Paths::new(root.clone(), None);
+        let prefs = crate::model::Preferences {
+            release_format: "installer".into(),
+            architecture: "x86".into(),
+            ..Default::default()
+        };
+        let entry = classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "installer",
+            "x64",
+        )
+        .unwrap();
+        write_custom_apps(&root, &vec![entry]).unwrap();
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        load(&root);
+        assert!(get("exampletool").is_some());
+        assert_eq!(
+            crate::updates::cached_download_available(&paths, "exampletool", &prefs),
+            None
+        );
+        use sha2::{Digest, Sha256};
+        let url = "https://api.github.com/repos/someone/exampletool/releases/latest";
+        let path = root
+            .join("runtime/api-cache")
+            .join(format!("{:x}.json", Sha256::digest(url.as_bytes())));
+        files::write_json(
+            &path,
+            &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":release}),
+        )
+        .unwrap();
+        assert_eq!(
+            crate::updates::cached_download_available(&paths, "exampletool", &prefs),
+            Some(true)
+        );
+        let x64 = crate::model::Preferences {
+            architecture: "x64".into(),
+            ..prefs
+        };
+        assert_eq!(
+            crate::updates::cached_download_available(&paths, "exampletool", &x64),
+            Some(true)
+        );
+        assert!(get("exampletool").is_some());
+        load(&root.join("unused"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn format_registrations_are_staged_and_saved_together() {
+        let root = std::env::temp_dir().join(format!("craft-formats-{}", uuid::Uuid::new_v4()));
+        let paths = crate::model::Paths::new(root.clone(), None);
+        load(&root);
+        let repository = Repository {
+            topics: Vec::new(),
+            name: "exampletool".into(),
+            description: None,
+            archived: false,
+            fork: false,
+            disabled: false,
+        };
+        let installer = crate::model::Asset {
+            name: "ExampleTool-1.2.3-Windows-x64-Setup.exe".into(),
+            size: 1,
+            digest: None,
+            browser_download_url: String::new(),
+        };
+        let release = Release {
+            tag_name: "v1.2.3".into(),
+            name: None,
+            draft: false,
+            prerelease: false,
+            assets: vec![
+                installer.clone(),
+                crate::model::Asset {
+                    name: "ExampleTool-1.2.3-Windows-x64.zip".into(),
+                    ..installer
+                },
+            ],
+        };
+        let installed = classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "installer",
+            "x64",
+        )
+        .unwrap();
+        let mut draft = Vec::new();
+        merge_custom_registration(&mut draft, installed.clone()).unwrap();
+        assert!(custom_apps(&root).is_empty());
+        assert!(get("exampletool").is_none());
+        assert!(!draft[0].registered_formats.contains(&"portable".into()));
+        // Cancelling discards the draft without touching the saved catalog.
+        let cancelled = draft.clone();
+        drop(cancelled);
+        assert!(!custom_path(&root).exists());
+        let portable = classify_custom(
+            "someone/exampletool",
+            &repository,
+            &release,
+            "portable",
+            "x64",
+        )
+        .unwrap();
+        merge_custom_registration(&mut draft, portable).unwrap();
+        assert_eq!(draft.len(), 1);
+        assert_eq!(draft[0].registered_formats.len(), 2);
+        let prefs = crate::model::Preferences {
+            release_format: "installer".into(),
+            ..Default::default()
+        };
+        crate::settings::save_with_custom_apps(
+            &paths,
+            &root.join("locations.json"),
+            &serde_json::json!({}),
+            &root,
+            &root.join("tools"),
+            Some(&prefs),
+            None,
+            Some(&draft),
+        )
+        .unwrap();
+        load(&root);
+        let selected = get("exampletool").unwrap();
+        assert!(
+            crate::downloads::select_for_entry(&release, &selected, &prefs)
+                .unwrap()
+                .name
+                .ends_with(".exe")
+        );
+        // An app registered only for Installer is absent from the Portable catalog.
+        let mut only_installer = installed;
+        only_installer.key = "otherexample".into();
+        only_installer.repository = "someone/otherexample".into();
+        draft.push(only_installer);
+        write_custom_apps(&root, &draft).unwrap();
+        let portable_prefs = crate::model::Preferences {
+            release_format: "portable".into(),
+            ..prefs.clone()
+        };
+        files::write_json(&paths.at("manager-settings.json"), &portable_prefs).unwrap();
+        load(&root);
+        assert!(get("otherexample").is_some());
+        // Sidebar and Home use saved orders that deliberately retain inactive apps.
+        let sidebar_order = vec![
+            "otherexample".into(),
+            "photocraft".into(),
+            "exampletool".into(),
+        ];
+        let home_order = vec![
+            "exampletool".into(),
+            "otherexample".into(),
+            "photocraft".into(),
+        ];
+        assert_eq!(
+            crate::model::ordered_release_apps(&sidebar_order, "portable"),
+            sidebar_order
+        );
+        assert_eq!(
+            crate::model::ordered_release_apps(&home_order, "portable"),
+            home_order
+        );
+        assert_eq!(
+            crate::model::ordered_release_apps(&sidebar_order, "installer"),
+            sidebar_order
+        );
+        assert_eq!(
+            crate::model::ordered_release_apps(&home_order, "installer"),
+            home_order
+        );
+        let mut retained = portable_prefs.clone();
+        retained.app_order = sidebar_order.clone();
+        retained.home_app_order = home_order.clone();
+        retained.validate().unwrap();
+        assert!(retained.app_order.contains(&"otherexample".into()));
+        assert!(retained.home_app_order.contains(&"otherexample".into()));
+        let selected = get("exampletool").unwrap();
+        assert!(
+            crate::downloads::select_for_entry(&release, &selected, &portable_prefs)
+                .unwrap()
+                .name
+                .ends_with(".zip")
+        );
+        files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        load(&root);
+        assert!(get("otherexample").is_some());
+        assert_eq!(custom_apps(&root).len(), 2);
+        let incompatible = Release {
+            assets: vec![],
+            ..release
+        };
+        assert!(classify_custom(
+            "someone/exampletool",
+            &repository,
+            &incompatible,
+            "portable",
+            "x64"
+        )
+        .is_err());
+        assert_eq!(custom_apps(&root).len(), 2);
+        load(&root.join("unused"));
         std::fs::remove_dir_all(root).unwrap();
     }
     #[test]
