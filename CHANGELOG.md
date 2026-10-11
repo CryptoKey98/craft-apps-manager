@@ -2,6 +2,7 @@
 
 ## 0.8.0
 
+- Show What's New highlights on first launch and after a manager version change, with expandable release notes and an info icon beside the version to reopen the dialog.
 - Run supported Windows MSI downgrades under one batch administrator approval, with verified recovery packages and individual uninstall, install and recovery activity steps.
 - Keep version changes locked to the verified installed format and architecture; preparing a version preview no longer creates installation activity.
 - Improve reused-job cancellation, preserve build results during tool setup, retain bounded Unicode activity records and avoid pruning unconfirmed workers.

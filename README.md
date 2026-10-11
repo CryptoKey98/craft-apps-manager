@@ -80,6 +80,8 @@ Changes are listed in [CHANGELOG.md](CHANGELOG.md). The source is shared across 
 
 ## Activity and batch updates
 
+**What's New** opens on first launch and after a manager version change, with release highlights and expandable notes. Dismiss it once per version, or reopen it using the info icon beside the manager version in the header.
+
 The **Activity** button beside Settings shows active operations and recent results, including stages, available progress, cancellation status and expandable details. Its badge counts unread activity until you open the panel. The manager and separate builder observe the same operation records; interrupted work is distinguished from confirmed completion. Closing a progress dialog does not stop the operation. Cancellation requests wait for safe completion or confirmed cancellation, especially during native package transactions.
 
 Under **Settings → Updates → Batch updates**, **Approve administrator access once per batch** is enabled by default. Eligible batches containing at least two installer operations use one temporary elevated worker on Windows or Linux. Packages are downloaded and verified before approval, while portable operations remain unelevated. Linux uses PolicyKit with the distribution’s package manager, including apt, dnf and pacman. Start the GUI from your desktop session so its authentication agent is available. Installer questions or additional publisher prompts can still appear. Single installs, explicit version changes and macOS retain their existing authorization paths.

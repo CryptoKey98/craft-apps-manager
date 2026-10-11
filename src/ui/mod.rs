@@ -24,6 +24,7 @@ mod settings;
 mod sidebar;
 mod theme;
 mod tray;
+mod whats_new;
 
 fn app_icon(name: &str) -> Option<&'static [u8]> {
     Some(match name {
@@ -202,6 +203,7 @@ pub struct App {
     job_action: String,
     page: Page,
     search: String,
+    whats_new_open: bool,
     preferences: Preferences,
     build_preferences: BuilderPreferences,
     settings: bool,
@@ -446,6 +448,8 @@ impl App {
             download_availability: BTreeMap::new(),
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
+            whats_new_open: !builder
+                && whats_new::should_show(&paths.root, env!("CARGO_PKG_VERSION")),
             paths,
             home,
             builder,
@@ -1772,6 +1776,7 @@ impl eframe::App for App {
         self.activity_panel(ctx);
         self.settings_ui(ctx);
         self.dialogs(ctx);
+        self.whats_new_dialog(ctx);
         restore_dialog_focus(ctx);
         if state.busy || building {
             ctx.request_repaint_after(Duration::from_millis(100));
