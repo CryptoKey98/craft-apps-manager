@@ -1377,6 +1377,7 @@ fn execute_entries(
                 {
                     job.log(&format!("Update availability refresh warning: {error:#}"));
                 }
+                platform::refresh_file_associations();
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
             })();
