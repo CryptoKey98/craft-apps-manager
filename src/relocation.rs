@@ -78,11 +78,23 @@ pub fn move_app(paths: &Paths, expected: &Installed, parent: &Path, job: &Job) -
     job.check()?;
     if current.install_kind == "installer" {
         #[cfg(target_os = "windows")]
-        return move_installer(paths, &current, &target, job);
+        {
+            let result = move_installer(paths, &current, &target, job);
+            if result.is_ok() {
+                job.report("Previous location", &current.path);
+                job.report("Installation location", target.display().to_string());
+            }
+            return result;
+        }
         #[cfg(not(target_os = "windows"))]
         anyhow::bail!("This installation has a fixed location");
     }
-    move_portable(paths, &current, &target, job)
+    let result = move_portable(paths, &current, &target, job);
+    if result.is_ok() {
+        job.report("Previous location", &current.path);
+        job.report("Installation location", target.display().to_string());
+    }
+    result
 }
 
 fn save_location(paths: &Paths, app: &Installed) -> Result<()> {

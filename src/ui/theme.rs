@@ -328,6 +328,7 @@ pub fn apply(ctx: &egui::Context, mode: Theme) {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Icon {
+    Activity,
     Sun,
     Gear,
     Search,
@@ -452,6 +453,15 @@ pub fn paint_icon_weight(
             .collect()
     };
     match icon {
+        Icon::Activity => line(vec![
+            p(2.0, 12.0),
+            p(6.0, 12.0),
+            p(9.0, 4.0),
+            p(13.0, 20.0),
+            p(16.0, 10.0),
+            p(18.0, 12.0),
+            p(22.0, 12.0),
+        ]),
         Icon::EyeOff => {
             line(vec![
                 p(2.0, 12.0),

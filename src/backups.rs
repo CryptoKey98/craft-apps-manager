@@ -311,6 +311,7 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
                 || paths.save_config(&config),
             )?;
         }
+        job.report("Restored backup", backup.path.display().to_string());
         job.log(&format!(
             "Restored {} backup: {label}",
             crate::model::title(app)

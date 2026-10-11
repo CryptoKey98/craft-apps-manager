@@ -21,16 +21,38 @@ pub fn key(prefs: &Preferences, app: &str) -> String {
 pub fn read(paths: &Paths) -> Result<Checks> {
     files::read_or_default(&paths.at("runtime/app-update-checks.json"))
 }
+/// Persist availability for the new installed version using already-cached release metadata.
+pub fn refresh_after_install(
+    paths: &Paths,
+    installed: &crate::model::Installed,
+    prefs: &Preferences,
+) -> Result<()> {
+    let Some(result) = updates::cached_installation_check(paths, installed, prefs) else {
+        return Ok(());
+    };
+    let latest = result?;
+    let _lock = platform::Lock::take("Local\\CraftAppsManagerHourlyChecks")?;
+    let effective = crate::install_options::for_installed(prefs, installed)?;
+    let mut checks = read(paths)?;
+    let state = checks.entry(key(&effective, &installed.name)).or_default();
+    if state.installed != installed.version {
+        state.notified = None;
+    }
+    state.installed = installed.version.clone();
+    state.latest = latest;
+    files::write_json(&paths.at("runtime/app-update-checks.json"), &checks)
+}
 #[derive(Default, Serialize, Deserialize)]
 struct LastAutomaticCheck {
     at: i64,
     format: String,
     architecture: String,
+    #[serde(default)]
+    options: BTreeMap<String, crate::install_options::InstallOptions>,
 }
 fn recently_checked(last: &LastAutomaticCheck, prefs: &Preferences, now: i64) -> bool {
     let elapsed = now - last.at;
-    last.format == prefs.release_format
-        && last.architecture == prefs.architecture
+    last.options == prefs.app_install_options
         && elapsed >= 0
         && elapsed < (prefs.app_check_interval_minutes.clamp(10, 60) * 60) as i64
 }
@@ -41,6 +63,11 @@ pub fn run_periodic(paths: &Paths, job: &Job) -> Result<()> {
     run_automatic(paths, job, true)
 }
 fn run_automatic(paths: &Paths, job: &Job, periodic: bool) -> Result<()> {
+    job.tracked("Background update check", "Application library", |job| {
+        run_automatic_owned(paths, job, periodic)
+    })
+}
+fn run_automatic_owned(paths: &Paths, job: &Job, periodic: bool) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManagerHourlyChecks")?;
     let before = paths.read_preferences()?;
     let last_path = paths.at("runtime/last-automatic-app-check.json");
@@ -93,6 +120,7 @@ fn run_automatic(paths: &Paths, job: &Job, periodic: bool) -> Result<()> {
             at: chrono::Utc::now().timestamp(),
             format: prefs.release_format,
             architecture: prefs.architecture,
+            options: prefs.app_install_options,
         },
     )
 }
@@ -117,7 +145,8 @@ fn scan(
         job.check()?;
         match check(&app.name) {
             Ok(latest) => {
-                let state = checks.entry(key(prefs, &app.name)).or_default();
+                let effective = crate::install_options::for_installed(prefs, &app)?;
+                let state = checks.entry(key(&effective, &app.name)).or_default();
                 state.installed = app.version;
                 state.latest = latest.clone();
                 if let Some(version) = latest {
@@ -152,6 +181,7 @@ mod tests {
             at: 1000,
             format: prefs.release_format.clone(),
             architecture: prefs.architecture.clone(),
+            options: prefs.app_install_options.clone(),
         };
         assert!(recently_checked(&last, &prefs, 2199));
         assert!(!recently_checked(&last, &prefs, 2200));
@@ -164,6 +194,14 @@ mod tests {
             "installer"
         }
         .into();
+        assert!(recently_checked(&last, &prefs, 1001));
+        prefs.app_install_options.insert(
+            crate::install_options::identity("photocraft"),
+            crate::install_options::InstallOptions {
+                release_format: "portable".into(),
+                architecture: "x64".into(),
+            },
+        );
         assert!(!recently_checked(&last, &prefs, 1001));
     }
     #[test]
@@ -209,12 +247,16 @@ mod tests {
                         name: "filmcraft".into(),
                         path: "installed".into(),
                         version: "0.1.0".into(),
+                        install_kind: format.into(),
+                        architecture: crate::model::MANAGER_ARCH.into(),
                         ..Default::default()
                     },
                     crate::model::Installed {
                         name: "photocraft".into(),
                         path: "installed".into(),
                         version: "0.1.0".into(),
+                        install_kind: format.into(),
+                        architecture: crate::model::MANAGER_ARCH.into(),
                         ..Default::default()
                     },
                     crate::model::Installed {

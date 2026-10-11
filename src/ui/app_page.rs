@@ -98,7 +98,7 @@ impl App {
         let app = self.app.clone();
         let title = model::title(&app);
         let status = self.status(&app);
-        let format = self.preferences.release_format.clone();
+        let format = self.app_preferences(&self.app).release_format.clone();
         let mine = self
             .job_target
             .as_ref()
@@ -388,6 +388,19 @@ impl App {
         }
         ui.add_space(MAIN_GAP);
         self.facts(ui, &status);
+        if let Some(copy) = &status.alternate_architecture {
+            ui.add_space(12.0);
+            theme::text(
+                ui,
+                format!(
+                    "Installed: {} · Selected: {}",
+                    model::architecture_label(&copy.architecture),
+                    model::architecture_label(&self.app_preferences(&self.app).architecture)
+                ),
+                13.0,
+                theme::palette().text_3,
+            );
+        }
         if let Some(alternate) = &status.alternate {
             ui.add_space(12.0);
             let location = if alternate.install_kind == "installer" {
@@ -435,8 +448,8 @@ impl App {
         let popup_id = ui.make_persistent_id((
             "app-version-menu",
             &app,
-            &self.preferences.release_format,
-            &self.preferences.architecture,
+            &self.app_preferences(&self.app).release_format,
+            &self.app_preferences(&self.app).architecture,
         ));
         let (main, arrow) = button.split(ui, &format!("Choose {} version", model::title(&app)));
         if arrow.clicked() {
@@ -560,7 +573,11 @@ impl App {
                                         );
                                         if response.clicked() && !current {
                                             ui.memory_mut(|memory| memory.close_popup());
-                                            self.review_version(app.clone(), release.tag_name);
+                                            self.review_version(
+                                                app.clone(),
+                                                release.tag_name,
+                                                ui.ctx(),
+                                            );
                                         }
                                     }
                                 });
@@ -575,8 +592,8 @@ impl App {
                     format!(
                         "{} · {} · {}",
                         model::release_os(),
-                        release_format_label(&self.preferences.release_format),
-                        model::architecture_label(&self.preferences.architecture)
+                        release_format_label(&self.app_preferences(&self.app).release_format),
+                        model::architecture_label(&self.app_preferences(&self.app).architecture)
                     ),
                     12.0,
                     theme::palette().muted,
@@ -588,10 +605,12 @@ impl App {
     fn app_actions(&mut self, ui: &mut Ui, state: &State, status: &super::AppStatus) {
         let app = self.app.clone();
         let title = model::title(&app);
+        let install_available = self.install_available(&app);
         let installed = status.installed.clone();
         // Only an installed copy in the active format can be updated in place.
         let matching_format = installed.as_ref().is_some_and(|i| {
-            (i.install_kind == "installer") == (self.preferences.release_format == "installer")
+            (i.install_kind == "installer")
+                == (self.app_preferences(&self.app).release_format == "installer")
         });
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
@@ -604,7 +623,7 @@ impl App {
                             .primary()
                             .size(Size::Card)
                             .icon(Icon::Download)
-                            .enabled(!state.busy && !self.release_pending()),
+                            .enabled(!state.busy && !self.release_pending() && install_available),
                         status,
                     ) {
                         self.confirm_install = Some(app.clone());
@@ -695,6 +714,15 @@ impl App {
                 }
             }
         });
+        if installed.is_none() && !install_available {
+            ui.add_space(8.0);
+            theme::text(
+                ui,
+                self.unavailable_download_message(&app),
+                13.0,
+                theme::palette().muted,
+            );
+        }
         if status.checking {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
@@ -760,8 +788,30 @@ impl App {
 
     /// Four facts about the app: installed copy, latest release, package and location.
     fn facts(&mut self, ui: &mut Ui, status: &super::AppStatus) {
+        let fact_preferences = self.app_preferences(&self.app);
         let app = self.app.clone();
         let installed = status.installed.clone();
+        let package = installed
+            .as_ref()
+            .map(|record| {
+                let format = match record.install_kind.as_str() {
+                    "installer" | "portable" => release_format_label(&record.install_kind),
+                    _ => "Unknown format",
+                };
+                let architecture = if record.architecture.is_empty() {
+                    "Unknown architecture"
+                } else {
+                    model::architecture_label(&record.architecture)
+                };
+                format!("{format} · {architecture}")
+            })
+            .unwrap_or_else(|| {
+                format!(
+                    "{} · {}",
+                    release_format_label(&fact_preferences.release_format),
+                    model::architecture_label(&fact_preferences.architecture)
+                )
+            });
         let latest = match (&status.update, &status.check, &installed) {
             (Some(version), _, _) => (version.clone(), "Newer than installed".to_owned()),
             (None, Some(Ok(None)), Some(installed)) => {
@@ -808,18 +858,7 @@ impl App {
                 }),
             ),
             ("Latest release", joined(&latest.0, &latest.1), None),
-            (
-                "Package",
-                joined(
-                    release_format_label(&self.preferences.release_format),
-                    if cfg!(target_os = "macos") {
-                        "Universal"
-                    } else {
-                        model::architecture_label(&self.preferences.architecture)
-                    },
-                ),
-                None,
-            ),
+            ("Package", package, None),
             (
                 "Location",
                 location.clone(),
@@ -938,7 +977,7 @@ impl App {
         let app = self.app.clone();
         let status = self.status(&app);
         let installed = status.installed.clone();
-        let build = self.build_job.state.lock().unwrap().clone();
+        let build = self.build_job.snapshot();
         let building_here = self.build_app == app;
         ui.spacing_mut().item_spacing.y = 0.0;
         theme::section_label(ui, &format!("{} tools", model::title(&app)));

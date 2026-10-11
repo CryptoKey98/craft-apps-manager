@@ -23,7 +23,7 @@ struct SidebarDrag {
 
 impl App {
     pub(super) fn top_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let building = self.build_job.state.lock().unwrap().busy;
+        let building = self.build_job.snapshot().busy;
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
@@ -83,13 +83,45 @@ impl App {
                             }
                         }
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if btn("Settings")
-                                .size(Size::Toolbar)
-                                .icon(Icon::Gear)
-                                .show(ui)
-                                .clicked()
-                            {
+                            let settings_button =
+                                btn("Settings").size(Size::Toolbar).icon(Icon::Gear);
+                            let activity_button =
+                                btn("Activity").size(Size::Toolbar).icon(Icon::Activity);
+                            let width = settings_button
+                                .desired_size(ui)
+                                .x
+                                .max(activity_button.desired_size(ui).x);
+                            if settings_button.min_width(width).show(ui).clicked() {
                                 self.open_settings();
+                            }
+                            let count = self.activity_notifications.count();
+                            let response = activity_button.min_width(width).show(ui).on_hover_text(
+                                if count == 0 {
+                                    "View recent activity".into()
+                                } else {
+                                    format!("{count} unread activities")
+                                },
+                            );
+                            self.activity_anchor =
+                                Some(response.rect.right_bottom() + egui::vec2(0.0, 8.0));
+                            if count > 0 {
+                                let center = response.rect.right_top() + egui::vec2(-3.0, 3.0);
+                                ui.painter()
+                                    .circle_filled(center, 7.0, theme::palette().accent);
+                                ui.painter().text(
+                                    center,
+                                    egui::Align2::CENTER_CENTER,
+                                    if count > 9 {
+                                        "9+".into()
+                                    } else {
+                                        count.to_string()
+                                    },
+                                    FontId::proportional(9.0),
+                                    Color32::WHITE,
+                                );
+                            }
+                            if response.clicked() {
+                                self.activity_open = !self.activity_open;
                             }
                             if theme::theme_toggle(ui, self.preferences.theme).clicked() {
                                 let result = (|| -> anyhow::Result<()> {
@@ -115,7 +147,7 @@ impl App {
     }
 
     pub(super) fn status_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let build = self.build_job.state.lock().unwrap().clone();
+        let build = self.build_job.snapshot();
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
@@ -267,7 +299,10 @@ impl App {
                     .to_lowercase()
                     .contains(&needle)
         };
-        let order = self.preferences.app_order.clone();
+        let order = model::ordered_release_apps(
+            &self.preferences.app_order,
+            &self.preferences.release_format,
+        );
         let updates = order
             .iter()
             .filter(|name| self.status(name).update.is_some())
@@ -444,9 +479,7 @@ impl App {
         if let Some((dragged, target, before)) = reorder {
             match settings::reorder(&self.paths, &dragged, &target, before) {
                 Ok(preferences) => {
-                    if self.preferences.release_format != preferences.release_format
-                        || self.preferences.architecture != preferences.architecture
-                    {
+                    if self.preferences.app_install_options != preferences.app_install_options {
                         self.check_generation += 1;
                         self.checking_apps.clear();
                         self.release_checks.clear();
@@ -531,6 +564,8 @@ impl App {
         floating: bool,
     ) {
         let status = self.status(name);
+        let install_available = self.install_available(name);
+        let unavailable_message = self.unavailable_download_message(name);
         let selected = self.page == Page::App && self.app == name;
         let response = ui.interact(rect, ui.id().with(("sidebar-row", name)), Sense::click());
         let installing = state.busy
@@ -538,7 +573,12 @@ impl App {
                 .job_target
                 .as_ref()
                 .is_some_and(|(app, action)| app == name && action == "install-app");
-        let format = &self.preferences.release_format;
+        let app_preferences = self.app_preferences(name);
+        let format = status
+            .installed
+            .as_ref()
+            .map(|record| record.install_kind.as_str())
+            .unwrap_or(&app_preferences.release_format);
         let other = status.alternate.as_ref().map(|a| {
             (
                 if a.install_kind == "installer" {
@@ -751,6 +791,15 @@ impl App {
                 format!("{label} {version} · no {format} copy"),
                 theme::palette().muted,
             )
+        } else if let Some(copy) = &status.alternate_architecture {
+            (
+                format!(
+                    "Installed {} · selected {}",
+                    copy.architecture,
+                    self.app_preferences(name).architecture
+                ),
+                theme::palette().muted,
+            )
         } else if !status.loaded {
             ("Checking…".into(), theme::palette().muted)
         } else {
@@ -784,15 +833,20 @@ impl App {
                 model::title(name)
             );
             let id = ui.id().with(("install-app", name));
+            let enabled = !state.busy && (chip != "Get" || install_available);
             let chip_response = ui
-                .add_enabled_ui(!state.busy, |ui| ui.interact(chip_rect, id, Sense::click()))
+                .add_enabled_ui(enabled, |ui| ui.interact(chip_rect, id, Sense::click()))
                 .inner
                 .on_hover_text(format!("{label} (latest release)"))
-                .on_disabled_hover_text("Wait for the current operation to finish.");
+                .on_disabled_hover_text(if !install_available {
+                    unavailable_message.as_str()
+                } else {
+                    "Wait for the current operation to finish."
+                });
             chip_response.widget_info(|| {
-                egui::WidgetInfo::labeled(egui::WidgetType::Button, !state.busy, &label)
+                egui::WidgetInfo::labeled(egui::WidgetType::Button, enabled, &label)
             });
-            let hovered = chip_response.hovered() && !state.busy;
+            let hovered = chip_response.hovered() && enabled;
             let (fill, stroke, color, radius) = if chip == "Update" {
                 (
                     if hovered {
@@ -816,7 +870,7 @@ impl App {
                     13,
                 )
             };
-            let alpha = if state.busy { 0.45 } else { 1.0 };
+            let alpha = if !enabled { 0.45 } else { 1.0 };
             ui.painter().rect(
                 chip_rect,
                 CornerRadius::same(radius),

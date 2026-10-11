@@ -98,7 +98,10 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
     let installed = installed(paths, app)?;
     let settings = settings(paths, app)?;
     let executable = launch_executable(&PathBuf::from(&installed.path), app, &settings.executable)?;
-    if !executables(paths, app)?.contains(&executable) {
+    if !executables(paths, app)?
+        .iter()
+        .any(|name| launch_name_matches(name, &executable))
+    {
         bail!("Selected executable is missing. Check launch settings.");
     }
     let root = PathBuf::from(installed.path);
@@ -116,6 +119,13 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
     }
     command.args(settings.arguments).current_dir(root).spawn()?;
     Ok(())
+}
+fn launch_name_matches(actual: &str, selected: &str) -> bool {
+    if cfg!(target_os = "windows") {
+        actual.eq_ignore_ascii_case(selected)
+    } else {
+        actual == selected
+    }
 }
 pub fn uninstall(paths: &Paths, app: &str) -> Result<()> {
     crate::model::valid_app(app)?;
@@ -347,5 +357,21 @@ mod linux_launch_tests {
             launch_executable(&root, "printcraft", "pdfcraft").unwrap(),
             "printcraft"
         );
+    }
+}
+
+#[cfg(test)]
+mod launch_name_tests {
+    #[test]
+    fn launch_names_follow_platform_case_rules_without_matching_other_programs() {
+        assert_eq!(
+            super::launch_name_matches("Example.exe", "example.exe"),
+            cfg!(target_os = "windows")
+        );
+        assert!(super::launch_name_matches("Example.exe", "Example.exe"));
+        assert!(!super::launch_name_matches(
+            "Example-helper.exe",
+            "example.exe"
+        ));
     }
 }

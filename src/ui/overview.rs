@@ -61,7 +61,10 @@ impl App {
     }
 
     fn overview_main(&mut self, ui: &mut Ui, state: &State) {
-        let order = self.preferences.home_app_order.clone();
+        let order = model::ordered_release_apps(
+            &self.preferences.home_app_order,
+            &self.preferences.release_format,
+        );
         let statuses: Vec<_> = order.iter().map(|name| self.status(name)).collect();
         let installed = statuses
             .iter()
@@ -383,6 +386,8 @@ impl App {
         floating: bool,
     ) {
         let status = self.status(name);
+        let install_available = self.install_available(name);
+        let unavailable_message = self.unavailable_download_message(name);
         let palette = theme::palette();
         let response = ui.interact(
             rect,
@@ -485,6 +490,11 @@ impl App {
         let caption = match (&status.installed, &status.update) {
             (_, Some(version)) => format!("Update {version} available"),
             (Some(app), _) => format!("Installed {}", app.version),
+            _ if status.alternate_architecture.is_some() => format!(
+                "Installed {} · selected {}",
+                status.alternate_architecture.as_ref().unwrap().architecture,
+                self.app_preferences(name).architecture
+            ),
             _ => "Available to install".into(),
         };
         tile.add(
@@ -532,8 +542,13 @@ impl App {
             }
         } else if btn("Install")
             .icon(Icon::Download)
-            .enabled(!state.busy)
+            .enabled(!state.busy && install_available)
             .show(&mut tile)
+            .on_disabled_hover_text(if !install_available {
+                unavailable_message.as_str()
+            } else {
+                "Wait for the current operation to finish."
+            })
             .clicked()
         {
             self.confirm_install = Some(name.into());

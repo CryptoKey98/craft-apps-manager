@@ -236,22 +236,77 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
 /// The path a shortcut launches, resolved from the shortcut file itself.
 pub fn shortcut_target(path: &Path) -> Option<String> {
     unsafe {
-        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        let initialized = CoInitializeEx(None, COINIT_APARTMENTTHREADED).is_ok();
         let result = (|| -> Option<String> {
             let link: IShellLinkW =
                 CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER).ok()?;
             let file: IPersistFile = link.cast().ok()?;
             let p = wide(path);
             file.Load(PCWSTR(p.as_ptr()), STGM(0)).ok()?;
+            let mut arguments = vec![0u16; 32_768];
+            link.GetArguments(&mut arguments).ok()?;
+            if arguments[0] != 0 {
+                return None;
+            }
             let mut buf = vec![0u16; 32_768];
             link.GetPath(&mut buf, std::ptr::null_mut(), 0).ok()?;
             let len = buf.iter().position(|&c| c == 0)?;
             let target = String::from_utf16(&buf[..len]).ok()?;
-            (!target.is_empty()).then_some(target)
+            if target.is_empty() {
+                advertised_shortcut_target(path)
+            } else {
+                Some(target)
+            }
         })();
-        CoUninitialize();
+        if initialized {
+            CoUninitialize();
+        }
         result
     }
+}
+/// Resolve an advertised MSI shortcut through its registered product/component.
+/// Failure or a removed product leaves the shortcut untouched.
+pub fn advertised_shortcut_target(path: &Path) -> Option<String> {
+    #[link(name = "msi")]
+    unsafe extern "system" {
+        fn MsiGetShortcutTargetW(
+            path: *const u16,
+            product: *mut u16,
+            feature: *mut u16,
+            component: *mut u16,
+        ) -> u32;
+        fn MsiGetComponentPathW(
+            product: *const u16,
+            component: *const u16,
+            path: *mut u16,
+            size: *mut u32,
+        ) -> i32;
+    }
+    let mut product = [0u16; 39];
+    let mut feature = [0u16; 256];
+    let mut component = [0u16; 39];
+    let mut target = vec![0u16; 32_768];
+    let mut size = target.len() as u32;
+    unsafe {
+        if MsiGetShortcutTargetW(
+            wide(path).as_ptr(),
+            product.as_mut_ptr(),
+            feature.as_mut_ptr(),
+            component.as_mut_ptr(),
+        ) != 0
+            || MsiGetComponentPathW(
+                product.as_ptr(),
+                component.as_ptr(),
+                target.as_mut_ptr(),
+                &mut size,
+            ) != 3
+        {
+            return None;
+        }
+    }
+    String::from_utf16(&target[..size as usize])
+        .ok()
+        .filter(|value| !value.is_empty())
 }
 /// Nudge Explorer to re-read shortcut and file associations so icons that
 /// changed with an update render without a sign-out.

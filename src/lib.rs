@@ -2,12 +2,14 @@ pub mod apps;
 pub mod backups;
 pub mod builder;
 pub mod catalog;
+pub mod downloads;
 pub mod files;
 pub mod hourly;
 pub mod installers;
 pub mod jobs;
 pub mod model;
 pub mod network;
+pub mod operations;
 pub mod platform;
 pub mod portable;
 pub mod profiles;
@@ -17,3 +19,10 @@ pub mod self_update;
 pub mod settings;
 pub mod tools;
 pub mod updates;
+
+#[cfg(target_os = "windows")]
+pub mod batch_admin;
+#[cfg(target_os = "linux")]
+#[path = "batch_admin/linux.rs"]
+pub mod batch_admin;
+pub mod install_options;
