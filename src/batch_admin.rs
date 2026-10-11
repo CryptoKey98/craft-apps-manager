@@ -173,10 +173,12 @@ fn run_worker(manifest: &Path, checksum: &str, job: &Job) -> Result<()> {
         ShellExecuteExW(&mut info)
             .context("Administrator approval was declined or the batch worker could not start")?;
     }
+    // SHELLEXECUTEINFOW is packed on x86: copy its handle before borrowing it.
+    let process = info.hProcess;
     let folder = manifest.parent().context("Missing batch folder")?;
     let result = (|| -> Result<()> {
         anyhow::ensure!(
-            !info.hProcess.is_invalid(),
+            !process.is_invalid(),
             "Batch worker returned no process handle"
         );
         loop {
@@ -188,11 +190,11 @@ fn run_worker(manifest: &Path, checksum: &str, job: &Job) -> Result<()> {
                 job.stage(&state.stage, state.progress, state.detail);
                 job.state.lock().unwrap().units = state.units;
             }
-            let status = unsafe { WaitForSingleObject(info.hProcess, 150) };
+            let status = unsafe { WaitForSingleObject(process, 150) };
             if status == WAIT_OBJECT_0 {
                 let mut code = 0;
                 unsafe {
-                    GetExitCodeProcess(info.hProcess, &mut code)?;
+                    GetExitCodeProcess(process, &mut code)?;
                 }
                 anyhow::ensure!(
                     code == 0,
@@ -207,7 +209,7 @@ fn run_worker(manifest: &Path, checksum: &str, job: &Job) -> Result<()> {
         }
     })();
     unsafe {
-        let _ = CloseHandle(info.hProcess);
+        let _ = CloseHandle(process);
     }
     result
 }

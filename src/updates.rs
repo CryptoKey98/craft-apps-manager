@@ -2623,6 +2623,16 @@ mod planning_tests {
     #[test]
     fn custom_destination_keeps_pinned_release_and_rejects_a_late_folder_collision() {
         let (paths, job) = fixture();
+        // The legacy global format no longer controls this app's installation intent.
+        let mut preferences = paths.read_preferences().unwrap();
+        preferences.app_install_options.insert(
+            crate::install_options::identity("photocraft"),
+            crate::install_options::InstallOptions {
+                release_format: "portable".into(),
+                architecture: crate::install_options::host_architecture(),
+            },
+        );
+        files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
         let parent =
             std::env::temp_dir().join(format!("craft-destination-{}", uuid::Uuid::new_v4()));
         let mut plan = plan_with(&paths, &job, Some("photocraft"), |app| {
