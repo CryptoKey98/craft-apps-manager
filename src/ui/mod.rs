@@ -876,7 +876,14 @@ impl App {
         self.app = app.clone();
         self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
         self.job.history(&self.job.log_path);
-        self.job.describe("Install / update", &app);
+        self.job.describe(
+            if plan.installer_downgrade() {
+                "Downgrade"
+            } else {
+                "Install / update"
+            },
+            &app,
+        );
         self.job_target = Some((app, "install-app".into()));
         self.job_action = "install-app".into();
         self.failure_dismissed = false;
@@ -920,6 +927,10 @@ impl App {
         if self.job.snapshot().busy || self.release_pending() {
             return;
         }
+        if let Err(error) = self.use_installed_version_options(&app) {
+            self.result(Err(error));
+            return;
+        }
         if catalog::get(&app).is_some_and(|entry| entry.repository.contains('/')) {
             self.confirm_install = Some(app.clone());
             self.install_draft_app = Some(app.clone());
@@ -931,6 +942,10 @@ impl App {
     }
     fn review_version_prepared(&mut self, app: String, tag: String) {
         if self.job.snapshot().busy || self.release_pending() {
+            return;
+        }
+        if let Err(error) = self.use_installed_version_options(&app) {
+            self.result(Err(error));
             return;
         }
         let target = self
@@ -949,15 +964,10 @@ impl App {
         let paths = self.paths.clone();
         let (tx, rx) = std::sync::mpsc::channel();
         self.install_receiver = Some(rx);
-        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
         // Selecting a version only prepares a plan; installation starts after approval.
-        self.job_target = None;
-        self.operation_completed_at = None;
-        self.operation_was_busy = false;
-        self.failure_dismissed = false;
-        self.job_action = "releases".into();
-        self.job.describe("Review version", &app);
-        self.job.spawn(move |job| {
+        let preferences = self.build_preferences.clone();
+        std::thread::spawn(move || {
+            let job = Job::new(paths.at("logs/install-preview.log"), &preferences);
             let result = updates::plan_version(&paths, &job, &app, &tag);
             let _ = tx.send(
                 result
@@ -965,7 +975,6 @@ impl App {
                     .map(Clone::clone)
                     .map_err(|e| format!("{e:#}")),
             );
-            result.map(|_| ())
         });
     }
     fn begin_release_review(&mut self) {
@@ -1045,6 +1054,25 @@ impl App {
                 craft_apps_manager::install_options::for_installed(&self.preferences, copy).ok()
             })
             .unwrap_or(preferred)
+    }
+    fn use_installed_version_options(&mut self, app: &str) -> anyhow::Result<()> {
+        let installed = self.display_config.as_ref().and_then(|config| {
+            config
+                .apps
+                .iter()
+                .find(|copy| copy.name == app && !copy.path.is_empty())
+        });
+        if let Some(installed) = installed {
+            let options = craft_apps_manager::install_options::InstallOptions::installed(installed)
+                .ok_or_else(|| anyhow::anyhow!("Installation format or architecture is unknown. Confirm the existing installation before changing versions."))?;
+            let preferred = self.app_preferences(app);
+            if preferred.release_format != options.release_format
+                || preferred.architecture != options.architecture
+            {
+                self.save_install_options(app, options)?;
+            }
+        }
+        Ok(())
     }
     fn save_install_options(
         &mut self,

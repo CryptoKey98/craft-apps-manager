@@ -252,7 +252,7 @@ fn app_backup_delete_and_restore_are_scoped() {
     let paths = f.paths();
     let prefs = Preferences {
         release_format: "portable".into(),
-        ..Default::default()
+        ..portable_test_preferences()
     };
     files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     let film = paths.at("backups/releases/filmcraft-0.1.0-11111111111111111111111111111111");
@@ -408,7 +408,7 @@ fn individual_check_detects_newer_release_without_downloading() {
         &paths.at("manager-settings.json"),
         &Preferences {
             release_format: "portable".into(),
-            ..Default::default()
+            ..portable_test_preferences()
         },
     )
     .unwrap();
@@ -439,7 +439,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
         &paths.at("manager-settings.json"),
         &Preferences {
             release_format: "portable".into(),
-            ..Default::default()
+            ..portable_test_preferences()
         },
     )
     .unwrap();
@@ -1074,4 +1074,17 @@ fn artcraft_installers_are_selected() {
         updates::release_version("artcraft-v0.41.0").unwrap(),
         "0.41.0"
     );
+}
+
+// Scope portable fixtures independently of real system-installed FilmCraft.
+fn portable_test_preferences() -> Preferences {
+    let mut prefs = Preferences::default();
+    prefs.app_install_options.insert(
+        craft_apps_manager::install_options::identity("filmcraft"),
+        craft_apps_manager::install_options::InstallOptions {
+            release_format: "portable".into(),
+            architecture: model::MANAGER_ARCH.into(),
+        },
+    );
+    prefs
 }

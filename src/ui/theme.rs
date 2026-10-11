@@ -929,10 +929,12 @@ impl<'a> Btn<'a> {
         });
         if ui.is_rect_visible(rect) {
             let hovered = self.enabled && response.hovered();
-            let pressed = self.enabled && response.is_pointer_button_down_on();
+            let depth = button_press_depth(ui, &response);
+            let paint_rect = pressed_button_rect(rect, depth);
             let fill = if hovered { hover_fill } else { fill };
-            let fill = if pressed {
-                fill.gamma_multiply(0.85)
+            let light_disabled = !self.enabled && !ui.visuals().dark_mode;
+            let fill = if light_disabled {
+                Color32::from_rgb(233, 233, 233)
             } else if !self.enabled
                 && matches!(
                     self.kind,
@@ -943,9 +945,15 @@ impl<'a> Btn<'a> {
             } else {
                 fill
             };
+            let fill = fill.gamma_multiply(1.0 - 0.12 * depth);
+            let stroke = if light_disabled {
+                Stroke::new(stroke.width, Color32::from_rgb(218, 218, 218))
+            } else {
+                stroke
+            };
             let painter = ui.painter();
             painter.rect(
-                rect,
+                paint_rect,
                 self.corners.unwrap_or(CornerRadius::same(radius)),
                 fill,
                 stroke,
@@ -960,25 +968,33 @@ impl<'a> Btn<'a> {
                 );
             }
             let alpha = if self.enabled { 1.0 } else { 0.4 };
-            let mut x = rect.center().x - (icon_space + galley.size().x) / 2.0;
+            let mut x = paint_rect.center().x - (icon_space + galley.size().x) / 2.0;
             if let Some((icon, color)) = self.icon {
                 let icon_rect = Rect::from_center_size(
-                    egui::pos2(x + icon_size / 2.0, rect.center().y),
+                    egui::pos2(x + icon_size / 2.0, paint_rect.center().y),
                     Vec2::splat(icon_size),
                 );
                 paint_icon_weight(
                     painter,
                     icon_rect,
                     icon,
-                    color.unwrap_or(text_color).gamma_multiply(alpha),
+                    if light_disabled {
+                        Color32::from_rgb(153, 153, 153)
+                    } else {
+                        color.unwrap_or(text_color).gamma_multiply(alpha)
+                    },
                     self.icon_weight,
                 );
                 x += icon_space;
             }
             painter.galley(
-                egui::pos2(x, rect.center().y - galley.size().y / 2.0),
+                egui::pos2(x, paint_rect.center().y - galley.size().y / 2.0),
                 galley,
-                text_color.gamma_multiply(alpha),
+                if light_disabled {
+                    Color32::from_rgb(153, 153, 153)
+                } else {
+                    text_color.gamma_multiply(alpha)
+                },
             );
         }
         if self.enabled && response.hovered() {
@@ -988,16 +1004,45 @@ impl<'a> Btn<'a> {
     }
 }
 
+// Paint-only feedback: layout and hit areas never move while a button is pressed.
+fn button_press_depth(ui: &Ui, response: &Response) -> f32 {
+    let now = ui.input(|input| input.time);
+    let pulse_id = response.id.with("press-pulse");
+    let clicked = response.enabled() && response.clicked();
+    let pulse = ui.ctx().data_mut(|data| {
+        if clicked {
+            data.insert_temp(pulse_id, now);
+        }
+        data.get_temp::<f64>(pulse_id)
+            .is_some_and(|clicked| now - clicked < 0.06)
+    });
+    let pressed = response.enabled() && (response.is_pointer_button_down_on() || pulse);
+    if pulse {
+        ui.ctx().request_repaint();
+    }
+    ui.ctx()
+        .animate_bool_with_time(response.id.with("press-depth"), pressed, 0.10)
+}
+fn pressed_button_rect(rect: Rect, depth: f32) -> Rect {
+    rect.shrink2(egui::vec2(0.7, 0.7) * depth)
+        .translate(egui::vec2(0.0, 0.6 * depth))
+}
+
 pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::splat(32.0), Sense::click());
     response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
-    if response.hovered() {
-        ui.painter()
-            .rect_filled(rect, CornerRadius::same(8), palette().button_hover);
+    let depth = button_press_depth(ui, &response);
+    let paint_rect = pressed_button_rect(rect, depth);
+    if response.hovered() || depth > 0.0 {
+        ui.painter().rect_filled(
+            paint_rect,
+            CornerRadius::same(8),
+            palette().button_hover.gamma_multiply(1.0 - 0.12 * depth),
+        );
     }
     paint_icon(
         ui.painter(),
-        Rect::from_center_size(rect.center(), Vec2::splat(16.0)),
+        Rect::from_center_size(paint_rect.center(), Vec2::splat(16.0)),
         icon,
         color,
     );
@@ -1143,17 +1188,19 @@ pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
         ),
         None => {
             let time = ui.ctx().input(|i| i.time);
-            let position = ((1.0 - (time * std::f64::consts::TAU / 2.8).cos()) * 0.5) as f32;
+            let position = (time as f32 * 0.7).fract();
             let width = rect.width() * 0.22;
             ui.ctx().request_repaint_after(Duration::from_millis(16));
             Rect::from_min_size(
-                rect.min + egui::vec2((rect.width() - width) * position, 0.0),
+                rect.min + egui::vec2((rect.width() + width) * position - width, 0.0),
                 egui::vec2(width, height),
             )
         }
     };
     if fill.width() > 0.0 {
-        ui.painter().rect_filled(fill, radius, palette().accent);
+        ui.painter()
+            .with_clip_rect(rect.intersect(ui.clip_rect()))
+            .rect_filled(fill, radius, palette().accent);
     }
 }
 

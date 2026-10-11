@@ -530,6 +530,34 @@ pub struct ReleasePlan {
     pub installer_destination: Option<PathBuf>,
 }
 impl ReleasePlan {
+    pub fn installer_downgrade(&self) -> bool {
+        if self.requested_tag.is_none() || self.entries.len() != 1 {
+            return false;
+        }
+        let entry = &self.entries[0];
+        if entry.error.is_some()
+            || entry.action != "Update"
+            || entry.preferences.release_format != "installer"
+        {
+            return false;
+        }
+        let Ok((_, config, _)) =
+            serde_json::from_slice::<(Preferences, crate::model::Config, serde_json::Value)>(
+                &self.snapshot,
+            )
+        else {
+            return false;
+        };
+        config.apps.iter().any(|app| {
+            app.name == entry.app
+                && app.install_kind == "installer"
+                && !app.path.is_empty()
+                && version(&entry.version)
+                    .ok()
+                    .zip(version(&app.version).ok())
+                    .is_some_and(|(selected, installed)| selected < installed)
+        })
+    }
     pub fn executable_count(&self) -> usize {
         self.entries
             .iter()
@@ -950,7 +978,9 @@ pub fn execute_plan(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> 
         "Application library"
     };
     job.tracked(
-        if plan.entries.len() > 1 {
+        if plan.installer_downgrade() {
+            "Downgrade"
+        } else if plan.entries.len() > 1 {
             "Bulk update"
         } else {
             "Install / update"
@@ -976,7 +1006,18 @@ fn execute_plan_owned(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()
 }
 pub(crate) fn execute_plan_direct(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     execute_validated(paths, plan, |config| {
-        execute_entries(paths, plan, config, job)
+        execute_entries(paths, plan, config, job, None)
+    })
+}
+#[cfg(target_os = "windows")]
+pub(crate) fn execute_approved_downgrade(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    job: &Job,
+    recovery: &std::collections::BTreeMap<String, Asset>,
+) -> Result<()> {
+    execute_validated(paths, plan, |config| {
+        execute_entries(paths, plan, config, job, Some(recovery))
     })
 }
 #[cfg(target_os = "windows")]
@@ -1028,11 +1069,83 @@ fn replace_installer_transaction<T>(
         },
     }
 }
+
+#[cfg(target_os = "windows")]
+pub(crate) fn prepare_downgrade_recovery(
+    paths: &Paths,
+    app: &crate::model::Installed,
+    job: &Job,
+) -> Result<(Asset, PathBuf)> {
+    let network = Network::new(&paths.root)?;
+    // Stage and verify recovery before removing the current version.
+    let releases: Vec<Release> = network.json(&format!(
+        "https://api.github.com/repos/{}/releases?per_page=100",
+        crate::model::repository(&app.name)
+    ))?;
+    let current_release = releases
+        .into_iter()
+        .find(|r| {
+            !r.draft
+                && !r.prerelease
+                && release_version(&r.tag_name).is_ok_and(|v| v == app.version)
+        })
+        .context("Cannot safely downgrade: the installed version is unavailable for recovery")?;
+    let recovery_plan = plan_selected_version(paths, job, &app.name, current_release)?;
+    let recovery_asset = recovery_plan
+        .entries
+        .first()
+        .and_then(|e| {
+            if e.error.is_none() {
+                e.asset.as_ref()
+            } else {
+                None
+            }
+        })
+        .context("Cannot safely downgrade: no verified recovery installer")?;
+    anyhow::ensure!(
+        recovery_asset.name.ends_with(".msi"),
+        "Recovery requires an MSI installer"
+    );
+    let recovery = paths.at(format!(
+        "releases/installers/{}/{}",
+        app.name, recovery_asset.name
+    ));
+    if recovery.exists() {
+        crate::network::verify_asset(&recovery, recovery_asset)?;
+    } else {
+        network.asset(recovery_asset, &recovery, job)?;
+    }
+    Ok((recovery_asset.clone(), recovery))
+}
+#[cfg(target_os = "windows")]
+fn downgrade_recovery_path(
+    paths: &Paths,
+    app: &crate::model::Installed,
+    job: &Job,
+    approved: Option<&std::collections::BTreeMap<String, Asset>>,
+) -> Result<PathBuf> {
+    if let Some(approved) = approved {
+        let asset = approved
+            .get(&app.name)
+            .context("Missing approved recovery installer")?;
+        crate::model::valid_app(&app.name)?;
+        files::safe_relative(&asset.name)?;
+        anyhow::ensure!(
+            asset.name.to_ascii_lowercase().ends_with(".msi"),
+            "Recovery requires an MSI installer"
+        );
+        let file = paths.at(format!("releases/installers/{}/{}", app.name, asset.name));
+        crate::network::verify_asset(&file, asset)?;
+        return Ok(file);
+    }
+    prepare_downgrade_recovery(paths, app, job).map(|(_, file)| file)
+}
 fn execute_entries(
     paths: &Paths,
     plan: &ReleasePlan,
     config: &mut crate::model::Config,
     job: &Job,
+    _approved_recovery: Option<&std::collections::BTreeMap<String, Asset>>,
 ) -> Result<()> {
     let network = Network::new(&paths.root)?;
     execute_with(plan, job, |entry, job| {
@@ -1085,40 +1198,20 @@ fn execute_entries(
                             == crate::model::release_arch(&prefs.architecture),
                         "Keep the installed architecture selected when downgrading"
                     );
-                    // Stage and verify recovery before removing the current version.
-                    let releases: Vec<Release> = network.json(&format!(
-                        "https://api.github.com/repos/{}/releases?per_page=100",
-                        crate::model::repository(&app.name)
-                    ))?;
-                    let current_release = releases.into_iter().find(|r| !r.draft && !r.prerelease && release_version(&r.tag_name).is_ok_and(|v| v == app.version))
-                        .context("Cannot safely downgrade: the installed version is unavailable for recovery")?;
-                    let recovery_plan =
-                        plan_selected_version(paths, job, &app.name, current_release)?;
-                    let recovery_asset = recovery_plan
-                        .entries
-                        .first()
-                        .and_then(|e| {
-                            if e.error.is_none() {
-                                e.asset.as_ref()
-                            } else {
-                                None
-                            }
-                        })
-                        .context("Cannot safely downgrade: no verified recovery installer")?;
-                    anyhow::ensure!(
-                        recovery_asset.name.ends_with(".msi"),
-                        "Recovery requires an MSI installer"
-                    );
-                    let recovery = paths.at(format!(
-                        "releases/installers/{}/{}",
-                        app.name, recovery_asset.name
-                    ));
-                    if recovery.exists() {
-                        crate::network::verify_asset(&recovery, recovery_asset)?;
-                    } else {
-                        network.asset(recovery_asset, &recovery, job)?;
-                    }
+                    let recovery = downgrade_recovery_path(paths, &app, job, _approved_recovery)?;
                     job.check()?;
+                    let remove_step = job.prepare_child(
+                        &format!("{} · Current version", app.name),
+                        "Uninstall",
+                        "installer",
+                        &prefs.architecture,
+                    );
+                    let install_step = job.prepare_child(
+                        &format!("{} · Older version", app.name),
+                        "Install",
+                        "installer",
+                        &prefs.architecture,
+                    );
                     replace_installer_transaction(
                         || {
                             job.stage(
@@ -1126,18 +1219,46 @@ fn execute_entries(
                                 None,
                                 "Removing the current installation; user data is kept",
                             );
-                            crate::installers::uninstall(&app)
+                            remove_step.tracked("Uninstall", &app.name, |step| {
+                                step.stage(
+                                    "Uninstalling",
+                                    None,
+                                    "Removing the current version; user data is kept",
+                                );
+                                crate::installers::uninstall(&app)
+                            })
                         },
                         || {
-                            let installed =
-                                crate::installers::run_replacement(&dest, &app, Some(job))?;
-                            anyhow::ensure!(
-                                version(&installed.version)? == version(&entry.version)?,
-                                "Installer did not install the selected version"
+                            install_step.tracked("Install", &app.name, |step| {
+                                step.check()?;
+                                job.stage(
+                                    "Installing older version",
+                                    None,
+                                    "Running the selected older installer",
+                                );
+                                step.stage(
+                                    "Installing",
+                                    None,
+                                    "Running the selected older installer",
+                                );
+                                let installed =
+                                    crate::installers::run_replacement(&dest, &app, Some(step))?;
+                                anyhow::ensure!(
+                                    version(&installed.version)? == version(&entry.version)?,
+                                    "Installer did not install the selected version"
+                                );
+                                Ok(installed)
+                            })
+                        },
+                        || {
+                            let restore_step = job.prepare_child(
+                                &format!("{} · Recovery", app.name),
+                                "Restore installation",
+                                "installer",
+                                &prefs.architecture,
                             );
-                            Ok(installed)
-                        },
-                        || {
+                            restore_step.tracked("Restore installation", &app.name, |step| {
+                            step.stage("Restoring previous version", None, "Restoring the verified previous installer");
                             job.stage("Restoring previous version", None, "The downgrade did not complete; restoring the verified previous installer");
                             if let Some(partial) = crate::installers::detect(&app.name)? {
                                 if version(&partial.version)? == version(&app.version)? {
@@ -1152,6 +1273,7 @@ fn execute_entries(
                                 "Recovery installer did not restore the previous version"
                             );
                             Ok(())
+                            })
                         },
                     )?
                 } else {
@@ -1554,7 +1676,7 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
         job.log(error);
     }
     let mut config = paths.config()?;
-    let result = execute_entries(paths, &plan, &mut config, job);
+    let result = execute_entries(paths, &plan, &mut config, job, None);
     if !errors.is_empty() {
         bail!("{} release planning error(s); see the log", errors.len());
     }
@@ -2029,6 +2151,41 @@ mod tests {
 }
 #[cfg(test)]
 mod planning_tests {
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn approved_recovery_is_pinned_and_never_falls_back_to_release_discovery() {
+        use sha2::{Digest, Sha256};
+        let (paths, job) = fixture();
+        let app = crate::model::Installed {
+            name: "photocraft".into(),
+            ..Default::default()
+        };
+        let bytes = b"approved package fixture";
+        let file = paths.at("releases/installers/photocraft/approved.msi");
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(&file, bytes).unwrap();
+        let asset = Asset {
+            name: "approved.msi".into(),
+            size: bytes.len() as u64,
+            browser_download_url: "https://example.invalid/never-requested".into(),
+            digest: Some(format!("sha256:{:x}", Sha256::digest(bytes))),
+        };
+        let approved = std::collections::BTreeMap::from([("photocraft".into(), asset)]);
+        assert_eq!(
+            downgrade_recovery_path(&paths, &app, &job, Some(&approved)).unwrap(),
+            file
+        );
+        assert!(
+            downgrade_recovery_path(&paths, &app, &job, Some(&Default::default()))
+                .unwrap_err()
+                .to_string()
+                .contains("Missing approved")
+        );
+        fs::write(&file, b"changed package").unwrap();
+        assert!(downgrade_recovery_path(&paths, &app, &job, Some(&approved)).is_err());
+        assert!(!paths.at("runtime/api-cache").exists());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
     use super::*;
     use std::sync::atomic::Ordering;
     fn fixture() -> (Paths, Job) {
@@ -2126,6 +2283,19 @@ mod planning_tests {
 
     fn installed_fixture() -> (Paths, Job) {
         let (paths, job) = fixture();
+        // Keep real native installations on the developer's machine from
+        // replacing these portable test installations during config refresh.
+        let mut prefs = paths.read_preferences().unwrap();
+        for app in ["photocraft", "filmcraft"] {
+            prefs.app_install_options.insert(
+                crate::install_options::identity(app),
+                crate::install_options::InstallOptions {
+                    release_format: "portable".into(),
+                    architecture: crate::model::MANAGER_ARCH.into(),
+                },
+            );
+        }
+        files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
         let apps = ["photocraft", "filmcraft"].into_iter().map(|name| {
             let folder = paths.at(format!("releases/{name}"));
             let executable = folder.join(crate::model::executable_name(name));

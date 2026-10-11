@@ -184,6 +184,9 @@ impl Job {
         if !handle.start() {
             return None;
         }
+        if self.parent.is_none() {
+            self.cancel.store(false, Ordering::Relaxed);
+        }
         state.busy = true;
         *self.executing_thread.lock().unwrap() = Some(std::thread::current().id());
         state.outcome.clear();
@@ -191,6 +194,10 @@ impl Job {
         state.detail.clear();
         state.progress = None;
         state.units = 0;
+        if self.descriptor.0.eq_ignore_ascii_case("build") {
+            state.output = None;
+        }
+        state.executable = None;
         *self.active.lock().unwrap() = Some(handle.clone());
         drop(state);
         let job = self.clone();
@@ -200,11 +207,17 @@ impl Job {
                 if observe.cancel_requested() {
                     job.cancel.store(true, Ordering::Relaxed);
                 }
-                let mut state = job
+                let current = job
                     .state
                     .lock()
-                    .unwrap_or_else(|poison| poison.into_inner())
-                    .clone();
+                    .unwrap_or_else(|poison| poison.into_inner());
+                let mut state = State {
+                    stage: current.stage.clone(),
+                    detail: current.detail.clone(),
+                    progress: current.progress,
+                    ..Default::default()
+                };
+                drop(current);
                 if !job.children.lock().unwrap().is_empty() {
                     state.progress = None;
                 }
@@ -355,6 +368,7 @@ impl Job {
                 &crate::model::BuilderPreferences::default(),
             );
             child.operations = self.operations.clone();
+            child.parent = self.parent.clone();
             child.cancel = self.cancel.clone();
             child.relay = Some(self.state.clone());
             child.descriptor = (handle.snapshot().kind, app.clone());
@@ -600,7 +614,6 @@ impl Job {
         let Some(handle) = self.begin() else {
             return;
         };
-        self.cancel.store(false, Ordering::Relaxed);
         let mut job = self.clone();
         job.active = Arc::new(Mutex::new(Some(handle.clone())));
         std::thread::spawn(move || {
@@ -633,6 +646,68 @@ impl Job {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn reused_job_clears_cancellation_and_temporary_executable() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(root.join("job.log"), &Default::default());
+        job.tracked("Build", "first", |worker| {
+            worker.state.lock().unwrap().output = Some(root.join("old-build"));
+            worker.state.lock().unwrap().executable = Some(root.join("old.exe"));
+            worker.cancel.store(true, Ordering::Relaxed);
+            Err::<(), _>(Cancelled.into())
+        })
+        .unwrap_err();
+        job.tracked("Download", "second", |worker| {
+            worker.check()?;
+            assert_eq!(worker.snapshot().output, Some(root.join("old-build")));
+            assert!(worker.snapshot().executable.is_none());
+            Ok(())
+        })
+        .unwrap();
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn tool_setup_preserves_previous_build_but_new_build_clears_it() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(root.join("job.log"), &Default::default());
+        job.state.lock().unwrap().output = Some(root.join("previous-build"));
+        job.tracked("setup", "fixture", |worker| {
+            assert_eq!(worker.snapshot().output, Some(root.join("previous-build")));
+            Ok(())
+        })
+        .unwrap();
+        job.tracked("build", "fixture", |worker| {
+            assert!(worker.snapshot().output.is_none());
+            Ok(())
+        })
+        .unwrap();
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn attached_batch_child_preserves_shared_cancellation_on_start() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let manager = crate::operations::Manager::new(&root);
+        let parent = manager.register("Bulk update", "fixture", None);
+        parent.start();
+        let handle = manager.register("Install", "fixture", Some(parent.id()));
+        let ids = std::collections::BTreeMap::from([("fixture".into(), handle.id())]);
+        let mut job = Job::new(root.join("job.log"), &Default::default());
+        job.attach_children(&root, Some(parent.id()), &ids).unwrap();
+        let child = job.prepare_child("fixture", "Install", "installer", "x64");
+        // Simulate cancellation arriving after the batch check but before child startup.
+        job.cancel.store(true, Ordering::Relaxed);
+        let error = child
+            .tracked("Install", "fixture", |worker| worker.check())
+            .unwrap_err();
+        assert!(is_cancelled(&error));
+        assert!(job.cancel.load(Ordering::Relaxed));
+        assert_eq!(
+            manager.read(&handle.id()).unwrap().lifecycle,
+            crate::operations::Lifecycle::Cancelled
+        );
+        parent.finish(crate::operations::Lifecycle::Cancelled, "Cancelled".into());
+        std::fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn terminal_record_does_not_release_a_worker_before_finalization() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
