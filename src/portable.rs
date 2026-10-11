@@ -231,17 +231,18 @@ fn create_named_shortcut(
         title,
         crate::platform::shortcut_extension()
     ));
-    if shortcut.exists() {
-        anyhow::ensure!(
-            owner.shortcut.as_ref().is_some_and(
-                |(p, hash)| p == &shortcut && shortcut_proof(p).is_ok_and(|h| &h == hash)
-            ),
-            "An existing desktop shortcut was left unchanged"
-        );
-    }
     std::fs::create_dir_all(desktop)?;
     let executable =
         crate::model::installed_executable(target, app).context("Missing installed executable")?;
+    if shortcut.exists() {
+        let owned = owner
+            .shortcut
+            .as_ref()
+            .is_some_and(|(p, hash)| p == &shortcut && shortcut_proof(p).is_ok_and(|h| &h == hash));
+        if !owned && !repairable_shortcut(&shortcut, &executable) {
+            anyhow::bail!("An existing desktop shortcut was left unchanged");
+        }
+    }
     #[cfg(not(target_os = "macos"))]
     crate::platform::shortcut(&shortcut, &executable, "", target)?;
     #[cfg(target_os = "macos")]
@@ -255,6 +256,51 @@ fn create_named_shortcut(
     owner.shortcut = Some((shortcut.clone(), shortcut_proof(&shortcut)?));
     files::write_json(marker, &owner)
 }
+
+fn repairable_shortcut(shortcut: &Path, executable: &Path) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        match crate::platform::shortcut_target(shortcut) {
+            Some(existing) => {
+                same_shortcut_target(&existing, executable) || windows_installer_path(&existing)
+            }
+            None => false,
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (shortcut, executable);
+        false
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn same_shortcut_target(existing: &str, executable: &Path) -> bool {
+    if Path::new(existing)
+        .to_string_lossy()
+        .eq_ignore_ascii_case(&executable.to_string_lossy())
+    {
+        return true;
+    }
+    // Shortcuts store long paths; Windows temp directories may use 8.3 names.
+    match (
+        std::fs::canonicalize(existing),
+        std::fs::canonicalize(executable),
+    ) {
+        (Ok(a), Ok(b)) => a
+            .to_string_lossy()
+            .eq_ignore_ascii_case(&b.to_string_lossy()),
+        _ => false,
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn windows_installer_path(target: &str) -> bool {
+    let windir = std::env::var("windir").unwrap_or_else(|_| "C:\\Windows".to_string());
+    let prefix = format!("{}\\Installer\\", windir);
+    target.len() > prefix.len() && target[..prefix.len()].eq_ignore_ascii_case(&prefix)
+}
+
 pub fn remove_shortcut(target: &Path) -> Result<()> {
     let marker = target.join(MARKER);
     if !marker.exists() {
@@ -439,6 +485,98 @@ mod tests {
         let owner: Ownership = files::read_json(&marker).unwrap();
         remove_owned_shortcut(owner, &desktop).unwrap();
         assert!(!shortcut.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn shortcuts_repair_when_the_target_still_points_at_the_app() {
+        use super::*;
+        let root = std::env::temp_dir().join(format!("craft-shortcut-{}", uuid::Uuid::new_v4()));
+        let target = root.join("installed-app");
+        let desktop = root.join("desktop");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::write(target.join("photocraft.exe"), b"fixture").unwrap();
+        let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
+        let owner = Ownership {
+            app: "photocraft".into(),
+            library: root.clone(),
+            shortcut: None,
+        };
+        create_shortcut(&marker, owner, &target, &desktop).unwrap();
+        let shortcut = desktop.join("PhotoCraft.lnk");
+        // Rewriting the shortcut with different metadata keeps the same target
+        // but breaks the recorded proof hash, as an update or repair would.
+        crate::platform::shortcut(
+            &shortcut,
+            &target.join("photocraft.exe"),
+            "",
+            &target.join("elsewhere"),
+        )
+        .unwrap();
+        let owner: Ownership = files::read_json(&marker).unwrap();
+        create_shortcut(&marker, owner, &target, &desktop).unwrap();
+        let owner: Ownership = files::read_json(&marker).unwrap();
+        remove_owned_shortcut(owner, &desktop).unwrap();
+        assert!(!shortcut.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn windows_installer_shortcuts_are_replaced_with_the_real_executable() {
+        use super::*;
+        let root = std::env::temp_dir().join(format!("craft-shortcut-{}", uuid::Uuid::new_v4()));
+        let target = root.join("installed-app");
+        let desktop = root.join("desktop");
+        std::fs::create_dir_all(&target).unwrap();
+        let exe = target.join("photocraft.exe");
+        std::fs::write(&exe, b"fixture").unwrap();
+        // Installer updates leave advertised shortcuts whose target lives in
+        // the Windows Installer cache and breaks on the next major upgrade.
+        let advertised = PathBuf::from(
+            r"C:\Windows\Installer\{01234567-89AB-CDEF-0123-456789ABCDEF}\PhotocraftIcon.ico",
+        );
+        std::fs::create_dir_all(&desktop).unwrap();
+        let shortcut = desktop.join("PhotoCraft.lnk");
+        crate::platform::shortcut(&shortcut, &advertised, "", &target).unwrap();
+        let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
+        let owner = Ownership {
+            app: "photocraft".into(),
+            library: root.clone(),
+            shortcut: None,
+        };
+        create_shortcut(&marker, owner, &target, &desktop).unwrap();
+        let link = crate::platform::shortcut_target(&shortcut).unwrap();
+        assert!(same_shortcut_target(&link, &exe));
+        let owner: Ownership = files::read_json(&marker).unwrap();
+        remove_owned_shortcut(owner, &desktop).unwrap();
+        assert!(!shortcut.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn shortcuts_pointing_elsewhere_are_left_unchanged() {
+        use super::*;
+        let root = std::env::temp_dir().join(format!("craft-shortcut-{}", uuid::Uuid::new_v4()));
+        let target = root.join("installed-app");
+        let desktop = root.join("desktop");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::write(target.join("photocraft.exe"), b"fixture").unwrap();
+        std::fs::write(target.join("other.exe"), b"other").unwrap();
+        std::fs::create_dir_all(&desktop).unwrap();
+        let shortcut = desktop.join("PhotoCraft.lnk");
+        crate::platform::shortcut(&shortcut, &target.join("other.exe"), "", &target).unwrap();
+        let before = std::fs::read(&shortcut).unwrap();
+        let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
+        let owner = Ownership {
+            app: "photocraft".into(),
+            library: root.clone(),
+            shortcut: None,
+        };
+        assert!(create_shortcut(&marker, owner, &target, &desktop).is_err());
+        assert_eq!(std::fs::read(&shortcut).unwrap(), before);
         std::fs::remove_dir_all(root).unwrap();
     }
 

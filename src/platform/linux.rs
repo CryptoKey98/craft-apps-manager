@@ -179,6 +179,8 @@ pub fn shortcut_extension() -> &'static str {
     "desktop"
 }
 
+pub fn refresh_file_associations() {}
+
 pub fn relaunch_executable() -> Result<std::path::PathBuf> {
     resolve_relaunch_executable(&std::env::current_exe()?)
 }
