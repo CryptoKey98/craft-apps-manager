@@ -1621,6 +1621,7 @@ mod tests {
         assert_eq!(draft[0].registered_formats.len(), 2);
         let prefs = crate::model::Preferences {
             release_format: "installer".into(),
+            architecture: "x64".into(),
             ..Default::default()
         };
         crate::settings::save_with_custom_apps(

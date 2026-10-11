@@ -2091,7 +2091,7 @@ mod planning_tests {
             .find(|entry| entry.app == "filmcraft")
             .unwrap();
         assert_eq!(photo.preferences.release_format, "portable");
-        assert_eq!(photo.preferences.architecture, "x64");
+        assert_eq!(photo.preferences.architecture, crate::model::MANAGER_ARCH);
         assert_eq!(film.preferences.release_format, "installer");
         assert_eq!(film.preferences.architecture, "x86");
         let missing = plan_from_config(&paths, &job, None, prefs, config, |app| {
@@ -2151,12 +2151,17 @@ mod planning_tests {
     #[test]
     fn preferred_architecture_change_requires_uninstall_but_bulk_keeps_installed_options() {
         let (paths, job) = installed_fixture();
+        let other_architecture = if crate::model::MANAGER_ARCH == "x86" {
+            "x64"
+        } else {
+            "x86"
+        };
         let mut prefs = paths.read_preferences().unwrap();
         prefs.app_install_options.insert(
             crate::install_options::identity("photocraft"),
             crate::install_options::InstallOptions {
                 release_format: "portable".into(),
-                architecture: "x86".into(),
+                architecture: other_architecture.into(),
             },
         );
         files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
@@ -2171,10 +2176,8 @@ mod planning_tests {
             .contains("Uninstall"));
         let bulk = plan_with(&paths, &job, None, |app| Ok(release(app, "0.2.0"))).unwrap();
         assert_eq!(bulk.entries.len(), 2);
-        assert!(bulk
-            .entries
-            .iter()
-            .all(|entry| entry.action == "Update" && entry.preferences.architecture == "x64"));
+        assert!(bulk.entries.iter().all(|entry| entry.action == "Update"
+            && entry.preferences.architecture == crate::model::MANAGER_ARCH));
         assert!(paths.at("releases/photocraft/photocraft.exe").exists());
         fs::remove_dir_all(paths.root).unwrap();
     }
@@ -2629,7 +2632,7 @@ mod planning_tests {
             crate::install_options::identity("photocraft"),
             crate::install_options::InstallOptions {
                 release_format: "portable".into(),
-                architecture: crate::install_options::host_architecture(),
+                architecture: crate::model::MANAGER_ARCH.into(),
             },
         );
         files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();

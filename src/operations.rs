@@ -241,8 +241,10 @@ impl Handle {
             )
             && !(cfg!(target_os = "linux") && state.stage == "Installing package");
         record.heartbeat = now();
-        drop(record);
-        self.publish();
+        // Finish must not return while a delayed progress publication is still pending.
+        if let Ok(path) = self.manager.path(&record.id) {
+            let _ = files::write_json(&path, &*record);
+        }
     }
     pub fn cancel_requested(&self) -> bool {
         self.manager
