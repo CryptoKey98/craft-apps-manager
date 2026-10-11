@@ -114,7 +114,9 @@ impl Job {
             .clone();
         if let Some(handle) = self.active.lock().unwrap().as_ref() {
             let operation = handle.snapshot();
-            state.busy = !operation.lifecycle.terminal();
+            // A terminal record may still be publishing its final result. Keep the
+            // local worker busy until complete() has finished all finalization.
+            state.busy |= !operation.lifecycle.terminal();
             if operation.lifecycle.terminal() {
                 state.stage = if operation.lifecycle == crate::operations::Lifecycle::Completed {
                     "Complete".into()
@@ -631,6 +633,20 @@ impl Job {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn terminal_record_does_not_release_a_worker_before_finalization() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let job = Job::new(root.join("job.log"), &Default::default());
+        let handle = job.operations.register("Build", "fixture", None);
+        handle.start();
+        *job.active.lock().unwrap() = Some(handle.clone());
+        job.state.lock().unwrap().busy = true;
+        handle.finish(crate::operations::Lifecycle::Completed, "Success".into());
+        assert!(job.snapshot().busy);
+        job.state.lock().unwrap().busy = false;
+        assert!(!job.snapshot().busy);
+        std::fs::remove_dir_all(root).unwrap();
+    }
     fn finish(work: impl FnOnce(Job) -> Result<()> + Send + 'static) -> State {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
         let job = Job::new(
