@@ -29,6 +29,8 @@ struct Request {
     operation_parent: Option<String>,
     #[serde(default)]
     child_operations: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    recovery_packages: std::collections::BTreeMap<String, crate::model::Asset>,
 }
 #[derive(Serialize, Deserialize)]
 struct Outcome {
@@ -38,17 +40,22 @@ struct Outcome {
 
 pub fn eligible(plan: &ReleasePlan) -> bool {
     plan.preferences.batch_admin
-        && plan.requested_tag.is_none()
-        && plan
-            .entries
-            .iter()
-            .filter(|entry| {
-                entry.preferences.release_format == "installer"
-                    && matches!(entry.action.as_str(), "Install" | "Update")
-                    && entry.error.is_none()
-            })
-            .count()
-            > 1
+        && ((plan.requested_tag.is_none()
+            && plan
+                .entries
+                .iter()
+                .filter(|entry| {
+                    entry.preferences.release_format == "installer"
+                        && matches!(entry.action.as_str(), "Install" | "Update")
+                        && entry.error.is_none()
+                })
+                .count()
+                > 1)
+            || (plan.installer_downgrade()
+                && plan.entries[0]
+                    .asset
+                    .as_ref()
+                    .is_some_and(|asset| asset.name.to_ascii_lowercase().ends_with(".msi"))))
 }
 
 pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
@@ -71,6 +78,19 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
             network.asset(asset, &destination, job)?;
         }
     }
+    let mut recovery_packages = std::collections::BTreeMap::new();
+    if native.installer_downgrade() {
+        let config = paths.config()?;
+        for entry in &native.entries {
+            let installed = config
+                .apps
+                .iter()
+                .find(|app| app.name == entry.app)
+                .context("Downgrade installation is missing")?;
+            let (asset, _) = updates::prepare_downgrade_recovery(paths, installed, job)?;
+            recovery_packages.insert(entry.app.clone(), asset);
+        }
+    }
     let folder = paths.at(format!("runtime/admin-batches/{}", uuid::Uuid::new_v4()));
     let manifest = folder.join("approved.json");
     let child_operations = job
@@ -88,6 +108,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         build: paths.builder_preferences()?,
         operation_parent: job.operation_id(),
         child_operations,
+        recovery_packages,
     };
     files::write_json(&manifest, &request)?;
     let checksum = format!("{:x}", Sha256::digest(std::fs::read(&manifest)?));
@@ -256,6 +277,27 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
         );
         crate::network::verify_asset(&file, asset)?;
     }
+    for (app, asset) in &request.recovery_packages {
+        anyhow::ensure!(
+            request.plan.installer_downgrade()
+                && request.plan.entries.iter().any(|entry| &entry.app == app),
+            "Invalid recovery package scope"
+        );
+        crate::model::valid_app(app)?;
+        files::safe_relative(&asset.name)?;
+        let file = paths.at(format!("releases/installers/{app}/{}", asset.name));
+        locked.push(
+            std::fs::OpenOptions::new()
+                .read(true)
+                .share_mode(1)
+                .open(&file)?,
+        );
+        crate::network::verify_asset(&file, asset)?;
+    }
+    anyhow::ensure!(
+        !request.plan.installer_downgrade() || request.recovery_packages.len() == 1,
+        "Downgrade recovery must be prepared before administrator approval"
+    );
     let folder = manifest
         .parent()
         .context("Missing batch directory")?
@@ -297,7 +339,12 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
             std::thread::sleep(Duration::from_millis(100));
         }
     });
-    let result = updates::execute_plan_direct(&paths, &request.plan, &job);
+    let result = updates::execute_approved_downgrade(
+        &paths,
+        &request.plan,
+        &job,
+        &request.recovery_packages,
+    );
     stopped.store(true, Ordering::Relaxed);
     let _ = watcher.join();
     let outcome = match result {
@@ -317,6 +364,34 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn single_msi_downgrade_shares_batch_approval_but_upgrade_does_not() {
+        let prefs = crate::model::Preferences::default();
+        let snapshot = serde_json::to_vec(&serde_json::json!([
+            prefs, {"appsRoot":"fixture", "apps":[{"name":"photocraft", "version":"2.0.0",
+                "path":"fixture", "install_kind":"installer", "architecture":"x64"}], "installations":[]}, []
+        ])).unwrap();
+        let mut plan: crate::updates::ReleasePlan = serde_json::from_value(serde_json::json!({
+            "preferences":prefs, "requested_tag":"1.0.0", "snapshot":snapshot,
+            "desktop_shortcut":false, "installer_destination":null,
+            "entries":[{"app":"photocraft", "action":"Update", "version":"1.0.0",
+                "preferences":prefs, "destination":null, "error":null,
+                "asset":{"name":"photocraft.msi", "browser_download_url":"https://example.invalid/installer", "size":1, "digest":null}}]
+        })).unwrap();
+        plan.entries[0].preferences.release_format = "installer".into();
+        assert!(super::eligible(&plan));
+        plan.preferences.batch_admin = false;
+        assert!(!super::eligible(&plan));
+        plan.preferences.batch_admin = true;
+        plan.entries[0].version = "3.0.0".into();
+        assert!(!super::eligible(&plan));
+        plan.entries[0].version = "1.0.0".into();
+        plan.entries[0].preferences.release_format = "portable".into();
+        assert!(!super::eligible(&plan));
+        plan.entries[0].preferences.release_format = "installer".into();
+        plan.entries[0].asset.as_mut().unwrap().name = "setup.exe".into();
+        assert!(!super::eligible(&plan));
+    }
     #[test]
     fn worker_is_only_used_for_multiple_approved_installer_operations() {
         let preferences = crate::model::Preferences::default();

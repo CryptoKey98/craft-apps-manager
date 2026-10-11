@@ -34,7 +34,14 @@ pub fn installed(paths: &Paths, app: &str) -> Result<Installed> {
 }
 pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     let installed = installed(paths, app)?;
-    let root = PathBuf::from(installed.path);
+    executables_for_installed(paths, app, &installed)
+}
+fn executables_for_installed(
+    paths: &Paths,
+    app: &str,
+    installed: &Installed,
+) -> Result<Vec<String>> {
+    let root = PathBuf::from(&installed.path);
     if installed.install_kind != "installer" {
         crate::portable::validate(paths, app, &root)?;
     }
@@ -98,7 +105,7 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
     let installed = installed(paths, app)?;
     let settings = settings(paths, app)?;
     let executable = launch_executable(&PathBuf::from(&installed.path), app, &settings.executable)?;
-    if !executables(paths, app)?
+    if !executables_for_installed(paths, app, &installed)?
         .iter()
         .any(|name| launch_name_matches(name, &executable))
     {

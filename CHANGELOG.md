@@ -2,6 +2,11 @@
 
 ## 0.8.0
 
+- Run supported Windows MSI downgrades under one batch administrator approval, with verified recovery packages and individual uninstall, install and recovery activity steps.
+- Keep version changes locked to the verified installed format and architecture; preparing a version preview no longer creates installation activity.
+- Improve reused-job cancellation, preserve build results during tool setup, retain bounded Unicode activity records and avoid pruning unconfirmed workers.
+- Avoid a redundant installation scan when opening apps and preserve sidebar search focus as the clear button appears.
+- Add subtle button press feedback, smoother installation details, one-way progress animation, softer light-theme disabled controls and muted sidebar scrollbars in both themes.
 - Configure release format and architecture independently for built-in and custom apps, using the selected release’s compatible assets.
 - Preserve installed package facts separately from preferences; updates and bulk checks respect each installed app’s format and architecture.
 - Expand custom GitHub download matching, add setup review and an ambiguous-download chooser, and improve native installer detection and uninstall support.

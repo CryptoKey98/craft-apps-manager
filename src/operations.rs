@@ -74,8 +74,8 @@ impl Manager {
             record: Arc::new(Mutex::new(Operation {
                 id: uuid::Uuid::new_v4().to_string(),
                 parent,
-                resource: resource.into(),
-                kind: kind.into(),
+                resource: resource.chars().take(512).collect(),
+                kind: kind.chars().take(128).collect(),
                 lifecycle: Lifecycle::Queued,
                 stage: "Queued".into(),
                 detail: String::new(),
@@ -115,7 +115,8 @@ impl Manager {
             .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "json"))
             .filter_map(|entry| {
                 // Bounded records, not logs; malformed or partial external data is ignored.
-                if entry.metadata().ok()?.len() > 32_768 { return None; }
+                // Unicode and JSON escaping expand bounded character fields into bytes.
+                if entry.metadata().ok()?.len() > 262_144 { return None; }
                 let mut record: Operation = files::read_json(&entry.path()).ok()?;
                 if self.path(&record.id).ok()? != entry.path() { return None; }
                 let parent_alive = record.parent.as_ref().and_then(|id| self.read(id).ok()).is_some_and(|parent| !parent.lifecycle.terminal() && now() - parent.heartbeat <= 30_000);
@@ -144,6 +145,7 @@ impl Manager {
             .iter()
             .filter(|record| {
                 record.lifecycle.terminal()
+                    && record.completed.is_some()
                     && !records.iter().any(|child| {
                         child.parent.as_ref() == Some(&record.id) && !child.lifecycle.terminal()
                     })
@@ -217,7 +219,7 @@ impl Handle {
         if requested {
             record.lifecycle = Lifecycle::CancellationRequested;
         }
-        record.stage = state.stage.clone();
+        record.stage = state.stage.chars().take(128).collect();
         record.detail = state.detail.chars().take(4096).collect();
         record.progress = state
             .progress
@@ -279,6 +281,43 @@ impl Handle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bounded_unicode_details_remain_visible_in_history() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let manager = Manager::new(&root);
+        let handle = manager.register("Install", "fixture", None);
+        handle.start();
+        for key in 0..16 {
+            handle.report(&key.to_string(), &"🦀".repeat(1024));
+        }
+        handle.update(
+            &State {
+                detail: "🦀".repeat(4096),
+                ..Default::default()
+            },
+            false,
+        );
+        handle.finish(Lifecycle::Failed, "🦀".repeat(4096));
+        assert_eq!(manager.list().len(), 1);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn history_pruning_keeps_unconfirmed_stale_workers() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let manager = Manager::new(&root);
+        let active = manager.register("Build", "active", None);
+        active.start();
+        active.record.lock().unwrap().heartbeat = now() - 60_000;
+        active.publish();
+        for _ in 0..102 {
+            manager
+                .register("Download", "completed", None)
+                .finish(Lifecycle::Completed, "Success".into());
+        }
+        assert!(manager.read(&active.id()).is_ok());
+        assert!(manager.request_cancel(&active.id()).unwrap());
+        std::fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn lifecycle_is_independent_terminal_and_durable() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());

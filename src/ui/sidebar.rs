@@ -8,6 +8,7 @@ use eframe::egui::{self, Color32, CornerRadius, FontId, Rect, Sense, Stroke};
 const LINE: f32 = 1.327;
 /// Placeholder colour of the mockup's search field.
 const PLACEHOLDER: Color32 = Color32::from_rgb(0x75, 0x75, 0x75);
+const SEARCH_FIELD_ID: &str = "sidebar-app-search";
 /// Border of the "Get" chip.
 /// Status-bar dot while an operation or a build runs.
 const BUSY_DOT: Color32 = Color32::from_rgb(0x5b, 0x8c, 0xff);
@@ -219,6 +220,13 @@ impl App {
             .frame(egui::Frame::new().fill(theme::palette().panel))
             .show(ctx, |ui| {
                 ui.spacing_mut().item_spacing.y = 0.0;
+                {
+                    // Match Activity's muted handle in both themes, retaining hover expansion.
+                    let scroll = &mut ui.spacing_mut().scroll;
+                    scroll.dormant_handle_opacity = 0.08;
+                    scroll.active_handle_opacity = 0.35;
+                    scroll.interact_handle_opacity = 0.65;
+                }
                 egui::Frame::new()
                     .inner_margin(egui::Margin {
                         left: 12,
@@ -271,6 +279,9 @@ impl App {
                             .clicked();
                         let response = ui.add(
                             egui::TextEdit::singleline(&mut self.search)
+                                // The clear button appears after typing; do not let
+                                // its widget ID shift the focused text field's ID.
+                                .id_salt(SEARCH_FIELD_ID)
                                 .hint_text(
                                     egui::RichText::new("Search apps")
                                         .size(13.0)
@@ -987,4 +998,46 @@ fn dimmed_icon(ctx: &egui::Context, name: &str) -> Option<egui::TextureHandle> {
     );
     ctx.data_mut(|d| d.insert_temp(id, texture.clone()));
     Some(texture)
+}
+
+#[cfg(test)]
+mod search_tests {
+    use super::*;
+
+    #[test]
+    fn typing_keeps_focus_when_clear_button_appears() {
+        let ctx = egui::Context::default();
+        let mut search = String::new();
+        let mut field_id = None;
+        for (index, text) in [None, Some("a"), Some("b")].into_iter().enumerate() {
+            let input = egui::RawInput {
+                events: text
+                    .map(|text| vec![egui::Event::Text(text.into())])
+                    .unwrap_or_default(),
+                ..Default::default()
+            };
+            let _ = ctx.run(input, |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if !search.is_empty() {
+                                theme::icon_button(ui, Icon::Close, "Clear search", PLACEHOLDER);
+                            }
+                            let response = ui.add(
+                                egui::TextEdit::singleline(&mut search).id_salt(SEARCH_FIELD_ID),
+                            );
+                            if index == 0 {
+                                field_id = Some(response.id);
+                                response.request_focus();
+                            } else {
+                                assert_eq!(Some(response.id), field_id);
+                                assert!(response.has_focus());
+                            }
+                        });
+                    });
+                });
+            });
+        }
+        assert_eq!(search, "ab");
+    }
 }

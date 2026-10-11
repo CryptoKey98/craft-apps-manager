@@ -213,10 +213,25 @@ impl App {
     }
     fn activity_row(&mut self, ui: &mut egui::Ui, op: &Operation, records: &[Operation]) {
         let p = theme::palette();
-        let children: Vec<_> = records
+        let app_children: Vec<_> = records
             .iter()
             .filter(|child| child.parent.as_deref() == Some(&op.id))
             .collect();
+        let mut children = app_children.clone();
+        if op.kind == "Downgrade" {
+            let step_parent_ids: Vec<_> = children.iter().map(|child| child.id.as_str()).collect();
+            let steps: Vec<_> = records
+                .iter()
+                .filter(|step| {
+                    step.parent
+                        .as_deref()
+                        .is_some_and(|parent| step_parent_ids.contains(&parent))
+                })
+                .collect();
+            if !steps.is_empty() {
+                children = steps;
+            }
+        }
         let facts = if children.len() == 1 { children[0] } else { op };
         let name = if op.resource.is_empty() {
             "Manager".into()
@@ -480,7 +495,24 @@ impl App {
                             op
                         };
                         operation_details(ui, primary);
-                        if children.len() > 1 {
+                        if op.kind == "Downgrade"
+                            && children
+                                .iter()
+                                .any(|child| !app_children.iter().any(|app| app.id == child.id))
+                        {
+                            for app in &app_children {
+                                operation_details(ui, app);
+                            }
+                        }
+                        if children.len() > 1
+                            || (op.lifecycle != Lifecycle::Completed
+                                && children.iter().any(|child| {
+                                    matches!(
+                                        child.lifecycle,
+                                        Lifecycle::Failed | Lifecycle::Cancelled
+                                    )
+                                }))
+                        {
                             for child in &children {
                                 ui.add_space(8.0);
                                 ui.separator();
@@ -563,6 +595,8 @@ fn operation_message(op: &Operation) -> String {
         let text = match op.kind.as_str() {
             "Install" | "Update" | "Install / update" => "Installation completed successfully.",
             "Uninstall" => "The application was uninstalled successfully.",
+            "Downgrade" => "The older version was installed successfully. Individual steps are listed below.",
+            "Restore installation" => "The previous installation was restored successfully.",
             "Manager update download" => "The manager update was downloaded and verified. Installation has not been performed yet.",
             "Build" => "Compilation completed successfully. The compiled build is ready.",
             "Source download" => "Source operation completed successfully.",

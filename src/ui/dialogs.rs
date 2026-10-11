@@ -295,20 +295,16 @@ fn install_detail(ui: &mut egui::Ui, id: egui::Id, text: &str, size: f32, color:
     let new = ui
         .painter()
         .layout(current, font, color, ui.available_width());
-    let height = if progress < 1.0 {
-        old.size().y.max(new.size().y)
-    } else {
-        new.size().y
-    };
+    let height = egui::lerp(old.size().y..=new.size().y, alpha);
     let (rect, _) =
         ui.allocate_exact_size(egui::vec2(ui.available_width(), height), Sense::hover());
     if progress < 1.0 {
-        let mut painter = ui.painter().clone();
+        let mut painter = ui.painter().with_clip_rect(rect.intersect(ui.clip_rect()));
         painter.multiply_opacity(1.0 - alpha);
         painter.galley(rect.min, old, color);
         ui.ctx().request_repaint();
     }
-    let mut painter = ui.painter().clone();
+    let mut painter = ui.painter().with_clip_rect(rect.intersect(ui.clip_rect()));
     painter.multiply_opacity(alpha);
     painter.galley(rect.min, new, color);
 }
@@ -398,18 +394,40 @@ impl App {
             return;
         };
         let available = install_options::available(&release, app, &self.preferences);
+        // Version changes must keep the verified installation configuration.
+        // Preferences alone do not prove how an existing copy was installed.
+        let version_change_locked = tag.is_some()
+            && self.display_config.as_ref().is_some_and(|config| {
+                config
+                    .apps
+                    .iter()
+                    .any(|copy| copy.name == app && !copy.path.is_empty())
+            });
         let prefs = self.app_preferences(app);
         let original = InstallOptions {
             release_format: prefs.release_format,
             architecture: prefs.architecture,
         };
-        let Some(mut selected) = install_options::preserve_or_default(&available, &original) else {
+        let selection = if version_change_locked {
+            self.display_config
+                .as_ref()
+                .and_then(|config| {
+                    config
+                        .apps
+                        .iter()
+                        .find(|copy| copy.name == app && !copy.path.is_empty())
+                })
+                .and_then(InstallOptions::installed)
+        } else {
+            install_options::preserve_or_default(&available, &original)
+        };
+        let Some(mut selected) = selection else {
             note(ui, "No confirmed compatible package. Choose a download to confirm incomplete release metadata.");
             return;
         };
         let mut changed = selected != original;
         field_style(ui);
-        ui.add_enabled_ui(!pending, |ui| {
+        ui.add_enabled_ui(!pending && !version_change_locked, |ui| {
             ui.columns(2, |columns| {
                 theme::text(
                     &mut columns[0],
@@ -440,7 +458,7 @@ impl App {
                             }
                         }
                     });
-                if !available.contains(&selected) {
+                if !version_change_locked && !available.contains(&selected) {
                     if let Some(option) = available
                         .iter()
                         .find(|option| {
@@ -486,7 +504,14 @@ impl App {
                     });
             });
         });
-        if changed && !pending {
+        if version_change_locked {
+            ui.add_space(8.0);
+            note(
+                ui,
+                "Uninstall the current installation before changing its format or architecture.",
+            );
+        }
+        if changed && !pending && !version_change_locked {
             let format_changed = selected.release_format != original.release_format;
             match self.save_install_options(app, selected) {
                 Ok(()) => {
@@ -1948,6 +1973,36 @@ impl App {
                 .unwrap_or(Art::None);
             let response = modal(ctx, "Install app", 520.0, |ui| {
                 band(ui, BODY, 0.0, |ui| {
+                    // Fade newly resolved content without hiding the controls or
+                    // introducing another release request. The footer stays stable.
+                    let transition_id = egui::Id::new(("install-content-transition", &app));
+                    let signature = format!(
+                        "{}|{}|{}|{:?}|{:?}",
+                        install_preferences.release_format,
+                        install_preferences.architecture,
+                        details,
+                        entry
+                            .and_then(|entry| entry.asset.as_ref())
+                            .map(|asset| (&asset.name, asset.size)),
+                        entry.and_then(|entry| entry.error.as_ref())
+                    );
+                    let now = ui.input(|input| input.time);
+                    let started = ui.ctx().data_mut(|data| {
+                        let previous = data.get_temp::<(String, f64)>(transition_id);
+                        let started = match previous {
+                            Some((previous, started)) if previous == signature => started,
+                            Some(_) => now,
+                            None => now - 1.0,
+                        };
+                        data.insert_temp(transition_id, (signature, started));
+                        started
+                    });
+                    let progress = ((now - started) / 0.16).clamp(0.0, 1.0) as f32;
+                    let eased = progress * progress * (3.0 - 2.0 * progress);
+                    ui.set_opacity(0.35 + 0.65 * eased);
+                    if progress < 1.0 {
+                        ctx.request_repaint();
+                    }
                     header(ui, art, &title, "", |ui| {
                         install_detail(
                             ui,
@@ -2673,7 +2728,13 @@ impl App {
                                                 egui::pos2(0.0, 0.0),
                                                 egui::pos2(1.0, 1.0),
                                             ),
-                                            if enabled { Color32::WHITE } else { Color32::from_white_alpha(80) },
+                                            if enabled {
+                                                Color32::WHITE
+                                            } else if ui.visuals().dark_mode {
+                                                Color32::from_white_alpha(80)
+                                            } else {
+                                                Color32::from_rgba_unmultiplied(160, 160, 160, 60)
+                                            },
                                         );
                                     }
                                     theme::painter_text(
@@ -2682,7 +2743,13 @@ impl App {
                                         egui::Align2::LEFT_CENTER,
                                         model::title(name),
                                         14.0,
-                                        if enabled { theme::palette().text } else { theme::palette().muted },
+                                        if enabled {
+                                            theme::palette().text
+                                        } else if ui.visuals().dark_mode {
+                                            theme::palette().muted
+                                        } else {
+                                            Color32::from_rgb(153, 153, 153)
+                                        },
                                     );
                                     if !enabled { response.clone().on_hover_text("Not installed in the selected format. Install this app from its app page first."); }
                                     if response.clicked() && enabled {
