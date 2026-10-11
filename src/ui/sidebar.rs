@@ -49,12 +49,27 @@ impl App {
                                 .font(theme::bold(15.0))
                                 .color(theme::palette().text),
                         );
+                        // Include the icon's internal padding so its visible gap
+                        // matches the 10pt gap between the title and version.
+                        ui.spacing_mut().item_spacing.x = 6.0;
                         theme::text(
                             ui,
                             format!("Version {}", env!("CARGO_PKG_VERSION")),
                             12.0,
                             theme::palette().muted,
                         );
+                        ui.spacing_mut().item_spacing.x = 10.0;
+                        let info = theme::sized_icon_button(
+                            ui,
+                            Icon::Info,
+                            "What's new",
+                            theme::palette().muted,
+                            20.0,
+                            13.0,
+                        );
+                        if info.clicked() {
+                            self.whats_new_open = true;
+                        }
                         if self.manager_plan.is_some() {
                             ui.spinner();
                             theme::text(

@@ -31,11 +31,12 @@ fn linux_x86_selects_i686_appimage_without_accepting_x64() {
 }
 
 #[test]
-fn linux_releases_match_appimage_and_debian_architecture() {
+fn linux_releases_match_appimage_and_native_package_architecture() {
     let release = Release {tag_name:"v1.2.3".into(),name:None,draft:false,prerelease:false,assets:vec![
         Asset{name:"filmcraft-1.2.3-linux-x86_64.AppImage".into(),size:1,browser_download_url:"https://github.com/storytold/filmcraft/releases/download/v1.2.3/filmcraft-1.2.3-linux-x86_64.AppImage".into(),digest:None},
         Asset{name:"filmcraft-1.2.3-linux-aarch64.deb".into(),size:1,browser_download_url:"https://github.com/storytold/filmcraft/releases/download/v1.2.3/filmcraft-1.2.3-linux-aarch64.deb".into(),digest:None},
         Asset{name:"filmcraft-1.2.3-linux-aarch64.rpm".into(),size:1,browser_download_url:"https://github.com/storytold/filmcraft/releases/download/v1.2.3/test.rpm".into(),digest:None},
+        Asset{name:"filmcraft-1.2.3-1-aarch64.pkg.tar.zst".into(),size:1,browser_download_url:"https://github.com/storytold/filmcraft/releases/download/v1.2.3/filmcraft-1.2.3-1-aarch64.pkg.tar.zst".into(),digest:None},
         Asset{name:"filmcraft-1.2.3-windows-x64.msi".into(),size:1,browser_download_url:"https://github.com/storytold/filmcraft/releases/download/v1.2.3/test.msi".into(),digest:None}
     ]};
     let mut prefs = Preferences {

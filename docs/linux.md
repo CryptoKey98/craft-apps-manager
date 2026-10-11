@@ -47,6 +47,11 @@ scheduled checks; set up tools and build a selected app. Native manager upgrades
 need two native package versions for testing.
 Arch desktop behavior has not yet been verified on an Arch machine.
 
+The Check workflow also runs in an Arch Linux x86_64 container: formatting,
+tests, Clippy, a release build, native package creation, and pacman installation
+and removal of that package. This does not replace desktop testing of GUI,
+PolicyKit prompts, notifications, or scheduled operations.
+
 See the [pacman manual](https://man.archlinux.org/man/pacman.8.en) for native
 package operations.
 

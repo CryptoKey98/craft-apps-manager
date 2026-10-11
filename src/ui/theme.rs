@@ -328,6 +328,7 @@ pub fn apply(ctx: &egui::Context, mode: Theme) {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Icon {
+    Info,
     Activity,
     Sun,
     Gear,
@@ -605,6 +606,11 @@ pub fn paint_icon_weight(
             painter.circle_stroke(p(12.0, 12.0), 10.0 * scale, stroke);
             line(vec![p(12.0, 8.0), p(12.0, 12.5)]);
             painter.circle_filled(p(12.0, 16.0), 1.2 * scale, color);
+        }
+        Icon::Info => {
+            painter.circle_stroke(p(12.0, 12.0), 10.0 * scale, stroke);
+            painter.circle_filled(p(12.0, 7.0), 1.1 * scale, color);
+            line(vec![p(12.0, 11.0), p(12.0, 17.0)]);
         }
         Icon::Folder => {
             painter.add(egui::Shape::closed_line(
@@ -1029,7 +1035,18 @@ fn pressed_button_rect(rect: Rect, depth: f32) -> Rect {
 }
 
 pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Response {
-    let (rect, response) = ui.allocate_exact_size(Vec2::splat(32.0), Sense::click());
+    sized_icon_button(ui, icon, label, color, 32.0, 16.0)
+}
+
+pub fn sized_icon_button(
+    ui: &mut Ui,
+    icon: Icon,
+    label: &str,
+    color: Color32,
+    size: f32,
+    glyph: f32,
+) -> Response {
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::click());
     response.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, label));
     let depth = button_press_depth(ui, &response);
     let paint_rect = pressed_button_rect(rect, depth);
@@ -1042,7 +1059,7 @@ pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Resp
     }
     paint_icon(
         ui.painter(),
-        Rect::from_center_size(paint_rect.center(), Vec2::splat(16.0)),
+        Rect::from_center_size(paint_rect.center(), Vec2::splat(glyph)),
         icon,
         color,
     );
