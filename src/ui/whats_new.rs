@@ -112,6 +112,8 @@ impl App {
                         feature(ui, Some(theme::Icon::Sliders), "Install your way", "Choose the package format and architecture for each app, using the downloads available for that release.");
                         feature(ui, Some(theme::Icon::Activity), "Follow every operation", "See downloads, installs and builds in Activity, with progress, cancellation and detailed results.");
                         feature(ui, None, "Add your own GitHub apps", "Review detected downloads before adding an app. Custom app support is experimental.");
+                        #[cfg(target_os = "windows")]
+                        {
                         egui::Frame::new().fill(p.card).corner_radius(8).inner_margin(egui::Margin::symmetric(14, 12)).show(ui, |ui| {
                             ui.horizontal_top(|ui| {
                                 ui.spacing_mut().item_spacing.x = 10.0;
@@ -121,10 +123,15 @@ impl App {
                             });
                         });
                         ui.add_space(18.0);
+                        }
                         egui::CollapsingHeader::new(RichText::new("All changes in this version").size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
+                                #[cfg(any(target_os = "windows", target_os = "linux"))]
+                                {
+                                    body_text(ui, "• One administrator approval for eligible installer update batches.");
+                                    ui.add_space(8.0);
+                                }
                                 for note in [
-                                    "One administrator approval for eligible Windows and Linux update batches.",
                                     "Updates preserve each app's installed format and architecture.",
                                     "Smoother buttons and installation dialogs, softer scrollbars and improved search focus.",
                                     "More reliable cancellation, source-builder synchronization and operation history.",
