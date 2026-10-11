@@ -109,6 +109,44 @@ jobs:
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
 
+  archlinux:
+    name: Arch Linux (x86_64)
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    defaults:
+      run:
+        shell: bash
+    env:
+      CRAFT_TEST_TOOLS: /tmp/craft-test-tools
+    steps:
+      - name: Install Arch build and runtime dependencies
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git rust pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl 7zip libarchive polkit libnotify xdg-utils
+          useradd --create-home builder
+      - uses: actions/checkout@v4
+      - name: Prepare unprivileged build workspace
+        run: chown -R builder:builder "$GITHUB_WORKSPACE"
+      - name: Formatting, tests and lint
+        run: |
+          runuser -u builder -- cargo fmt --all -- --check
+          runuser -u builder -- cargo test --locked --all-targets -- --test-threads=1
+          runuser -u builder -- cargo clippy --locked --all-targets -- -D warnings
+      - name: Build and package for Arch
+        run: |
+          runuser -u builder -- cargo build --release --locked --bin craft-apps-manager
+          runuser -u builder -- sh scripts/package-linux-arch.sh target/release/craft-apps-manager
+      - name: Verify native package installation and removal
+        run: |
+          pacman -U --noconfirm dist/linux/*.pkg.tar.zst
+          pacman -Q craft-apps-manager
+          pacman -Qk craft-apps-manager
+          pacman -R --noconfirm craft-apps-manager
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archlinux-x86_64
+          path: dist/linux/*.pkg.tar.zst
+          if-no-files-found: error
+
   macos:
     runs-on: macos-latest
     steps:
