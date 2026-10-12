@@ -459,6 +459,7 @@ fn apply_executable(plan_path: &Path) -> Result<()> {
     }
     let result = (|| -> Result<()> {
         fs::rename(&plan.staged, &plan.target)?;
+        crate::portable_mode::adopt_updated_portable(home, &plan.root, Some(&plan.tools))?;
         let mut command = Command::new(&plan.target);
         command
             .arg("--root")
@@ -842,6 +843,13 @@ fn apply_macos_with(
                 Ok(())
             },
             || {
+                crate::portable_mode::adopt_updated_portable(
+                    plan.target
+                        .parent()
+                        .context("Missing portable manager folder")?,
+                    &plan.root,
+                    Some(&plan.tools),
+                )?;
                 report_macos_result(&stage, destination, &UpdateResult {
                     status: UpdateStatus::LaunchPending,
                     message: format!("Replacement verified; manager launch request pending. Previous manager: {}", stage.join("previous.app").display()),

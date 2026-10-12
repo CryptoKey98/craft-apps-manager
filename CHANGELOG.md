@@ -2,6 +2,9 @@
 
 ## 0.8.1
 
+- Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings → Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
+- Preserve existing library and tools locations when updating older portable copies, including updates launched by old helpers. Windows elevated batches decode portable settings without running migration as administrator.
+- Clean up downloaded setup files as the final installation stage after verification. Preserve packages needed for repair, uninstallation or recovery, and retain files when installation fails or is cancelled.
 - Synchronize builder progress, cancellation, logs, activity notifications and theme between manager and builder windows.
 - Select a completed build for launching in Build Options, with individual build shortcuts and safe shortcut cleanup.
 - Show GitHub token status as a compact icon and colored indicator, with details on hover.

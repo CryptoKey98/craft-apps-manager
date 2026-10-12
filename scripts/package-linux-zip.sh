@@ -28,6 +28,7 @@ files += [(p, 'licenses/app-icons/'+p.name) for p in sorted((project/'assets/app
 files += [(project/'assets/fonts/OFL.txt', 'licenses/fonts/IBM-Plex-OFL.txt')]
 try:
     with zipfile.ZipFile(archive, 'x', zipfile.ZIP_DEFLATED, compresslevel=9) as package:
+        package.writestr('Craft Apps Manager Linux/portable.txt', 'Craft Apps Manager portable mode\n')
         for source, name in files:
             package.write(source, 'Craft Apps Manager Linux/'+name)
     with zipfile.ZipFile(archive) as package:

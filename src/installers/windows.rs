@@ -1055,6 +1055,79 @@ fn registered_uninstaller(app: &Installed) -> Result<Option<(RegKey, String, Str
     Ok(None)
 }
 
+/// Downloaded MSI sources are disposable after verified installation; Windows
+/// owns its maintenance cache. Never remove an EXE used as the uninstaller.
+pub(crate) fn download_retention_reason(package: &Path, app: &Installed) -> Result<Option<String>> {
+    if package
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("msi"))
+    {
+        return Ok(None);
+    }
+    if !package
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("exe"))
+    {
+        return Ok(Some("Package maintenance requirements are unknown.".into()));
+    }
+    let Some((root, name, command)) = registered_uninstaller(app)? else {
+        return Ok(Some(
+            "No independent registered uninstaller was verified.".into(),
+        ));
+    };
+    let (uninstaller, _) = uninstall_command(&command)?;
+    let directory = package.parent().context("Installer has no parent folder")?;
+    if !uninstaller.is_file() || uninstaller.starts_with(directory) {
+        return Ok(Some(
+            "The uninstall command may depend on this download.".into(),
+        ));
+    }
+    let key = root.open_subkey(name)?;
+    let directory = directory
+        .to_string_lossy()
+        .replace('/', "\\")
+        .to_ascii_lowercase();
+    for field in [
+        "UninstallString",
+        "QuietUninstallString",
+        "ModifyPath",
+        "InstallSource",
+        "BundleCachePath",
+    ] {
+        let value: String = match key.get_value(field) {
+            Ok(value) => value,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
+        };
+        if value.contains('%')
+            || value
+                .replace('/', "\\")
+                .to_ascii_lowercase()
+                .contains(&directory)
+        {
+            return Ok(Some(
+                "Windows uninstall or repair registration references this download folder.".into(),
+            ));
+        }
+    }
+    Ok(None)
+}
+
+#[cfg(test)]
+mod download_cleanup_tests {
+    use super::*;
+
+    #[test]
+    fn downloaded_msi_is_disposable_after_verified_installation() {
+        let app = Installed::default();
+        for name in ["filmcraft.msi", "custom-setup.MSI"] {
+            assert!(download_retention_reason(Path::new(name), &app)
+                .unwrap()
+                .is_none());
+        }
+    }
+}
+
 fn uninstall_exe(app: &Installed) -> Result<()> {
     let (root, key, command) = registered_uninstaller(app)?
         .context("No matching Windows uninstall command was found. Use Windows Installed apps.")?;

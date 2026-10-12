@@ -1095,7 +1095,7 @@ fn execute_plan_owned(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()
 }
 pub(crate) fn execute_plan_direct(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     execute_validated(paths, plan, |config| {
-        execute_entries(paths, plan, config, job, None)
+        execute_entries(paths, plan, config, job, None, None)
     })
 }
 #[cfg(target_os = "windows")]
@@ -1104,9 +1104,17 @@ pub(crate) fn execute_approved_downgrade(
     plan: &ReleasePlan,
     job: &Job,
     recovery: &std::collections::BTreeMap<String, Asset>,
+    release_packages: &mut dyn FnMut(&str),
 ) -> Result<()> {
     execute_validated(paths, plan, |config| {
-        execute_entries(paths, plan, config, job, Some(recovery))
+        execute_entries(
+            paths,
+            plan,
+            config,
+            job,
+            Some(recovery),
+            Some(release_packages),
+        )
     })
 }
 #[cfg(target_os = "windows")]
@@ -1277,6 +1285,7 @@ fn execute_entries(
     config: &mut crate::model::Config,
     job: &Job,
     _approved_recovery: Option<&std::collections::BTreeMap<String, Asset>>,
+    mut release_packages: Option<&mut dyn FnMut(&str)>,
 ) -> Result<()> {
     let network = Network::new(&paths.root)?;
     execute_with(plan, job, |entry, job| {
@@ -1438,6 +1447,9 @@ fn execute_entries(
                 };
                 config.apps[i] = installed;
                 paths.save_config(config)?;
+                if let Some(release) = release_packages.as_mut() {
+                    release(&entry.app);
+                }
                 if let Err(error) =
                     crate::hourly::refresh_after_install(paths, &config.apps[i], prefs)
                 {
@@ -1473,6 +1485,7 @@ fn execute_entries(
                 }
                 platform::refresh_file_associations();
                 job.log(&format!("{}: installer completed", app.name));
+                crate::installer_cleanup::finish(paths, &config.apps[i], &dest, job);
                 return Ok(true);
             }
             let v = entry.version.as_str();
@@ -1811,7 +1824,7 @@ fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> 
         job.log(error);
     }
     let mut config = paths.config()?;
-    let result = execute_entries(paths, &plan, &mut config, job, None);
+    let result = execute_entries(paths, &plan, &mut config, job, None, None);
     if !errors.is_empty() {
         bail!("{} release planning error(s); see the log", errors.len());
     }

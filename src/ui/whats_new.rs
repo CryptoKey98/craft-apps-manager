@@ -133,6 +133,9 @@ impl App {
                                     "Activity notifications and theme changes stay synchronized between the manager and builder.",
                                     "Each build gets its own clearly named shortcut. Removing a build also removes its unchanged manager-created shortcut.",
                                     "Configure an optional GitHub token in Settings → Updates. The compact GitHub status icon shows connection details on hover.",
+                                    "Portable manager downloads keep managed paths connected when you move the whole folder. See Portable storage in Settings → Folders.",
+                                    "Updates from older portable versions preserve your existing library and tools locations automatically.",
+                                    "Downloaded setup files are cleaned up after successful installation, with cleanup included in installation progress.",
                                     "Improve Build Options layout and build-cache controls, and remove the redundant Show in Explorer link from Tools.",
                                 ] {
                                     body_text(ui, &format!("• {note}"));

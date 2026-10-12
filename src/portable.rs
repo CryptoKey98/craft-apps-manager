@@ -82,7 +82,9 @@ pub fn validate(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     files::inside(&marker, target)?;
     let owner: Ownership =
         files::read_json(&marker).context("This folder is not managed by this library")?;
-    if owner.app != app || owner.library != std::path::absolute(&paths.root)? {
+    if owner.app != app
+        || !crate::portable_mode::same_library(&owner.library, &std::path::absolute(&paths.root)?)
+    {
         bail!("This app folder belongs to another library");
     }
     Ok(())
@@ -137,7 +139,11 @@ pub fn mark_restored(paths: &Paths, app: &str, stage: &Path) -> Result<()> {
         files::inside(&marker, stage)?;
         let owner: Ownership = files::read_json(&marker)?;
         anyhow::ensure!(
-            owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+            owner.app == app
+                && crate::portable_mode::same_library(
+                    &owner.library,
+                    &std::path::absolute(&paths.root)?
+                ),
             "Backup belongs to another library"
         );
         std::fs::remove_file(marker)?;
@@ -175,7 +181,11 @@ pub fn mark_moved(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     if marker.exists() {
         let owner: Ownership = files::read_json(&marker)?;
         anyhow::ensure!(
-            owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+            owner.app == app
+                && crate::portable_mode::same_library(
+                    &owner.library,
+                    &std::path::absolute(&paths.root)?
+                ),
             "App folder belongs to another library"
         );
         return Ok(());
@@ -195,7 +205,11 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
         }
     };
     anyhow::ensure!(
-        owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+        owner.app == app
+            && crate::portable_mode::same_library(
+                &owner.library,
+                &std::path::absolute(&paths.root)?
+            ),
         "Shortcut record belongs to another app library"
     );
     create_shortcut(&marker, owner, target, &desktop()?)
@@ -215,7 +229,7 @@ fn build_shortcut_identity(paths: &Paths, app: &str, target: &Path) -> Result<(P
     let target = std::path::absolute(target)?;
     let digest = format!(
         "{:x}",
-        Sha256::digest(target.as_os_str().as_encoded_bytes())
+        Sha256::digest(crate::portable_mode::identity(&target)?.as_bytes())
     );
     let info: crate::model::BuildInfo = files::read_json(&target.join("build-info.json"))?;
     anyhow::ensure!(info.app == app, "The build belongs to another app");
@@ -260,7 +274,11 @@ fn build_desktop_shortcut_at(
         }
     };
     anyhow::ensure!(
-        owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+        owner.app == app
+            && crate::portable_mode::same_library(
+                &owner.library,
+                &std::path::absolute(&paths.root)?
+            ),
         "Build shortcut belongs to another app library"
     );
     create_named_shortcut(&marker, owner, &target, desktop, &title)?;
@@ -289,18 +307,38 @@ fn remove_build_shortcut_at(paths: &Paths, app: &str, folder: &Path, desktop: &P
     let folder = std::path::absolute(folder)?;
     let digest = format!(
         "{:x}",
-        Sha256::digest(folder.as_os_str().as_encoded_bytes())
+        Sha256::digest(crate::portable_mode::identity(&folder)?.as_bytes())
     );
-    for marker in [
+    let mut markers = vec![
         paths.at(format!("runtime/build-shortcuts/{app}/{digest}.json")),
         paths.at(format!("runtime/build-shortcuts/{app}.json")),
-    ] {
+    ];
+    // Older builds used an absolute-path digest. Locate their verified ownership
+    // records too, including after the portable library has moved.
+    let directory = paths.at(format!("runtime/build-shortcuts/{app}"));
+    if directory.is_dir() {
+        for entry in std::fs::read_dir(&directory)? {
+            let entry = entry?;
+            if entry.file_type()?.is_file() && entry.path().extension().is_some_and(|e| e == "json")
+            {
+                let marker = entry.path();
+                if !markers.contains(&marker) {
+                    markers.push(marker);
+                }
+            }
+        }
+    }
+    for marker in markers {
         if !marker.exists() {
             continue;
         }
         let record: BuildShortcutOwnership = files::read_json(&marker)?;
         anyhow::ensure!(
-            record.owner.app == app && record.owner.library == std::path::absolute(&paths.root)?,
+            record.owner.app == app
+                && crate::portable_mode::same_library(
+                    &record.owner.library,
+                    &std::path::absolute(&paths.root)?
+                ),
             "Build shortcut belongs to another app library"
         );
         let belongs =
@@ -449,7 +487,11 @@ pub fn remove_installer_shortcut(paths: &Paths, app: &str) -> Result<()> {
     }
     let owner: Ownership = files::read_json(&marker)?;
     anyhow::ensure!(
-        owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+        owner.app == app
+            && crate::portable_mode::same_library(
+                &owner.library,
+                &std::path::absolute(&paths.root)?
+            ),
         "Shortcut record belongs to another app library"
     );
     remove_owned_shortcut(owner, &desktop()?)?;
@@ -833,6 +875,46 @@ mod tests {
 #[cfg(all(test, target_os = "windows"))]
 mod build_shortcut_tests {
     use super::*;
+    #[test]
+    fn legacy_build_shortcut_cleanup_survives_portable_library_move() {
+        let temp =
+            std::env::temp_dir().join(format!("craft-portable-shortcut-{}", uuid::Uuid::new_v4()));
+        let base = temp.join("original");
+        let paths = Paths::new(base.join("data"), None);
+        let folder = paths.at("builds/filmcraft/first");
+        let desktop = temp.join("desktop");
+        files::write_json(
+            &folder.join("build-info.json"),
+            &crate::model::BuildInfo {
+                app: "filmcraft".into(),
+                commit: "a".repeat(40),
+                source_branch: "main".into(),
+                built_at: "2026-10-12T12:00:00Z".into(),
+                profile: "release".into(),
+                log: String::new(),
+            },
+        )
+        .unwrap();
+        std::fs::write(folder.join("filmcraft.exe"), b"test build").unwrap();
+        // Create the shortcut before portable mode, exercising the old absolute digest.
+        build_desktop_shortcut_at(&paths, "filmcraft", &folder, &desktop).unwrap();
+        assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 1);
+        std::fs::write(base.join(crate::portable_mode::MARKER), b"").unwrap();
+        crate::portable_mode::initialize(&base).unwrap();
+        let moved = temp.join("moved");
+        std::fs::rename(&base, &moved).unwrap();
+        crate::portable_mode::initialize(&moved).unwrap();
+        let paths = Paths::new(moved.join("data"), None);
+        remove_build_shortcut_at(
+            &paths,
+            "filmcraft",
+            &paths.at("builds/filmcraft/first"),
+            &desktop,
+        )
+        .unwrap();
+        assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 0);
+        std::fs::remove_dir_all(temp).unwrap();
+    }
     #[test]
     fn multiple_build_shortcuts_coexist_and_remove_independently() {
         let root = std::env::temp_dir().join(format!(

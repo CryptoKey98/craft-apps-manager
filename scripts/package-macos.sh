@@ -58,4 +58,6 @@ cp assets/app-icons/*.txt "$bundle/Contents/Resources/licenses/app-icons/"
 codesign --force --sign - "$bundle"
 codesign --verify --strict "$bundle"
 ditto -c -k --norsrc --noextattr --keepParent "$bundle" "$archive"
+printf 'Craft Apps Manager portable mode\n' > "$output/portable.txt"
+zip -j "$archive" "$output/portable.txt" >/dev/null
 printf '%s\n' "$bundle" "$archive"

@@ -88,9 +88,83 @@ fn run() -> Result<()> {
     #[cfg(target_os = "macos")]
     let home = PathBuf::from(std::env::var_os("HOME").context("No macOS home directory")?)
         .join("Library/Application Support/Craft Apps Manager");
-    let saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
-    let root = arg("--root").or(saved.root).unwrap_or_else(|| home.clone());
-    let paths = Paths::new(root, arg("--tools").or(saved.tools));
+    let executable = std::env::current_exe()?;
+    #[cfg(target_os = "linux")]
+    let executable = std::env::var_os("APPIMAGE")
+        .map(PathBuf::from)
+        .unwrap_or(executable);
+    let portable_folder = craft_apps_manager::portable_mode::executable_folder(&executable)?;
+    // A pre-0.8.1 helper restarts the replacement with its old library arguments,
+    // but cannot copy the newly introduced portable marker itself.
+    if !craft_apps_manager::self_update::installed_with_msi()
+        && !craft_apps_manager::self_update::installed_with_linux_package()
+        && !craft_apps_manager::portable_mode::local_storage(&portable_folder)
+    {
+        let legacy_root = arg("--root").or_else(|| {
+            (home == portable_folder && home.join("settings.json").is_file()).then(|| home.clone())
+        });
+        if let Some(root) = legacy_root.filter(|root| root.is_dir()) {
+            craft_apps_manager::portable_mode::adopt_updated_portable(
+                &portable_folder,
+                &root,
+                arg("--tools").as_deref(),
+            )?;
+        }
+    }
+    let portable = craft_apps_manager::portable_mode::local_storage(&portable_folder)
+        && !craft_apps_manager::self_update::installed_with_msi()
+        && !craft_apps_manager::self_update::installed_with_linux_package();
+    let previous_home = home.clone();
+    let home = if portable {
+        craft_apps_manager::portable_mode::initialize(&portable_folder)?;
+        portable_folder
+    } else {
+        home
+    };
+    let mut saved: ui::Locations = files::read_or_default(&home.join("data-root.json"))?;
+    // Existing Linux/macOS ZIP users may already have a system data library.
+    // Retain it rather than silently starting an empty library or copying gigabytes.
+    if portable
+        && home != previous_home
+        && !home.join("data-root.json").exists()
+        && !home.join("data/settings.json").exists()
+        && !home.join("settings.json").exists()
+    {
+        let legacy: ui::Locations = files::read_or_default(&previous_home.join("data-root.json"))?;
+        let legacy_root = legacy.root.unwrap_or(previous_home);
+        if legacy_root.join("settings.json").is_file() {
+            saved.root = Some(legacy_root);
+            saved.tools = legacy.tools;
+            files::write_json(&home.join("data-root.json"), &saved)?;
+        }
+    }
+    let root = arg("--root").or(saved.root).unwrap_or_else(|| {
+        if portable {
+            craft_apps_manager::portable_mode::default_library(&home)
+        } else {
+            home.clone()
+        }
+    });
+    let resolve = |path: PathBuf| -> Result<PathBuf> {
+        if portable {
+            craft_apps_manager::portable_mode::resolve_folder(&home, &path)
+        } else {
+            Ok(std::path::absolute(path)?)
+        }
+    };
+    let root = resolve(root)?;
+    if portable {
+        craft_apps_manager::portable_mode::register_library(&home, &root);
+    }
+    let tools = arg("--tools")
+        .or(saved.tools)
+        .or_else(|| {
+            (portable && home.join("workspace/tools").is_dir())
+                .then(|| home.join("workspace/tools"))
+        })
+        .map(resolve)
+        .transpose()?;
+    let paths = Paths::new(root, tools);
     #[cfg(target_os = "windows")]
     if let Some(plan) = arg("--restore-relocation-files") {
         return craft_apps_manager::relocation::restore_elevated(&paths, &plan);
