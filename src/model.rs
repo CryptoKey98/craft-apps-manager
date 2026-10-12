@@ -178,8 +178,6 @@ pub struct Preferences {
     /// Apps already offered to the user; newer catalog apps are adopted once.
     #[serde(default = "legacy_known_apps")]
     pub known_apps: Vec<String>,
-    /// Select newly published Craft apps for release and source updates.
-    pub select_new_apps: bool,
     /// Discover new apps at startup, using the shared catalog cache.
     pub check_catalog_on_startup: bool,
     /// Discover new apps during scheduled app availability checks.
@@ -215,7 +213,6 @@ impl Default for Preferences {
             check_installed_apps_periodically: true,
             app_check_interval_minutes: 20,
             known_apps: crate::catalog::all().into_iter().map(|e| e.key).collect(),
-            select_new_apps: false,
             check_catalog_on_startup: true,
             check_catalog_with_app_updates: false,
         }
@@ -250,14 +247,6 @@ impl Preferences {
                 continue;
             }
             adopted = true;
-            if self.select_new_apps {
-                if entry.release {
-                    self.selected_apps.push(entry.key.clone());
-                }
-                if entry.source {
-                    self.selected_sources.push(entry.key.clone());
-                }
-            }
             self.known_apps.push(entry.key);
         }
         self.known_apps.sort();
@@ -711,7 +700,7 @@ impl Paths {
             crate::files::write_json(&target, &p)?;
             std::fs::remove_file(legacy)?;
         } else if adopted && target.exists() {
-            // Remember new apps so they are selected and announced only once.
+            // Remember discovered apps without changing update selections.
             crate::files::write_json(&target, &p)?;
         }
         Ok(p)

@@ -1233,16 +1233,6 @@ impl App {
             dialogs::rule(ui);
             check_row(
                 ui,
-                &mut self.settings_draft.select_new_apps,
-                "Include newly published Craft apps automatically",
-                None,
-            )
-            .on_hover_text(
-                "New Craft apps are included in Update All when they are first discovered.",
-            );
-            dialogs::rule(ui);
-            check_row(
-                ui,
                 &mut self.settings_draft.check_catalog_on_startup,
                 "Look for new Craft apps on startup",
                 None,
