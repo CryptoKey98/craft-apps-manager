@@ -21,7 +21,7 @@ fn body_text(ui: &mut egui::Ui, text: &str) {
     ui.add(egui::Label::new(RichText::new(text).size(13.0).color(theme::palette().muted)).wrap());
 }
 
-fn github(ui: &mut egui::Ui, rect: egui::Rect) {
+pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
     let id = egui::Id::new("whats-new-github-mark");
     let cached = ui
         .ctx()

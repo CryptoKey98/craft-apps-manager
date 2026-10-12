@@ -210,6 +210,23 @@ impl App {
                         theme::dot(ui, color);
                         ui.add_space(8.0);
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                        use craft_apps_manager::network::TokenStatus;
+                        let palette = theme::palette();
+                        let (label, token_color, detail) = match self.token_status {
+                            TokenStatus::Connected => ("Token connected", palette.green, "GitHub authentication verified. Higher API limits are available."),
+                            TokenStatus::NotConfigured => ("Not configured", palette.muted, "No GitHub token found. Set CRAFT_GITHUB_TOKEN or GITHUB_TOKEN and restart the manager."),
+                            TokenStatus::Invalid => ("Invalid token", palette.red, "GitHub rejected the token. Check its value or expiration and restart the manager."),
+                            TokenStatus::NotVerified => ("Not verified", palette.muted, "A GitHub token was detected. Authentication is being checked."),
+                            TokenStatus::UnableToVerify => ("Unable to verify", palette.amber, "GitHub authentication could not be verified. Network issues or API restrictions may prevent verification."),
+                        };
+                        ui.horizontal(|ui| {
+                            let (rect, _) = ui.allocate_exact_size(egui::Vec2::splat(13.0), egui::Sense::hover());
+                            super::whats_new::github(ui, rect);
+                            theme::text(ui, label, 12.0, palette.text_3);
+                            theme::dot(ui, token_color);
+                        }).response.on_hover_text(format!("{detail}{}", craft_apps_manager::network::token_source().map(|source| format!("\nSource: {source}")).unwrap_or_default()));
+                        ui.separator();
+                        ui.add_space(8.0);
                             ui.add(
                                 egui::Label::new(
                                     egui::RichText::new(format!(

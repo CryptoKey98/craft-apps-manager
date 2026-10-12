@@ -291,6 +291,14 @@ pub struct App {
     manager_available: Option<self_update::Available>,
     manager_message: String,
     manager_startup_pending: bool,
+    token_status: craft_apps_manager::network::TokenStatus,
+    token_check_started: bool,
+    token_receiver: Option<std::sync::mpsc::Receiver<craft_apps_manager::network::TokenStatus>>,
+    token_draft: String,
+    token_reveal: bool,
+    token_message: String,
+    token_action_receiver:
+        Option<std::sync::mpsc::Receiver<Result<craft_apps_manager::network::TokenStatus, String>>>,
     manager_plan: Option<std::sync::mpsc::Receiver<Result<PathBuf, (bool, String)>>>,
     confirm_self_update: bool,
     restore_app: Option<String>,
@@ -560,6 +568,13 @@ impl App {
             manager_available: None,
             manager_message: String::new(),
             manager_startup_pending,
+            token_status: craft_apps_manager::network::TokenStatus::NotVerified,
+            token_check_started: false,
+            token_receiver: None,
+            token_draft: String::new(),
+            token_reveal: false,
+            token_message: String::new(),
+            token_action_receiver: None,
             manager_plan: None,
             confirm_self_update: false,
             restore_app,
@@ -1288,6 +1303,62 @@ impl App {
     }
     /// Polls background work and keeps the snapshot of disk state fresh.
     fn poll(&mut self, ctx: &egui::Context) {
+        if !self.settings {
+            self.token_draft.clear();
+            self.token_reveal = false;
+        }
+        if let Some(receiver) = &self.token_action_receiver {
+            let result = match receiver.try_recv() {
+                Ok(result) => Some(result),
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    Some(Err("Token operation stopped unexpectedly.".into()))
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => None,
+            };
+            if let Some(result) = result {
+                self.token_action_receiver = None;
+                match result {
+                    Ok(status) => {
+                        self.token_status = status;
+                        self.token_message = match status {
+                            craft_apps_manager::network::TokenStatus::Connected => "Token applied and verified.",
+                            craft_apps_manager::network::TokenStatus::Invalid => "GitHub rejected the active token. Replace it or check your environment variable.",
+                            craft_apps_manager::network::TokenStatus::NotConfigured => "Saved token removed.",
+                            _ => "Token applied, but GitHub could not be reached for verification.",
+                        }.into();
+                    }
+                    Err(error) => {
+                        self.token_message = error;
+                        self.token_check_started = false;
+                    }
+                }
+            }
+        }
+        if !self.token_check_started {
+            self.token_check_started = true;
+            if self.token_status != craft_apps_manager::network::TokenStatus::NotConfigured {
+                let (tx, rx) = std::sync::mpsc::channel();
+                self.token_receiver = Some(rx);
+                let ctx = ctx.clone();
+                std::thread::spawn(move || {
+                    let _ = tx.send(craft_apps_manager::network::verify_token());
+                    ctx.request_repaint();
+                });
+            }
+        }
+        if let Some(receiver) = &self.token_receiver {
+            match receiver.try_recv() {
+                Ok(status) => {
+                    self.token_status = status;
+                    self.token_receiver = None;
+                }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.token_status = craft_apps_manager::network::TokenStatus::UnableToVerify;
+                    self.token_receiver = None;
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            }
+        }
         if let Some(receiver) = &self.installation_selection {
             let result = match receiver.try_recv() {
                 Ok(result) => Some(result),

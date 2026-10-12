@@ -350,6 +350,7 @@ pub enum Icon {
     Folder,
     Check,
     EyeOff,
+    Eye,
 }
 
 pub fn theme_toggle(ui: &mut Ui, mode: Theme) -> Response {
@@ -464,7 +465,7 @@ pub fn paint_icon_weight(
             p(18.0, 12.0),
             p(22.0, 12.0),
         ]),
-        Icon::EyeOff => {
+        Icon::EyeOff | Icon::Eye => {
             line(vec![
                 p(2.0, 12.0),
                 p(6.0, 7.0),
@@ -477,7 +478,9 @@ pub fn paint_icon_weight(
                 p(2.0, 12.0),
             ]);
             painter.circle_stroke(p(12.0, 12.0), 3.0 * scale, stroke);
-            line(vec![p(3.0, 3.0), p(21.0, 21.0)]);
+            if matches!(icon, Icon::EyeOff) {
+                line(vec![p(3.0, 3.0), p(21.0, 21.0)]);
+            }
         }
         Icon::Sun => {
             painter.circle_stroke(p(12.0, 12.0), 4.0 * scale, stroke);
