@@ -955,21 +955,127 @@ impl App {
     }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
         group(ui, "Window behavior", |ui| {
-            check_row(ui, &mut self.settings_draft.close_to_tray, "Keep running in the system tray when closed", Some("Closing hides the window. Periodic checks continue; choose Exit in the tray menu to quit."));
+            check_row(
+                ui,
+                &mut self.settings_draft.close_to_tray,
+                "Keep running in the system tray when closed",
+                Some(
+                    "Closing hides the window. Update checks continue. Use the tray menu to exit.",
+                ),
+            );
             if let Some(message) = &self.tray_error {
                 note(ui, message);
             }
         });
-        note(
-            ui,
-            if cfg!(target_os = "linux") {
-                "AppImage updates retain a rollback copy until successful. System packages require administrator authorization."
-            } else if cfg!(target_os = "macos") {
-                "A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."
-            } else {
-                "A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."
-            },
-        );
+    }
+
+    fn github_token_settings(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        use craft_apps_manager::network;
+        let pending = self.token_action_receiver.is_some() || self.token_receiver.is_some();
+        let mut add = false;
+        let mut remove = false;
+        group(ui, "GitHub token", |ui| {
+            dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
+                ui.allocate_ui_with_layout(
+                    egui::vec2(ui.available_width(), 34.0),
+                    egui::Layout::right_to_left(egui::Align::Center),
+                    |ui| {
+                        add = btn(if network::saved_token_present() {
+                            "Replace"
+                        } else {
+                            "Add"
+                        })
+                        .enabled(!pending && !self.token_draft.trim().is_empty())
+                        .show(ui)
+                        .clicked();
+                        if theme::icon_button(
+                            ui,
+                            if self.token_reveal {
+                                theme::Icon::EyeOff
+                            } else {
+                                theme::Icon::Eye
+                            },
+                            if self.token_reveal {
+                                "Hide token"
+                            } else {
+                                "Show token"
+                            },
+                            theme::palette().muted,
+                        )
+                        .clicked()
+                        {
+                            self.token_reveal = !self.token_reveal;
+                        }
+                        dialogs::field_style(ui);
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.token_draft)
+                                .password(!self.token_reveal)
+                                .hint_text("Paste your GitHub token")
+                                .margin(egui::Margin::symmetric(10, 8))
+                                .min_size(egui::vec2(0.0, 34.0))
+                                .desired_width(ui.available_width()),
+                        );
+                    },
+                );
+                ui.add_space(10.0);
+                ui.add(
+                    egui::Label::new(
+                        RichText::new("Optional. Raises the GitHub API request limit.")
+                            .size(12.0)
+                            .color(theme::palette().muted),
+                    )
+                    .wrap(),
+                );
+                if network::token_source().is_some_and(|source| source != "System credential store")
+                {
+                    ui.add_space(6.0);
+                    ui.add(egui::Label::new(RichText::new("An environment token is active and takes priority over a saved token.").size(12.0).color(theme::palette().muted)).wrap());
+                }
+                if !self.token_message.is_empty() {
+                    ui.add_space(6.0);
+                    ui.add(
+                        egui::Label::new(
+                            RichText::new(&self.token_message)
+                                .size(12.0)
+                                .color(theme::palette().muted),
+                        )
+                        .wrap(),
+                    );
+                }
+            });
+            if network::saved_token_present() {
+                dialogs::rule(ui);
+                remove = row(
+                    ui,
+                    "Saved token",
+                    Some("System credential store"),
+                    56.0,
+                    |ui| btn("Remove").enabled(!pending).show(ui).clicked(),
+                );
+            }
+        });
+        if add || remove {
+            let value = std::mem::take(&mut self.token_draft);
+            self.token_reveal = false;
+            self.token_message = "Applying token…".into();
+            self.token_status = network::TokenStatus::NotVerified;
+            self.token_receiver = None;
+            self.token_check_started = true;
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.token_action_receiver = Some(rx);
+            let ctx = ctx.clone();
+            std::thread::spawn(move || {
+                let result = if remove {
+                    network::remove_saved_token()
+                } else {
+                    network::save_token(&value)
+                }
+                .map(|_| network::verify_token())
+                .map_err(|error| error.to_string());
+                let _ = tx.send(result);
+                ctx.request_repaint();
+            });
+        }
     }
 
     fn settings_updates(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, busy: bool) {
@@ -1091,6 +1197,16 @@ impl App {
                 );
             });
         });
+        note(
+            ui,
+            if cfg!(target_os = "linux") {
+                "AppImage updates retain a rollback copy until successful. System packages require administrator authorization."
+            } else if cfg!(target_os = "macos") {
+                "A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."
+            } else {
+                "A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."
+            },
+        );
         ui.add_space(16.0);
         group(ui, "Update all", |ui| {
             let eligible = self
@@ -1121,16 +1237,6 @@ impl App {
                 self.selection_draft = self.settings_draft.selected_apps.clone();
                 self.selection = true;
             }
-            dialogs::rule(ui);
-            check_row(
-                ui,
-                &mut self.settings_draft.select_new_apps,
-                "Include newly published Craft apps automatically",
-                None,
-            )
-            .on_hover_text(
-                "New Craft apps are included in Update All when they are first discovered.",
-            );
             dialogs::rule(ui);
             check_row(
                 ui,
@@ -1241,6 +1347,8 @@ impl App {
                     Some("Use one administrator prompt for multiple installer updates. Package or installer questions may still appear."));
             });
         }
+        ui.add_space(16.0);
+        self.github_token_settings(ui, ctx);
     }
 
     fn settings_backups(&mut self, ui: &mut egui::Ui, busy: bool) {

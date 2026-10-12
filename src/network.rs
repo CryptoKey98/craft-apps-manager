@@ -18,6 +18,117 @@ pub struct Network {
     client: Client,
     cache: std::path::PathBuf,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TokenStatus {
+    NotConfigured,
+    NotVerified,
+    Connected,
+    Invalid,
+    UnableToVerify,
+}
+fn environment_token() -> Option<(&'static str, String)> {
+    ["CRAFT_GITHUB_TOKEN", "GITHUB_TOKEN"]
+        .into_iter()
+        .find_map(|name| {
+            std::env::var(name)
+                .ok()
+                .filter(|value| !value.trim().is_empty())
+                .map(|value| (name, value.trim().to_owned()))
+        })
+}
+static SAVED_TOKEN: std::sync::OnceLock<std::sync::RwLock<Option<String>>> =
+    std::sync::OnceLock::new();
+fn credential_entry() -> Result<keyring::Entry> {
+    keyring::Entry::new("Craft Apps Manager", "github-api-token")
+        .map_err(|_| anyhow::anyhow!("Cannot access the system credential store."))
+}
+fn saved_token_cache() -> &'static std::sync::RwLock<Option<String>> {
+    SAVED_TOKEN.get_or_init(|| {
+        let value = credential_entry()
+            .ok()
+            .and_then(|entry| entry.get_password().ok());
+        std::sync::RwLock::new(value)
+    })
+}
+fn github_token() -> Option<(&'static str, String)> {
+    environment_token().or_else(|| {
+        saved_token_cache()
+            .read()
+            .ok()
+            .and_then(|value| value.clone())
+            .map(|value| ("System credential store", value))
+    })
+}
+/// Cached metadata only; safe to read while drawing the interface.
+pub fn saved_token_present() -> bool {
+    SAVED_TOKEN
+        .get()
+        .and_then(|cache| cache.read().ok())
+        .is_some_and(|value| value.is_some())
+}
+pub fn save_token(value: &str) -> Result<()> {
+    let value = value.trim();
+    anyhow::ensure!(
+        !value.is_empty() && !value.chars().any(char::is_whitespace),
+        "Enter a token without spaces or line breaks."
+    );
+    let cache = saved_token_cache();
+    let mut saved = cache
+        .write()
+        .map_err(|_| anyhow::anyhow!("Token storage is unavailable."))?;
+    credential_entry()?.set_password(value)
+        .map_err(|_| anyhow::anyhow!("Could not save the token. Unlock or enable your system credential store and try again."))?;
+    *saved = Some(value.into());
+    Ok(())
+}
+pub fn remove_saved_token() -> Result<()> {
+    let cache = saved_token_cache();
+    let mut saved = cache
+        .write()
+        .map_err(|_| anyhow::anyhow!("Token storage is unavailable."))?;
+    match credential_entry()?.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => {}
+        Err(_) => bail!("Could not remove the token from the system credential store."),
+    }
+    *saved = None;
+    Ok(())
+}
+pub fn token_source() -> Option<&'static str> {
+    environment_token()
+        .map(|(source, _)| source)
+        .or_else(|| saved_token_present().then_some("System credential store"))
+}
+fn token_status_from_http(status: reqwest::StatusCode) -> TokenStatus {
+    if status.is_success() {
+        TokenStatus::Connected
+    } else if status == reqwest::StatusCode::UNAUTHORIZED {
+        TokenStatus::Invalid
+    } else {
+        TokenStatus::UnableToVerify
+    }
+}
+/// Validate authentication without caching credentials or exposing response bodies.
+pub fn verify_token() -> TokenStatus {
+    // Load saved credentials on this worker even when an environment token takes priority.
+    let _ = saved_token_cache();
+    let Some((_, token)) = github_token() else {
+        return TokenStatus::NotConfigured;
+    };
+    let result = (|| -> reqwest::Result<reqwest::blocking::Response> {
+        Client::builder()
+            .user_agent(concat!("CraftApps-Manager/", env!("CARGO_PKG_VERSION")))
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(20))
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?
+            .get("https://api.github.com/user")
+            .bearer_auth(token)
+            .send()
+    })();
+    result
+        .map(|response| token_status_from_http(response.status()))
+        .unwrap_or(TokenStatus::UnableToVerify)
+}
 impl Network {
     /// Reads known release metadata without constructing a client or contacting GitHub.
     pub fn cached_json<T: DeserializeOwned>(root: &Path, url: &str) -> Option<T> {
@@ -74,11 +185,8 @@ impl Network {
         }
         // An optional token raises GitHub's hourly API limit; it is sent only to the API host.
         if url.starts_with("https://api.github.com/") {
-            if let Some(token) = ["CRAFT_GITHUB_TOKEN", "GITHUB_TOKEN"]
-                .iter()
-                .find_map(|k| std::env::var(k).ok().filter(|t| !t.trim().is_empty()))
-            {
-                request = request.bearer_auth(token.trim());
+            if let Some((_, token)) = github_token() {
+                request = request.bearer_auth(token);
             }
         }
         let response = request.send()?;
@@ -205,4 +313,36 @@ pub fn verify_asset(p: &Path, a: &Asset) -> Result<()> {
         bail!("Download checksum mismatch");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod token_tests {
+    use super::*;
+
+    #[test]
+    fn invalid_input_is_rejected_before_accessing_the_credential_store() {
+        for value in ["", "   ", "token with spaces", "token\nsecondline"] {
+            assert!(save_token(value).is_err());
+        }
+    }
+
+    #[test]
+    fn authentication_status_distinguishes_rejected_tokens_from_service_failures() {
+        assert_eq!(
+            token_status_from_http(reqwest::StatusCode::OK),
+            TokenStatus::Connected
+        );
+        assert_eq!(
+            token_status_from_http(reqwest::StatusCode::UNAUTHORIZED),
+            TokenStatus::Invalid
+        );
+        for status in [
+            reqwest::StatusCode::FORBIDDEN,
+            reqwest::StatusCode::TOO_MANY_REQUESTS,
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            reqwest::StatusCode::FOUND,
+        ] {
+            assert_eq!(token_status_from_http(status), TokenStatus::UnableToVerify);
+        }
+    }
 }

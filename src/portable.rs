@@ -200,9 +200,56 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
     );
     create_shortcut(&marker, owner, target, &desktop()?)
 }
-pub fn build_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
+#[derive(Serialize, Deserialize)]
+struct BuildShortcutOwnership {
+    #[serde(flatten)]
+    owner: Ownership,
+    #[serde(default)]
+    build_folder: Option<PathBuf>,
+    #[serde(default)]
+    shortcut_title: Option<String>,
+}
+fn build_shortcut_identity(paths: &Paths, app: &str, target: &Path) -> Result<(PathBuf, String)> {
+    use sha2::{Digest, Sha256};
     crate::model::valid_app(app)?;
-    let marker = paths.at(format!("runtime/build-shortcuts/{app}.json"));
+    let target = std::path::absolute(target)?;
+    let digest = format!(
+        "{:x}",
+        Sha256::digest(target.as_os_str().as_encoded_bytes())
+    );
+    let info: crate::model::BuildInfo = files::read_json(&target.join("build-info.json"))?;
+    anyhow::ensure!(info.app == app, "The build belongs to another app");
+    let date = chrono::DateTime::parse_from_rfc3339(&info.built_at)?
+        .with_timezone(&chrono::Local)
+        .format("%b %d %Y %H-%M-%S")
+        .to_string();
+    let commit: String = info
+        .commit
+        .chars()
+        .take(7)
+        .filter(|c| c.is_ascii_hexdigit())
+        .collect();
+    let title = format!(
+        "{} Build ({date} · {commit} · {})",
+        crate::model::title(app),
+        &digest[..8]
+    );
+    Ok((
+        paths.at(format!("runtime/build-shortcuts/{app}/{digest}.json")),
+        title,
+    ))
+}
+pub fn build_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
+    build_desktop_shortcut_at(paths, app, target, &desktop()?)
+}
+fn build_desktop_shortcut_at(
+    paths: &Paths,
+    app: &str,
+    target: &Path,
+    desktop: &Path,
+) -> Result<()> {
+    let (marker, title) = build_shortcut_identity(paths, app, target)?;
+    let target = std::path::absolute(target)?;
     let owner = if marker.exists() {
         files::read_json(&marker)?
     } else {
@@ -212,14 +259,98 @@ pub fn build_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result
             shortcut: None,
         }
     };
-    create_named_shortcut(
+    anyhow::ensure!(
+        owner.app == app && owner.library == std::path::absolute(&paths.root)?,
+        "Build shortcut belongs to another app library"
+    );
+    create_named_shortcut(&marker, owner, &target, desktop, &title)?;
+    let owner = files::read_json(&marker)?;
+    files::write_json(
         &marker,
-        owner,
-        target,
-        &desktop()?,
-        &format!("{} Build", crate::model::title(app)),
+        &BuildShortcutOwnership {
+            owner,
+            build_folder: Some(target),
+            shortcut_title: Some(title),
+        },
     )
 }
+pub fn remove_build_shortcut(paths: &Paths, app: &str, folder: &Path) -> Result<()> {
+    // Keep legacy ownership records supported alongside separate records for each build.
+    let legacy = paths.at(format!("runtime/build-shortcuts/{app}.json"));
+    let directory = paths.at(format!("runtime/build-shortcuts/{app}"));
+    if !legacy.exists() && !directory.exists() {
+        return Ok(());
+    }
+    remove_build_shortcut_at(paths, app, folder, &desktop()?)
+}
+fn remove_build_shortcut_at(paths: &Paths, app: &str, folder: &Path, desktop: &Path) -> Result<()> {
+    use sha2::{Digest, Sha256};
+    crate::model::valid_app(app)?;
+    let folder = std::path::absolute(folder)?;
+    let digest = format!(
+        "{:x}",
+        Sha256::digest(folder.as_os_str().as_encoded_bytes())
+    );
+    for marker in [
+        paths.at(format!("runtime/build-shortcuts/{app}/{digest}.json")),
+        paths.at(format!("runtime/build-shortcuts/{app}.json")),
+    ] {
+        if !marker.exists() {
+            continue;
+        }
+        let record: BuildShortcutOwnership = files::read_json(&marker)?;
+        anyhow::ensure!(
+            record.owner.app == app && record.owner.library == std::path::absolute(&paths.root)?,
+            "Build shortcut belongs to another app library"
+        );
+        let belongs =
+            match &record.build_folder {
+                Some(owned) => owned == &folder,
+                None => record.owner.shortcut.as_ref().is_some_and(|(shortcut, _)| {
+                    legacy_build_shortcut_matches(shortcut, &folder, app)
+                }),
+            };
+        if belongs {
+            let title = record
+                .shortcut_title
+                .unwrap_or_else(|| format!("{} Build", crate::model::title(app)));
+            anyhow::ensure!(
+                Path::new(&title).components().count() == 1 && !title.contains(['/', '\\']),
+                "Invalid build shortcut name"
+            );
+            remove_owned_named_shortcut(record.owner, desktop, &title)?;
+            std::fs::remove_file(marker)?;
+        }
+    }
+    Ok(())
+}
+fn legacy_build_shortcut_matches(shortcut: &Path, folder: &Path, app: &str) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        crate::platform::shortcut_target(shortcut).is_some_and(|target| {
+            same_shortcut_target(
+                &target,
+                &folder.join(crate::model::build_executable_name(app)),
+            )
+        })
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::fs::read_link(shortcut)
+            .is_ok_and(|target| target == folder.join(crate::model::build_executable_name(app)))
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let _ = app;
+        std::fs::read_to_string(shortcut).is_ok_and(|contents| {
+            contents.lines().any(|line| {
+                line.strip_prefix("Path=")
+                    .is_some_and(|working| Path::new(working) == folder)
+            })
+        })
+    }
+}
+
 fn create_shortcut(marker: &Path, owner: Ownership, target: &Path, desktop: &Path) -> Result<()> {
     let title = crate::model::title(&owner.app);
     create_named_shortcut(marker, owner, target, desktop, &title)
@@ -326,10 +457,14 @@ pub fn remove_installer_shortcut(paths: &Paths, app: &str) -> Result<()> {
     Ok(())
 }
 fn remove_owned_shortcut(owner: Ownership, desktop: &Path) -> Result<()> {
+    let title = crate::model::title(&owner.app);
+    remove_owned_named_shortcut(owner, desktop, &title)
+}
+fn remove_owned_named_shortcut(owner: Ownership, desktop: &Path, title: &str) -> Result<()> {
     if let Some((path, expected)) = owner.shortcut {
         let known_path = desktop.join(format!(
             "{}.{}",
-            crate::model::title(&owner.app),
+            title,
             crate::platform::shortcut_extension()
         ));
         // A user-edited shortcut is theirs to keep.
@@ -692,5 +827,129 @@ mod tests {
         );
         assert!(!crate::apps::installed(&paths, "photocraft").is_ok());
         std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod build_shortcut_tests {
+    use super::*;
+    #[test]
+    fn multiple_build_shortcuts_coexist_and_remove_independently() {
+        let root = std::env::temp_dir().join(format!(
+            "craft-build-shortcuts-many-{}",
+            uuid::Uuid::new_v4()
+        ));
+        let paths = Paths::new(root.join("library"), None);
+        let desktop = root.join("desktop");
+        let make = |name: &str| {
+            let folder = paths.at(format!("builds/filmcraft/{name}"));
+            files::write_json(
+                &folder.join("build-info.json"),
+                &crate::model::BuildInfo {
+                    app: "filmcraft".into(),
+                    commit: "a".repeat(40),
+                    source_branch: "main".into(),
+                    built_at: "2026-10-12T12:00:00Z".into(),
+                    profile: "release".into(),
+                    log: String::new(),
+                },
+            )
+            .unwrap();
+            std::fs::write(folder.join("filmcraft.exe"), b"test build").unwrap();
+            build_desktop_shortcut_at(&paths, "filmcraft", &folder, &desktop).unwrap();
+            let (marker, title) = build_shortcut_identity(&paths, "filmcraft", &folder).unwrap();
+            (folder, marker, desktop.join(format!("{title}.lnk")))
+        };
+        // Even the same commit and timestamp need separate shortcuts.
+        let first = make("first");
+        let second = make("second");
+        assert_ne!(first.2, second.2);
+        assert!(first.2.is_file() && second.2.is_file());
+        assert_eq!(
+            PathBuf::from(crate::platform::shortcut_target(&first.2).unwrap())
+                .canonicalize()
+                .unwrap(),
+            first.0.join("filmcraft.exe").canonicalize().unwrap()
+        );
+        assert_eq!(
+            PathBuf::from(crate::platform::shortcut_target(&second.2).unwrap())
+                .canonicalize()
+                .unwrap(),
+            second.0.join("filmcraft.exe").canonicalize().unwrap()
+        );
+        build_desktop_shortcut_at(&paths, "filmcraft", &first.0, &desktop).unwrap();
+        assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 2);
+        remove_build_shortcut_at(&paths, "filmcraft", &first.0, &desktop).unwrap();
+        assert!(!first.2.exists() && !first.1.exists());
+        assert!(second.2.exists() && second.1.exists());
+        std::fs::write(&second.2, b"User edited shortcut").unwrap();
+        remove_build_shortcut_at(&paths, "filmcraft", &second.0, &desktop).unwrap();
+        assert_eq!(std::fs::read(&second.2).unwrap(), b"User edited shortcut");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn removing_build_shortcuts_preserves_other_builds_and_user_edits() {
+        for (legacy, other_build, edited) in [
+            (false, false, false),
+            (true, false, false),
+            (false, true, false),
+            (true, true, false),
+            (false, false, true),
+        ] {
+            let root =
+                std::env::temp_dir().join(format!("craft-build-shortcut-{}", uuid::Uuid::new_v4()));
+            let paths = Paths::new(root.join("library"), None);
+            let desktop = root.join("desktop");
+            let selected = root.join("selected");
+            let other = root.join("other");
+            std::fs::create_dir_all(&selected).unwrap();
+            std::fs::create_dir_all(&other).unwrap();
+            for folder in [&selected, &other] {
+                std::fs::write(folder.join("filmcraft.exe"), b"test build").unwrap();
+            }
+            let marker = paths.at("runtime/build-shortcuts/filmcraft.json");
+            let target = if other_build { &other } else { &selected };
+            create_named_shortcut(
+                &marker,
+                Ownership {
+                    app: "filmcraft".into(),
+                    library: std::path::absolute(&paths.root).unwrap(),
+                    shortcut: None,
+                },
+                target,
+                &desktop,
+                "FilmCraft Build",
+            )
+            .unwrap();
+            if !legacy {
+                let owner = files::read_json(&marker).unwrap();
+                files::write_json(
+                    &marker,
+                    &BuildShortcutOwnership {
+                        owner,
+                        build_folder: Some(target.clone()),
+                        shortcut_title: None,
+                    },
+                )
+                .unwrap();
+            }
+            let shortcut = desktop.join("FilmCraft Build.lnk");
+            if edited {
+                std::fs::write(&shortcut, b"user changed shortcut").unwrap();
+            }
+            let original = std::fs::read(&shortcut).unwrap();
+            remove_build_shortcut_at(&paths, "filmcraft", &selected, &desktop).unwrap();
+            if other_build || edited {
+                assert_eq!(std::fs::read(&shortcut).unwrap(), original);
+            } else {
+                assert!(!shortcut.exists());
+            }
+            if other_build {
+                assert!(marker.exists());
+            }
+            assert!(other.join("filmcraft.exe").exists());
+            std::fs::remove_dir_all(root).unwrap();
+        }
     }
 }

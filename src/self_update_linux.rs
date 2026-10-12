@@ -105,7 +105,7 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
     let hash = files::hash(&package)?;
     fs::copy(&target, stage.join(helper_name()))?;
     job.check()?;
-    job.stage("Installing manager update", None, "Approve the administrator prompt. The package manager must finish before the manager restarts.");
+    job.stage("Installing package", None, "Approve the administrator prompt. The package manager must finish before the manager restarts.");
     let log = fs::File::create(stage.join("install.log"))?;
     let args = match kind {
         PackageKind::Debian => ["/usr/bin/apt-get", "install", "-y"],

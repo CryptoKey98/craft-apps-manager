@@ -68,6 +68,33 @@ impl Manager {
         uuid::Uuid::parse_str(id)?;
         Ok(self.directory.join(format!("{id}.json")))
     }
+    /// Separate phase markers avoid lost updates when two processes acknowledge
+    /// different activities, and let completion notify after an active item was read.
+    pub fn acknowledge_activity(&self, id: &str, terminal: bool) -> Result<()> {
+        let path = self.path(id)?.with_extension(if terminal {
+            "read-terminal"
+        } else {
+            "read-active"
+        });
+        files::write_bytes(&path, b"read")
+    }
+    pub fn announce_activity(&self, id: &str) -> Result<()> {
+        files::write_bytes(&self.path(id)?.with_extension("notified"), b"new")
+    }
+    pub fn activity_was_announced(&self, id: &str) -> bool {
+        self.path(id)
+            .is_ok_and(|path| path.with_extension("notified").is_file())
+    }
+    pub fn activity_is_read(&self, id: &str, terminal: bool) -> bool {
+        self.path(id).is_ok_and(|path| {
+            path.with_extension(if terminal {
+                "read-terminal"
+            } else {
+                "read-active"
+            })
+            .is_file()
+        })
+    }
     pub fn register(&self, kind: &str, resource: &str, parent: Option<String>) -> Handle {
         let handle = Handle {
             manager: self.clone(),
@@ -153,7 +180,10 @@ impl Manager {
             .skip(100)
         {
             if let Ok(path) = self.path(&record.id) {
+                let _ = std::fs::remove_file(path.with_extension("notified"));
                 let _ = std::fs::remove_file(path.with_extension("cancel"));
+                let _ = std::fs::remove_file(path.with_extension("read-active"));
+                let _ = std::fs::remove_file(path.with_extension("read-terminal"));
                 let _ = std::fs::remove_file(path);
             }
         }

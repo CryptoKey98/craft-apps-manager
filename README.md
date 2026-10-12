@@ -45,7 +45,7 @@ Screenshots show the Windows 0.8.0 client with a separate demo library, captured
 
 ## Getting started
 
-Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.0** includes these formats:
+Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.1** includes these formats:
 
 | System | Installation | Portable |
 | --- | --- | --- |
@@ -112,7 +112,7 @@ You can track your own apps too: paste a GitHub repository link in Settings → 
 
 Release formats and architectures depend on what each upstream app publishes. Custom-app setup reviews the detected download, package type and architecture, with a download chooser for ambiguous assets. Adding or removing a repository changes the manager’s list; it does not install or uninstall the application. Custom apps are experimental and some installers may not be detected or removed reliably.
 
-The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery is enabled by default; discovery during hourly app checks is a separate setting with a shared six-hour cache. New apps appear in the list but are not selected for bulk app/source updates unless you enable **Include newly published Craft apps automatically**. Discovery never installs apps. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.
+The manager can discover new Craft apps from Storytold without a manager update. Use **Settings → Updates → App list → Refresh** to refresh the list manually. Startup discovery is enabled by default; discovery during hourly app checks is a separate setting with a shared six-hour cache. Discovery adds apps to the library without installing them or changing update selections. Newly installed apps are automatically selected for Update All. A built-in list and saved catalog keep the manager usable offline. An optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) raises the GitHub API limit; it is sent only to `api.github.com`.
 
 PDFCraft's repository was renamed from PrintCraft. The manager accepts both `pdfcraft` and older `printcraft` release files and executable names, while retaining the existing library identity. More generally, when an app's release uses a single new file name, the manager installs it as the same app and remembers the new name. Installer mode detects apps installed before Manager, including on the first launch of a fresh library.
 

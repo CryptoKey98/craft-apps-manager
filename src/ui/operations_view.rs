@@ -4,12 +4,19 @@ use eframe::egui;
 
 #[derive(Default)]
 pub(super) struct ActivityNotifications {
+    shared: Option<craft_apps_manager::operations::Manager>,
     initialized: bool,
     seen: std::collections::HashMap<String, bool>,
     unread: std::collections::HashSet<String>,
     highlight_ids: std::collections::HashSet<egui::Id>,
 }
 impl ActivityNotifications {
+    pub(super) fn new(root: &std::path::Path) -> Self {
+        Self {
+            shared: Some(craft_apps_manager::operations::Manager::new(root)),
+            ..Default::default()
+        }
+    }
     pub(super) fn observe(&mut self, records: &[Operation]) {
         for record in records
             .iter()
@@ -21,7 +28,23 @@ impl ActivityNotifications {
             if (previous.is_none() && (self.initialized || !terminal))
                 || previous == Some(false) && terminal
             {
+                if let Some(shared) = &self.shared {
+                    let _ = shared.announce_activity(&record.id);
+                }
                 self.unread.insert(record.id.clone());
+            }
+            if self.shared.as_ref().is_some_and(|shared| {
+                shared.activity_was_announced(&record.id)
+                    && !shared.activity_is_read(&record.id, terminal)
+            }) {
+                self.unread.insert(record.id.clone());
+            }
+            if self
+                .shared
+                .as_ref()
+                .is_some_and(|shared| shared.activity_is_read(&record.id, terminal))
+            {
+                self.unread.remove(&record.id);
             }
         }
         self.initialized = true;
@@ -30,7 +53,9 @@ impl ActivityNotifications {
         self.unread.len()
     }
     fn mark_all_read(&mut self) {
-        self.unread.clear();
+        for id in self.unread.clone() {
+            self.mark_read(&id);
+        }
     }
     fn dismiss(&mut self, ctx: &egui::Context) {
         self.mark_all_read();
@@ -42,7 +67,11 @@ impl ActivityNotifications {
         self.unread.contains(id)
     }
     fn mark_read(&mut self, id: &str) {
-        self.unread.remove(id);
+        if self.unread.remove(id) {
+            if let (Some(shared), Some(terminal)) = (&self.shared, self.seen.get(id)) {
+                let _ = shared.acknowledge_activity(id, *terminal);
+            }
+        }
     }
 }
 
@@ -53,6 +82,9 @@ impl App {
             if ctx.data(|data| data.get_temp::<bool>(visible_id).unwrap_or(false)) {
                 self.activity_notifications.dismiss(ctx);
                 ctx.request_repaint();
+            }
+            for id in self.activity_notifications.highlight_ids.drain() {
+                ctx.animate_bool_with_time(id, false, 0.0);
             }
             ctx.data_mut(|data| data.remove::<bool>(visible_id));
             return;
@@ -758,6 +790,45 @@ mod activity_tests {
         op.lifecycle = state;
         op
     }
+    #[test]
+    fn notification_acknowledgements_sync_both_windows_and_preserve_completion() {
+        let root =
+            std::env::temp_dir().join(format!("craft-activity-sync-{}", uuid::Uuid::new_v4()));
+        let mut manager = ActivityNotifications::new(&root);
+        let mut builder = ActivityNotifications::new(&root);
+        manager.observe(&[]);
+        builder.observe(&[]);
+        let mut op = record("Build", Lifecycle::Running);
+        manager.observe(&[op.clone()]);
+        builder.observe(&[op.clone()]);
+        assert_eq!(manager.count(), 1);
+        assert_eq!(builder.count(), 1);
+        let mut reopened = ActivityNotifications::new(&root);
+        let mut completed = op.clone();
+        completed.lifecycle = Lifecycle::Completed;
+        manager.observe(&[completed.clone()]);
+        reopened.observe(&[completed]);
+        assert_eq!(reopened.count(), manager.count());
+        builder.mark_read(&op.id);
+        manager.observe(&[op.clone()]);
+        assert_eq!(manager.count(), 0);
+        op.lifecycle = Lifecycle::Completed;
+        manager.observe(&[op.clone()]);
+        builder.observe(&[op.clone()]);
+        assert_eq!(manager.count(), 1);
+        assert_eq!(builder.count(), 1);
+        manager.mark_all_read();
+        builder.observe(&[op.clone()]);
+        assert_eq!(builder.count(), 0);
+        assert!(!builder.is_unread(&op.id));
+        let next = record("Build", Lifecycle::Running);
+        manager.observe(&[op.clone(), next.clone()]);
+        builder.observe(&[op, next]);
+        assert_eq!(manager.count(), 1);
+        assert_eq!(builder.count(), 1);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn activity_badge_retains_unread_completion_until_viewed() {
         let mut badge = ActivityNotifications::default();

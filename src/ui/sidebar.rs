@@ -1,7 +1,10 @@
 //! Window chrome: the top bar, the app list on the left and the status bar.
 use super::theme::{self, btn, Icon, Kind, Size};
 use super::{App, Page};
-use craft_apps_manager::{jobs::State, model, settings};
+use craft_apps_manager::{
+    jobs::{Job, State},
+    model, settings,
+};
 use eframe::egui::{self, Color32, CornerRadius, FontId, Rect, Sense, Stroke};
 
 /// Height of one CSS text line in the mockups: IBM Plex Sans renders at 1.327 em.
@@ -23,8 +26,53 @@ struct SidebarDrag {
 }
 
 impl App {
+    pub(super) fn activity_settings_buttons(&mut self, ui: &mut egui::Ui) {
+        let settings_button = btn("Settings").size(Size::Toolbar).icon(Icon::Gear);
+        let activity_button = btn("Activity").size(Size::Toolbar).icon(Icon::Activity);
+        let width = settings_button
+            .desired_size(ui)
+            .x
+            .max(activity_button.desired_size(ui).x);
+        if settings_button.min_width(width).show(ui).clicked() {
+            self.open_settings();
+        }
+        let count = self.activity_notifications.count();
+        let response = activity_button
+            .min_width(width)
+            .show(ui)
+            .on_hover_text(if count == 0 {
+                "View recent activity".into()
+            } else {
+                format!("{count} unread activities")
+            });
+        self.activity_anchor = Some(response.rect.right_bottom() + egui::vec2(0.0, 8.0));
+        if count > 0 {
+            let center = response.rect.right_top() + egui::vec2(-3.0, 3.0);
+            ui.painter()
+                .circle_filled(center, 7.0, theme::palette().accent);
+            ui.painter().text(
+                center,
+                egui::Align2::CENTER_CENTER,
+                if count > 9 {
+                    "9+".into()
+                } else {
+                    count.to_string()
+                },
+                FontId::proportional(9.0),
+                Color32::WHITE,
+            );
+        }
+        if response.clicked() {
+            self.activity_open = !self.activity_open;
+        }
+    }
+
     pub(super) fn top_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let building = self.build_job.snapshot().busy;
+        let building = self.build_job.snapshot().busy
+            || self
+                .operation_records
+                .iter()
+                .any(|op| Job::builder_operation(op, &op.resource));
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
@@ -99,46 +147,7 @@ impl App {
                             }
                         }
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            let settings_button =
-                                btn("Settings").size(Size::Toolbar).icon(Icon::Gear);
-                            let activity_button =
-                                btn("Activity").size(Size::Toolbar).icon(Icon::Activity);
-                            let width = settings_button
-                                .desired_size(ui)
-                                .x
-                                .max(activity_button.desired_size(ui).x);
-                            if settings_button.min_width(width).show(ui).clicked() {
-                                self.open_settings();
-                            }
-                            let count = self.activity_notifications.count();
-                            let response = activity_button.min_width(width).show(ui).on_hover_text(
-                                if count == 0 {
-                                    "View recent activity".into()
-                                } else {
-                                    format!("{count} unread activities")
-                                },
-                            );
-                            self.activity_anchor =
-                                Some(response.rect.right_bottom() + egui::vec2(0.0, 8.0));
-                            if count > 0 {
-                                let center = response.rect.right_top() + egui::vec2(-3.0, 3.0);
-                                ui.painter()
-                                    .circle_filled(center, 7.0, theme::palette().accent);
-                                ui.painter().text(
-                                    center,
-                                    egui::Align2::CENTER_CENTER,
-                                    if count > 9 {
-                                        "9+".into()
-                                    } else {
-                                        count.to_string()
-                                    },
-                                    FontId::proportional(9.0),
-                                    Color32::WHITE,
-                                );
-                            }
-                            if response.clicked() {
-                                self.activity_open = !self.activity_open;
-                            }
+                            self.activity_settings_buttons(ui);
                             if theme::theme_toggle(ui, self.preferences.theme).clicked() {
                                 let result = (|| -> anyhow::Result<()> {
                                     let mut preferences = self.paths.read_preferences()?;
@@ -163,7 +172,16 @@ impl App {
     }
 
     pub(super) fn status_bar(&mut self, ctx: &egui::Context, state: &State) {
-        let build = self.build_job.snapshot();
+        let active_app = if self.build_job.snapshot().busy {
+            self.build_app.as_str()
+        } else {
+            self.operation_records
+                .iter()
+                .find(|op| Job::builder_operation(op, &op.resource))
+                .map(|op| op.resource.as_str())
+                .unwrap_or(&self.build_app)
+        };
+        let build = self.observed_build_state(active_app);
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
@@ -191,7 +209,7 @@ impl App {
                         BUSY_DOT,
                         format!(
                             "Building {} · {}",
-                            model::title(&self.build_app),
+                            model::title(active_app),
                             build.stage
                         ),
                     )
@@ -210,6 +228,22 @@ impl App {
                         theme::dot(ui, color);
                         ui.add_space(8.0);
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                        use craft_apps_manager::network::TokenStatus;
+                        let palette = theme::palette();
+                        let (label, token_color, detail) = match self.token_status {
+                            TokenStatus::Connected => ("Token connected", palette.green, "GitHub authentication verified. Higher API limits are available."),
+                            TokenStatus::NotConfigured => ("Not configured", palette.muted, "No GitHub token found. Set CRAFT_GITHUB_TOKEN or GITHUB_TOKEN and restart the manager."),
+                            TokenStatus::Invalid => ("Invalid token", palette.red, "GitHub rejected the token. Check its value or expiration and restart the manager."),
+                            TokenStatus::NotVerified => ("Not verified", palette.muted, "A GitHub token was detected. Authentication is being checked."),
+                            TokenStatus::UnableToVerify => ("Unable to verify", palette.amber, "GitHub authentication could not be verified. Network issues or API restrictions may prevent verification."),
+                        };
+                        ui.horizontal(|ui| {
+                            let (rect, _) = ui.allocate_exact_size(egui::Vec2::splat(13.0), egui::Sense::hover());
+                            super::whats_new::github(ui, rect);
+                            theme::dot(ui, token_color);
+                        }).response.on_hover_text(format!("{label}\n{detail}{}", craft_apps_manager::network::token_source().map(|source| format!("\nSource: {source}")).unwrap_or_default()));
+                        ui.separator();
+                        ui.add_space(8.0);
                             ui.add(
                                 egui::Label::new(
                                     egui::RichText::new(format!(

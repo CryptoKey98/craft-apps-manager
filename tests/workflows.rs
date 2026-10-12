@@ -483,10 +483,12 @@ fn app_management_preserves_other_data_and_launch_settings() {
         .iter()
         .chain(&saved.installations)
         .all(|record| std::path::Path::new(&record.path) != folder));
+    // A remaining native copy may become selected. The removed portable copy's
+    // launch options must remain attached to its own location, not that other copy.
+    let launch_settings: BTreeMap<String, craft_apps_manager::apps::LaunchSettings> =
+        files::read_json(&paths.at("runtime/launch-settings.json")).unwrap();
     assert_eq!(
-        craft_apps_manager::apps::settings(&paths, "filmcraft")
-            .unwrap()
-            .arguments,
+        launch_settings[&format!("filmcraft|{}", folder.display())].arguments,
         value.arguments
     );
 }
@@ -964,7 +966,7 @@ fn release_with(tag: &str, names: &[String]) -> craft_apps_manager::model::Relea
     }
 }
 #[test]
-fn newly_published_apps_are_selected_once_and_remembered() {
+fn newly_published_apps_are_remembered_without_changing_update_selection() {
     let f = Fixture::new();
     let paths = f.paths();
     // Settings from a manager that only knew its built-in apps.
@@ -974,7 +976,7 @@ fn newly_published_apps_are_selected_once_and_remembered() {
     )
     .unwrap();
     let p = paths.preferences().unwrap();
-    assert!(p.selected_apps.iter().any(|a| a == "artcraft"));
+    assert_eq!(p.selected_apps, ["filmcraft"]);
     assert!(p.app_order.iter().any(|a| a == "artcraft"));
     assert!(!p.selected_apps.iter().any(|a| a == "photocraft"));
     // ArtCraft is published as releases only.
@@ -989,16 +991,20 @@ fn newly_published_apps_are_selected_once_and_remembered() {
         .selected_apps
         .iter()
         .any(|a| a == "artcraft"));
-    // Automatic selection can be turned off.
+    // Obsolete discovery selection is ignored without changing saved choices.
     files::write_json(
         &paths.at("manager-settings.json"),
-        &serde_json::json!({"selectedApps":[],"selectedSources":[]}),
+        &serde_json::json!({"selectedApps":[],"selectedSources":[],"selectNewApps":true}),
     )
     .unwrap();
     let p = paths.preferences().unwrap();
     assert!(p.selected_apps.is_empty());
     assert!(p.selected_sources.is_empty());
-    assert!(!p.select_new_apps);
+    assert!(!serde_json::to_value(&p)
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .contains_key("selectNewApps"));
     assert!(p.check_catalog_on_startup);
     assert!(!p.check_catalog_with_app_updates);
     assert!(p.known_apps.iter().any(|a| a == "artcraft"));

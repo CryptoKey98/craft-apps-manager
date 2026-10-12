@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+- Synchronize builder progress, cancellation, logs, activity notifications and theme between manager and builder windows.
+- Select a completed build for launching in Build Options, with individual build shortcuts and safe shortcut cleanup.
+- Show GitHub token status as a compact icon and colored indicator, with details on hover.
+
 ## 0.8.0
 
 - Add Multiple installations: select an existing installer or portable copy, target actions at that copy, and add portable copies in separate folders using the existing install dialog.
