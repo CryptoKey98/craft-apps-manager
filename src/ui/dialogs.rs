@@ -349,6 +349,74 @@ fn paint_setup_file(painter: &egui::Painter, rect: egui::Rect, color: Color32) {
     ));
 }
 impl App {
+    fn install_version_control(
+        &mut self,
+        ui: &mut egui::Ui,
+        app: &str,
+        plan: Option<&updates::ReleasePlan>,
+        ctx: &egui::Context,
+    ) {
+        if self.versions_app.as_deref() != Some(app) {
+            self.versions_app = Some(app.into());
+            self.versions_result = None;
+            let paths = self.paths.clone();
+            let app = app.to_string();
+            let ctx = ctx.clone();
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.versions_receiver = Some(rx);
+            std::thread::spawn(move || {
+                let result =
+                    updates::available_versions(&paths, &app).map_err(|error| format!("{error:#}"));
+                let _ = tx.send(result);
+                ctx.request_repaint();
+            });
+        }
+        theme::text(ui, "Version", 12.0, theme::palette().muted);
+        ui.add_space(6.0);
+        field_style(ui);
+        let current = self
+            .install_selected_tag
+            .clone()
+            .or_else(|| plan.and_then(|plan| plan.requested_tag.clone()));
+        let latest_label = plan
+            .and_then(|plan| plan.entries.first())
+            .filter(|_| current.is_none())
+            .map(|entry| format!("{} · Latest release", entry.version))
+            .unwrap_or_else(|| "Latest release".into());
+        let mut selected = current.clone();
+        ui.add_enabled_ui(
+            self.install_receiver.is_none() && self.custom_receiver.is_none(),
+            |ui| {
+                egui::ComboBox::from_id_salt(("install-version", app))
+                    .width(ui.available_width())
+                    .selected_text(current.as_deref().unwrap_or(&latest_label))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(&mut selected, None, "Latest release");
+                        match &self.versions_result {
+                            Some(Ok(releases)) => {
+                                for release in releases {
+                                    ui.selectable_value(
+                                        &mut selected,
+                                        Some(release.tag_name.clone()),
+                                        &release.tag_name,
+                                    );
+                                }
+                            }
+                            Some(Err(error)) => {
+                                ui.label(error);
+                            }
+                            None => {
+                                ui.label("Loading versions…");
+                            }
+                        }
+                    });
+            },
+        );
+        if selected != current {
+            self.install_selected_tag = selected;
+            self.load_install(app, ctx);
+        }
+    }
     fn install_options_controls(
         &mut self,
         ui: &mut egui::Ui,
@@ -396,7 +464,8 @@ impl App {
         let available = install_options::available(&release, app, &self.preferences);
         // Version changes must keep the verified installation configuration.
         // Preferences alone do not prove how an existing copy was installed.
-        let version_change_locked = tag.is_some()
+        let version_change_locked = !self.additional_installation
+            && tag.is_some()
             && self.display_config.as_ref().is_some_and(|config| {
                 config
                     .apps
@@ -523,7 +592,7 @@ impl App {
                     }
                     self.install_error = None;
                     self.install_receiver = None;
-                    if let Some(tag) = tag {
+                    if let Some(tag) = tag.filter(|_| !self.additional_installation) {
                         let previous = self.install_result.clone();
                         self.review_version(app.into(), tag, ctx);
                         self.install_result = previous;
@@ -803,6 +872,10 @@ impl App {
         }
     }
     pub(super) fn dialogs(&mut self, ctx: &egui::Context) {
+        if self.confirm_install.is_none() {
+            self.additional_installation = false;
+            self.install_selected_tag = None;
+        }
         self.custom_setup_dialog(ctx);
         if let Some(key) = self.remove_custom_confirm.clone() {
             if self.settings {
@@ -1034,6 +1107,7 @@ impl App {
                     "Download selection cancelled.".into()
                 } else if self.custom_resume_install.take().is_some() {
                     self.confirm_install = None;
+                    self.additional_installation = false;
                     self.install_draft_app = None;
                     "Download selection cancelled.".into()
                 } else {
@@ -1888,6 +1962,7 @@ impl App {
                 .as_ref()
                 .and_then(|c| c.apps.iter().find(|a| a.name == app))
                 .filter(|a| model::installed_architecture_matches(a, &install_preferences))
+                .filter(|_| !self.additional_installation)
                 .cloned();
             let installed_portable = !installer
                 && current
@@ -1900,7 +1975,12 @@ impl App {
                     .filter(|a| !a.path.is_empty() && a.install_kind != "installer")
                     .map(|a| std::path::PathBuf::from(&a.path))
                     .unwrap_or_else(|| self.paths.at(format!("releases/{app}")));
-                self.install_parent = if installer && cfg!(target_os = "windows") {
+                self.install_parent = if self.additional_installation && !installer {
+                    self.paths
+                        .at(format!("releases/{app}-{}", uuid::Uuid::new_v4().simple()))
+                        .display()
+                        .to_string()
+                } else if installer && cfg!(target_os = "windows") {
                     std::env::var("ProgramFiles")
                         .unwrap_or_else(|_| target.parent().unwrap().display().to_string())
                 } else {
@@ -2027,7 +2107,13 @@ impl App {
                         theme::palette().muted,
                     );
                     ui.add_space(18.0);
+                    self.install_version_control(ui, &app, plan.as_ref(), ctx);
+                    ui.add_space(18.0);
                     self.install_options_controls(ui, &app, plan.as_ref(), ctx);
+                    if self.additional_installation {
+                        ui.add_space(8.0);
+                        note(ui, "This adds a separate copy. Some apps share user settings between installations. Only one native installer copy is supported.");
+                    }
                     ui.add_space(18.0);
                     field_style(ui);
                     if installer && !custom_installer {
@@ -2250,6 +2336,7 @@ impl App {
                 self.confirm_install = None;
             }
             if self.confirm_install.is_none() {
+                self.additional_installation = false;
                 self.install_draft_app = None;
                 self.install_receiver = None;
                 self.folder_receiver = None;

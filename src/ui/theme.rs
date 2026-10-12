@@ -343,6 +343,7 @@ pub enum Icon {
     Close,
     Sliders,
     Archive,
+    Layers,
     Code,
     Wrench,
     Alert,
@@ -575,6 +576,17 @@ pub fn paint_icon_weight(
             line(vec![p(1.0, 14.0), p(7.0, 14.0)]);
             line(vec![p(9.0, 8.0), p(15.0, 8.0)]);
             line(vec![p(17.0, 16.0), p(23.0, 16.0)]);
+        }
+        Icon::Layers => {
+            line(vec![
+                p(2.0, 8.0),
+                p(12.0, 3.0),
+                p(22.0, 8.0),
+                p(12.0, 13.0),
+                p(2.0, 8.0),
+            ]);
+            line(vec![p(2.0, 13.0), p(12.0, 18.0), p(22.0, 13.0)]);
+            line(vec![p(2.0, 18.0), p(12.0, 23.0), p(22.0, 18.0)]);
         }
         Icon::Archive => {
             painter.rect_stroke(

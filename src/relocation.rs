@@ -97,14 +97,18 @@ pub fn move_app(paths: &Paths, expected: &Installed, parent: &Path, job: &Job) -
     result
 }
 
-fn save_location(paths: &Paths, app: &Installed) -> Result<()> {
+fn save_location(paths: &Paths, app: &Installed, previous_path: &str) -> Result<()> {
     let mut config = paths.config()?;
     let record = config
         .apps
         .iter_mut()
         .find(|a| a.name == app.name)
         .context("App missing from library")?;
+    apps::carry_launch_settings(paths, &app.name, previous_path, &app.path)?;
     *record = app.clone();
+    config
+        .installations
+        .retain(|copy| !(copy.name == app.name && copy.path == previous_path));
     paths.save_config(&config)
 }
 
@@ -153,7 +157,7 @@ fn move_portable(paths: &Paths, current: &Installed, target: &Path, job: &Job) -
     let mut moved = current.clone();
     moved.path = target.display().to_string();
     let commit = portable::mark_moved(paths, &current.name, target)
-        .and_then(|()| save_location(paths, &moved));
+        .and_then(|()| save_location(paths, &moved, &current.path));
     if let Err(error) = commit {
         files::move_verified(target, source)
             .context("Could not restore the original app location")?;
@@ -236,7 +240,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
             "Installer used a different location"
         );
         restore_installer_files(paths, &current.name, &backup, target, job)?;
-        save_location(paths, &installed)?;
+        save_location(paths, &installed, &current.path)?;
         Ok(installed)
     })();
     match attempt {
@@ -271,7 +275,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
                     Path::new(&restored.path),
                     &Job::new(paths.at("logs/move-recovery.log"), &Default::default()),
                 )?;
-                save_location(paths, &restored)
+                save_location(paths, &restored, &current.path)
             })();
             if let Err(recovery) = recovery {
                 anyhow::bail!(
@@ -502,6 +506,74 @@ mod tests {
         assert!(destination(&paths, &app, &parent).is_err());
         std::fs::remove_dir_all(&parent).unwrap();
         std::fs::remove_dir_all(&paths.root).unwrap();
+    }
+    #[test]
+    fn moving_one_copy_preserves_other_inventory_and_copy_launch_options() {
+        let (paths, app, job) = fixture();
+        let other_folder = paths.at("releases/other/photocraft");
+        files::copy_directory_verified(Path::new(&app.path), &other_folder).unwrap();
+        let mut other = app.clone();
+        other.path = other_folder.display().to_string();
+        let mut config = paths.config().unwrap();
+        config.installations.push(other.clone());
+        paths.save_config(&config).unwrap();
+        apps::save(
+            &paths,
+            &app.name,
+            &apps::LaunchSettings {
+                executable: String::new(),
+                arguments: vec!["selected-copy".into()],
+            },
+        )
+        .unwrap();
+        *config
+            .apps
+            .iter_mut()
+            .find(|copy| copy.name == app.name)
+            .unwrap() = other.clone();
+        paths.save_config(&config).unwrap();
+        apps::save(
+            &paths,
+            &app.name,
+            &apps::LaunchSettings {
+                executable: String::new(),
+                arguments: vec!["other-copy".into()],
+            },
+        )
+        .unwrap();
+        *config
+            .apps
+            .iter_mut()
+            .find(|copy| copy.name == app.name)
+            .unwrap() = app.clone();
+        paths.save_config(&config).unwrap();
+        let parent = paths.at("releases/moved");
+        move_app(&paths, &app, &parent, &job).unwrap();
+        assert_eq!(
+            apps::settings(&paths, &app.name).unwrap().arguments,
+            ["selected-copy"]
+        );
+        let mut config = paths.config().unwrap();
+        assert!(config
+            .installations
+            .iter()
+            .any(|copy| copy.path == other.path));
+        assert!(!config
+            .installations
+            .iter()
+            .any(|copy| copy.path == app.path));
+        *config
+            .apps
+            .iter_mut()
+            .find(|copy| copy.name == app.name)
+            .unwrap() = other;
+        paths.save_config(&config).unwrap();
+        assert_eq!(
+            apps::settings(&paths, &app.name).unwrap().arguments,
+            ["other-copy"]
+        );
+        assert!(other_folder.exists());
+        std::fs::remove_dir_all(paths.root).unwrap();
     }
     #[test]
     fn cancellation_and_invalid_destination_leave_source_intact() {

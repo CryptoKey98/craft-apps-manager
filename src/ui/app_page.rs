@@ -55,6 +55,70 @@ const MAIN_GAP: f32 = 24.0;
 const TOOL_ROW: f32 = 63.75;
 /// The left edge of a tool row's text, and of what sits below it, inside the group.
 const TOOL_TEXT_X: f32 = 38.0;
+
+fn installation_menu_row(ui: &mut Ui, label: &str, path: Option<&str>, selected: bool) -> Response {
+    let p = theme::palette();
+    let (rect, response) = ui.allocate_exact_size(
+        vec2(
+            ui.available_width(),
+            if path.is_some() { 60.0 } else { 42.0 },
+        ),
+        Sense::click(),
+    );
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            ui.is_enabled(),
+            selected,
+            label,
+        )
+    });
+    if selected || response.hovered() {
+        ui.painter().rect_filled(
+            rect,
+            CornerRadius::same(8),
+            if selected {
+                p.accent_soft
+            } else {
+                p.button_hover
+            },
+        );
+    }
+    let left = rect.left() + if path.is_some() { 12.0 } else { 36.0 };
+    let width = (rect.right() - left - 34.0).max(1.0);
+    let text = |text: &str, size, color, y| {
+        let mut job =
+            egui::text::LayoutJob::simple(text.into(), FontId::proportional(size), color, width);
+        job.wrap.max_rows = 1;
+        job.wrap.break_anywhere = true;
+        let galley = ui.painter().layout_job(job);
+        ui.painter().galley(pos2(left, y), galley, color);
+    };
+    if let Some(path) = path {
+        text(label, 14.0, p.text, rect.top() + 10.0);
+        text(path, 12.0, p.muted, rect.top() + 33.0);
+    } else {
+        text(label, 14.0, p.text, rect.center().y - 9.0);
+        let center = pos2(rect.left() + 19.0, rect.center().y);
+        ui.painter().line_segment(
+            [center - vec2(5.0, 0.0), center + vec2(5.0, 0.0)],
+            Stroke::new(1.5_f32, p.text),
+        );
+        ui.painter().line_segment(
+            [center - vec2(0.0, 5.0), center + vec2(0.0, 5.0)],
+            Stroke::new(1.5_f32, p.text),
+        );
+    }
+    if selected {
+        theme::paint_icon(
+            ui.painter(),
+            Rect::from_center_size(pos2(rect.right() - 20.0, rect.center().y), vec2(16.0, 16.0)),
+            Icon::Check,
+            p.text,
+        );
+    }
+    response
+}
 impl App {
     pub(super) fn app_page(&mut self, ctx: &egui::Context, state: &State) {
         egui::SidePanel::right("app-tools")
@@ -175,6 +239,12 @@ impl App {
         });
         ui.add_space(MAIN_GAP);
 
+        if status.installed.is_some() {
+            self.installation_selector(ui, state);
+            ui.add_space(18.0);
+        }
+        let status = self.status(&app);
+
         // A failed install, update, uninstall or source download for this app.
         if !state.busy && state.stage == "Failed" && !self.failure_dismissed {
             if let Some(action) = mine.clone() {
@@ -285,7 +355,9 @@ impl App {
         } else {
             0.0
         };
-        let show_progress = mine.is_some() && (state.busy || completed_opacity > 0.0);
+        let show_progress = self.installation_selection.is_none()
+            && mine.is_some()
+            && (state.busy || completed_opacity > 0.0);
         if show_progress {
             let verb = match mine.as_deref() {
                 Some("uninstall-app") => "Uninstalling",
@@ -401,40 +473,252 @@ impl App {
                 theme::palette().text_3,
             );
         }
-        if let Some(alternate) = &status.alternate {
+        let mut other_copies: Vec<_> = self
+            .display_config
+            .as_ref()
+            .into_iter()
+            .flat_map(|config| config.installations.iter())
+            .chain(self.alternates.iter())
+            .filter(|copy| {
+                copy.name == app
+                    && !copy.path.is_empty()
+                    && status
+                        .installed
+                        .as_ref()
+                        .is_none_or(|selected| copy.path != selected.path)
+                    && std::path::Path::new(&copy.path).exists()
+            })
+            .collect();
+        other_copies.sort_by(|a, b| a.path.cmp(&b.path));
+        other_copies.dedup_by(|a, b| a.path == b.path);
+        if !other_copies.is_empty() {
             ui.add_space(12.0);
-            let location = if alternate.install_kind == "installer" {
-                if cfg!(target_os = "macos") {
-                    "Applications"
-                } else {
-                    "a system installation"
-                }
-            } else {
-                "the portable library"
-            };
             ui.spacing_mut().item_spacing.y = 4.0;
-            theme::text(
-                ui,
-                format!(
-                    "Also installed in {location} ({}){}",
-                    alternate.version,
-                    if status.installed.is_none() {
-                        format!(". Switch the release format in Settings to manage it, or install a {format} copy.")
-                    } else {
-                        String::new()
-                    }
-                ),
-                13.0,
-                theme::palette().text_3,
-            );
-            ui.add(
-                egui::Label::new(
-                    RichText::new(&alternate.path)
+            theme::text(ui, "Other installations", 12.0, theme::palette().muted);
+            for copy in other_copies {
+                let format = if copy.install_kind == "installer" {
+                    "Installer"
+                } else {
+                    "Portable ZIP"
+                };
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(format!(
+                            "• {format} · {} · {} — {}",
+                            model::architecture_label(&copy.architecture),
+                            copy.version,
+                            copy.path
+                        ))
                         .size(12.0)
                         .color(theme::palette().muted),
-                )
-                .truncate(),
+                    )
+                    .wrap(),
+                );
+            }
+        }
+    }
+
+    fn installation_selector(&mut self, ui: &mut Ui, state: &State) {
+        let app = self.app.clone();
+        let Some(config) = self.display_config.as_ref() else {
+            return;
+        };
+        let Some(selected) = config
+            .apps
+            .iter()
+            .find(|copy| copy.name == app && !copy.path.is_empty())
+            .cloned()
+        else {
+            return;
+        };
+        let mut copies: Vec<_> = config
+            .installations
+            .iter()
+            .chain(self.alternates.iter())
+            .filter(|copy| {
+                copy.name == app
+                    && !copy.path.is_empty()
+                    && std::path::Path::new(&copy.path).exists()
+            })
+            .cloned()
+            .collect();
+        if !copies.iter().any(|copy| copy.path == selected.path) {
+            copies.push(selected.clone());
+        }
+        copies.sort_by(|a, b| a.path.cmp(&b.path));
+        copies.dedup_by(|a, b| a.path == b.path);
+        let label = |copy: &model::Installed| {
+            format!(
+                "{} · {} · {}",
+                if copy.install_kind == "installer" {
+                    "Installer"
+                } else {
+                    "Portable ZIP"
+                },
+                model::architecture_label(&copy.architecture),
+                copy.version
+            )
+        };
+        theme::text(ui, "Installation", 12.0, theme::palette().muted);
+        ui.add_space(6.0);
+        let mut selection = None;
+        let mut add = false;
+        ui.add_enabled_ui(!state.busy && !self.release_pending(), |ui| {
+            let popup_id = ui.make_persistent_id(("installation-copy", &app));
+            let (rect, response) = ui.allocate_exact_size(
+                vec2(290.0_f32.min(ui.available_width()), 40.0),
+                Sense::click(),
             );
+            let p = theme::palette();
+            ui.painter().rect(
+                rect,
+                CornerRadius::same(8),
+                if response.hovered() {
+                    p.button_hover
+                } else {
+                    p.button
+                },
+                Stroke::new(1.0_f32, p.border_strong),
+                egui::StrokeKind::Inside,
+            );
+            let mut text = egui::text::LayoutJob::simple(
+                label(&selected),
+                FontId::proportional(14.0),
+                p.text,
+                (rect.width() - 52.0).max(1.0),
+            );
+            text.wrap.max_rows = 1;
+            let galley = ui.painter().layout_job(text);
+            ui.painter().galley(
+                pos2(rect.left() + 14.0, rect.center().y - galley.size().y / 2.0),
+                galley,
+                p.text,
+            );
+            theme::paint_icon(
+                ui.painter(),
+                Rect::from_center_size(
+                    pos2(rect.right() - 21.0, rect.center().y),
+                    vec2(16.0, 16.0),
+                ),
+                Icon::ChevronDown,
+                p.text,
+            );
+            response.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::ComboBox,
+                    ui.is_enabled(),
+                    format!("Installation: {}", label(&selected)),
+                )
+            });
+            if response.clicked() {
+                ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+            }
+            let mut anchor = response.clone();
+            anchor.rect = anchor.rect.translate(vec2(0.0, 6.0));
+            ui.scope(|ui| {
+                ui.spacing_mut().menu_margin = egui::Margin::same(6);
+                ui.visuals_mut().menu_corner_radius = CornerRadius::same(10);
+                ui.visuals_mut().window_fill = p.panel;
+                ui.visuals_mut().window_stroke = Stroke::new(1.0_f32, p.border_strong);
+                egui::popup::popup_below_widget(
+                    ui,
+                    popup_id,
+                    &anchor,
+                    egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+                    |ui| {
+                        ui.set_width(338.0_f32.min(ui.ctx().screen_rect().width() - 32.0));
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        egui::ScrollArea::vertical()
+                            .id_salt(("installation-copies-scroll", &app))
+                            .max_height(
+                                280.0_f32.min((ui.ctx().screen_rect().height() - 100.0).max(60.0)),
+                            )
+                            .show(ui, |ui| {
+                                for copy in &copies {
+                                    if installation_menu_row(
+                                        ui,
+                                        &label(copy),
+                                        Some(&copy.path),
+                                        copy.path == selected.path,
+                                    )
+                                    .on_hover_text(&copy.path)
+                                    .clicked()
+                                    {
+                                        selection = Some(copy.clone());
+                                        ui.memory_mut(|memory| memory.close_popup());
+                                    }
+                                }
+                            });
+                        ui.add_space(5.0);
+                        ui.separator();
+                        ui.add_space(5.0);
+                        if installation_menu_row(ui, "Add another installation…", None, false)
+                            .clicked()
+                        {
+                            add = true;
+                            ui.memory_mut(|memory| memory.close_popup());
+                        }
+                    },
+                );
+            });
+        });
+        if let Some(copy) = selection {
+            let paths = self.paths.clone();
+            let ctx = ui.ctx().clone();
+            let (tx, rx) = std::sync::mpsc::channel();
+            self.installation_selection = Some(rx);
+            self.config_receiver = None;
+            let app = app.clone();
+            std::thread::spawn(move || {
+                let result = (|| -> anyhow::Result<super::InstallationSelection> {
+                    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+                    let mut config = paths.config()?;
+                    anyhow::ensure!(
+                        model::installed_executable(std::path::Path::new(&copy.path), &app)
+                            .is_some(),
+                        "This installation is no longer available"
+                    );
+                    if !config
+                        .installations
+                        .iter()
+                        .any(|record| record.name == app && record.path == copy.path)
+                    {
+                        config.installations.push(copy.clone());
+                    }
+                    let selected = config
+                        .apps
+                        .iter_mut()
+                        .find(|record| record.name == app)
+                        .ok_or_else(|| anyhow::anyhow!("App missing"))?;
+                    *selected = copy.clone();
+                    paths.save_config(&config)?;
+                    let mut preferences = paths.read_preferences()?;
+                    if let Some(options) =
+                        craft_apps_manager::install_options::InstallOptions::installed(&copy)
+                    {
+                        preferences
+                            .app_install_options
+                            .insert(craft_apps_manager::install_options::identity(&app), options);
+                        craft_apps_manager::files::write_json(
+                            &paths.at("manager-settings.json"),
+                            &preferences,
+                        )?;
+                    }
+                    Ok(super::InstallationSelection {
+                        app,
+                        config,
+                        preferences,
+                    })
+                })();
+                let _ = tx.send(result.map_err(|error| format!("{error:#}")));
+                ctx.request_repaint();
+            });
+        }
+        if add {
+            self.additional_installation = true;
+            self.install_draft_app = None;
+            self.install_result = None;
+            self.confirm_install = Some(app);
         }
     }
 
@@ -646,6 +930,7 @@ impl App {
                             self.confirm_install = Some(app.clone());
                         }
                         if btn("Open")
+                            .enabled(self.installation_selection.is_none())
                             .size(Size::Card)
                             .icon(Icon::Play)
                             .show(ui)
@@ -655,6 +940,7 @@ impl App {
                         }
                     } else {
                         if btn(&format!("Open {title}"))
+                            .enabled(self.installation_selection.is_none())
                             .primary()
                             .size(Size::Card)
                             .icon(Icon::Play)

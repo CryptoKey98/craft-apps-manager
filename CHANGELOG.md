@@ -2,6 +2,10 @@
 
 ## 0.8.0
 
+- Add Multiple installations: select an existing installer or portable copy, target actions at that copy, and add portable copies in separate folders using the existing install dialog.
+- Choose a release version in the install dialog for first installs and additional copies; versions selected from the app page are preselected.
+- Preserve alternate installation records during uninstall and rediscover older portable copies in the library when migrating existing installations.
+
 - Show What's New highlights on first launch and after a manager version change, with expandable release notes and an info icon beside the version to reopen the dialog.
 - Run supported Windows MSI downgrades under one batch administrator approval, with verified recovery packages and individual uninstall, install and recovery activity steps.
 - Keep version changes locked to the verified installed format and architecture; preparing a version preview no longer creates installation activity.

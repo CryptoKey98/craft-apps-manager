@@ -482,6 +482,7 @@ impl Paths {
             if !app.path.is_empty()
                 && !config.installations.iter().any(|a| {
                     a.name == app.name
+                        && a.path == app.path
                         && (a.install_kind == "installer") == (app.install_kind == "installer")
                 })
             {
@@ -489,6 +490,8 @@ impl Paths {
             }
         }
         for app in &mut config.apps {
+            let selected_path = app.path.clone();
+            let selected_kind = app.install_kind.clone();
             let preferred = crate::install_options::preferred(&preferences, &app.name);
             let has_portable = config.installations.iter().any(|copy| {
                 copy.name == app.name
@@ -496,6 +499,34 @@ impl Paths {
                     && installed_executable(Path::new(&copy.path), &copy.name).is_some()
             });
             let detected = detect(&app.name)?;
+            if let Some(native) = &detected {
+                config
+                    .installations
+                    .retain(|copy| !(copy.name == app.name && copy.install_kind == "installer"));
+                config.installations.push(native.clone());
+            }
+            let library = self.at(format!("releases/{}", app.name));
+            if !config
+                .installations
+                .iter()
+                .any(|copy| copy.name == app.name && Path::new(&copy.path) == library)
+            {
+                if let Some(executable) = installed_executable(&library, &app.name) {
+                    config.installations.push(Installed {
+                        name: app.name.clone(),
+                        path: library.display().to_string(),
+                        version: crate::platform::executable_version(&executable)
+                            .unwrap_or_else(|| "0.0.0".into()),
+                        architecture: crate::install_options::executable_architecture(&executable)
+                            .unwrap_or_default(),
+                        install_kind: "portable".into(),
+                        product_code: String::new(),
+                    });
+                }
+            }
+            let library_portable = detected.is_none()
+                && installed_executable(&self.at(format!("releases/{}", app.name)), &app.name)
+                    .is_some();
             // Native inventory must reflect detection even when a portable
             // installation is selected for display.
             if detected.is_none() {
@@ -503,9 +534,22 @@ impl Paths {
                     !(record.name == app.name && record.install_kind == "installer")
                 });
             }
+            // The selected copy is installation identity, not pending package preferences.
+            // Changing install options must never silently switch an existing copy.
+            if let Some(selected) = config.installations.iter().find(|copy| {
+                !selected_kind.is_empty()
+                    && copy.name == app.name
+                    && copy.path == selected_path
+                    && copy.install_kind == selected_kind
+                    && !copy.path.is_empty()
+                    && installed_executable(Path::new(&copy.path), &copy.name).is_some()
+            }) {
+                *app = selected.clone();
+                continue;
+            }
             let installer =
                 preferred.release_format == "installer" || (!has_portable && detected.is_some());
-            if installer && (detected.is_some() || !has_portable) {
+            if installer && (detected.is_some() || (!has_portable && !library_portable)) {
                 if let Some(record) = detected {
                     config.installations.retain(|a| {
                         !(a.name == app.name
@@ -567,7 +611,7 @@ impl Paths {
             config.installations.retain(|a| {
                 !(a.name == app.name
                     && (a.install_kind == "installer") == installer
-                    && (a.architecture == app.architecture || a.path == app.path))
+                    && a.path == app.path)
             });
             if !app.path.is_empty() {
                 config.installations.push(app.clone());
@@ -847,6 +891,76 @@ pub fn release_arch(architecture: &str) -> &str {
 #[cfg(test)]
 mod detection_tests {
     #[test]
+    fn same_architecture_copies_can_be_selected_and_uninstalled_independently() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let copies: Vec<_> = ["first", "second"]
+            .into_iter()
+            .map(|name| {
+                let folder = root.join(name);
+                release_fixture(&folder, "filmcraft");
+                Installed {
+                    name: "filmcraft".into(),
+                    path: folder.display().to_string(),
+                    version: "0.6.0".into(),
+                    architecture: "x64".into(),
+                    install_kind: "portable".into(),
+                    ..Default::default()
+                }
+            })
+            .collect();
+        for selected in &copies {
+            let config = Config {
+                apps_root: root.display().to_string(),
+                apps: vec![selected.clone()],
+                installations: copies.clone(),
+            };
+            paths.save_config(&config).unwrap();
+            let restarted = paths.config_with_detector(|_| Ok(None)).unwrap();
+            assert_eq!(
+                restarted
+                    .apps
+                    .iter()
+                    .find(|copy| copy.name == "filmcraft")
+                    .unwrap()
+                    .path,
+                selected.path
+            );
+            assert_eq!(
+                restarted
+                    .installations
+                    .iter()
+                    .filter(|copy| copy.name == "filmcraft")
+                    .count(),
+                2
+            );
+        }
+        std::fs::remove_dir_all(&copies[1].path).unwrap();
+        let mut config = paths.config_with_detector(|_| Ok(None)).unwrap();
+        crate::apps::forget_installation(&mut config, &copies[1]);
+        paths.save_config(&config).unwrap();
+        let restarted = paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert_eq!(
+            restarted
+                .apps
+                .iter()
+                .find(|copy| copy.name == "filmcraft")
+                .unwrap()
+                .path,
+            copies[0].path
+        );
+        assert_eq!(
+            restarted
+                .installations
+                .iter()
+                .filter(|copy| copy.name == "filmcraft")
+                .count(),
+            1
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
     fn visibility_defaults_visible_and_preserves_update_selection_and_order() {
         let mut preferences: super::Preferences = serde_json::from_str("{}").unwrap();
         assert!(preferences.hidden_apps.is_empty());
@@ -899,6 +1013,139 @@ mod detection_tests {
         } else {
             std::fs::write(executable, b"fixture").unwrap();
         }
+    }
+    #[test]
+    fn uninstalling_one_format_preserves_other_copy_across_restart() {
+        for removed_kind in ["installer", "portable"] {
+            let root = std::env::temp_dir()
+                .join(format!("craft-uninstall-copies-{}", uuid::Uuid::new_v4()));
+            let paths = Paths::new(root.clone(), None);
+            let copies: Vec<_> = ["installer", "portable"]
+                .into_iter()
+                .map(|kind| {
+                    let folder = root.join(kind);
+                    release_fixture(&folder, "filmcraft");
+                    Installed {
+                        name: "filmcraft".into(),
+                        version: "0.6.0".into(),
+                        architecture: "x64".into(),
+                        install_kind: kind.into(),
+                        path: folder.display().to_string(),
+                        ..Default::default()
+                    }
+                })
+                .collect();
+            let removed = copies
+                .iter()
+                .find(|copy| copy.install_kind == removed_kind)
+                .unwrap();
+            let remaining = copies
+                .iter()
+                .find(|copy| copy.install_kind != removed_kind)
+                .unwrap();
+            let prefs = Preferences {
+                app_install_options: [(
+                    crate::install_options::identity("filmcraft"),
+                    crate::install_options::InstallOptions {
+                        release_format: removed_kind.into(),
+                        architecture: "x64".into(),
+                    },
+                )]
+                .into(),
+                ..Default::default()
+            };
+            crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+            let mut config = Config {
+                apps_root: root.display().to_string(),
+                apps: vec![removed.clone()],
+                installations: copies.clone(),
+            };
+            // Simulate only the selected uninstall; never invoke an installer.
+            std::fs::remove_dir_all(&removed.path).unwrap();
+            crate::apps::forget_installation(&mut config, removed);
+            assert_eq!(config.apps[0].path, remaining.path);
+            paths.save_config(&config).unwrap();
+            let reopened = paths
+                .config_with_detector(|name| {
+                    Ok(
+                        (name == "filmcraft" && remaining.install_kind == "installer")
+                            .then(|| remaining.clone()),
+                    )
+                })
+                .unwrap();
+            let active = reopened
+                .apps
+                .iter()
+                .find(|app| app.name == "filmcraft")
+                .unwrap();
+            assert_eq!(active.path, remaining.path);
+            assert_eq!(active.install_kind, remaining.install_kind);
+            assert!(reopened
+                .installations
+                .iter()
+                .any(|copy| copy.path == remaining.path));
+            assert!(!reopened
+                .installations
+                .iter()
+                .any(|copy| copy.path == removed.path));
+            assert!(installed_executable(Path::new(&remaining.path), "filmcraft").is_some());
+            std::fs::remove_dir_all(root).unwrap();
+        }
+    }
+    #[test]
+    fn missing_old_portable_record_is_rediscovered_after_installer_removal() {
+        let root =
+            std::env::temp_dir().join(format!("craft-portable-recovery-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let folder = paths.at("releases/filmcraft");
+        release_fixture(&folder, "filmcraft");
+        let prefs = Preferences {
+            app_install_options: [(
+                crate::install_options::identity("filmcraft"),
+                crate::install_options::InstallOptions {
+                    release_format: "installer".into(),
+                    architecture: "x64".into(),
+                },
+            )]
+            .into(),
+            ..Default::default()
+        };
+        crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+        crate::files::write_json(
+            &paths.at("settings.json"),
+            &Config {
+                apps_root: root.display().to_string(),
+                apps: vec![Installed {
+                    name: "filmcraft".into(),
+                    install_kind: String::new(),
+                    ..Default::default()
+                }],
+                installations: Vec::new(),
+            },
+        )
+        .unwrap();
+        let recovered = paths.config_with_detector(|_| Ok(None)).unwrap();
+        let app = recovered
+            .apps
+            .iter()
+            .find(|app| app.name == "filmcraft")
+            .unwrap();
+        assert_eq!(app.path, folder.display().to_string());
+        assert_eq!(app.install_kind, "portable");
+        paths.save_config(&recovered).unwrap();
+        assert_eq!(
+            paths
+                .config_with_detector(|_| Ok(None))
+                .unwrap()
+                .apps
+                .iter()
+                .find(|app| app.name == "filmcraft")
+                .unwrap()
+                .path,
+            app.path
+        );
+        assert!(folder.exists());
+        std::fs::remove_dir_all(root).unwrap();
     }
     #[test]
     fn native_install_in_library_is_not_a_second_portable_installation() {
@@ -1069,7 +1316,7 @@ mod detection_tests {
     }
     #[cfg(target_os = "windows")]
     #[test]
-    fn selected_architecture_prefers_matching_portable_and_preserves_other_copy() {
+    fn selected_copy_survives_pending_architecture_changes_and_preserves_other_copy() {
         let root =
             std::env::temp_dir().join(format!("craft-arch-records-{}", uuid::Uuid::new_v4()));
         let paths = Paths::new(root.clone(), None);
@@ -1114,12 +1361,10 @@ mod detection_tests {
             crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
             let config = paths.config_with_detector(|_| Ok(None)).unwrap();
             let installed = config.apps.iter().find(|a| a.name == "photocraft").unwrap();
-            if selected != "arm64" {
-                assert_eq!(installed.architecture, selected);
-            }
+            assert_eq!(installed.architecture, "x64");
             assert_eq!(
                 installed_architecture_matches(installed, &prefs),
-                selected != "arm64"
+                selected == "x64"
             );
             paths.save_config(&config).unwrap();
             assert_eq!(
