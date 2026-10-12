@@ -11,7 +11,12 @@ use walkdir::WalkDir;
 pub fn read_json<T: DeserializeOwned>(p: &Path) -> Result<T> {
     let bytes = fs::read(p).with_context(|| format!("Read {}", p.display()))?;
     let bytes = bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&bytes);
-    Ok(serde_json::from_slice(bytes)?)
+    if !crate::portable_mode::applies(p) {
+        return Ok(serde_json::from_slice(bytes)?);
+    }
+    let mut value = serde_json::from_slice(bytes)?;
+    crate::portable_mode::convert(p, &mut value, false)?;
+    Ok(serde_json::from_value(value)?)
 }
 pub fn read_or_default<T: DeserializeOwned + Default>(p: &Path) -> Result<T> {
     if p.exists() {
@@ -21,7 +26,15 @@ pub fn read_or_default<T: DeserializeOwned + Default>(p: &Path) -> Result<T> {
     }
 }
 pub fn write_json<T: Serialize>(p: &Path, v: &T) -> Result<()> {
-    write_bytes(p, &serde_json::to_vec_pretty(v)?)
+    write_bytes(p, &json_bytes(p, v)?)
+}
+pub fn json_bytes<T: Serialize + ?Sized>(p: &Path, v: &T) -> Result<Vec<u8>> {
+    if !crate::portable_mode::applies(p) {
+        return Ok(serde_json::to_vec_pretty(v)?);
+    }
+    let mut value = serde_json::to_value(v)?;
+    crate::portable_mode::convert(p, &mut value, true)?;
+    Ok(serde_json::to_vec_pretty(&value)?)
 }
 /// Replaces a file atomically so readers never see a partial write.
 pub fn write_bytes(p: &Path, bytes: &[u8]) -> Result<()> {

@@ -45,6 +45,17 @@ Screenshots show the Windows 0.8.0 client with a separate demo library, captured
 
 ## Getting started
 
+### Portable manager folders
+
+Portable ZIP downloads include `portable.txt` beside the manager (beside the `.app` bundle on macOS). Portable storage is enabled by default, and new portable libraries use a `data` folder there. **Settings → Folders → Portable storage** explains which data moves with the manager. Installer and Linux system-package installs retain their normal storage behavior.
+
+After active operations finish, close the manager and Builder, then move the **whole folder**. Managed installation locations, launch preferences, build selections and operation log locations inside that folder follow it automatically. Settings migration keeps recovery copies under `runtime/portable-migration`. Keep the marker and `portable-state.json` with the folder.
+
+External libraries and installation folders remain absolute and do not move. Existing Linux/macOS libraries outside the portable folder are retained and identified as external. Native installer apps, system-stored GitHub tokens and desktop shortcuts remain tied to their computer; shortcuts may need recreation after a move. Individual apps may still store their own preferences outside the library. Explicit command-line arguments are preserved unchanged. Moving a Windows library to Linux or macOS does not convert its applications or builds to that platform.
+
+In portable mode, relative folder entries such as `./data` resolve from the manager folder, not the shell's working directory. An explicit `../` location is allowed but remains external when it lies outside that folder. Do not remove the portable marker or run an older manager against converted metadata.
+
+
 Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.1** includes these formats:
 
 | System | Installation | Portable |

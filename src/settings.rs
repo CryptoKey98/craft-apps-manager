@@ -78,7 +78,7 @@ pub fn save_with_custom_apps<T: Serialize>(
         }
         writes.push((
             paths.at("settings.json"),
-            serde_json::to_vec_pretty(&config)?,
+            files::json_bytes(&paths.at("settings.json"), &config)?,
         ));
         writes.push((
             paths.at("manager-settings.json"),
@@ -99,7 +99,7 @@ pub fn save_with_custom_apps<T: Serialize>(
     }
     writes.push((
         locations_path.to_owned(),
-        serde_json::to_vec_pretty(locations)?,
+        files::json_bytes(locations_path, locations)?,
     ));
     commit(&writes, atomic_bytes)
 }
@@ -249,6 +249,9 @@ fn commit(
         }
     }
     Ok(())
+}
+pub(crate) fn commit_metadata(writes: &[(PathBuf, Vec<u8>)]) -> Result<()> {
+    commit(writes, atomic_bytes)
 }
 #[cfg(test)]
 mod tests {

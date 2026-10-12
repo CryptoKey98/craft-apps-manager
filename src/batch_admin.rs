@@ -20,6 +20,8 @@ use std::{
 
 #[derive(Serialize, Deserialize)]
 struct Request {
+    #[serde(default)]
+    portable_base: Option<PathBuf>,
     root: PathBuf,
     tools: PathBuf,
     profile: PathBuf,
@@ -99,6 +101,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         .filter(|(app, _)| native.entries.iter().any(|entry| entry.app == *app))
         .collect();
     let request = Request {
+        portable_base: crate::portable_mode::base_for_library(&paths.root),
         root: paths.root.clone(),
         tools: paths.tools.clone(),
         profile: std::env::var_os("USERPROFILE")
@@ -260,16 +263,19 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
     anyhow::ensure!(std::env::var_os("USERPROFILE").map(PathBuf::from).as_ref() == Some(&request.profile),
         "Use administrator approval for the same Windows account; another account would change per-user installation ownership");
     let paths = Paths::new(request.root, Some(request.tools));
+    if let Some(base) = &request.portable_base {
+        crate::portable_mode::attach_existing(base, &paths.root)?;
+    }
     crate::catalog::load(&paths.root);
     // Deny writes/deletion while the already verified packages are being executed.
     use std::os::windows::fs::OpenOptionsExt;
-    let mut locked = Vec::new();
+    let mut locked: std::collections::BTreeMap<String, Vec<std::fs::File>> = Default::default();
     for entry in &request.plan.entries {
         let asset = entry.asset.as_ref().context("Missing approved package")?;
         files::safe_relative(&asset.name)?;
         crate::model::valid_app(&entry.app)?;
         let file = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
-        locked.push(
+        locked.entry(entry.app.clone()).or_default().push(
             std::fs::OpenOptions::new()
                 .read(true)
                 .share_mode(1)
@@ -286,7 +292,7 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
         crate::model::valid_app(app)?;
         files::safe_relative(&asset.name)?;
         let file = paths.at(format!("releases/installers/{app}/{}", asset.name));
-        locked.push(
+        locked.entry(app.clone()).or_default().push(
             std::fs::OpenOptions::new()
                 .read(true)
                 .share_mode(1)
@@ -344,6 +350,11 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
         &request.plan,
         &job,
         &request.recovery_packages,
+        &mut |app| {
+            // Only release an app's immutable packages after its installation is verified
+            // and persisted. Unfinished and failed entries retain their protection.
+            locked.remove(app);
+        },
     );
     stopped.store(true, Ordering::Relaxed);
     let _ = watcher.join();

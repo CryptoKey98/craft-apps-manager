@@ -27,6 +27,7 @@ if (Test-Path -LiteralPath $appFolder) { throw "Package folder already exists: $
 $toolsFolder = Join-Path $appFolder "workspace/tools/7zip/$Architecture"
 New-Item -ItemType Directory -Path $toolsFolder -Force | Out-Null
 Copy-Item -LiteralPath $exe -Destination (Join-Path $appFolder 'CraftApps-Manager.exe')
+[IO.File]::WriteAllText((Join-Path $appFolder 'portable.txt'), "Craft Apps Manager portable mode`n", [Text.UTF8Encoding]::new($false))
 foreach ($name in @('README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.txt')) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $appFolder
 }

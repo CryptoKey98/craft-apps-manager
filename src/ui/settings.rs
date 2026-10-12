@@ -796,8 +796,25 @@ impl App {
     }
 
     fn save_settings(&mut self) {
-        let root = PathBuf::from(self.root_text.trim());
-        let tools = PathBuf::from(self.tools_text.trim());
+        let resolved = (|| -> anyhow::Result<_> {
+            Ok((
+                craft_apps_manager::portable_mode::resolve_folder(
+                    &self.home,
+                    &PathBuf::from(self.root_text.trim()),
+                )?,
+                craft_apps_manager::portable_mode::resolve_folder(
+                    &self.home,
+                    &PathBuf::from(self.tools_text.trim()),
+                )?,
+            ))
+        })();
+        let (root, tools) = match resolved {
+            Ok(paths) => paths,
+            Err(error) => {
+                self.error = Some(format!("{error:#}"));
+                return;
+            }
+        };
         let locations = Locations {
             root: Some(root.clone()),
             tools: Some(tools.clone()),
@@ -1479,6 +1496,23 @@ impl App {
     }
 
     fn settings_folders(&mut self, ui: &mut egui::Ui) {
+        let package_install =
+            self_update::installed_with_msi() || self_update::installed_with_linux_package();
+        let portable = !package_install && craft_apps_manager::portable_mode::enabled(&self.home);
+        if portable {
+            group(ui, "Portable storage", |ui| {
+                dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
+                    note(ui, "Data inside this folder moves with the manager.");
+                    note(ui, "Finish active operations and close Manager and Builder before moving the whole folder.");
+                    if !self.paths.root.starts_with(&self.home)
+                        || !self.paths.tools.starts_with(&self.home)
+                    {
+                        note(ui, "Your library or tools are outside this folder and will not move with the manager.");
+                    }
+                });
+            });
+            ui.add_space(16.0);
+        }
         group(ui, "Folders", |ui| {
             let block = egui::Margin::symmetric(14, 12);
             dialogs::band(ui, block, 0.0, |ui| {
