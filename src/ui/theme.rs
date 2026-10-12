@@ -1142,11 +1142,11 @@ pub fn link_enabled(ui: &mut Ui, text: impl Into<String>, enabled: bool) -> Resp
 /// An underlined link of `size` points that opens `url`, like `Ui::hyperlink_to`
 /// with the design's permanent underline in place of egui's hover underline.
 pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size: f32) -> Response {
-    // Changed in place rather than in a child scope, so that a wrapping row can
-    // still move the whole link to its next line: one line keeps the underline
-    // under the text, and egui's own hover underline is turned off.
+    // Asset filenames and repository URLs must stay within their containing
+    // card. RichText underlining follows every wrapped line, unlike a manually
+    // painted underline across the response's bounding rectangle.
     let style = ui.style().clone();
-    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
     let states = &mut ui.visuals_mut().widgets;
     for state in [
         &mut states.inactive,
@@ -1156,11 +1156,13 @@ pub fn hyperlink(ui: &mut Ui, text: impl Into<String>, url: impl ToString, size:
         state.fg_stroke.width = 0.0;
     }
     let response = ui.hyperlink_to(
-        egui::RichText::new(text).size(size).color(palette().link),
+        egui::RichText::new(text)
+            .size(size)
+            .color(palette().link)
+            .underline(),
         url,
     );
     ui.set_style(style);
-    underline(ui, response.rect, size, palette().link);
     focus_ring(ui, &response);
     response
 }
@@ -1530,6 +1532,32 @@ mod tests {
                 }
             }
         }
+    }
+    #[test]
+    fn long_links_wrap_inside_narrow_containers() {
+        let ctx = egui::Context::default();
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(176.0, 300.0),
+            )),
+            ..Default::default()
+        };
+        let _ = ctx.run(input, |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                ui.set_width(160.0);
+                let left = ui.cursor().left();
+                let width = ui.available_width();
+                let response = hyperlink(
+                    ui,
+                    "filmcraft-0.6.0-windows-x86_64-portable-with-a-very-long-filename.zip",
+                    "https://example.com/package.zip",
+                    12.0,
+                );
+                assert!(response.rect.right() <= left + width + 1.0);
+                assert!(response.rect.height() > 20.0);
+            });
+        });
     }
     #[test]
     fn both_themes_keep_body_text_and_statuses_readable() {

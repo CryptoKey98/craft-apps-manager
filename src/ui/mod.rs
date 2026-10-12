@@ -596,6 +596,10 @@ impl App {
             }
             Some("build-confirmation") => { self.build_parent = builder::output_root(&self.paths, &self.app).parent().unwrap().display().to_string(); self.confirm_build = Some(self.app.clone()); },
             Some("activity") | Some("activity-details") => self.activity_open = true,
+            Some("activity-unread") => {
+                self.activity_open = true;
+                self.activity_notifications.observe(&[]);
+            },
             Some("activity-history") => { self.activity_open = true; self.activity_history = true; },
             Some("install") => self.confirm_install = Some(self.app.clone()),
             Some("uninstall") => self.confirm_uninstall = true,
