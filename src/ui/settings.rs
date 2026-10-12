@@ -23,11 +23,13 @@ fn group(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
         );
         ui.add_space(10.0);
     }
-    theme::group().show(ui, |ui| {
-        ui.set_width(ui.available_width());
-        ui.spacing_mut().item_spacing.y = 0.0;
-        content(ui);
-    });
+    theme::group()
+        .inner_margin(egui::Margin::symmetric(0, 8))
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.spacing_mut().item_spacing.y = 0.0;
+            content(ui);
+        });
 }
 
 /// Small print below a group, 10pt under it.
@@ -71,6 +73,23 @@ fn row_with<R>(
         },
         0.0,
         |ui| {
+            // Reserve wrapped text height before centering the row. Growing a
+            // centered child afterwards can otherwise paint above its band.
+            let wrap_width = (ui.available_width() - 160.0).max(1.0);
+            let measured = |text: &str, size: f32| {
+                ui.fonts(|f| {
+                    f.layout(
+                        text.to_owned(),
+                        FontId::proportional(size),
+                        color,
+                        wrap_width,
+                    )
+                    .size()
+                    .y
+                })
+            };
+            let height = height
+                .max(measured(title, 14.0) + detail.map_or(0.0, |text| 2.0 + measured(text, 12.0)));
             ui.allocate_ui_with_layout(
                 egui::vec2(ui.available_width(), height),
                 egui::Layout::right_to_left(egui::Align::Center),
@@ -80,11 +99,21 @@ fn row_with<R>(
                     let out = control(ui);
                     ui.add_space(8.0);
                     // Size the text block up front so the row centres it as one piece.
-                    let line = |size: f32| ui.fonts(|f| f.row_height(&FontId::proportional(size)));
-                    let text_height = match detail {
-                        Some(_) => line(14.0) + 2.0 + line(12.0),
-                        None => line(14.0),
+                    let text_width = ui.available_width().max(1.0);
+                    let measured_height = |text: &str, size: f32| {
+                        ui.fonts(|f| {
+                            f.layout(
+                                text.to_owned(),
+                                FontId::proportional(size),
+                                color,
+                                text_width,
+                            )
+                            .size()
+                            .y
+                        })
                     };
+                    let text_height = measured_height(title, 14.0)
+                        + detail.map_or(0.0, |text| 2.0 + measured_height(text, 12.0));
                     ui.allocate_ui_with_layout(
                         egui::vec2(ui.available_width(), text_height),
                         egui::Layout::top_down(egui::Align::Min),
@@ -197,6 +226,14 @@ impl App {
                 let total = (ctx.screen_rect().height() - 48.0).min(600.0);
                 let height = (total - 2.0 - 2.0 * dialogs::BAR_HEIGHT).max(220.0);
                 ui.horizontal_top(|ui| {
+                    // Scroll areas allow a paint margin for widget shadows.
+                    // Bound the entire body so that margin cannot bleed into
+                    // the header or footer when settings are scrolled.
+                    let body_rect = egui::Rect::from_min_size(
+                        ui.cursor().min,
+                        egui::vec2(ui.available_width(), height),
+                    );
+                    ui.set_clip_rect(ui.clip_rect().intersect(body_rect));
                     ui.spacing_mut().item_spacing.x = 0.0;
                     ui.allocate_ui_with_layout(
                         egui::vec2(NAV_WIDTH - 1.0, height),

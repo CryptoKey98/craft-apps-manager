@@ -7,6 +7,7 @@ pub(super) struct ActivityNotifications {
     initialized: bool,
     seen: std::collections::HashMap<String, bool>,
     unread: std::collections::HashSet<String>,
+    highlight_ids: std::collections::HashSet<egui::Id>,
 }
 impl ActivityNotifications {
     pub(super) fn observe(&mut self, records: &[Operation]) {
@@ -28,8 +29,20 @@ impl ActivityNotifications {
     pub(super) fn count(&self) -> usize {
         self.unread.len()
     }
-    fn mark_read(&mut self) {
+    fn mark_all_read(&mut self) {
         self.unread.clear();
+    }
+    fn dismiss(&mut self, ctx: &egui::Context) {
+        self.mark_all_read();
+        for id in self.highlight_ids.drain() {
+            ctx.animate_bool_with_time(id, false, 0.0);
+        }
+    }
+    fn is_unread(&self, id: &str) -> bool {
+        self.unread.contains(id)
+    }
+    fn mark_read(&mut self, id: &str) {
+        self.unread.remove(id);
     }
 }
 
@@ -37,10 +50,13 @@ impl App {
     pub(super) fn activity_panel(&mut self, ctx: &egui::Context) {
         let visible_id = egui::Id::new("activity-panel-was-visible");
         if !self.activity_open {
+            if ctx.data(|data| data.get_temp::<bool>(visible_id).unwrap_or(false)) {
+                self.activity_notifications.dismiss(ctx);
+                ctx.request_repaint();
+            }
             ctx.data_mut(|data| data.remove::<bool>(visible_id));
             return;
         }
-        self.activity_notifications.mark_read();
         let was_visible = ctx.data_mut(|data| {
             let previous = data.get_temp::<bool>(visible_id).unwrap_or(false);
             data.insert_temp(visible_id, true);
@@ -48,6 +64,8 @@ impl App {
         });
         if ctx.input(|input| input.key_pressed(egui::Key::Escape)) {
             self.activity_open = false;
+            self.activity_notifications.dismiss(ctx);
+            ctx.request_repaint();
             return;
         }
         let p = theme::palette();
@@ -101,6 +119,17 @@ impl App {
                     theme::paint_icon(ui.painter(), rect, theme::Icon::Activity, p.accent_text);
                     ui.label(egui::RichText::new("Activity").font(theme::bold(18.0)));
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let count = self.activity_notifications.count();
+                        theme::text(
+                            ui,
+                            if count == 0 {
+                                "All caught up".into()
+                            } else {
+                                format!("{count} unread")
+                            },
+                            12.0,
+                            p.muted,
+                        );
                         if theme::icon_button(ui, theme::Icon::Close, "Close Activity", p.muted)
                             .clicked()
                         {
@@ -176,9 +205,13 @@ impl App {
                                 self.activity_row(ui, parent, &records);
                                 remaining -= 1;
                                 if remaining > 0 {
-                                    ui.add_space(8.0);
-                                    ui.separator();
-                                    ui.add_space(8.0);
+                                    if active {
+                                        ui.add_space(8.0);
+                                        ui.separator();
+                                        ui.add_space(8.0);
+                                    } else {
+                                        ui.add_space(6.0);
+                                    }
                                 }
                             }
                             if active {
@@ -208,10 +241,13 @@ impl App {
             self.activity_open = false;
         }
         if !self.activity_open {
+            self.activity_notifications.dismiss(ctx);
+            ctx.request_repaint();
             ctx.data_mut(|data| data.remove::<bool>(visible_id));
         }
     }
     fn activity_row(&mut self, ui: &mut egui::Ui, op: &Operation, records: &[Operation]) {
+        let highlight = ui.painter().add(egui::Shape::Noop);
         let p = theme::palette();
         let app_children: Vec<_> = records
             .iter()
@@ -286,6 +322,7 @@ impl App {
                 egui::pos2(text_x, rect.top()),
                 egui::pos2((button_rect.left() - 10.0).max(text_x), rect.bottom()),
             );
+            self.activity_unread_highlight(ui, op, rect, (text_rect, false), highlight);
             let painter = ui.painter().with_clip_rect(text_rect);
             painter.text(
                 egui::pos2(text_x, rect.top() + 6.0),
@@ -395,7 +432,7 @@ impl App {
                 activity_status(op.lifecycle).into()
             };
             let (rect, response) = ui
-                .allocate_exact_size(egui::vec2(ui.available_width(), 52.0), egui::Sense::click());
+                .allocate_exact_size(egui::vec2(ui.available_width(), 64.0), egui::Sense::click());
             response.widget_info(|| {
                 egui::WidgetInfo::labeled(
                     egui::WidgetType::Button,
@@ -404,33 +441,50 @@ impl App {
                 )
             });
             if response.hovered() {
-                ui.painter().rect_filled(rect, 6, p.hover);
                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
             }
             theme::paint_icon(
                 ui.painter(),
                 egui::Rect::from_center_size(
-                    egui::pos2(rect.left() + 10.0, rect.center().y),
+                    egui::pos2(rect.left() + 22.0, rect.center().y),
                     egui::vec2(16.0, 16.0),
                 ),
                 icon,
                 color,
             );
-            let text_x = rect.left() + 32.0;
+            let text_x = rect.left() + 44.0;
             let title_rect = egui::Rect::from_min_max(
                 egui::pos2(text_x, rect.top()),
                 egui::pos2((rect.right() - 108.0).max(text_x), rect.bottom()),
             );
+            let unread_opacity = self.activity_unread_highlight(
+                ui,
+                op,
+                rect,
+                (title_rect, response.clicked()),
+                highlight,
+            );
             let painter = ui.painter().with_clip_rect(title_rect);
             painter.text(
-                egui::pos2(text_x, rect.top() + 7.0),
+                egui::pos2(text_x, rect.top() + 13.0),
                 egui::Align2::LEFT_TOP,
                 &title,
                 theme::medium(14.0),
                 p.text,
             );
+            if unread_opacity > 0.0 {
+                let title_width = painter
+                    .layout_no_wrap(title.clone(), theme::medium(14.0), p.text)
+                    .size()
+                    .x;
+                painter.circle_filled(
+                    egui::pos2(text_x + title_width + 9.0, rect.top() + 21.0),
+                    2.5,
+                    p.accent_text.gamma_multiply(unread_opacity),
+                );
+            }
             painter.text(
-                egui::pos2(text_x, rect.top() + 29.0),
+                egui::pos2(text_x, rect.top() + 35.0),
                 egui::Align2::LEFT_TOP,
                 subtitle,
                 egui::FontId::proportional(12.0),
@@ -529,6 +583,42 @@ impl App {
                     .set(surface, gray_details_surface(details.response.rect, light));
             });
         }
+    }
+    fn activity_unread_highlight(
+        &mut self,
+        ui: &egui::Ui,
+        op: &Operation,
+        rect: egui::Rect,
+        read_target: (egui::Rect, bool),
+        shape: egui::layers::ShapeIdx,
+    ) -> f32 {
+        // Opening the panel alone does not acknowledge any operation. Only the
+        // visible text hit area or an explicit details click marks this item read.
+        let (text_rect, clicked) = read_target;
+        if clicked || ui.rect_contains_pointer(text_rect.intersect(ui.clip_rect())) {
+            self.activity_notifications.mark_read(&op.id);
+        }
+        let highlight_id = ui.make_persistent_id(("activity-unread", &op.id));
+        self.activity_notifications
+            .highlight_ids
+            .insert(highlight_id);
+        let opacity = ui.ctx().animate_bool_with_time(
+            highlight_id,
+            self.activity_notifications.is_unread(&op.id),
+            0.18,
+        );
+        if opacity > 0.0 {
+            let color = if ui.visuals().dark_mode {
+                egui::Color32::from_rgb(36, 48, 68)
+            } else {
+                egui::Color32::from_rgb(234, 241, 252)
+            };
+            ui.painter().set(
+                shape,
+                egui::Shape::rect_filled(rect, 8, color.gamma_multiply(opacity)),
+            );
+        }
+        opacity
     }
 }
 /// A restrained neutral gradient with rounded corners behind expanded details.
@@ -683,7 +773,9 @@ mod activity_tests {
         second.id = "second".into();
         badge.observe(&[first.clone(), second.clone()]);
         assert_eq!(badge.count(), 2);
-        badge.mark_read();
+        badge.mark_read("first");
+        assert_eq!(badge.count(), 1);
+        badge.mark_read("second");
         badge.observe(&[first, second]);
         assert_eq!(badge.count(), 0);
     }
@@ -692,13 +784,65 @@ mod activity_tests {
         let mut badge = ActivityNotifications::default();
         let mut op = record("Install", Lifecycle::Running);
         badge.observe(&[op.clone()]);
-        badge.mark_read();
+        badge.mark_read(&op.id);
         op.lifecycle = Lifecycle::Completed;
         badge.observe(&[op.clone()]);
         assert_eq!(badge.count(), 1);
-        badge.mark_read();
+        badge.mark_read(&op.id);
         badge.observe(&[op]);
         assert_eq!(badge.count(), 0);
+    }
+    #[test]
+    fn dismissing_panel_finishes_highlight_animation_before_reopening() {
+        let ctx = egui::Context::default();
+        let id = egui::Id::new("unread-row-test");
+        let mut badge = ActivityNotifications::default();
+        badge.highlight_ids.insert(id);
+        assert_eq!(ctx.animate_bool_with_time(id, true, 0.18), 1.0);
+        badge.dismiss(&ctx);
+        assert_eq!(ctx.animate_bool_with_time(id, false, 0.18), 0.0);
+    }
+    #[test]
+    fn closing_panel_reads_remaining_rows_but_new_activity_notifies_again() {
+        let mut badge = ActivityNotifications::default();
+        badge.observe(&[]);
+        let op = record("Install", Lifecycle::Completed);
+        badge.observe(&[op.clone()]);
+        assert_eq!(badge.count(), 1);
+        badge.mark_all_read();
+        badge.observe(&[op.clone()]);
+        assert_eq!(badge.count(), 0);
+        assert!(!badge.is_unread(&op.id));
+        let next = record("Build", Lifecycle::Completed);
+        badge.observe(&[op.clone(), next]);
+        assert_eq!(badge.count(), 1);
+        assert!(!badge.is_unread(&op.id));
+    }
+    #[test]
+    fn reading_one_activity_preserves_other_unread_items() {
+        let mut badge = ActivityNotifications::default();
+        badge.observe(&[]);
+        let first = record("Install", Lifecycle::Completed);
+        let second = record("Build", Lifecycle::Failed);
+        badge.observe(&[first.clone(), second.clone()]);
+        badge.mark_read(&first.id);
+        badge.mark_read(&first.id);
+        badge.mark_read("missing");
+        badge.observe(&[first.clone(), second.clone()]);
+        assert!(!badge.is_unread(&first.id));
+        assert!(badge.is_unread(&second.id));
+        assert_eq!(badge.count(), 1);
+    }
+    #[test]
+    fn existing_history_is_read_but_new_completions_are_unread() {
+        let mut badge = ActivityNotifications::default();
+        let old = record("Install", Lifecycle::Completed);
+        badge.observe(&[old.clone()]);
+        assert_eq!(badge.count(), 0);
+        let new = record("Build", Lifecycle::Completed);
+        badge.observe(&[old, new.clone()]);
+        assert!(badge.is_unread(&new.id));
+        assert_eq!(badge.count(), 1);
     }
     #[test]
     fn activity_details_do_not_invent_install_paths_or_shortcut_success() {

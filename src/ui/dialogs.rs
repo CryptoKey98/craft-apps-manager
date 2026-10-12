@@ -877,56 +877,58 @@ impl App {
 
                     ui.add_space(20.0);
 
-                    theme::group().show(ui, |ui| {
-                        egui::ScrollArea::vertical()
-                            .max_height(260.0)
-                            .show(ui, |ui| {
-                                for (index, asset) in choice.assets.iter().enumerate() {
-                                    if index > 0 {
-                                        rule(ui);
-                                    }
+                    theme::group()
+                        .inner_margin(egui::Margin::symmetric(0, 8))
+                        .show(ui, |ui| {
+                            egui::ScrollArea::vertical()
+                                .max_height(260.0)
+                                .show(ui, |ui| {
+                                    for (index, asset) in choice.assets.iter().enumerate() {
+                                        if index > 0 {
+                                            rule(ui);
+                                        }
 
-                                    band(ui, egui::Margin::symmetric(12, 10), 0.0, |ui| {
-                                        ui.horizontal(|ui| {
-                                            if ui
-                                                .radio_value(
-                                                    &mut self.custom_download_index,
-                                                    index,
-                                                    "",
-                                                )
-                                                .changed()
-                                            {
-                                                self.custom_download_confirmed = false;
-                                            }
-
-                                            ui.vertical(|ui| {
-                                                ui.add(
-                                                    egui::Label::new(
-                                                        RichText::new(&asset.name).size(14.0),
+                                        band(ui, egui::Margin::symmetric(12, 10), 0.0, |ui| {
+                                            ui.horizontal(|ui| {
+                                                if ui
+                                                    .radio_value(
+                                                        &mut self.custom_download_index,
+                                                        index,
+                                                        "",
                                                     )
-                                                    .truncate(),
-                                                )
-                                                .on_hover_text(&asset.name);
+                                                    .changed()
+                                                {
+                                                    self.custom_download_confirmed = false;
+                                                }
 
-                                                note(
-                                                    ui,
-                                                    format!(
-                                                        "{} · {:.1} MB",
-                                                        asset
-                                                            .name
-                                                            .rsplit('.')
-                                                            .next()
-                                                            .unwrap_or("Package")
-                                                            .to_uppercase(),
-                                                        asset.size as f64 / 1_000_000.0
-                                                    ),
-                                                );
+                                                ui.vertical(|ui| {
+                                                    ui.add(
+                                                        egui::Label::new(
+                                                            RichText::new(&asset.name).size(14.0),
+                                                        )
+                                                        .truncate(),
+                                                    )
+                                                    .on_hover_text(&asset.name);
+
+                                                    note(
+                                                        ui,
+                                                        format!(
+                                                            "{} · {:.1} MB",
+                                                            asset
+                                                                .name
+                                                                .rsplit('.')
+                                                                .next()
+                                                                .unwrap_or("Package")
+                                                                .to_uppercase(),
+                                                            asset.size as f64 / 1_000_000.0
+                                                        ),
+                                                    );
+                                                });
                                             });
                                         });
-                                    });
-                                }
-                            });
-                    });
+                                    }
+                                });
+                        });
 
                     ui.add_space(12.0);
 
@@ -1583,7 +1585,7 @@ impl App {
                                 });
                         });
                     } else {
-                        theme::group().show(ui, |ui| {
+                        theme::group().inner_margin(egui::Margin::symmetric(0, 8)).show(ui, |ui| {
                         ui.set_width(ui.available_width());
                         egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
                             for (index, entry) in plan.entries.iter().enumerate() {
@@ -3190,125 +3192,127 @@ impl App {
         if self.restore_backups.is_empty() {
             return;
         }
-        theme::group().show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            ui.spacing_mut().item_spacing.y = 0.0;
-            egui::ScrollArea::vertical()
-                .max_height(300.0)
-                .show(ui, |ui| {
-                    ui.spacing_mut().item_spacing.y = 0.0;
-                    let count = self.restore_backups.len();
-                    for (i, backup) in self.restore_backups.iter().enumerate() {
-                        if i > 0 {
-                            rule(ui);
-                        }
-                        let (title, detail, kind) = backup_labels(app, backup);
-                        let selected = if self.backup_delete_mode {
-                            self.backup_delete_selected.contains(&i)
-                        } else {
-                            self.restore_selected == Some(i)
-                        };
-                        let (rect, response) = ui.allocate_exact_size(
-                            egui::vec2(ui.available_width(), 68.0),
-                            Sense::click(),
-                        );
-                        response.widget_info(|| {
-                            egui::WidgetInfo::selected(
-                                if self.backup_delete_mode {
-                                    egui::WidgetType::Checkbox
-                                } else {
-                                    egui::WidgetType::RadioButton
-                                },
-                                true,
-                                selected,
-                                format!("{title} · {detail}"),
-                            )
-                        });
-                        if response.hovered() {
-                            let round = |on: bool| if on { 9 } else { 0 };
-                            ui.painter().rect_filled(
-                                rect,
-                                CornerRadius {
-                                    nw: round(i == 0),
-                                    ne: round(i == 0),
-                                    sw: round(i + 1 == count),
-                                    se: round(i + 1 == count),
-                                },
-                                theme::palette().hover,
-                            );
-                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                        }
-                        if response.has_focus() {
-                            ui.painter().rect_stroke(
-                                rect.shrink(1.0),
-                                CornerRadius::same(6),
-                                Stroke::new(2.0_f32, theme::palette().link),
-                                StrokeKind::Inside,
-                            );
-                        }
-                        let mark = egui::Rect::from_min_size(
-                            egui::pos2(
-                                rect.left() + if self.backup_delete_mode { 18.0 } else { 19.0 },
-                                rect.center().y - 8.0,
-                            ),
-                            egui::Vec2::splat(16.0),
-                        );
-                        if self.backup_delete_mode {
-                            theme::paint_check(ui, mark, selected, CHECK_RED, true);
-                        } else {
-                            theme::paint_radio(ui, mark.center(), selected);
-                        }
-                        theme::painter_text(
-                            ui.painter(),
-                            egui::pos2(rect.left() + 50.0, rect.center().y - 1.0),
-                            egui::Align2::LEFT_BOTTOM,
-                            &title,
-                            14.0,
-                            theme::palette().text,
-                        );
-                        theme::painter_text(
-                            ui.painter(),
-                            egui::pos2(rect.left() + 50.0, rect.center().y + 1.0),
-                            egui::Align2::LEFT_TOP,
-                            &detail,
-                            12.0,
-                            theme::palette().muted,
-                        );
-                        let galley = ui.painter().layout_no_wrap(
-                            kind.to_owned(),
-                            theme::bold(11.0),
-                            theme::palette().text_3,
-                        );
-                        let chip = egui::Rect::from_min_size(
-                            egui::pos2(
-                                rect.right() - 14.0 - galley.size().x - 16.0,
-                                rect.center().y - 11.0,
-                            ),
-                            egui::vec2(galley.size().x + 16.0, 22.0),
-                        );
-                        ui.painter().rect_filled(
-                            chip,
-                            CornerRadius::same(11),
-                            theme::palette().button,
-                        );
-                        ui.painter().galley(
-                            chip.center() - galley.size() / 2.0,
-                            galley,
-                            theme::palette().text_3,
-                        );
-                        if response.clicked() {
-                            if self.backup_delete_mode {
-                                if !self.backup_delete_selected.insert(i) {
-                                    self.backup_delete_selected.remove(&i);
-                                }
-                            } else {
-                                self.restore_selected = Some(i);
+        theme::group()
+            .inner_margin(egui::Margin::symmetric(0, 8))
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.spacing_mut().item_spacing.y = 0.0;
+                egui::ScrollArea::vertical()
+                    .max_height(300.0)
+                    .show(ui, |ui| {
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        let count = self.restore_backups.len();
+                        for (i, backup) in self.restore_backups.iter().enumerate() {
+                            if i > 0 {
+                                rule(ui);
                             }
-                            self.confirm_restore = false;
+                            let (title, detail, kind) = backup_labels(app, backup);
+                            let selected = if self.backup_delete_mode {
+                                self.backup_delete_selected.contains(&i)
+                            } else {
+                                self.restore_selected == Some(i)
+                            };
+                            let (rect, response) = ui.allocate_exact_size(
+                                egui::vec2(ui.available_width(), 68.0),
+                                Sense::click(),
+                            );
+                            response.widget_info(|| {
+                                egui::WidgetInfo::selected(
+                                    if self.backup_delete_mode {
+                                        egui::WidgetType::Checkbox
+                                    } else {
+                                        egui::WidgetType::RadioButton
+                                    },
+                                    true,
+                                    selected,
+                                    format!("{title} · {detail}"),
+                                )
+                            });
+                            if response.hovered() {
+                                let round = |on: bool| if on { 9 } else { 0 };
+                                ui.painter().rect_filled(
+                                    rect,
+                                    CornerRadius {
+                                        nw: round(i == 0),
+                                        ne: round(i == 0),
+                                        sw: round(i + 1 == count),
+                                        se: round(i + 1 == count),
+                                    },
+                                    theme::palette().hover,
+                                );
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                            }
+                            if response.has_focus() {
+                                ui.painter().rect_stroke(
+                                    rect.shrink(1.0),
+                                    CornerRadius::same(6),
+                                    Stroke::new(2.0_f32, theme::palette().link),
+                                    StrokeKind::Inside,
+                                );
+                            }
+                            let mark = egui::Rect::from_min_size(
+                                egui::pos2(
+                                    rect.left() + if self.backup_delete_mode { 18.0 } else { 19.0 },
+                                    rect.center().y - 8.0,
+                                ),
+                                egui::Vec2::splat(16.0),
+                            );
+                            if self.backup_delete_mode {
+                                theme::paint_check(ui, mark, selected, CHECK_RED, true);
+                            } else {
+                                theme::paint_radio(ui, mark.center(), selected);
+                            }
+                            theme::painter_text(
+                                ui.painter(),
+                                egui::pos2(rect.left() + 50.0, rect.center().y - 1.0),
+                                egui::Align2::LEFT_BOTTOM,
+                                &title,
+                                14.0,
+                                theme::palette().text,
+                            );
+                            theme::painter_text(
+                                ui.painter(),
+                                egui::pos2(rect.left() + 50.0, rect.center().y + 1.0),
+                                egui::Align2::LEFT_TOP,
+                                &detail,
+                                12.0,
+                                theme::palette().muted,
+                            );
+                            let galley = ui.painter().layout_no_wrap(
+                                kind.to_owned(),
+                                theme::bold(11.0),
+                                theme::palette().text_3,
+                            );
+                            let chip = egui::Rect::from_min_size(
+                                egui::pos2(
+                                    rect.right() - 14.0 - galley.size().x - 16.0,
+                                    rect.center().y - 11.0,
+                                ),
+                                egui::vec2(galley.size().x + 16.0, 22.0),
+                            );
+                            ui.painter().rect_filled(
+                                chip,
+                                CornerRadius::same(11),
+                                theme::palette().button,
+                            );
+                            ui.painter().galley(
+                                chip.center() - galley.size() / 2.0,
+                                galley,
+                                theme::palette().text_3,
+                            );
+                            if response.clicked() {
+                                if self.backup_delete_mode {
+                                    if !self.backup_delete_selected.insert(i) {
+                                        self.backup_delete_selected.remove(&i);
+                                    }
+                                } else {
+                                    self.restore_selected = Some(i);
+                                }
+                                self.confirm_restore = false;
+                            }
                         }
-                    }
-                });
-        });
+                    });
+            });
     }
 }
 
