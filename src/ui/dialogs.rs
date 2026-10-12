@@ -2344,6 +2344,54 @@ impl App {
             }
         }
         if self.launch_settings_open {
+            if !self.launch_build_options {
+                let installed = self
+                    .display_config
+                    .as_ref()
+                    .and_then(|config| {
+                        config
+                            .apps
+                            .iter()
+                            .find(|copy| copy.name == self.app && !copy.path.is_empty())
+                    })
+                    .cloned();
+                let key = (
+                    self.app.clone(),
+                    installed
+                        .as_ref()
+                        .map(|copy| copy.path.clone())
+                        .unwrap_or_default(),
+                );
+                if self.launch_executables_key.as_ref() != Some(&key) {
+                    self.launch_executables_key = Some(key);
+                    self.launch_executables = None;
+                    let paths = self.paths.clone();
+                    let app = self.app.clone();
+                    let ctx = ctx.clone();
+                    let (tx, rx) = std::sync::mpsc::channel();
+                    self.launch_executables_receiver = Some(rx);
+                    std::thread::spawn(move || {
+                        let result = match installed {
+                            Some(copy) => apps::executables_for_installed(&paths, &app, &copy),
+                            None => apps::executables(&paths, &app),
+                        }
+                        .map_err(|error| format!("{error:#}"));
+                        let _ = tx.send(result);
+                        ctx.request_repaint();
+                    });
+                }
+                if let Some(receiver) = &self.launch_executables_receiver {
+                    let result = match receiver.try_recv() {
+                        Ok(result) => Some(result),
+                        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err("Executable discovery stopped unexpectedly. Reopen Launch Options to retry.".into())),
+                        Err(std::sync::mpsc::TryRecvError::Empty) => None,
+                    };
+                    if let Some(result) = result {
+                        self.launch_executables = Some(result);
+                        self.launch_executables_receiver = None;
+                    }
+                }
+            }
             let modal = modal(
                 ctx,
                 format!(
@@ -2414,14 +2462,22 @@ impl App {
                                             String::new(),
                                             "Default executable",
                                         );
-                                        for exe in apps::executables(&self.paths, &self.app)
-                                            .unwrap_or_default()
-                                        {
-                                            ui.selectable_value(
-                                                &mut self.launch_draft.executable,
-                                                exe.clone(),
-                                                &exe,
-                                            );
+                                        match &self.launch_executables {
+                                            Some(Ok(executables)) => {
+                                                for exe in executables {
+                                                    ui.selectable_value(
+                                                        &mut self.launch_draft.executable,
+                                                        exe.clone(),
+                                                        exe,
+                                                    );
+                                                }
+                                            }
+                                            Some(Err(error)) => {
+                                                ui.label(error);
+                                            }
+                                            None => {
+                                                ui.label("Loading executables…");
+                                            }
                                         }
                                     });
                             }
@@ -2478,6 +2534,11 @@ impl App {
             if modal.should_close() {
                 self.launch_settings_open = false;
             }
+        }
+        if !self.launch_settings_open {
+            self.launch_executables_key = None;
+            self.launch_executables = None;
+            self.launch_executables_receiver = None;
         }
         if self.confirm_uninstall {
             let modal = modal(

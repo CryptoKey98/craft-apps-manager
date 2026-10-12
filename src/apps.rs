@@ -100,7 +100,8 @@ pub fn executables(paths: &Paths, app: &str) -> Result<Vec<String>> {
     let installed = installed(paths, app)?;
     executables_for_installed(paths, app, &installed)
 }
-fn executables_for_installed(
+/// Enumerate one selected installation without rescanning the application library.
+pub fn executables_for_installed(
     paths: &Paths,
     app: &str,
     installed: &Installed,
@@ -337,6 +338,42 @@ pub fn repair_linux_shortcuts(paths: &Paths) -> Result<()> {
         std::fs::remove_file(old)?;
     }
     Ok(())
+}
+
+#[cfg(all(test, not(target_os = "macos")))]
+mod executable_discovery_tests {
+    use super::*;
+
+    #[test]
+    fn selected_copy_discovery_does_not_refresh_or_write_library_configuration() {
+        let root = std::env::temp_dir().join(format!("craft-executables-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let folder = root.join("selected-copy");
+        std::fs::create_dir_all(&folder).unwrap();
+        let name = crate::model::executable_names("filmcraft")[0].clone();
+        let executable = folder.join(&name);
+        std::fs::write(&executable, b"test executable").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        // A library refresh would fail on this file; discovery must use the supplied copy.
+        let settings = paths.at("settings.json");
+        std::fs::write(&settings, b"invalid config").unwrap();
+        let selected = Installed {
+            name: "filmcraft".into(),
+            path: folder.display().to_string(),
+            install_kind: "installer".into(),
+            ..Default::default()
+        };
+        assert_eq!(
+            executables_for_installed(&paths, "filmcraft", &selected).unwrap(),
+            vec![name]
+        );
+        assert_eq!(std::fs::read(&settings).unwrap(), b"invalid config");
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }
 
 #[cfg(all(test, target_os = "macos"))]
