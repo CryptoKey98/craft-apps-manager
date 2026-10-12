@@ -866,12 +866,16 @@ mod build_shortcut_tests {
         assert_ne!(first.2, second.2);
         assert!(first.2.is_file() && second.2.is_file());
         assert_eq!(
-            crate::platform::shortcut_target(&first.2).unwrap(),
-            first.0.join("filmcraft.exe")
+            PathBuf::from(crate::platform::shortcut_target(&first.2).unwrap())
+                .canonicalize()
+                .unwrap(),
+            first.0.join("filmcraft.exe").canonicalize().unwrap()
         );
         assert_eq!(
-            crate::platform::shortcut_target(&second.2).unwrap(),
-            second.0.join("filmcraft.exe")
+            PathBuf::from(crate::platform::shortcut_target(&second.2).unwrap())
+                .canonicalize()
+                .unwrap(),
+            second.0.join("filmcraft.exe").canonicalize().unwrap()
         );
         build_desktop_shortcut_at(&paths, "filmcraft", &first.0, &desktop).unwrap();
         assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 2);

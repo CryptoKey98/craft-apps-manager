@@ -45,7 +45,7 @@ Screenshots show the Windows 0.8.0 client with a separate demo library, captured
 
 ## Getting started
 
-Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.0** includes these formats:
+Download the package for your system from the [Releases page](https://github.com/CryptoKey98/craft-apps-manager/releases/latest). Version **0.8.1** includes these formats:
 
 | System | Installation | Portable |
 | --- | --- | --- |
