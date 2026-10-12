@@ -125,17 +125,15 @@ impl App {
                         });
                         ui.add_space(18.0);
                         }
-                        egui::CollapsingHeader::new(RichText::new("All changes in this version").size(13.0).color(p.link))
+                        egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                #[cfg(any(target_os = "windows", target_os = "linux"))]
-                                {
-                                    body_text(ui, "• One administrator approval for eligible installer update batches.");
-                                    ui.add_space(8.0);
-                                }
                                 for note in [
-                                    "Updates preserve each app's installed format and architecture.",
-                                    "Smoother buttons and installation dialogs, softer scrollbars and improved search focus.",
-                                    "More reliable cancellation, source-builder synchronization and operation history.",
+                                    "Choose which completed build to launch in Build Options. The manager and builder use the same selection.",
+                                    "Builder progress, logs and cancellation stay synchronized between windows, including when reopening the manager with the same data folder.",
+                                    "Activity notifications and theme changes stay synchronized between the manager and builder.",
+                                    "Each build gets its own clearly named shortcut. Removing a build also removes its unchanged manager-created shortcut.",
+                                    "Configure an optional GitHub token in Settings → Updates. The compact GitHub status icon shows connection details on hover.",
+                                    "Improve Build Options layout and build-cache controls, and remove the redundant Show in Explorer link from Tools.",
                                 ] {
                                     body_text(ui, &format!("• {note}"));
                                     ui.add_space(8.0);

@@ -29,6 +29,9 @@ impl App {
                         12.0,
                         theme::palette().muted,
                     );
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        self.activity_settings_buttons(ui);
+                    });
                 });
                 theme::text(
                     ui,
@@ -107,16 +110,41 @@ impl App {
                         builder::history(&self.paths, &self.app);
                 }
                 let width = ui.available_width();
-                if btn("Build executable")
-                    .primary()
-                    .medium()
-                    .icon(Icon::Wrench)
-                    .min_width(width)
-                    .enabled(!state.busy)
-                    .show(ui)
-                    .clicked()
+                let completed = self
+                    .display_builds
+                    .get(&self.app)
+                    .map(|(folder, _)| folder.clone())
+                    .or_else(|| self.job.snapshot().output);
+                let has_build = completed.as_ref().is_some_and(|folder| {
+                    folder
+                        .join(model::build_executable_name(&self.app))
+                        .is_file()
+                });
+                if btn(if has_build {
+                    "Rebuild executable"
+                } else {
+                    "Build executable"
+                })
+                .primary()
+                .medium()
+                .icon(Icon::Wrench)
+                .min_width(width)
+                .enabled(!state.busy)
+                .show(ui)
+                .clicked()
                 {
                     self.start("build")
+                }
+                if has_build
+                    && btn("Launch")
+                        .medium()
+                        .icon(Icon::Play)
+                        .min_width(width)
+                        .enabled(!state.busy)
+                        .show(ui)
+                        .clicked()
+                {
+                    self.result(builder::launch_local(&self.paths, &self.app));
                 }
                 if btn("Set up build tools")
                     .medium()
@@ -146,29 +174,28 @@ impl App {
                     .medium()
                     .icon(Icon::Folder)
                     .min_width(width)
-                    .enabled(state.output.is_some())
+                    .enabled(has_build)
                     .show(ui)
                     .clicked()
                 {
-                    if let Some(out) = &state.output {
-                        self.result(platform::open(out));
-                    }
+                    let result =
+                        builder::selected_build(&self.paths, &self.app).and_then(|folder| {
+                            platform::open(&folder.ok_or_else(|| {
+                                anyhow::anyhow!("No completed local build was found")
+                            })?)
+                        });
+                    self.result(result);
                 }
-                if btn("Activity").medium().min_width(width).show(ui).clicked() {
-                    self.activity_open = !self.activity_open;
+                if btn("Build options")
+                    .medium()
+                    .icon(Icon::Gear)
+                    .min_width(width)
+                    .enabled(!state.busy)
+                    .show(ui)
+                    .clicked()
+                {
+                    self.open_build_options();
                 }
-                ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-                    if btn("Settings")
-                        .medium()
-                        .icon(Icon::Gear)
-                        .min_width(width)
-                        .enabled(!state.busy)
-                        .show(ui)
-                        .clicked()
-                    {
-                        self.open_settings()
-                    }
-                });
             });
         egui::CentralPanel::default()
             .frame(

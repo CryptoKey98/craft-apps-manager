@@ -2,23 +2,16 @@
 use super::overview::release_format_label;
 use super::theme::{self, btn, Icon, Size};
 use super::App;
-use craft_apps_manager::{apps, builder, jobs::State, model, platform};
+use craft_apps_manager::{
+    apps, builder,
+    jobs::{Job, State},
+    model, platform,
+};
 use eframe::egui::{
     self, pos2, vec2, Align, Color32, CornerRadius, FontId, Layout, Rect, Response, RichText,
     Sense, Stroke, Ui, UiBuilder,
 };
 use std::{path::PathBuf, process::Command};
-
-/// Where the app's files live, opened by "Show in Finder" and its equivalents.
-fn folder_label() -> &'static str {
-    if cfg!(target_os = "macos") {
-        "Show in Finder"
-    } else if cfg!(target_os = "windows") {
-        "Show in Explorer"
-    } else {
-        "Open app folder"
-    }
-}
 
 fn location_label(installed: &model::Installed) -> &'static str {
     if installed.install_kind == "installer" {
@@ -1263,8 +1256,14 @@ impl App {
         let app = self.app.clone();
         let status = self.status(&app);
         let installed = status.installed.clone();
-        let build = self.build_job.snapshot();
-        let building_here = self.build_app == app;
+        let external_build = self
+            .operation_records
+            .iter()
+            .find(|operation| Job::builder_operation(operation, &app))
+            .cloned();
+        let build = self.observed_build_state(&app);
+        let building_here = self.build_app == app
+            || Job::latest_builder_operation(&self.operation_records, &app).is_some();
         ui.spacing_mut().item_spacing.y = 0.0;
         theme::section_label(ui, &format!("{} tools", model::title(&app)));
         ui.add_space(12.0);
@@ -1405,7 +1404,10 @@ impl App {
             let last = self.display_builds.get(&app).cloned();
             let running = build.busy && building_here;
             let failed = building_here && !build.busy && build.stage == "Failed";
-            let setup = self.build_action == "setup";
+            let setup = Job::latest_builder_operation(&self.operation_records, &app)
+                .map_or(self.build_action == "setup", |operation| {
+                    operation.kind == "Set up tools"
+                });
             let cleaning = self.cleaning();
             let (summary, color) = if running {
                 (
@@ -1469,9 +1471,16 @@ impl App {
                                         .clicked()
                                     {
                                         if running {
-                                            self.build_job
-                                                .cancel
-                                                .store(true, std::sync::atomic::Ordering::Relaxed);
+                                            if self.build_app == app
+                                                && self.build_job.snapshot().busy
+                                            {
+                                                self.build_job.request_cancel();
+                                            } else if let Some(operation) = &external_build {
+                                                let _ = self
+                                                    .job
+                                                    .operations
+                                                    .request_cancel(&operation.id);
+                                            }
                                         } else {
                                             self.start_build(if failed && setup {
                                                 "setup"
@@ -1553,19 +1562,7 @@ impl App {
                     ui.add_space(6.0);
                     ui.horizontal(|ui| {
                         if theme::link(ui, "Build options…").clicked() {
-                            match builder::launch_options(&self.paths, &app) {
-                                Ok(options) => {
-                                    self.launch_arguments = options.arguments.join("\n");
-                                    self.launch_draft = options;
-                                }
-                                Err(error) => {
-                                    self.result(Err(error));
-                                    return;
-                                }
-                            }
-                            self.delete_build_confirm = false;
-                            self.clean_build_confirm = false;
-                            self.build_options_open = true;
+                            self.open_build_options();
                         }
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             let cleaning = self.cleaning();
@@ -1581,43 +1578,22 @@ impl App {
                     });
                 });
         });
-        if installed.is_some() {
-            ui.add_space(8.0);
-        }
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing.x = 16.0;
-            ui.spacing_mut().interact_size.y = 0.0;
-            if installed.is_some() && theme::link(ui, folder_label()).clicked() {
-                if let Some(installed) = &installed {
-                    let path = PathBuf::from(&installed.path);
-                    let folder = if path.is_file() {
-                        path.parent().unwrap_or(&path)
-                    } else {
-                        &path
-                    };
-                    // On macOS, select the app bundle in Finder instead of only
-                    // opening its folder.
-                    let bundle = cfg!(target_os = "macos")
-                        .then(|| model::installed_executable(folder, &app))
-                        .flatten();
-                    let result = match bundle {
-                        Some(bundle) => Command::new("open")
-                            .arg("-R")
-                            .arg(bundle)
-                            .spawn()
-                            .map(|_| ())
-                            .map_err(Into::into),
-                        None => platform::open(folder),
-                    };
-                    self.result(result);
-                }
-            }
+        let shared_log = self.operation_records.iter().any(|operation| {
+            operation.resource == app && self.shared_build_logs.contains_key(&operation.id)
         });
-        if building_here && (build.busy || !build.stage.is_empty()) {
-            ui.add_space(8.0);
+        if building_here || shared_log {
+            ui.add_space(16.0);
             theme::section_label(ui, "Build log");
             ui.add_space(8.0);
-            theme::log_view(ui, &build.log, false);
+            theme::log_view(
+                ui,
+                if build.log.is_empty() {
+                    "Waiting for build output…"
+                } else {
+                    &build.log
+                },
+                false,
+            );
         }
     }
 }

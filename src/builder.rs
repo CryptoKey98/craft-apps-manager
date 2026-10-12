@@ -246,31 +246,65 @@ fn build_owned(
     }
     Ok(())
 }
-pub fn launch_options(paths: &Paths, app: &str) -> Result<crate::apps::LaunchSettings> {
+#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildLaunchOptions {
+    #[serde(flatten)]
+    pub launch: crate::apps::LaunchSettings,
+    #[serde(default)]
+    pub selected_build: Option<PathBuf>,
+}
+pub fn build_options(paths: &Paths, app: &str) -> Result<BuildLaunchOptions> {
     crate::model::valid_app(app)?;
-    let all: BTreeMap<String, crate::apps::LaunchSettings> =
+    let all: BTreeMap<String, BuildLaunchOptions> =
         files::read_or_default(&paths.at("runtime/build-launch-settings.json"))?;
     Ok(all.get(app).cloned().unwrap_or_default())
+}
+pub fn launch_options(paths: &Paths, app: &str) -> Result<crate::apps::LaunchSettings> {
+    Ok(build_options(paths, app)?.launch)
+}
+pub fn save_build_options(paths: &Paths, app: &str, value: &BuildLaunchOptions) -> Result<()> {
+    crate::model::valid_app(app)?;
+    anyhow::ensure!(
+        value.launch.executable.is_empty(),
+        "Local builds use their compiled executable."
+    );
+    if let Some(folder) = &value.selected_build {
+        anyhow::ensure!(
+            completed_builds(paths, app)
+                .iter()
+                .any(|(path, _)| path == folder),
+            "The selected completed build is no longer available."
+        );
+    }
+    let file = paths.at("runtime/build-launch-settings.json");
+    let mut all: BTreeMap<String, BuildLaunchOptions> = files::read_or_default(&file)?;
+    all.insert(app.to_owned(), value.clone());
+    files::write_json(&file, &all)
 }
 pub fn save_launch_options(
     paths: &Paths,
     app: &str,
     value: &crate::apps::LaunchSettings,
 ) -> Result<()> {
-    crate::model::valid_app(app)?;
-    if !value.executable.is_empty() {
-        bail!("Local builds use their compiled executable.");
-    }
-    let file = paths.at("runtime/build-launch-settings.json");
-    let mut all: BTreeMap<String, crate::apps::LaunchSettings> = files::read_or_default(&file)?;
-    all.insert(app.to_owned(), value.clone());
-    files::write_json(&file, &all)
+    let mut options = build_options(paths, app)?;
+    options.launch = value.clone();
+    save_build_options(paths, app, &options)
 }
-/// Launch the newest completed build independently of installed releases.
+/// A removed selected build falls back to the newest valid completed build.
+pub fn selected_build(paths: &Paths, app: &str) -> Result<Option<PathBuf>> {
+    let options = build_options(paths, app)?;
+    let builds = completed_builds(paths, app);
+    Ok(options
+        .selected_build
+        .filter(|selected| builds.iter().any(|(path, _)| path == selected))
+        .or_else(|| builds.first().map(|(path, _)| path.clone())))
+}
+/// Launch the chosen completed build independently of installed releases.
 pub fn launch_local(paths: &Paths, app: &str) -> Result<()> {
     crate::model::valid_app(app)?;
-    let folder =
-        history(paths, app).context("No completed local build was found. Build the app first.")?;
+    let folder = selected_build(paths, app)?
+        .context("No completed local build was found. Build the app first.")?;
     let executable = folder.join(crate::model::build_executable_name(app));
     files::inside(&executable, &output_root(paths, app))?;
     if !executable.is_file() {
@@ -301,6 +335,7 @@ pub fn delete_local(paths: &Paths, app: &str, folder: &std::path::Path) -> Resul
     if platform::running_app(app)? {
         bail!("Close the app before deleting its local build.");
     }
+    crate::portable::remove_build_shortcut(paths, app, folder)?;
     files::remove_managed(folder, &root)
 }
 /// Clean intermediates for the selected build, never its compiled output.
@@ -364,30 +399,42 @@ fn local_cache_paths(
     }
     Ok(targets)
 }
-pub fn history(paths: &Paths, app: &str) -> Option<PathBuf> {
+/// Newest first; only direct, unlinked completed builds belonging to this app.
+pub fn completed_builds(paths: &Paths, app: &str) -> Vec<(PathBuf, BuildInfo)> {
     let root = output_root(paths, app);
-    let mut builds: Vec<_> = fs::read_dir(root)
-        .ok()?
-        .filter_map(|e| e.ok())
-        .filter(|e| {
-            e.path()
-                .join(crate::model::build_executable_name(app))
-                .exists()
-        })
-        .filter_map(|e| {
-            if files::linked(&e.path()).ok()? {
+    let Ok(entries) = fs::read_dir(&root) else {
+        return Vec::new();
+    };
+    let mut builds: Vec<_> = entries
+        .filter_map(|entry| {
+            let folder = entry.ok()?.path();
+            if files::no_links(&folder).is_err()
+                || !folder.is_dir()
+                || !folder
+                    .join(crate::model::build_executable_name(app))
+                    .is_file()
+            {
                 return None;
             }
-            let info: BuildInfo = files::read_json(&e.path().join("build-info.json")).ok()?;
+            let info: BuildInfo = files::read_json(&folder.join("build-info.json")).ok()?;
             if info.app != app {
                 return None;
             }
             let time = chrono::DateTime::parse_from_rfc3339(&info.built_at).ok()?;
-            Some((time, e.path()))
+            Some((time, folder, info))
         })
         .collect();
-    builds.sort_by_key(|v| v.0);
-    builds.pop().map(|v| v.1)
+    builds.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    builds
+        .into_iter()
+        .map(|(_, folder, info)| (folder, info))
+        .collect()
+}
+pub fn history(paths: &Paths, app: &str) -> Option<PathBuf> {
+    completed_builds(paths, app)
+        .into_iter()
+        .next()
+        .map(|(folder, _)| folder)
 }
 pub fn clean(paths: &Paths) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsSourceBuilder")?;
@@ -404,6 +451,130 @@ pub fn clean(paths: &Paths) -> Result<()> {
 #[cfg(test)]
 mod local_build_tests {
     use super::*;
+
+    #[test]
+    fn build_selection_survives_restart_and_keeps_latest_independent() {
+        let root =
+            std::env::temp_dir().join(format!("craft-build-choice-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let make = |name: &str, time: &str| {
+            let folder = paths.at(format!("builds/filmcraft/{name}"));
+            files::write_json(
+                &folder.join("build-info.json"),
+                &BuildInfo {
+                    app: "filmcraft".into(),
+                    commit: "a".repeat(40),
+                    source_branch: "main".into(),
+                    built_at: time.into(),
+                    profile: "release".into(),
+                    log: String::new(),
+                },
+            )
+            .unwrap();
+            fs::write(
+                folder.join(crate::model::build_executable_name("filmcraft")),
+                b"test executable",
+            )
+            .unwrap();
+            folder
+        };
+        let older = make("older", "2026-10-10T12:00:00Z");
+        let newer = make("newer", "2026-10-11T12:00:00Z");
+        assert_eq!(
+            selected_build(&paths, "filmcraft").unwrap(),
+            Some(newer.clone())
+        );
+        save_build_options(
+            &paths,
+            "filmcraft",
+            &BuildLaunchOptions {
+                launch: crate::apps::LaunchSettings {
+                    executable: String::new(),
+                    arguments: vec!["--test".into()],
+                },
+                selected_build: Some(older.clone()),
+            },
+        )
+        .unwrap();
+        let restarted = Paths::new(root.clone(), None);
+        assert_eq!(
+            selected_build(&restarted, "filmcraft").unwrap(),
+            Some(older.clone())
+        );
+        assert_eq!(history(&paths, "filmcraft"), Some(newer.clone()));
+        let newest = make("newest", "2026-10-12T12:00:00Z");
+        assert_eq!(
+            selected_build(&paths, "filmcraft").unwrap(),
+            Some(older.clone())
+        );
+        assert_eq!(completed_builds(&paths, "filmcraft").len(), 3);
+        fs::remove_dir_all(&older).unwrap();
+        assert_eq!(
+            selected_build(&paths, "filmcraft").unwrap(),
+            Some(newest.clone())
+        );
+        assert!(save_build_options(
+            &paths,
+            "filmcraft",
+            &BuildLaunchOptions {
+                selected_build: Some(root.join("outside")),
+                ..Default::default()
+            }
+        )
+        .is_err());
+        save_build_options(&paths, "filmcraft", &BuildLaunchOptions::default()).unwrap();
+        assert_eq!(selected_build(&paths, "filmcraft").unwrap(), Some(newest));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn legacy_launch_settings_load_without_a_build_selection() {
+        let root =
+            std::env::temp_dir().join(format!("craft-build-legacy-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        files::write_json(
+            &paths.at("runtime/build-launch-settings.json"),
+            &serde_json::json!({"filmcraft":{"executable":"","arguments":["--legacy"]}}),
+        )
+        .unwrap();
+        let options = build_options(&paths, "filmcraft").unwrap();
+        assert!(options.selected_build.is_none());
+        assert_eq!(options.launch.arguments, ["--legacy"]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cache_availability_follows_each_build_commit() {
+        let root =
+            std::env::temp_dir().join(format!("craft-cache-choice-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let make = |name: &str, commit: String| {
+            let folder = paths.at(format!("builds/filmcraft/{name}"));
+            files::write_json(
+                &folder.join("build-info.json"),
+                &BuildInfo {
+                    app: "filmcraft".into(),
+                    commit,
+                    source_branch: "main".into(),
+                    built_at: chrono::Utc::now().to_rfc3339(),
+                    profile: "release".into(),
+                    log: String::new(),
+                },
+            )
+            .unwrap();
+            folder
+        };
+        let older = make("older", "a".repeat(40));
+        let newer = make("newer", "b".repeat(40));
+        let workspace = paths.at("workspace/filmcraft/older");
+        fs::create_dir_all(&workspace).unwrap();
+        fs::write(workspace.join(".extracted"), "a".repeat(40)).unwrap();
+        assert!(has_local_cache(&paths, "filmcraft", &older).unwrap());
+        assert!(!has_local_cache(&paths, "filmcraft", &newer).unwrap());
+        fs::remove_dir_all(&workspace).unwrap();
+        assert!(!has_local_cache(&paths, "filmcraft", &older).unwrap());
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn selected_build_cleanup_keeps_outputs_sources_and_other_workspaces() {

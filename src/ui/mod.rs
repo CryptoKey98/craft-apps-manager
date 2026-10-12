@@ -167,6 +167,14 @@ struct CustomAppSetup {
     choosing: bool,
 }
 
+type BuildCacheSnapshot = (PathBuf, String, std::collections::HashMap<PathBuf, bool>);
+
+type SharedWindowSnapshot = (
+    PathBuf,
+    Option<model::Theme>,
+    std::collections::HashMap<String, String>,
+);
+
 pub struct App {
     icons: BTreeMap<String, egui::TextureHandle>,
     icon_receiver: std::sync::mpsc::Receiver<(String, Option<Vec<u8>>)>,
@@ -244,6 +252,10 @@ pub struct App {
     launch_settings_open: bool,
     launch_build_options: bool,
     build_options_open: bool,
+    build_choice: Option<PathBuf>,
+    build_choices: Vec<(PathBuf, model::BuildInfo)>,
+    build_choice_cache: std::collections::HashMap<PathBuf, bool>,
+    build_cache_receiver: Option<std::sync::mpsc::Receiver<BuildCacheSnapshot>>,
     confirm_build: Option<String>,
     build_parent: String,
     build_shortcut: bool,
@@ -324,6 +336,8 @@ pub struct App {
     plan_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, (bool, String)>>>,
     operation_records: Vec<craft_apps_manager::operations::Operation>,
     operation_refresh: Instant,
+    shared_window_receiver: Option<std::sync::mpsc::Receiver<SharedWindowSnapshot>>,
+    shared_build_logs: std::collections::HashMap<String, String>,
     activity_open: bool,
     activity_history: bool,
     activity_anchor: Option<egui::Pos2>,
@@ -386,10 +400,19 @@ impl App {
         theme::apply(&cc.egui_ctx, preferences.theme);
         let build_preferences = paths.builder_preferences()?;
         let args: Vec<_> = std::env::args().collect();
+        let startup_operations = craft_apps_manager::operations::Manager::new(&paths.root).list();
+        let active_build = startup_operations
+            .iter()
+            .find(|op| Job::builder_operation(op, &op.resource));
         let app = args
             .windows(2)
             .find(|a| a[0] == "--app")
             .map(|a| a[1].clone())
+            .or_else(|| {
+                (!builder)
+                    .then(|| active_build.map(|op| op.resource.clone()))
+                    .flatten()
+            })
             .unwrap_or_else(|| "filmcraft".into());
         model::valid_app(&app)?;
         let job = Job::new(
@@ -446,6 +469,9 @@ impl App {
             });
             rx
         });
+        let mut activity_notifications = operations_view::ActivityNotifications::new(&paths.root);
+        activity_notifications.observe(&startup_operations);
+        let resume_build_page = !builder && active_build.is_some_and(|op| op.resource == app);
         let mut window = Self {
             icons,
             icon_receiver,
@@ -483,7 +509,7 @@ impl App {
             job_target: None,
             failure_dismissed: false,
             build_job,
-            page: if std::env::args().any(|a| a == "--preview-details") {
+            page: if resume_build_page || std::env::args().any(|a| a == "--preview-details") {
                 Page::App
             } else {
                 Page::Overview
@@ -522,6 +548,10 @@ impl App {
             launch_settings_open: false,
             launch_build_options: false,
             build_options_open: false,
+            build_choice: None,
+            build_choices: Vec::new(),
+            build_choice_cache: Default::default(),
+            build_cache_receiver: None,
             confirm_build: None,
             build_parent: String::new(),
             build_shortcut: false,
@@ -600,9 +630,11 @@ impl App {
             activity_open: false,
             activity_history: false,
             activity_anchor: None,
-            activity_notifications: Default::default(),
-            operation_records: Vec::new(),
+            activity_notifications,
+            operation_records: startup_operations,
             operation_refresh: Instant::now() - Duration::from_secs(2),
+            shared_window_receiver: None,
+            shared_build_logs: Default::default(),
         };
         window.previews();
         Ok(window)
@@ -611,6 +643,46 @@ impl App {
     /// `--preview-dialog install|uninstall|launch|cleanup|manager|error|notice` and
     /// `--preview-build running|done|failed`. `--preview-progress` with
     /// `--preview-details` shows the progress on the app page.
+    fn refresh_build_choice_cache(&mut self) {
+        self.build_choice_cache.clear();
+        let paths = self.paths.clone();
+        let app = self.app.clone();
+        let folders: Vec<_> = self
+            .build_choices
+            .iter()
+            .map(|(folder, _)| folder.clone())
+            .collect();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        self.build_cache_receiver = Some(receiver);
+        std::thread::spawn(move || {
+            let availability = folders
+                .into_iter()
+                .map(|folder| {
+                    let available =
+                        builder::has_local_cache(&paths, &app, &folder).unwrap_or(false);
+                    (folder, available)
+                })
+                .collect();
+            let _ = sender.send((paths.root, app, availability));
+        });
+    }
+    fn open_build_options(&mut self) {
+        match builder::build_options(&self.paths, &self.app) {
+            Ok(options) => {
+                self.launch_arguments = options.launch.arguments.join("\n");
+                self.launch_draft = options.launch;
+                self.build_choices = builder::completed_builds(&self.paths, &self.app);
+                self.build_choice = options
+                    .selected_build
+                    .filter(|folder| self.build_choices.iter().any(|(path, _)| path == folder));
+                self.delete_build_confirm = false;
+                self.clean_build_confirm = false;
+                self.build_options_open = true;
+                self.refresh_build_choice_cache();
+            }
+            Err(error) => self.result(Err(error)),
+        }
+    }
     fn previews(&mut self) {
         let args: Vec<_> = std::env::args().collect();
         let value = |flag: &str| args.windows(2).find(|a| a[0] == flag).map(|a| a[1].clone());
@@ -623,9 +695,7 @@ impl App {
         }
         match value("--preview-dialog").as_deref() {
             Some("build-options") => {
-                self.launch_draft = builder::launch_options(&self.paths, &self.app).unwrap_or_default();
-                self.launch_arguments = self.launch_draft.arguments.join("\n");
-                self.build_options_open = true;
+                self.open_build_options();
             }
             Some("build-confirmation") => { self.build_parent = builder::output_root(&self.paths, &self.app).parent().unwrap().display().to_string(); self.confirm_build = Some(self.app.clone()); },
             Some("activity") | Some("activity-details") => self.activity_open = true,
@@ -794,7 +864,8 @@ impl App {
             "source-app" => updates::sources(&paths, &[app], &job),
             "remove-source" => updates::remove_source(&paths, &app),
             "clean-build" => {
-                let folder = builder::history(&paths, &app).context("No completed local build")?;
+                let folder =
+                    builder::selected_build(&paths, &app)?.context("No completed local build")?;
                 job.stage(
                     "Cleaning build files",
                     None,
@@ -823,7 +894,13 @@ impl App {
             self.confirm_build = Some(self.app.clone());
             return;
         }
-        if self.build_job.snapshot().busy || self.cleaning() {
+        if self.build_job.snapshot().busy
+            || self.cleaning()
+            || self
+                .operation_records
+                .iter()
+                .any(|operation| Job::builder_operation(operation, &self.app))
+        {
             return;
         }
         let paths = self.paths.clone();
@@ -1302,7 +1379,58 @@ impl App {
         });
     }
     /// Polls background work and keeps the snapshot of disk state fresh.
+    fn observed_build_state(&self, app: &str) -> craft_apps_manager::jobs::State {
+        let (local, local_app) = if self.builder {
+            (self.job.snapshot(), self.app.as_str())
+        } else {
+            (self.build_job.snapshot(), self.build_app.as_str())
+        };
+        let mut observed =
+            Job::observed_builder_state(&local, local_app, &self.operation_records, app);
+        self.apply_shared_build_log(&mut observed, app);
+        observed
+    }
+    fn apply_shared_build_log(&self, state: &mut craft_apps_manager::jobs::State, app: &str) {
+        let local_busy = if self.builder {
+            self.job.snapshot().busy
+        } else {
+            self.build_app == app && self.build_job.snapshot().busy
+        };
+        if local_busy {
+            return;
+        }
+        if let Some(operation) = Job::latest_builder_operation(&self.operation_records, app) {
+            if operation.owner != std::process::id() {
+                if let Some(log) = self.shared_build_logs.get(&operation.id) {
+                    state.log.clone_from(log);
+                }
+            }
+        }
+    }
     fn poll(&mut self, ctx: &egui::Context) {
+        if let Some(receiver) = &self.build_cache_receiver {
+            match receiver.try_recv() {
+                Ok((root, app, availability)) => {
+                    self.build_cache_receiver = None;
+                    if root == self.paths.root && app == self.app && self.build_options_open {
+                        self.build_choice_cache = availability;
+                    }
+                }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.build_cache_receiver = None
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            }
+        }
+
+        if self.build_options_open
+            && !self.build_choices.is_empty()
+            && self.build_choice_cache.is_empty()
+            && self.build_cache_receiver.is_none()
+            && !self.job.snapshot().busy
+        {
+            self.refresh_build_choice_cache();
+        }
         if !self.settings {
             self.token_draft.clear();
             self.token_reveal = false;
@@ -1384,8 +1512,65 @@ impl App {
                 }
             }
         }
+        if let Some(receiver) = &self.shared_window_receiver {
+            if let Ok((root, theme, logs)) = receiver.try_recv() {
+                self.shared_window_receiver = None;
+                if root == self.paths.root {
+                    self.shared_build_logs = logs;
+                    if self.builder {
+                        if let Some(theme) = theme {
+                            self.preferences.theme = theme;
+                            self.settings_draft.theme = theme;
+                            theme::apply(ctx, theme);
+                        }
+                    }
+                }
+            }
+        }
         if self.operation_refresh.elapsed() >= Duration::from_secs(1) {
             let records = self.job.operations.list();
+            if self.shared_window_receiver.is_none() {
+                let paths = self.paths.clone();
+                let records: Vec<_> = Job::latest_builder_operation(&records, &self.app)
+                    .filter(|op| op.owner != std::process::id())
+                    .cloned()
+                    .into_iter()
+                    .collect();
+                let context = ctx.clone();
+                let (sender, receiver) = std::sync::mpsc::channel();
+                self.shared_window_receiver = Some(receiver);
+                std::thread::spawn(move || {
+                    use std::io::{Read, Seek, SeekFrom};
+                    let theme = paths.read_preferences().ok().map(|p| p.theme);
+                    let mut logs = std::collections::HashMap::new();
+                    for operation in records.iter().filter(|op| {
+                        matches!(
+                            op.kind.as_str(),
+                            "Build" | "Source download" | "Set up tools"
+                        )
+                    }) {
+                        if let Some(path) = operation.facts.get("Log file") {
+                            // Read a bounded tail outside the UI thread, including completed builds.
+                            if let Ok(mut file) = std::fs::File::open(path) {
+                                if let Ok(metadata) = file.metadata() {
+                                    let _ = file.seek(SeekFrom::Start(
+                                        metadata.len().saturating_sub(200_000),
+                                    ));
+                                    let mut bytes = Vec::new();
+                                    if file.take(200_000).read_to_end(&mut bytes).is_ok() {
+                                        logs.insert(
+                                            operation.id.clone(),
+                                            String::from_utf8_lossy(&bytes).into_owned(),
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    let _ = sender.send((paths.root, theme, logs));
+                    context.request_repaint();
+                });
+            }
             self.activity_notifications.observe(&records);
             if records.iter().any(|record| {
                 record.lifecycle.terminal()
@@ -1519,6 +1704,9 @@ impl App {
         let busy = self.job.snapshot().busy;
         let building = self.build_job.snapshot().busy;
         if self.operation_was_busy && !busy {
+            if self.job_action == "clean-build" && self.build_options_open {
+                self.refresh_build_choice_cache();
+            }
             self.catalog_changed();
         }
         if (self.operation_was_busy && !busy) || (self.build_was_busy && !building) {
@@ -1634,7 +1822,7 @@ impl App {
                         model::apps()
                             .into_iter()
                             .filter_map(|name| {
-                                let folder = builder::history(&paths, &name)?;
+                                let folder = builder::selected_build(&paths, &name).ok()??;
                                 let info = craft_apps_manager::files::read_json(
                                     &folder.join("build-info.json"),
                                 )
@@ -1915,19 +2103,7 @@ impl eframe::App for App {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
         if self.builder {
-            let mut observed = state.clone();
-            if !observed.busy {
-                if let Some(operation) = self
-                    .operation_records
-                    .iter()
-                    .find(|op| Job::builder_operation(op, &self.app))
-                {
-                    observed.busy = true;
-                    observed.stage = operation.stage.clone();
-                    observed.detail = operation.detail.clone();
-                    observed.progress = operation.progress;
-                }
-            }
+            let observed = self.observed_build_state(&self.app);
             self.builder_view(ctx, &observed);
         } else {
             self.top_bar(ctx, &state);
@@ -1943,7 +2119,13 @@ impl eframe::App for App {
         self.dialogs(ctx);
         self.whats_new_dialog(ctx);
         restore_dialog_focus(ctx);
-        if state.busy || building {
+        if state.busy
+            || building
+            || self
+                .operation_records
+                .iter()
+                .any(|op| Job::builder_operation(op, &op.resource))
+        {
             ctx.request_repaint_after(Duration::from_millis(100));
         } else {
             ctx.request_repaint_after(Duration::from_secs(1));

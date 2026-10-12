@@ -955,21 +955,18 @@ impl App {
     }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
         group(ui, "Window behavior", |ui| {
-            check_row(ui, &mut self.settings_draft.close_to_tray, "Keep running in the system tray when closed", Some("Closing hides the window. Periodic checks continue; choose Exit in the tray menu to quit."));
+            check_row(
+                ui,
+                &mut self.settings_draft.close_to_tray,
+                "Keep running in the system tray when closed",
+                Some(
+                    "Closing hides the window. Update checks continue. Use the tray menu to exit.",
+                ),
+            );
             if let Some(message) = &self.tray_error {
                 note(ui, message);
             }
         });
-        note(
-            ui,
-            if cfg!(target_os = "linux") {
-                "AppImage updates retain a rollback copy until successful. System packages require administrator authorization."
-            } else if cfg!(target_os = "macos") {
-                "A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."
-            } else {
-                "A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."
-            },
-        );
     }
 
     fn github_token_settings(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
@@ -1200,6 +1197,16 @@ impl App {
                 );
             });
         });
+        note(
+            ui,
+            if cfg!(target_os = "linux") {
+                "AppImage updates retain a rollback copy until successful. System packages require administrator authorization."
+            } else if cfg!(target_os = "macos") {
+                "A temporary rollback copy is kept until the update succeeds. Installer mode copies the signed app into Applications; portable mode keeps it in the library."
+            } else {
+                "A temporary rollback copy is kept until the update succeeds. Installer mode downloads and opens the Windows installer wizard."
+            },
+        );
         ui.add_space(16.0);
         group(ui, "Update all", |ui| {
             let eligible = self

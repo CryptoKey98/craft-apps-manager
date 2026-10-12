@@ -114,17 +114,21 @@ pub(super) fn band<R>(
         .inner
 }
 
-/// A settings-style card with a section heading and consistent padding.
-fn options_section(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
-    theme::text(ui, title, 13.0, theme::palette().text_3);
-    ui.add_space(4.0);
-    theme::group().show(ui, |ui| {
-        band(ui, egui::Margin::same(16), 0.0, |ui| {
-            ui.spacing_mut().item_spacing.y = 6.0;
-            content(ui);
-        });
-    });
+fn build_choice_label(info: &model::BuildInfo) -> String {
+    let date = chrono::DateTime::parse_from_rfc3339(&info.built_at)
+        .map(|time| {
+            time.with_timezone(&chrono::Local)
+                .format("%b %d, %Y · %I:%M %p")
+                .to_string()
+        })
+        .unwrap_or_else(|_| info.built_at.clone());
+    format!(
+        "{} · {}",
+        date,
+        info.commit.chars().take(7).collect::<String>()
+    )
 }
+
 /// A full-width 1pt hairline.
 pub(super) fn rule(ui: &mut egui::Ui) {
     let (rect, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), 1.0), Sense::hover());
@@ -1417,131 +1421,165 @@ impl App {
         }
         if self.build_options_open {
             let app = self.app.clone();
-            let last = self.display_builds.get(&app).cloned();
-            let build_busy = self.build_job.snapshot().busy || busy;
+            let build_busy = self.build_job.snapshot().busy
+                || busy
+                || self
+                    .operation_records
+                    .iter()
+                    .any(|operation| Job::builder_operation(operation, &app));
             let response = modal(ctx, "Local build options", 560.0, |ui| {
                 title_bar(ui, &format!("{} build options", model::title(&app)), |ui| {
                     if close_button(ui).clicked() {
                         self.build_options_open = false;
                     }
                 });
-                egui::ScrollArea::vertical()
+                let body_height = (ctx.screen_rect().height() - 200.0).clamp(180.0, 650.0);
+                ui.scope(|ui| {
+                    // Keep the scroll area's paint margin inside the body, away
+                    // from the fixed header and footer (including during hover).
+                    let body_rect = egui::Rect::from_min_size(
+                        ui.cursor().min,
+                        egui::vec2(ui.available_width(), body_height),
+                    );
+                    ui.set_clip_rect(ui.clip_rect().intersect(body_rect));
+                    egui::ScrollArea::vertical()
                     .id_salt("build-options-scroll")
-                    .max_height((ctx.screen_rect().height() - 200.0).clamp(180.0, 560.0))
+                    .auto_shrink([false, false])
+                    .max_height(body_height)
                     .show(ui, |ui| {
                         band(ui, egui::Margin::same(24), 0.0, |ui| {
-                            ui.spacing_mut().item_spacing.y = 8.0;
+                            ui.spacing_mut().item_spacing.y = 9.0;
                             ui.add(egui::Label::new(RichText::new("Configure your compiled copy. Installed releases use their own launch settings.").size(13.0).color(theme::palette().muted)).wrap());
-                            ui.add_space(12.0);
-                            options_section(ui, "Launch options", |ui| {
-                                theme::text(ui, "Executable", 12.0, theme::palette().muted);
-                                theme::text(ui, model::build_executable_name(&app), 14.0, theme::palette().text);
-                                ui.add_space(8.0);
-                                theme::text(ui, "Arguments", 13.0, theme::palette().text_2);
-                                ui.scope(|ui| {
-                                    field_style(ui);
-                                    ui.add(egui::TextEdit::multiline(&mut self.launch_arguments)
-                                        .font(FontId::monospace(13.0))
-                                        .margin(egui::Margin::same(10))
-                                        .hint_text("--example-flag")
-                                        .desired_width(ui.available_width()).desired_rows(4));
+                            ui.add_space(11.0);
+                            ui.label(RichText::new("Launch options").font(theme::bold(14.0)).color(theme::palette().text));
+                            theme::text(ui, "Build to launch", 13.0, theme::palette().text_2);
+                            let label = self.build_choices.iter().find(|(folder, _)| Some(folder) == self.build_choice.as_ref())
+                                .map(|(_, info)| build_choice_label(info))
+                                .unwrap_or_else(|| "Latest completed build (automatic)".into());
+                            ui.scope(|ui| {
+                                field_style(ui);
+                                ui.spacing_mut().button_padding = egui::vec2(10.0, 9.0);
+                                let previous = self.build_choice.clone();
+                                ui.add_enabled_ui(!build_busy && !self.build_choices.is_empty(), |ui| {
+                                    egui::ComboBox::from_id_salt(("build-to-launch", &app))
+                                        .width(ui.available_width()).selected_text(label)
+                                        .show_ui(ui, |ui| {
+                                            ui.selectable_value(&mut self.build_choice, None, "Latest completed build (automatic)");
+                                            for (folder, info) in &self.build_choices {
+                                                ui.selectable_value(&mut self.build_choice, Some(folder.clone()), build_choice_label(info));
+                                            }
+                                        });
                                 });
-                                ui.add(egui::Label::new(RichText::new("One argument per line. Passed directly to the app; no shell quotes needed.").size(12.0).color(theme::palette().muted)).wrap());
-                            });
-                            ui.add_space(16.0);
-                            options_section(ui, "Build files", |ui| {
-                                ui.add(egui::Label::new(RichText::new("Browse the compiled files or review the output from your last build.").size(13.0).color(theme::palette().text_2)).wrap());
-                                ui.add_space(6.0);
-                                let log = self.paths.at(format!("logs/{app}.log"));
-                                ui.horizontal_wrapped(|ui| {
-                                    ui.spacing_mut().item_spacing.x = 10.0;
-                                    if action(ui, "Open build folder", Kind::Secondary, last.is_some()).clicked() {
-                                        if let Some((folder, _)) = &last { self.result(craft_apps_manager::platform::open(folder)); }
-                                    }
-                                    if action(ui, "View build log", Kind::Secondary, log.is_file()).clicked() {
-                                        self.result(craft_apps_manager::platform::open(&log));
-                                    }
-                                });
-                            });
-                            ui.add_space(16.0);
-                            options_section(ui, "Remove local build", |ui| {
-                                ui.add(egui::Label::new(RichText::new("Delete the compiled copy to free up space. Source files, installed releases, and other builds are kept.").size(13.0).color(theme::palette().text_2)).wrap());
-                                ui.add_space(6.0);
-                    if self.delete_build_confirm {
-                        ui.add(egui::Label::new("Delete this compiled build?").wrap());
-                        ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 10.0;
-                        if action(
-                            ui,
-                            "Yes",
-                            Kind::Danger,
-                            !build_busy && last.is_some(),
-                        )
-                        .clicked()
-                        {
-                            if let Some((folder, _)) = &last {
-                                let result = craft_apps_manager::builder::delete_local(
-                                    &self.paths,
-                                    &app,
-                                    folder,
-                                );
-                                if result.is_ok() {
-                                    self.display_builds.remove(&app);
-                                    if self.build_app == app {
-                                        self.build_job.state.lock().unwrap().output = None;
-                                    }
-                                    self.config_refresh_at = std::time::Instant::now();
-                                    self.build_options_open = false;
-                                }
-                                self.result(result);
-                            }
-                        }
-                        if action(ui, "No", Kind::Secondary, true).clicked() {
-                            self.delete_build_confirm = false;
-                        }
-                        });
-                    } else if action(
-                        ui,
-                        "Delete compiled build…",
-                        Kind::DangerOutline,
-                        !build_busy && last.is_some(),
-                    )
-                    .clicked()
-                    {
-                        self.delete_build_confirm = true;
-                        self.clean_build_confirm = false;
-                    }
-                                ui.add_space(12.0);
-                                rule(ui);
-                                ui.add_space(12.0);
-                                ui.add(egui::Label::new(RichText::new("Build cache").font(theme::bold(13.0)).color(theme::palette().text)).wrap());
-                                ui.add(egui::Label::new(RichText::new("Clear this app’s build cache and temporary workspace. Keeps compiled builds and source ZIPs.").size(12.0).color(theme::palette().muted)).wrap());
-                                ui.add_space(6.0);
-                                if self.clean_build_confirm {
-                                    ui.label("Delete cache files for this build?");
-                                    ui.horizontal(|ui| {
-                                        if action(ui, "Yes", Kind::Primary, !build_busy).clicked() {
-                                            self.start("clean-build");
-                                            self.clean_build_confirm = false;
-                                            self.display_build_cache.remove(&app);
-                                        }
-                                        if action(ui, "No", Kind::Secondary, true).clicked() {
-                                            self.clean_build_confirm = false;
-                                        }
-                                    });
-                                } else if action(ui, "Delete cache files…", Kind::Secondary, !build_busy && self.display_build_cache.contains(&app))
-                                    .on_disabled_hover_text("No cache files to delete, or an operation is still running.").clicked() {
-                                    self.clean_build_confirm = true;
+                                if previous != self.build_choice {
                                     self.delete_build_confirm = false;
+                                    self.clean_build_confirm = false;
                                 }
                             });
+                            let chosen = self.build_choices.iter().find(|(folder, _)| Some(folder) == self.build_choice.as_ref())
+                                .or_else(|| self.build_choices.first()).cloned();
+                            theme::group().show(ui, |ui| {
+                                band(ui, egui::Margin::same(12), 0.0, |ui| {
+                                    if let Some((folder, info)) = &chosen {
+                                        let description = if self.build_choice.is_none() {
+                                            format!("Latest completed build · {}", info.commit.chars().take(7).collect::<String>())
+                                        } else { build_choice_label(info) };
+                                        theme::text(ui, &description, 14.0, theme::palette().text);
+                                        ui.add(egui::Label::new(RichText::new(folder.display().to_string()).size(12.0).color(theme::palette().muted)).wrap());
+                                    } else {
+                                        theme::text(ui, "No completed builds yet", 13.0, theme::palette().muted);
+                                    }
+                                });
+                            });
+                            ui.add(egui::Label::new(RichText::new(if self.build_choice.is_none() {
+                                "Launch automatically uses your newest completed build."
+                            } else { "Launch uses this build until you choose another one." }).size(13.0).color(theme::palette().muted)).wrap());
+                            theme::text(ui, "Arguments", 13.0, theme::palette().text_2);
+                            ui.scope(|ui| {
+                                field_style(ui);
+                                ui.add(egui::TextEdit::multiline(&mut self.launch_arguments)
+                                    .font(FontId::monospace(13.0)).margin(egui::Margin::same(10))
+                                    .hint_text("--example-flag").desired_width(ui.available_width()).desired_rows(3));
+                            });
+                            ui.add(egui::Label::new(RichText::new("One argument per line. Passed directly to the app; no shell quotes needed.").size(12.0).color(theme::palette().muted)).wrap());
+                            ui.add_space(11.0);
+                            ui.label(RichText::new("Build files").font(theme::bold(14.0)).color(theme::palette().text));
+                            let log = self.paths.at(format!("logs/{app}.log"));
+                            ui.horizontal_wrapped(|ui| {
+                                ui.spacing_mut().item_spacing.x = 10.0;
+                                if btn("Open build folder").kind(Kind::Secondary).medium().icon(Icon::Folder).enabled(chosen.is_some()).show(ui).clicked() {
+                                    if let Some((folder, _)) = &chosen { self.result(craft_apps_manager::platform::open(folder)); }
+                                }
+                                if action(ui, "View build log", Kind::Secondary, log.is_file()).clicked() {
+                                    self.result(craft_apps_manager::platform::open(&log));
+                                }
+                            });
+                            ui.add_space(11.0);
+                            ui.label(RichText::new("Remove local build").font(theme::bold(14.0)).color(theme::palette().text));
+                            ui.add(egui::Label::new(RichText::new("Delete the selected compiled build. Other builds and installed releases are kept.").size(13.0).color(theme::palette().muted)).wrap());
+                            if self.delete_build_confirm {
+                                ui.label("Delete this compiled build?");
+                                ui.horizontal(|ui| {
+                                    if action(ui, "Yes", Kind::Danger, !build_busy && chosen.is_some()).clicked() {
+                                        if let Some((folder, _)) = &chosen {
+                                            let result = craft_apps_manager::builder::delete_local(&self.paths, &app, folder);
+                                            if result.is_ok() {
+                                                self.build_choices.retain(|(path, _)| path != folder);
+                                                if self.build_choice.as_ref() == Some(folder) { self.build_choice = None; }
+                                                self.config_refresh_at = std::time::Instant::now();
+                                                self.delete_build_confirm = false;
+                                                if self.build_app == app {
+                                                    self.build_job.state.lock().unwrap().output = craft_apps_manager::builder::history(&self.paths, &app);
+                                                }
+                                            }
+                                            self.result(result);
+                                        }
+                                    }
+                                    if action(ui, "No", Kind::Secondary, true).clicked() { self.delete_build_confirm = false; }
+                                });
+                            } else if action(ui, "Delete compiled build…", Kind::DangerOutline, !build_busy && chosen.is_some()).clicked() {
+                                self.delete_build_confirm = true;
+                                self.clean_build_confirm = false;
+                            }
+                            ui.add_space(3.0);
+                            rule(ui);
+                            ui.add_space(3.0);
+                            theme::text(ui, "Build cache", 13.0, theme::palette().text_2);
+                            ui.add(egui::Label::new(RichText::new("Clear temporary build files. Keeps completed builds and source ZIPs.").size(12.0).color(theme::palette().muted)).wrap());
+                            if self.clean_build_confirm {
+                                ui.label("Delete this app's build cache and temporary workspace?");
+                                ui.horizontal(|ui| {
+                                    if action(ui, "Yes", Kind::Primary, !build_busy).clicked() {
+                                        if let Some((folder, _)) = &chosen {
+                                            let paths = self.paths.clone();
+                                            let app = app.clone();
+                                            let folder = folder.clone();
+                                            self.job = Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
+                                            self.job.describe("Delete cache", &app);
+                                            self.job_target = Some((app.clone(), "clean-build".into()));
+                                            self.job_action = "clean-build".into();
+                                            self.failure_dismissed = false;
+                                            self.job.spawn(move |job| {
+                                                job.stage("Cleaning build files", None, "Keeping compiled builds and downloaded sources");
+                                                craft_apps_manager::builder::clean_local(&paths, &app, &folder)
+                                            });
+                                        }
+                                        self.clean_build_confirm = false;
+                                        self.display_build_cache.remove(&app);
+                                        self.build_choice_cache.clear();
+                                        self.build_cache_receiver = None;
+                                    }
+                                    if action(ui, "No", Kind::Secondary, true).clicked() { self.clean_build_confirm = false; }
+                                });
+                            } else if action(ui, "Delete cache files…", Kind::Secondary, !build_busy && chosen.as_ref().is_some_and(|(folder, _)| self.build_choice_cache.get(folder).copied().unwrap_or(false)))
+                                .on_disabled_hover_text("No cache files to delete, or an operation is still running.").clicked() {
+                                self.clean_build_confirm = true;
+                                self.delete_build_confirm = false;
+                            }
                         });
                     });
+                });
                 footer(ui, |ui| {
-                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
-                        self.build_options_open = false;
-                    }
-                    if action(ui, "Save", Kind::Primary, true).clicked() {
+                    if action(ui, "Save", Kind::Primary, !build_busy).clicked() {
                         self.launch_draft.executable.clear();
                         self.launch_draft.arguments = self
                             .launch_arguments
@@ -1549,15 +1587,32 @@ impl App {
                             .filter(|line| !line.is_empty())
                             .map(String::from)
                             .collect();
-                        let result = craft_apps_manager::builder::save_launch_options(
+                        let options = craft_apps_manager::builder::BuildLaunchOptions {
+                            launch: self.launch_draft.clone(),
+                            selected_build: self.build_choice.clone(),
+                        };
+                        let result = craft_apps_manager::builder::save_build_options(
                             &self.paths,
                             &app,
-                            &self.launch_draft,
+                            &options,
                         );
                         if result.is_ok() {
+                            if let Ok(Some(folder)) =
+                                craft_apps_manager::builder::selected_build(&self.paths, &app)
+                            {
+                                let info = craft_apps_manager::files::read_json(
+                                    &folder.join("build-info.json"),
+                                )
+                                .ok();
+                                self.display_builds.insert(app.clone(), (folder, info));
+                            }
+                            self.config_refresh_at = std::time::Instant::now();
                             self.build_options_open = false;
                         }
                         self.result(result);
+                    }
+                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        self.build_options_open = false;
                     }
                 });
             });
