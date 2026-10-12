@@ -383,25 +383,39 @@ fn apply_executable(plan_path: &Path) -> Result<()> {
             }
             let package_path = installer_path(&plan.staged);
             let log_path = installer_path(&stage.join("install.log"));
-            let status = crate::platform::hidden(
-                Command::new("msiexec.exe")
-                    .arg("/i")
-                    .arg(package_path)
-                    .arg("/passive")
-                    .arg("/norestart")
-                    .arg("/L*v")
-                    .arg(log_path),
-            )
-            .status()?;
-            match status.code() {
-                Some(0 | 3010) => {}
-                Some(1602) => {
-                    bail!("Manager update was canceled; the previous installation was kept")
+            let installation = (|| -> Result<()> {
+                let status = crate::platform::hidden(
+                    Command::new("msiexec.exe")
+                        .arg("/i")
+                        .arg(package_path)
+                        .arg("/passive")
+                        .arg("/norestart")
+                        .arg("/L*v")
+                        .arg(log_path),
+                )
+                .status()?;
+                match status.code() {
+                    Some(0 | 3010) => Ok(()),
+                    Some(1602) => bail!(
+                        "Manager update was canceled; Windows Installer reported cancellation"
+                    ),
+                    code => bail!(
+                        "Windows Installer could not update the manager (exit {code:?}). See {}",
+                        stage.join("install.log").display()
+                    ),
                 }
-                code => bail!(
-                    "Windows Installer could not update the manager (exit {code:?}). See {}",
-                    stage.join("install.log").display()
-                ),
+            })();
+            if let Err(error) = installation {
+                return recover_failed_update(error, &windows_update_result_path()?, || {
+                    files::no_links(&plan.target)?;
+                    Command::new(&plan.target)
+                        .arg("--root")
+                        .arg(&plan.root)
+                        .arg("--tools")
+                        .arg(&plan.tools)
+                        .spawn()?;
+                    Ok(())
+                });
             }
             Command::new(&plan.target)
                 .arg("--root")
@@ -465,6 +479,35 @@ fn apply_executable(plan_path: &Path) -> Result<()> {
     result
 }
 
+#[cfg(target_os = "windows")]
+fn windows_update_result_path() -> Result<PathBuf> {
+    Ok(
+        PathBuf::from(std::env::var_os("LOCALAPPDATA").context("No Windows user data directory")?)
+            .join("Craft Apps Manager/self-update-result.txt"),
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn recover_failed_update(
+    error: anyhow::Error,
+    result_path: &Path,
+    mut reopen: impl FnMut() -> Result<()>,
+) -> Result<()> {
+    let message = format!("Manager update failed: {error:#}");
+    let reporting = (|| -> Result<()> {
+        fs::create_dir_all(result_path.parent().context("Missing result directory")?)?;
+        fs::write(result_path, &message)?;
+        Ok(())
+    })();
+    // Never assume a failed MSI left an executable; reopening errors remain explicit.
+    let recovery = reopen();
+    if let Err(recovery) = recovery {
+        bail!("{message}. Could not reopen the manager: {recovery:#}. Result reporting: {reporting:?}");
+    }
+    reporting.context(format!("{message}. Could not persist the update failure"))?;
+    Err(error)
+}
+
 /// macOS startup errors belong to user data, never the signed bundle. Other
 /// platforms retain their existing executable-relative startup log location.
 pub fn startup_log_path() -> Option<PathBuf> {
@@ -493,7 +536,14 @@ pub fn startup_message() -> Option<String> {
             Err(_) => None,
         }
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        let path = windows_update_result_path().ok()?;
+        let message = fs::read_to_string(&path).ok()?;
+        let _ = fs::remove_file(path);
+        Some(message)
+    }
+    #[cfg(target_os = "linux")]
     None
 }
 
@@ -967,6 +1017,38 @@ mod linux_tests {
 #[cfg(all(test, target_os = "windows"))]
 mod tests {
     use super::*;
+    #[test]
+    fn failed_update_records_error_before_reopening() {
+        let root =
+            std::env::temp_dir().join(format!("craft-update-recovery-{}", uuid::Uuid::new_v4()));
+        let path = root.join("result.txt");
+        let mut reopened = false;
+        let result = recover_failed_update(anyhow::anyhow!("installer cancelled"), &path, || {
+            assert!(fs::read_to_string(&path)?.contains("installer cancelled"));
+            reopened = true;
+            Ok(())
+        });
+        assert!(result.is_err());
+        assert!(reopened);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn failed_reopen_preserves_update_diagnostic() {
+        let root =
+            std::env::temp_dir().join(format!("craft-update-recovery-{}", uuid::Uuid::new_v4()));
+        let path = root.join("result.txt");
+        let error = recover_failed_update(anyhow::anyhow!("installer failed"), &path, || {
+            bail!("executable missing")
+        })
+        .unwrap_err();
+        assert!(error.to_string().contains("executable missing"));
+        assert!(fs::read_to_string(&path)
+            .unwrap()
+            .contains("installer failed"));
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn windows_installer_paths_do_not_use_extended_prefixes() {
         assert_eq!(
