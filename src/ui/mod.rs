@@ -108,6 +108,11 @@ fn placeholder(ctx: &egui::Context, name: &str) -> egui::TextureHandle {
 
 type ReleaseCheck = Result<Option<String>, String>;
 type CheckMessage = (u64, String, String, ReleaseCheck);
+struct InstallationSelection {
+    app: String,
+    config: model::Config,
+    preferences: model::Preferences,
+}
 
 /// Everything the window shows that is read from disk, refreshed off the UI thread.
 struct Snapshot {
@@ -258,6 +263,8 @@ pub struct App {
     confirm_uninstall: bool,
     delete_profile: bool,
     confirm_install: Option<String>,
+    install_selected_tag: Option<String>,
+    additional_installation: bool,
     install_draft_app: Option<String>,
     install_parent: String,
     install_shortcut: bool,
@@ -291,6 +298,8 @@ pub struct App {
     backup_delete_selected: std::collections::BTreeSet<usize>,
     display_config: Option<model::Config>,
     config_receiver: Option<std::sync::mpsc::Receiver<Result<Snapshot, String>>>,
+    installation_selection:
+        Option<std::sync::mpsc::Receiver<Result<InstallationSelection, String>>>,
     display_backups: BTreeMap<String, Vec<backups::Backup>>,
     display_sources: BTreeMap<String, model::Source>,
     display_builds: BTreeMap<String, (PathBuf, Option<model::BuildInfo>)>,
@@ -521,6 +530,8 @@ impl App {
             confirm_uninstall: false,
             delete_profile: false,
             confirm_install: None,
+            install_selected_tag: None,
+            additional_installation: false,
             install_draft_app: None,
             install_parent: String::new(),
             install_shortcut: true,
@@ -553,6 +564,7 @@ impl App {
             backup_delete_selected: Default::default(),
             display_config: None,
             config_receiver: None,
+            installation_selection: None,
             display_backups: Default::default(),
             display_sources: Default::default(),
             display_builds: Default::default(),
@@ -686,7 +698,9 @@ impl App {
         });
     }
     fn release_pending(&self) -> bool {
-        self.plan_receiver.is_some() || self.release_plan.is_some()
+        self.plan_receiver.is_some()
+            || self.release_plan.is_some()
+            || self.installation_selection.is_some()
     }
     fn start(&mut self, action: &str) {
         if action == "build" && self.confirm_build.is_none() {
@@ -845,7 +859,12 @@ impl App {
             self.catalog_changed();
             if self.confirm_install.as_deref() == Some(&app) {
                 if let Some(tag) = tag {
-                    self.review_version_prepared(app, tag);
+                    self.install_selected_tag = Some(tag.clone());
+                    if self.additional_installation {
+                        self.load_install_prepared(&app, ctx);
+                    } else {
+                        self.review_version_prepared(app, tag);
+                    }
                 } else {
                     self.load_install_prepared(&app, ctx);
                 }
@@ -855,8 +874,14 @@ impl App {
         }
     }
     fn load_install(&mut self, app: &str, ctx: &egui::Context) {
+        if !self.additional_installation {
+            if let Err(error) = self.use_installed_version_options(app) {
+                self.install_error = Some(format!("{error:#}"));
+                return;
+            }
+        }
         if catalog::get(app).is_some_and(|entry| entry.repository.contains('/')) {
-            self.begin_custom_install(app, None, ctx);
+            self.begin_custom_install(app, self.install_selected_tag.clone(), ctx);
         } else {
             self.load_install_prepared(app, ctx);
         }
@@ -867,11 +892,19 @@ impl App {
         let app = app.to_string();
         let ctx = ctx.clone();
         let preferences = self.build_preferences.clone();
+        let additional = self.additional_installation;
+        let tag = self.install_selected_tag.clone();
         let (tx, rx) = std::sync::mpsc::channel();
         self.install_receiver = Some(rx);
         std::thread::spawn(move || {
             let job = Job::new(paths.at("logs/install-preview.log"), &preferences);
-            let result = updates::plan_app(&paths, &job, &app).map_err(|e| format!("{e:#}"));
+            let result = match (additional, tag.as_deref()) {
+                (true, Some(tag)) => updates::plan_additional_version(&paths, &job, &app, tag),
+                (true, None) => updates::plan_additional(&paths, &job, &app),
+                (false, Some(tag)) => updates::plan_version(&paths, &job, &app, tag),
+                (false, None) => updates::plan_app(&paths, &job, &app),
+            }
+            .map_err(|e| format!("{e:#}"));
             let _ = tx.send(result);
             ctx.request_repaint();
         });
@@ -879,6 +912,7 @@ impl App {
     fn run_install_plan(&mut self, app: String, plan: updates::ReleasePlan) {
         let paths = self.paths.clone();
         self.confirm_install = None;
+        self.additional_installation = false;
         self.install_draft_app = None;
         self.install_result = None;
         self.app = app.clone();
@@ -968,6 +1002,7 @@ impl App {
         self.install_draft_app = Some(app.clone());
         self.confirm_install = Some(app.clone());
         self.install_error = None;
+        self.install_selected_tag = Some(tag.clone());
         self.versions_app = None;
         let paths = self.paths.clone();
         let (tx, rx) = std::sync::mpsc::channel();
@@ -1048,6 +1083,23 @@ impl App {
     }
     fn app_preferences(&self, app: &str) -> model::Preferences {
         let preferred = craft_apps_manager::install_options::preferred(&self.preferences, app);
+        if !self.additional_installation && self.confirm_install.as_deref() != Some(app) {
+            if let Some(actual) = self
+                .display_config
+                .as_ref()
+                .and_then(|config| {
+                    config
+                        .apps
+                        .iter()
+                        .find(|copy| copy.name == app && !copy.path.is_empty())
+                })
+                .and_then(|copy| {
+                    craft_apps_manager::install_options::for_installed(&self.preferences, copy).ok()
+                })
+            {
+                return actual;
+            }
+        }
         if self
             .preferences
             .app_install_options
@@ -1073,7 +1125,7 @@ impl App {
         if let Some(installed) = installed {
             let options = craft_apps_manager::install_options::InstallOptions::installed(installed)
                 .ok_or_else(|| anyhow::anyhow!("Installation format or architecture is unknown. Confirm the existing installation before changing versions."))?;
-            let preferred = self.app_preferences(app);
+            let preferred = craft_apps_manager::install_options::preferred(&self.preferences, app);
             if preferred.release_format != options.release_format
                 || preferred.architecture != options.architecture
             {
@@ -1152,7 +1204,13 @@ impl App {
         AppStatus {
             update: check.as_ref().and_then(|c| c.clone().ok().flatten()),
             check,
-            alternate: self.alternates.iter().find(|a| a.name == app).cloned(),
+            alternate: self
+                .alternates
+                .iter()
+                .find(|a| {
+                    a.name == app && installed.as_ref().is_none_or(|copy| copy.path != a.path)
+                })
+                .cloned(),
             alternate_architecture,
             installed,
             checking: self.checking_apps.contains(app),
@@ -1224,6 +1282,31 @@ impl App {
     }
     /// Polls background work and keeps the snapshot of disk state fresh.
     fn poll(&mut self, ctx: &egui::Context) {
+        if let Some(receiver) = &self.installation_selection {
+            let result = match receiver.try_recv() {
+                Ok(result) => Some(result),
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(
+                    "Installation selection stopped unexpectedly. Try again.".into(),
+                )),
+                Err(std::sync::mpsc::TryRecvError::Empty) => None,
+            };
+            if let Some(result) = result {
+                self.installation_selection = None;
+                self.config_receiver = None;
+                self.config_refresh_at = std::time::Instant::now();
+                match result {
+                    Ok(selected) => {
+                        self.display_config = Some(selected.config);
+                        self.preferences = selected.preferences;
+                        self.release_checks.remove(&selected.app);
+                        self.download_availability.clear();
+                        self.confirm_uninstall = false;
+                        self.launch_settings_open = false;
+                    }
+                    Err(error) => self.error = Some(error),
+                }
+            }
+        }
         if self.operation_refresh.elapsed() >= Duration::from_secs(1) {
             let records = self.job.operations.list();
             self.activity_notifications.observe(&records);
@@ -1447,6 +1530,7 @@ impl App {
             }
         }
         if !busy
+            && self.installation_selection.is_none()
             && self.config_receiver.is_none()
             && std::time::Instant::now() >= self.config_refresh_at
         {

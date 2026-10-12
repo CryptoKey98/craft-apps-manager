@@ -16,6 +16,16 @@ Bulk updates and background checks derive each app's configuration from its veri
 
 Existing installations remain visible. Existing reliable type/architecture metadata is retained, and missing binary architecture can be recovered from PE or ELF headers. Truly unknown configuration fails safely for updates rather than borrowing obsolete global values. Unknown legacy macOS architecture cannot currently be recovered from Mach-O bundles. Existing relocation, removal, backups, source builder, installer cancellation, and portable extraction logic is preserved.
 
+## Multiple installations
+
+`Config.apps` stores the selected copy for each app; `Config.installations` retains copies by app, format, and location rather than collapsing copies with the same architecture. Migration inventories native installs and the default portable library independently. A verified saved selection survives changes to pending package preferences and restarts.
+
+The app-page Installation dropdown switches the selected copy and its action context. Add another installation opens the existing install dialog using a separate, validated plan; portable copies require unused, non-overlapping folders, and a second native installer copy is rejected. Previewing or cancelling does not remove or replace the selected installation. Update All and background updates target the selected copy.
+
+The install dialog includes a Version dropdown for first installs and additional copies. Selecting a version from the app page preselects its release tag. Explicit versions remain pinned while changing compatible installation options; installing an older additional copy does not downgrade the existing copy.
+
+Uninstall removes only the selected copy's record and selects a remaining verified copy. Lost legacy records can be recovered from the default portable library; unknown external folders cannot be rediscovered without their saved location. Launch options are scoped by app and installation path, with migration when a copy moves. Different copies may still share application-managed user settings.
+
 ## Source files
 
 Added `src/install_options.rs`.

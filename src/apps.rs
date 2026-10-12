@@ -15,14 +15,78 @@ pub struct LaunchSettings {
 pub fn settings(paths: &Paths, app: &str) -> Result<LaunchSettings> {
     let all: BTreeMap<String, LaunchSettings> =
         files::read_or_default(&paths.at("runtime/launch-settings.json"))?;
-    Ok(all.get(app).cloned().unwrap_or_default())
+    let (key, folder) = launch_settings_key(paths, app);
+    if let Some(settings) = all.get(&key) {
+        return Ok(settings.clone());
+    }
+    let mut settings = all
+        .get(app)
+        .cloned()
+        .or_else(|| {
+            if folder.is_none() {
+                let mut previous = all
+                    .iter()
+                    .filter(|(key, _)| key.starts_with(&format!("{app}|")));
+                let first = previous.next();
+                if previous.next().is_none() {
+                    return first.map(|(_, settings)| settings.clone());
+                }
+            }
+            None
+        })
+        .unwrap_or_default();
+    if let Some(folder) = folder {
+        let executable = std::path::Path::new(&settings.executable);
+        if executable.is_absolute() && !executable.starts_with(folder) {
+            settings.executable.clear();
+        }
+    }
+    Ok(settings)
+}
+fn launch_settings_key(paths: &Paths, app: &str) -> (String, Option<PathBuf>) {
+    let folder = files::read_json::<crate::model::Config>(&paths.at("settings.json"))
+        .ok()
+        .and_then(|config| {
+            config
+                .apps
+                .into_iter()
+                .find(|copy| copy.name == app && !copy.path.is_empty())
+        })
+        .map(|copy| PathBuf::from(copy.path));
+    (
+        folder
+            .as_ref()
+            .map(|folder| format!("{app}|{}", folder.display()))
+            .unwrap_or_else(|| app.into()),
+        folder,
+    )
 }
 pub fn save(paths: &Paths, app: &str, value: &LaunchSettings) -> Result<()> {
     crate::model::valid_app(app)?;
     let file = paths.at("runtime/launch-settings.json");
     let mut all: BTreeMap<String, LaunchSettings> = files::read_or_default(&file)?;
-    all.insert(app.into(), value.clone());
+    all.insert(launch_settings_key(paths, app).0, value.clone());
     files::write_json(&file, &all)
+}
+/// Keep the old key until relocation commits, so a failed move still has its options.
+pub(crate) fn carry_launch_settings(paths: &Paths, app: &str, old: &str, new: &str) -> Result<()> {
+    let file = paths.at("runtime/launch-settings.json");
+    let mut all: BTreeMap<String, LaunchSettings> = files::read_or_default(&file)?;
+    if let Some(mut settings) = all
+        .get(&format!("{app}|{old}"))
+        .or_else(|| all.get(app))
+        .cloned()
+    {
+        if let Ok(relative) = std::path::Path::new(&settings.executable).strip_prefix(old) {
+            settings.executable = std::path::Path::new(new)
+                .join(relative)
+                .display()
+                .to_string();
+        }
+        all.insert(format!("{app}|{new}"), settings);
+        files::write_json(&file, &all)?;
+    }
+    Ok(())
 }
 pub fn installed(paths: &Paths, app: &str) -> Result<Installed> {
     paths
@@ -150,12 +214,7 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
         if let Err(error) = crate::portable::remove_installer_shortcut(paths, app) {
             eprintln!("Desktop shortcut cleanup: {error:#}");
         }
-        for entry in config.apps.iter_mut().filter(|a| a.name == app) {
-            entry.path.clear();
-            entry.version.clear();
-            entry.install_kind.clear();
-            entry.product_code.clear();
-        }
+        forget_installation(&mut config, &installed);
         return paths.save_config(&config);
     }
     let root = PathBuf::from(&installed.path);
@@ -166,14 +225,7 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
         .to_path_buf();
     let temporary = releases.join(format!(".uninstall-{app}-{}", uuid::Uuid::new_v4()));
     std::fs::rename(&root, &temporary)?;
-    config
-        .apps
-        .iter_mut()
-        .filter(|a| a.name == app)
-        .for_each(|a| {
-            a.path.clear();
-            a.version.clear();
-        });
+    forget_installation(&mut config, &installed);
     if let Err(error) = paths.save_config(&config) {
         std::fs::rename(&temporary, &root)?;
         return Err(error);
@@ -183,6 +235,40 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     }
     files::remove_managed(&temporary, &releases)
 }
+/// Remove only the completed uninstall target; keep other verified copies
+/// available immediately and preserve the format of an empty selected record.
+pub(crate) fn forget_installation(config: &mut crate::model::Config, removed: &Installed) {
+    config.installations.retain(|record| {
+        !(record.name == removed.name
+            && record.path == removed.path
+            && (record.install_kind == "installer") == (removed.install_kind == "installer"))
+    });
+    let remaining = config
+        .installations
+        .iter()
+        .find(|record| {
+            record.name == removed.name
+                && !record.path.is_empty()
+                && crate::model::installed_executable(
+                    std::path::Path::new(&record.path),
+                    &record.name,
+                )
+                .is_some()
+        })
+        .cloned();
+    for entry in config.apps.iter_mut().filter(|a| a.name == removed.name) {
+        if let Some(record) = &remaining {
+            *entry = record.clone();
+        } else {
+            entry.path.clear();
+            entry.version.clear();
+            entry.product_code.clear();
+            entry.install_kind = removed.install_kind.clone();
+            entry.architecture = removed.architecture.clone();
+        }
+    }
+}
+
 pub fn uninstall_with_profile(paths: &Paths, app: &str, delete_profile: bool) -> Result<()> {
     crate::model::valid_app(app)?;
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;

@@ -110,6 +110,7 @@ impl App {
                         body_text(ui, "More control over your apps. A clearer view of every operation.");
                         ui.add_space(22.0);
                         feature(ui, Some(theme::Icon::Sliders), "Install your way", "Choose the package format and architecture for each app, using the downloads available for that release.");
+                        feature(ui, Some(theme::Icon::Layers), "Multiple installations", "Keep installer and portable copies side by side. Use the Installation dropdown to choose which copy to open, update, move or remove.");
                         feature(ui, Some(theme::Icon::Activity), "Follow every operation", "See downloads, installs and builds in Activity, with progress, cancellation and detailed results.");
                         feature(ui, None, "Add your own GitHub apps", "Review detected downloads before adding an app. Custom app support is experimental.");
                         #[cfg(target_os = "windows")]

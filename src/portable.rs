@@ -107,6 +107,12 @@ pub fn validate_install(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     Ok(())
 }
 pub fn mark(paths: &Paths, app: &str, stage: &Path) -> Result<()> {
+    mark_copy(paths, app, stage, false)
+}
+pub fn mark_additional(paths: &Paths, app: &str, stage: &Path) -> Result<()> {
+    mark_copy(paths, app, stage, true)
+}
+fn mark_copy(paths: &Paths, app: &str, stage: &Path, additional: bool) -> Result<()> {
     let marker = stage.join(MARKER);
     anyhow::ensure!(!marker.exists(), "Release includes a reserved manager file");
     let shortcut = paths
@@ -121,7 +127,7 @@ pub fn mark(paths: &Paths, app: &str, stage: &Path) -> Result<()> {
         &Ownership {
             app: app.into(),
             library: std::path::absolute(&paths.root)?,
-            shortcut,
+            shortcut: if additional { None } else { shortcut },
         },
     )
 }

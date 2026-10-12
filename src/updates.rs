@@ -522,6 +522,8 @@ pub struct ReleaseEntry {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ReleasePlan {
+    #[serde(default)]
+    pub additional_installation: bool,
     pub entries: Vec<ReleaseEntry>,
     pub preferences: Preferences,
     pub requested_tag: Option<String>,
@@ -621,6 +623,84 @@ pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
         ))
     })
 }
+/// Preview a new copy without changing the currently selected installation.
+pub fn plan_additional(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
+    let network = Network::new(&paths.root)?;
+    plan_additional_with(paths, job, app, |name| {
+        network.json(&format!(
+            "https://api.github.com/repos/{}/releases/latest",
+            crate::model::repository(name)
+        ))
+    })
+}
+/// Prepare a separate installation of an explicitly chosen release.
+pub fn plan_additional_version(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    tag: &str,
+) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    release_version(tag)?;
+    let mut url = reqwest::Url::parse(&format!(
+        "https://api.github.com/repos/{}/releases/tags/",
+        crate::model::repository(app)
+    ))?;
+    url.path_segments_mut()
+        .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+        .pop_if_empty()
+        .push(tag);
+    let release: Release = Network::new(&paths.root)?.json(url.as_str())?;
+    anyhow::ensure!(
+        release.tag_name == tag,
+        "The release tag changed; choose the version again"
+    );
+    let mut plan = plan_additional_with(paths, job, app, |_| Ok(release.clone()))?;
+    plan.requested_tag = Some(tag.into());
+    Ok(plan)
+}
+fn plan_additional_with(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    fetch: impl FnMut(&str) -> Result<Release>,
+) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    let prefs = paths.read_preferences()?;
+    let mut config = paths.config()?;
+    let snapshot = state_snapshot(paths, &prefs, &config)?;
+    let native_exists = config
+        .installations
+        .iter()
+        .any(|copy| copy.name == app && copy.install_kind == "installer" && !copy.path.is_empty());
+    let selected = config
+        .apps
+        .iter_mut()
+        .find(|copy| copy.name == app)
+        .context("App missing")?;
+    *selected = crate::model::Installed {
+        name: app.into(),
+        ..Default::default()
+    };
+    let mut plan = plan_from_config(paths, job, Some(app), prefs, config, fetch)?;
+    plan.snapshot = snapshot;
+    plan.additional_installation = true;
+    for entry in &mut plan.entries {
+        if entry.preferences.release_format == "installer" && native_exists {
+            entry.error = Some("An installer copy already exists. Select it to update it, or choose Portable ZIP for another installation.".into());
+        }
+        if entry.preferences.release_format == "portable" {
+            entry.destination = Some(paths.at(format!(
+                "releases/{}-{}-{}/{}",
+                app,
+                entry.preferences.architecture,
+                uuid::Uuid::new_v4().simple(),
+                app
+            )));
+        }
+    }
+    Ok(plan)
+}
 pub fn choose_destination(
     paths: &Paths,
     plan: &mut ReleasePlan,
@@ -642,7 +722,15 @@ pub fn choose_destination(
         .apps
         .into_iter()
         .find(|a| a.name == entry.app);
-    if let Some(current) = current.filter(|a| a.install_kind != "installer" && !a.path.is_empty()) {
+    if plan.additional_installation {
+        anyhow::ensure!(
+            !target.exists(),
+            "The new installation requires an unused folder"
+        );
+    }
+    if let Some(current) = current.filter(|a| {
+        !plan.additional_installation && a.install_kind != "installer" && !a.path.is_empty()
+    }) {
         let old = Path::new(&current.path);
         if old.parent() == Some(parent) {
             target = old.to_path_buf();
@@ -960,6 +1048,7 @@ fn plan_from_config(
         return Err(error);
     }
     Ok(ReleasePlan {
+        additional_installation: false,
         requested_tag: None,
         desktop_shortcut: false,
         installer_destination: None,
@@ -1035,6 +1124,48 @@ fn execute_validated(
     let mut config = paths.config()?;
     if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
         bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
+    }
+    if plan.additional_installation {
+        anyhow::ensure!(
+            plan.entries.len() == 1,
+            "Additional installations must use a single install plan"
+        );
+        let entry = &plan.entries[0];
+        if entry.preferences.release_format == "installer" {
+            anyhow::ensure!(
+                !config
+                    .installations
+                    .iter()
+                    .any(|copy| copy.name == entry.app
+                        && copy.install_kind == "installer"
+                        && !copy.path.is_empty()),
+                "An installer copy already exists"
+            );
+        } else {
+            let target = entry
+                .destination
+                .as_ref()
+                .context("Choose a separate installation folder")?;
+            anyhow::ensure!(
+                !target.exists(),
+                "The new installation requires an unused folder"
+            );
+            anyhow::ensure!(
+                !config.installations.iter().any(|copy| !copy.path.is_empty()
+                    && (target.starts_with(&copy.path)
+                        || Path::new(&copy.path).starts_with(target))),
+                "Installation folders must not overlap"
+            );
+        }
+        let selected = config
+            .apps
+            .iter_mut()
+            .find(|copy| copy.name == entry.app)
+            .context("App missing")?;
+        *selected = crate::model::Installed {
+            name: entry.app.clone(),
+            ..Default::default()
+        };
     }
     for entry in &plan.entries {
         if let Some(installed) = config.apps.iter().find(|app| app.name == entry.app) {
@@ -1426,7 +1557,11 @@ fn execute_entries(
                         &staged_folder.join("PhotoCraftData"),
                     )?;
                 }
-                crate::portable::mark(paths, &app.name, staged_folder)?;
+                if plan.additional_installation {
+                    crate::portable::mark_additional(paths, &app.name, staged_folder)?;
+                } else {
+                    crate::portable::mark(paths, &app.name, staged_folder)?;
+                }
                 let old = config.apps[i].clone();
                 config.apps[i].path = target.to_string_lossy().into_owned();
                 config.apps[i].version = v.into();
@@ -2202,6 +2337,51 @@ mod planning_tests {
         .unwrap();
         let job = Job::new(paths.at("log"), &Default::default());
         (paths, job)
+    }
+
+    #[test]
+    fn additional_install_preview_preserves_existing_copy_and_rejects_collisions() {
+        let (paths, job) = installed_fixture();
+        let before = fs::read(paths.at("settings.json")).unwrap();
+        let existing = crate::apps::installed(&paths, "photocraft").unwrap();
+        let mut plan = plan_additional_with(&paths, &job, "photocraft", |name| {
+            Ok(release(name, "0.2.0"))
+        })
+        .unwrap();
+        assert!(plan.additional_installation);
+        assert_eq!(plan.entries[0].action, "Install");
+        assert!(
+            plan.entries[0].error.is_none(),
+            "{:?}",
+            plan.entries[0].error
+        );
+        assert_eq!(fs::read(paths.at("settings.json")).unwrap(), before);
+        let parent = paths.at("releases/second-copy");
+        choose_destination(&paths, &mut plan, &parent, false).unwrap();
+        assert_eq!(plan.entries[0].destination, Some(parent.join("photocraft")));
+        execute_validated(&paths, &plan, |config| {
+            assert!(config
+                .apps
+                .iter()
+                .find(|copy| copy.name == "photocraft")
+                .unwrap()
+                .path
+                .is_empty());
+            assert!(config
+                .installations
+                .iter()
+                .any(|copy| copy.path == existing.path));
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(fs::read(paths.at("settings.json")).unwrap(), before);
+        fs::create_dir_all(parent.join("photocraft")).unwrap();
+        assert!(execute_validated(&paths, &plan, |_| panic!(
+            "must reject collision before execution"
+        ))
+        .is_err());
+        assert!(Path::new(&existing.path).exists());
+        fs::remove_dir_all(paths.root).unwrap();
     }
 
     #[cfg(target_os = "windows")]
