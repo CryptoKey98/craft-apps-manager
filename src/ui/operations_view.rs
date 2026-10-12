@@ -783,10 +783,10 @@ mod activity_tests {
     fn activity_badge_reports_completion_after_active_work_was_viewed() {
         let mut badge = ActivityNotifications::default();
         let mut op = record("Install", Lifecycle::Running);
-        badge.observe(&[op.clone()]);
+        badge.observe(std::slice::from_ref(&op));
         badge.mark_read(&op.id);
         op.lifecycle = Lifecycle::Completed;
-        badge.observe(&[op.clone()]);
+        badge.observe(std::slice::from_ref(&op));
         assert_eq!(badge.count(), 1);
         badge.mark_read(&op.id);
         badge.observe(&[op]);
@@ -807,10 +807,10 @@ mod activity_tests {
         let mut badge = ActivityNotifications::default();
         badge.observe(&[]);
         let op = record("Install", Lifecycle::Completed);
-        badge.observe(&[op.clone()]);
+        badge.observe(std::slice::from_ref(&op));
         assert_eq!(badge.count(), 1);
         badge.mark_all_read();
-        badge.observe(&[op.clone()]);
+        badge.observe(std::slice::from_ref(&op));
         assert_eq!(badge.count(), 0);
         assert!(!badge.is_unread(&op.id));
         let next = record("Build", Lifecycle::Completed);
@@ -837,7 +837,7 @@ mod activity_tests {
     fn existing_history_is_read_but_new_completions_are_unread() {
         let mut badge = ActivityNotifications::default();
         let old = record("Install", Lifecycle::Completed);
-        badge.observe(&[old.clone()]);
+        badge.observe(std::slice::from_ref(&old));
         assert_eq!(badge.count(), 0);
         let new = record("Build", Lifecycle::Completed);
         badge.observe(&[old, new.clone()]);
