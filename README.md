@@ -4,6 +4,8 @@
 
 Install, update, launch, and build the Craft apps from Storytold in one place. Choose installation options for each app, keep multiple copies, and follow your downloads and builds in Activity.
 
+Version **0.8.2** includes clearer installation switching, improved app discovery, and safer build-cache cleanup. See the [changelog](CHANGELOG.md) for all changes.
+
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
 **[Download the latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [What's changed](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)

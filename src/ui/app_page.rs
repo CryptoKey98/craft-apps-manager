@@ -232,9 +232,32 @@ impl App {
         });
         ui.add_space(MAIN_GAP);
 
+        let description = model::description(&app);
+        if !description.is_empty() {
+            // CSS centres the 1.55 line height around the text; egui puts the extra
+            // space below it.
+            let line_height = 15.0 * 1.55;
+            let shift = (line_height - line(15.0)) / 2.0;
+            ui.add_space(shift);
+            ui.scope(|ui| {
+                // Capped at the design's measure, but never wider than the column.
+                ui.set_max_width(ui.available_width().min(620.0));
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(description)
+                            .size(15.0)
+                            .color(theme::palette().text_2)
+                            .line_height(Some(line_height)),
+                    )
+                    .wrap(),
+                );
+            });
+            ui.add_space(MAIN_GAP - shift);
+        }
+
         if status.installed.is_some() {
             self.installation_selector(ui, state);
-            ui.add_space(18.0);
+            ui.add_space(26.0);
         }
         let status = self.status(&app);
 
@@ -319,29 +342,6 @@ impl App {
             }
         }
 
-        let description = model::description(&app);
-        if !description.is_empty() {
-            // CSS centres the 1.55 line height around the text; egui puts the extra
-            // space below it.
-            let line_height = 15.0 * 1.55;
-            let shift = (line_height - line(15.0)) / 2.0;
-            ui.add_space(shift);
-            ui.scope(|ui| {
-                // Capped at the design's measure, but never wider than the column.
-                ui.set_max_width(ui.available_width().min(620.0));
-                ui.add(
-                    egui::Label::new(
-                        RichText::new(description)
-                            .size(15.0)
-                            .color(theme::palette().text_2)
-                            .line_height(Some(line_height)),
-                    )
-                    .wrap(),
-                );
-            });
-            ui.add_space(MAIN_GAP - shift);
-        }
-
         // Progress for an operation running on this app, in place of the buttons.
         let completed_opacity = if state.stage == "Complete" {
             self.completed_progress_opacity(ui.ctx())
@@ -361,8 +361,8 @@ impl App {
                 _ if status.installed.is_some() => "Updating",
                 _ => "Installing",
             };
-            // 560 points of content inside the padding and border, as in the design.
-            let width = ui.available_width().min(560.0 + 30.0);
+            // Match the installed/latest/package/location grid below this area.
+            let width = ui.available_width().min(720.0);
             ui.scope(|ui| {
                 if !state.busy {
                     ui.multiply_opacity(completed_opacity);
@@ -440,16 +440,35 @@ impl App {
         }
         // Source downloads and backup deletion leave the installed copy alone,
         // so its actions (Open in particular) stay available beside the progress.
-        let replaces_actions = state.busy
+        let replaces_actions = (state.busy || show_progress)
+            && self.installation_selection.is_none()
             && matches!(
                 mine.as_deref(),
                 Some("install-app" | "uninstall-app" | "restore" | "move-app")
             );
+        // Keep the success banner in the action slot until its fade finishes,
+        // then bring the buttons back from transparent rather than popping in.
+        let action_opacity = ui.ctx().animate_value_with_time(
+            egui::Id::new(("app-actions-visibility", &app)),
+            if replaces_actions { 0.0 } else { 1.0 },
+            if replaces_actions { 0.0 } else { 0.2 },
+        );
         if !replaces_actions {
             if show_progress {
                 ui.add_space(10.0);
             }
-            self.app_actions(ui, state, &status);
+            let switching = self.installation_selection.is_some();
+            let opacity = ui.ctx().animate_value_with_time(
+                egui::Id::new(("installation-actions-opacity", &app)),
+                if switching { 0.55 } else { 1.0 },
+                0.18,
+            );
+            ui.scope(|ui| {
+                ui.multiply_opacity(opacity * action_opacity);
+                ui.add_enabled_ui(!switching, |ui| {
+                    self.app_actions(ui, state, &status);
+                });
+            });
         }
         ui.add_space(MAIN_GAP);
         self.facts(ui, &status);
@@ -492,7 +511,7 @@ impl App {
                 let format = if copy.install_kind == "installer" {
                     "Installer"
                 } else {
-                    "Portable ZIP"
+                    "Portable"
                 };
                 ui.add(
                     egui::Label::new(
@@ -511,6 +530,111 @@ impl App {
         }
     }
 
+    pub(super) fn choose_installation(
+        &mut self,
+        ctx: &egui::Context,
+        app: &str,
+        copy: model::Installed,
+    ) {
+        if self.installation_selection.is_some()
+            || self.release_pending()
+            || self.job.snapshot().busy
+        {
+            return;
+        }
+        if self.display_config.as_ref().is_some_and(|config| {
+            config
+                .apps
+                .iter()
+                .any(|selected| selected.name == app && selected.path == copy.path)
+        }) {
+            return;
+        }
+        ctx.animate_value_with_time(
+            egui::Id::new(("installation-actions-opacity", &app)),
+            0.55,
+            0.0,
+        );
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.installation_selection = Some(rx);
+        self.config_receiver = None;
+        let app = app.to_owned();
+        std::thread::spawn(move || {
+            let result = (|| -> anyhow::Result<super::InstallationSelection> {
+                let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+                let mut config = paths.config()?;
+                anyhow::ensure!(
+                    model::installed_executable(std::path::Path::new(&copy.path), &app).is_some(),
+                    "This installation is no longer available"
+                );
+                if !config
+                    .installations
+                    .iter()
+                    .any(|record| record.name == app && record.path == copy.path)
+                {
+                    config.installations.push(copy.clone());
+                }
+                let selected = config
+                    .apps
+                    .iter_mut()
+                    .find(|record| record.name == app)
+                    .ok_or_else(|| anyhow::anyhow!("App missing"))?;
+                *selected = copy.clone();
+                paths.save_config(&config)?;
+                let mut preferences = paths.read_preferences()?;
+                if let Some(options) =
+                    craft_apps_manager::install_options::InstallOptions::installed(&copy)
+                {
+                    preferences
+                        .app_install_options
+                        .insert(craft_apps_manager::install_options::identity(&app), options);
+                    craft_apps_manager::files::write_json(
+                        &paths.at("manager-settings.json"),
+                        &preferences,
+                    )?;
+                }
+                Ok(super::InstallationSelection {
+                    app,
+                    config,
+                    preferences,
+                })
+            })();
+            let _ = tx.send(result.map_err(|error| format!("{error:#}")));
+            ctx.request_repaint();
+        });
+    }
+
+    pub(super) fn installation_copies(&self, app: &str) -> Vec<model::Installed> {
+        let Some(config) = self.display_config.as_ref() else {
+            return Vec::new();
+        };
+        let mut copies: Vec<_> = config
+            .installations
+            .iter()
+            .chain(&self.alternates)
+            .filter(|copy| {
+                copy.name == app
+                    && !copy.path.is_empty()
+                    && std::path::Path::new(&copy.path).exists()
+            })
+            .cloned()
+            .collect();
+        if let Some(selected) = config
+            .apps
+            .iter()
+            .find(|copy| copy.name == app && !copy.path.is_empty())
+        {
+            if !copies.iter().any(|copy| copy.path == selected.path) {
+                copies.push(selected.clone());
+            }
+        }
+        copies.sort_by(|a, b| a.path.cmp(&b.path));
+        copies.dedup_by(|a, b| a.path == b.path);
+        copies
+    }
+
     fn installation_selector(&mut self, ui: &mut Ui, state: &State) {
         let app = self.app.clone();
         let Some(config) = self.display_config.as_ref() else {
@@ -524,29 +648,14 @@ impl App {
         else {
             return;
         };
-        let mut copies: Vec<_> = config
-            .installations
-            .iter()
-            .chain(self.alternates.iter())
-            .filter(|copy| {
-                copy.name == app
-                    && !copy.path.is_empty()
-                    && std::path::Path::new(&copy.path).exists()
-            })
-            .cloned()
-            .collect();
-        if !copies.iter().any(|copy| copy.path == selected.path) {
-            copies.push(selected.clone());
-        }
-        copies.sort_by(|a, b| a.path.cmp(&b.path));
-        copies.dedup_by(|a, b| a.path == b.path);
+        let copies = self.installation_copies(&app);
         let label = |copy: &model::Installed| {
             format!(
                 "{} · {} · {}",
                 if copy.install_kind == "installer" {
                     "Installer"
                 } else {
-                    "Portable ZIP"
+                    "Portable"
                 },
                 model::architecture_label(&copy.architecture),
                 copy.version
@@ -656,56 +765,7 @@ impl App {
             });
         });
         if let Some(copy) = selection {
-            let paths = self.paths.clone();
-            let ctx = ui.ctx().clone();
-            let (tx, rx) = std::sync::mpsc::channel();
-            self.installation_selection = Some(rx);
-            self.config_receiver = None;
-            let app = app.clone();
-            std::thread::spawn(move || {
-                let result = (|| -> anyhow::Result<super::InstallationSelection> {
-                    let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-                    let mut config = paths.config()?;
-                    anyhow::ensure!(
-                        model::installed_executable(std::path::Path::new(&copy.path), &app)
-                            .is_some(),
-                        "This installation is no longer available"
-                    );
-                    if !config
-                        .installations
-                        .iter()
-                        .any(|record| record.name == app && record.path == copy.path)
-                    {
-                        config.installations.push(copy.clone());
-                    }
-                    let selected = config
-                        .apps
-                        .iter_mut()
-                        .find(|record| record.name == app)
-                        .ok_or_else(|| anyhow::anyhow!("App missing"))?;
-                    *selected = copy.clone();
-                    paths.save_config(&config)?;
-                    let mut preferences = paths.read_preferences()?;
-                    if let Some(options) =
-                        craft_apps_manager::install_options::InstallOptions::installed(&copy)
-                    {
-                        preferences
-                            .app_install_options
-                            .insert(craft_apps_manager::install_options::identity(&app), options);
-                        craft_apps_manager::files::write_json(
-                            &paths.at("manager-settings.json"),
-                            &preferences,
-                        )?;
-                    }
-                    Ok(super::InstallationSelection {
-                        app,
-                        config,
-                        preferences,
-                    })
-                })();
-                let _ = tx.send(result.map_err(|error| format!("{error:#}")));
-                ctx.request_repaint();
-            });
+            self.choose_installation(ui.ctx(), &app, copy);
         }
         if add {
             self.additional_installation = true;

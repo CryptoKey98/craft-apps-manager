@@ -17,6 +17,71 @@ use std::{
     process::Command,
     sync::atomic::Ordering,
 };
+
+#[cfg(target_os = "windows")]
+#[test]
+fn portable_backup_restore_ignores_obsolete_global_format_and_recovers_architecture() {
+    let f = Fixture::new();
+    let paths = f.paths();
+    files::write_json(
+        &paths.at("manager-settings.json"),
+        &Preferences {
+            release_format: "installer".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let folder = paths.at("releases/designcraft");
+    fs::create_dir_all(&folder).unwrap();
+    fs::write(folder.join("designcraft.exe"), b"old fixture").unwrap();
+    paths
+        .save_config(&model::Config {
+            apps_root: paths.root.display().to_string(),
+            apps: vec![model::Installed {
+                name: "designcraft".into(),
+                version: "0.8.0".into(),
+                path: folder.display().to_string(),
+                install_kind: "portable".into(),
+                architecture: "x64".into(),
+                ..Default::default()
+            }],
+            installations: vec![],
+        })
+        .unwrap();
+    let backup = paths.at(format!(
+        "backups/releases/designcraft-0.7.1-{}",
+        uuid::Uuid::new_v4().simple()
+    ));
+    fs::create_dir_all(&backup).unwrap();
+    let mut bytes = vec![0u8; 256];
+    bytes[..2].copy_from_slice(b"MZ");
+    bytes[60..64].copy_from_slice(&128u32.to_le_bytes());
+    bytes[128..132].copy_from_slice(b"PE\0\0");
+    bytes[132..134].copy_from_slice(&0x14cu16.to_le_bytes());
+    bytes[148..150].copy_from_slice(&70u16.to_le_bytes());
+    bytes[152..154].copy_from_slice(&0x10bu16.to_le_bytes());
+    fs::write(backup.join("designcraft.exe"), &bytes).unwrap();
+    backups::restore(
+        &paths,
+        "designcraft",
+        &backups::Backup {
+            path: backup,
+            source: false,
+        },
+        &job(&f.0),
+    )
+    .unwrap();
+    let config: model::Config = files::read_json(&paths.at("settings.json")).unwrap();
+    let restored = config
+        .apps
+        .iter()
+        .find(|a| a.name == "designcraft")
+        .unwrap();
+    assert_eq!(restored.version, "0.7.1");
+    assert_eq!(restored.architecture, "x86");
+    assert_eq!(restored.install_kind, "portable");
+    assert_eq!(fs::read(folder.join("designcraft.exe")).unwrap(), bytes);
+}
 #[cfg(target_os = "windows")]
 #[test]
 fn renamed_pdfcraft_assets_and_executable_keep_legacy_library_identity() {

@@ -430,6 +430,68 @@ pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color3
     paint_icon_weight(painter, rect, icon, color, 2.0);
 }
 
+/// A restrained glow around a small badge; no continuous idle repaint loop.
+pub fn new_app_badge(ui: &mut Ui, rect: Rect, opacity: f32) {
+    if opacity < 1.0 && opacity > 0.0 {
+        ui.ctx().request_repaint();
+    }
+    let p = palette();
+    let light = !ui.visuals().dark_mode;
+    for (spread, alpha) in [(6.0, 0.025), (4.0, 0.04), (2.0, 0.07)] {
+        ui.painter().rect_filled(
+            rect.expand(spread),
+            CornerRadius::same(8),
+            p.link
+                .gamma_multiply(alpha * opacity * if light { 0.35 } else { 1.0 }),
+        );
+    }
+    ui.painter().rect_filled(
+        rect,
+        CornerRadius::same(5),
+        if light {
+            Color32::from_rgb(237, 242, 249)
+        } else {
+            p.accent_soft
+        }
+        .gamma_multiply(opacity),
+    );
+    if light {
+        ui.painter().rect_stroke(
+            rect.shrink(0.5),
+            CornerRadius::same(5),
+            Stroke::new(
+                1.0_f32,
+                Color32::from_rgb(190, 205, 224).gamma_multiply(opacity),
+            ),
+            egui::StrokeKind::Inside,
+        );
+        ui.painter().line_segment(
+            [
+                egui::pos2(rect.left() + 5.0, rect.top() + 1.5),
+                egui::pos2(rect.right() - 5.0, rect.top() + 1.5),
+            ],
+            Stroke::new(1.0_f32, Color32::WHITE.gamma_multiply(0.8 * opacity)),
+        );
+    }
+    ui.painter().text(
+        rect.center(),
+        Align2::CENTER_CENTER,
+        "New",
+        medium(11.0),
+        p.accent_text.gamma_multiply(opacity),
+    );
+    let response = ui.interact(
+        rect,
+        ui.id()
+            .with(("new-app-badge", rect.min.x.to_bits(), rect.min.y.to_bits())),
+        Sense::hover(),
+    );
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(egui::WidgetType::Label, true, "Newly detected app")
+    });
+    response.on_hover_text("Newly detected app. Open its page to clear this badge.");
+}
+
 /// Like `paint_icon` with a stroke of `weight` grid units (the mockups use 2, and
 /// 2.5 for the small arrow in the update pill).
 pub fn paint_icon_weight(

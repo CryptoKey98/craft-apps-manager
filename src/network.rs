@@ -277,13 +277,14 @@ impl Network {
                     bail!("Incomplete download");
                 }
             }
+            job.check()?;
+            crate::platform::atomic_replace(&partial, dest)?;
             Ok(())
         })();
         if let Err(e) = result {
             let _ = fs::remove_file(&partial);
             return Err(e);
         }
-        crate::platform::atomic_replace(&partial, dest)?;
         Ok(())
     }
     pub fn asset(&self, a: &Asset, dest: &Path, job: &Job) -> Result<()> {
@@ -318,6 +319,42 @@ pub fn verify_asset(p: &Path, a: &Asset) -> Result<()> {
 #[cfg(test)]
 mod token_tests {
     use super::*;
+
+    #[test]
+    fn failed_download_publication_removes_partial_file() {
+        use std::net::TcpListener;
+        let root =
+            std::env::temp_dir().join(format!("craft-download-publish-{}", uuid::Uuid::new_v4()));
+        let dest = root.join("package.zip");
+        fs::create_dir_all(&dest).unwrap(); // A directory cannot be replaced by the download.
+        fs::write(dest.join("keep"), b"untouched").unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut request = [0; 4096];
+            assert!(stream.read(&mut request).unwrap() > 0);
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\ndata")
+                .unwrap();
+        });
+        let job = Job::new(
+            root.join("download.log"),
+            &crate::model::BuilderPreferences::default(),
+        );
+        assert!(Network::new(&root)
+            .unwrap()
+            .download(&format!("http://{address}/file"), &dest, &job)
+            .is_err());
+        server.join().unwrap();
+        assert_eq!(fs::read(dest.join("keep")).unwrap(), b"untouched");
+        assert!(!fs::read_dir(&root).unwrap().any(|entry| entry
+            .unwrap()
+            .path()
+            .extension()
+            .is_some_and(|ext| ext == "partial")));
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn invalid_input_is_rejected_before_accessing_the_credential_store() {

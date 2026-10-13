@@ -411,7 +411,7 @@ impl App {
                     format!(
                         "{} · {arch}",
                         if format == "portable" {
-                            "Portable ZIP"
+                            "Portable"
                         } else if format == "installer" {
                             "Installer"
                         } else {
@@ -453,7 +453,7 @@ impl App {
                 format!(
                     "{} · {arch}",
                     if format == "portable" {
-                        "Portable ZIP"
+                        "Portable"
                     } else if format == "installer" {
                         "Installer"
                     } else {

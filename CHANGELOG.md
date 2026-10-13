@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.2
+
+- Switch between installations directly from Home. The selected copy stays synchronized with the app page.
+- Discover new Craft apps automatically, with descriptions and a New badge. Newly discovered apps stay at the top of available apps, even after you view them.
+- Give each installation a distinct desktop shortcut. Moves and updates preserve the shortcuts, and removal respects shortcuts you have edited.
+- Hide the Activity notification badge with a new setting. Unread highlights remain visible inside Activity.
+- Improve installation transitions, progress-bar alignment, and light-theme badges. What's New has clearer highlights and a subtle animated underline on its patch-notes link.
+- Preserve additional installations more reliably when saving settings, and improve detection of older portable copies.
+- Remove empty manager-created folders after uninstalling additional portable copies. Folders containing other files and user-selected parent folders are kept.
+- Clean temporary files after interrupted builds, even without a completed build. Cleanup is blocked while building and preserves completed builds and source ZIPs.
+- Fix PDFCraft source builds using the wrong package name after its upstream rename.
+- Restore portable backups to the selected installation with the correct architecture where it can be detected. Support app names containing numbers.
+- Report interrupted background checks instead of leaving dialogs loading, and clean up temporary files from failed or cancelled downloads.
+
 ## 0.8.1
 
 - Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings → Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.

@@ -1549,10 +1549,9 @@ impl App {
                                 ui.label("Delete this app's build cache and temporary workspace?");
                                 ui.horizontal(|ui| {
                                     if action(ui, "Yes", Kind::Primary, !build_busy).clicked() {
-                                        if let Some((folder, _)) = &chosen {
+                                        {
                                             let paths = self.paths.clone();
                                             let app = app.clone();
-                                            let folder = folder.clone();
                                             self.job = Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
                                             self.job.describe("Delete cache", &app);
                                             self.job_target = Some((app.clone(), "clean-build".into()));
@@ -1560,17 +1559,17 @@ impl App {
                                             self.failure_dismissed = false;
                                             self.job.spawn(move |job| {
                                                 job.stage("Cleaning build files", None, "Keeping compiled builds and downloaded sources");
-                                                craft_apps_manager::builder::clean_local(&paths, &app, &folder)
+                                                craft_apps_manager::builder::clean_app_cache(&paths, &app)
                                             });
                                         }
                                         self.clean_build_confirm = false;
                                         self.display_build_cache.remove(&app);
-                                        self.build_choice_cache.clear();
+                                        self.build_app_cache = None;
                                         self.build_cache_receiver = None;
                                     }
                                     if action(ui, "No", Kind::Secondary, true).clicked() { self.clean_build_confirm = false; }
                                 });
-                            } else if action(ui, "Delete cache files…", Kind::Secondary, !build_busy && chosen.as_ref().is_some_and(|(folder, _)| self.build_choice_cache.get(folder).copied().unwrap_or(false)))
+                            } else if action(ui, "Delete cache files…", Kind::Secondary, !build_busy && self.build_app_cache == Some(true))
                                 .on_disabled_hover_text("No cache files to delete, or an operation is still running.").clicked() {
                                 self.clean_build_confirm = true;
                                 self.delete_build_confirm = false;
@@ -1852,7 +1851,9 @@ impl App {
 
         if let Some(installed) = self.confirm_move.clone() {
             if let Some(receiver) = &self.move_folder {
-                if let Ok(result) = receiver.try_recv() {
+                if let Some(result) = super::poll_worker_result(receiver, || {
+                    "Folder picker stopped unexpectedly.".into()
+                }) {
                     self.move_folder = None;
                     match result {
                         Ok(Some(path)) => self.move_parent = path.display().to_string(),
@@ -1862,7 +1863,9 @@ impl App {
                 }
             }
             if let Some(receiver) = &self.move_probe {
-                if let Ok(result) = receiver.try_recv() {
+                if let Some(result) = super::poll_worker_result(receiver, || {
+                    "Application status check stopped unexpectedly.".into()
+                }) {
                     self.move_probe = None;
                     self.move_running = Some(result.unwrap_or(true));
                     self.move_probe_at =

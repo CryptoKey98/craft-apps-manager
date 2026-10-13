@@ -984,6 +984,15 @@ impl App {
                 note(ui, message);
             }
         });
+        ui.add_space(24.0);
+        group(ui, "Activity", |ui| {
+            check_row(
+                ui,
+                &mut self.settings_draft.hide_activity_badge,
+                "Hide Activity badge",
+                Some("Unread activities stay highlighted in the Activity menu."),
+            );
+        });
     }
 
     fn github_token_settings(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {

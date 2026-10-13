@@ -8,7 +8,24 @@ env:
   # Packages self-update from the releases of the repository that built them.
   CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
 jobs:
+  validate:
+    name: Validate release version and notes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate tag, version references and release notes
+        run: python3 scripts/validate-release.py --tag "$GITHUB_REF_NAME" --notes-file notes.md
+      - name: Reject an already-published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+          if printf '%s' "$releases" | jq -e --arg tag "$GITHUB_REF_NAME" 'any(.[]; .tag_name == $tag and .draft == false)' >/dev/null; then
+            echo "This tag already has a published release. Use a new version instead." >&2
+            exit 1
+          fi
   windows:
+    needs: validate
     runs-on: windows-latest
     strategy:
       matrix:
@@ -61,6 +78,7 @@ jobs:
             dist/windows-${{ matrix.arch }}/*.msi
           if-no-files-found: error
   linux:
+    needs: validate
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -99,6 +117,7 @@ jobs:
             dist/linux/*.rpm
           if-no-files-found: error
   arch:
+    needs: validate
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:
@@ -115,6 +134,7 @@ jobs:
           path: dist/linux/*.pkg.tar.zst
           if-no-files-found: error
   macos:
+    needs: validate
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -140,12 +160,17 @@ jobs:
         run: cd packages && find . -maxdepth 1 -type f ! -name SHA256SUMS.txt -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt && cat SHA256SUMS.txt
       - name: Release notes from the changelog
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          package_version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
-          test "$version" = "$package_version" || { echo "Release tag does not match Cargo.toml" >&2; exit 1; }
-          awk -v heading="## $version" '$0 == heading {found = 1; next} found && /^## / {exit} found {print}' CHANGELOG.md > notes.md
-          test -s notes.md || echo "Craft Apps Manager $version" > notes.md
+          python3 scripts/validate-release.py --tag "$GITHUB_REF_NAME" --notes-file notes.md
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" packages/* --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md
+        run: |
+          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+          existing=$(printf '%s' "$releases" | jq -c --arg tag "$GITHUB_REF_NAME" '.[] | select(.tag_name == $tag)')
+          if [ -n "$existing" ]; then
+            test "$(printf '%s' "$existing" | jq -r .draft)" = true || { echo "Refusing to replace a published release" >&2; exit 1; }
+            gh release upload "$GITHUB_REF_NAME" packages/* --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md --draft=false
+          else
+            gh release create "$GITHUB_REF_NAME" packages/* --verify-tag --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md
+          fi

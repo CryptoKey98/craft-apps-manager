@@ -10,6 +10,16 @@ env:
   # Raises GitHub's API limit for the release lookups made by tests and end-to-end checks.
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
+  release-metadata:
+    name: Release metadata and validation tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/test_validate_release.py
+      - name: Validate current release notes
+        run: |
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
+          python3 scripts/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
   windows:
     runs-on: windows-latest
     strategy:

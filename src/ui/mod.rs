@@ -167,11 +167,11 @@ struct CustomAppSetup {
     choosing: bool,
 }
 
-type BuildCacheSnapshot = (PathBuf, String, std::collections::HashMap<PathBuf, bool>);
+type BuildCacheSnapshot = (PathBuf, String, bool);
 
 type SharedWindowSnapshot = (
     PathBuf,
-    Option<model::Theme>,
+    Option<(model::Theme, bool)>,
     std::collections::HashMap<String, String>,
 );
 
@@ -182,6 +182,8 @@ pub struct App {
     icons_requested: std::collections::BTreeSet<String>,
     catalog_receiver: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
     catalog_message: String,
+    new_apps: Option<craft_apps_manager::discovery::NewApps>,
+    new_app_fades: BTreeMap<String, Instant>,
     custom_link: String,
     custom_message: String,
     custom_failed: bool,
@@ -254,7 +256,7 @@ pub struct App {
     build_options_open: bool,
     build_choice: Option<PathBuf>,
     build_choices: Vec<(PathBuf, model::BuildInfo)>,
-    build_choice_cache: std::collections::HashMap<PathBuf, bool>,
+    build_app_cache: Option<bool>,
     build_cache_receiver: Option<std::sync::mpsc::Receiver<BuildCacheSnapshot>>,
     confirm_build: Option<String>,
     build_parent: String,
@@ -400,6 +402,22 @@ impl App {
         theme::apply(&cc.egui_ctx, preferences.theme);
         let build_preferences = paths.builder_preferences()?;
         let args: Vec<_> = std::env::args().collect();
+        let preview_new_app = args
+            .windows(2)
+            .find(|args| args[0] == "--preview-new-app")
+            .map(|args| args[1].as_str());
+        if let Some(app) = preview_new_app {
+            model::valid_app(app)?;
+        }
+        let new_apps = if builder {
+            None
+        } else {
+            Some(craft_apps_manager::discovery::NewApps::load(
+                &paths.root,
+                &catalog::all(),
+                preview_new_app,
+            )?)
+        };
         let startup_operations = craft_apps_manager::operations::Manager::new(&paths.root).list();
         let active_build = startup_operations
             .iter()
@@ -479,6 +497,8 @@ impl App {
             icons_requested: Default::default(),
             catalog_receiver,
             catalog_message: String::new(),
+            new_apps,
+            new_app_fades: BTreeMap::new(),
             custom_link: String::new(),
             custom_message: String::new(),
             custom_failed: false,
@@ -550,7 +570,7 @@ impl App {
             build_options_open: false,
             build_choice: None,
             build_choices: Vec::new(),
-            build_choice_cache: Default::default(),
+            build_app_cache: None,
             build_cache_receiver: None,
             confirm_build: None,
             build_parent: String::new(),
@@ -643,27 +663,15 @@ impl App {
     /// `--preview-dialog install|uninstall|launch|cleanup|manager|error|notice` and
     /// `--preview-build running|done|failed`. `--preview-progress` with
     /// `--preview-details` shows the progress on the app page.
-    fn refresh_build_choice_cache(&mut self) {
-        self.build_choice_cache.clear();
+    fn refresh_build_cache(&mut self) {
+        self.build_app_cache = None;
         let paths = self.paths.clone();
         let app = self.app.clone();
-        let folders: Vec<_> = self
-            .build_choices
-            .iter()
-            .map(|(folder, _)| folder.clone())
-            .collect();
         let (sender, receiver) = std::sync::mpsc::channel();
         self.build_cache_receiver = Some(receiver);
         std::thread::spawn(move || {
-            let availability = folders
-                .into_iter()
-                .map(|folder| {
-                    let available =
-                        builder::has_local_cache(&paths, &app, &folder).unwrap_or(false);
-                    (folder, available)
-                })
-                .collect();
-            let _ = sender.send((paths.root, app, availability));
+            let app_cache = builder::has_app_cache(&paths, &app).unwrap_or(false);
+            let _ = sender.send((paths.root, app, app_cache));
         });
     }
     fn open_build_options(&mut self) {
@@ -678,7 +686,7 @@ impl App {
                 self.delete_build_confirm = false;
                 self.clean_build_confirm = false;
                 self.build_options_open = true;
-                self.refresh_build_choice_cache();
+                self.refresh_build_cache();
             }
             Err(error) => self.result(Err(error)),
         }
@@ -1172,6 +1180,7 @@ impl App {
         self.result(result)
     }
     fn select(&mut self, app: &str) {
+        self.mark_app_seen(app);
         if self.app != app {
             self.launch_settings_open = false;
             self.confirm_uninstall = false;
@@ -1316,7 +1325,51 @@ impl App {
         }
     }
     /// Re-reads settings after the app list changed, adopting newly found apps.
+    fn is_new_app(&self, app: &str) -> bool {
+        catalog::get(app).is_some_and(|entry| {
+            self.new_apps
+                .as_ref()
+                .is_some_and(|tracker| tracker.is_new(&entry))
+        })
+    }
+
+    fn mark_app_seen(&mut self, app: &str) {
+        if let (Some(tracker), Some(entry)) = (&mut self.new_apps, catalog::get(app)) {
+            let was_new = tracker.is_new(&entry);
+            if let Err(error) = tracker.mark_seen(&entry) {
+                self.error = Some(format!("Could not save the new-app indicator: {error:#}"));
+            } else if was_new {
+                self.new_app_fades.insert(app.to_owned(), Instant::now());
+            }
+        }
+    }
+
+    fn new_app_opacity(&self, app: &str) -> f32 {
+        if self.is_new_app(app) {
+            return 1.0;
+        }
+        self.new_app_fades.get(app).map_or(0.0, |started| {
+            let t = (started.elapsed().as_secs_f32() / 0.28).clamp(0.0, 1.0);
+            1.0 - t * t * (3.0 - 2.0 * t)
+        })
+    }
+
+    fn new_app_rank(&self, app: &str) -> usize {
+        catalog::get(app)
+            .and_then(|entry| {
+                self.new_apps
+                    .as_ref()
+                    .map(|tracker| tracker.discovery_rank(&entry))
+            })
+            .unwrap_or(usize::MAX)
+    }
+
     fn catalog_changed(&mut self) {
+        if let Some(tracker) = &mut self.new_apps {
+            if let Err(error) = tracker.refresh(&self.paths.root, &catalog::all()) {
+                self.error = Some(format!("Could not refresh new-app indicators: {error:#}"));
+            }
+        }
         self.download_availability.clear();
         if !self.builder && catalog::get(&self.app).is_none() {
             self.page = Page::Overview;
@@ -1410,10 +1463,10 @@ impl App {
     fn poll(&mut self, ctx: &egui::Context) {
         if let Some(receiver) = &self.build_cache_receiver {
             match receiver.try_recv() {
-                Ok((root, app, availability)) => {
+                Ok((root, app, app_cache)) => {
                     self.build_cache_receiver = None;
                     if root == self.paths.root && app == self.app && self.build_options_open {
-                        self.build_choice_cache = availability;
+                        self.build_app_cache = Some(app_cache);
                     }
                 }
                 Err(std::sync::mpsc::TryRecvError::Disconnected) => {
@@ -1424,12 +1477,11 @@ impl App {
         }
 
         if self.build_options_open
-            && !self.build_choices.is_empty()
-            && self.build_choice_cache.is_empty()
+            && self.build_app_cache.is_none()
             && self.build_cache_receiver.is_none()
             && !self.job.snapshot().busy
         {
-            self.refresh_build_choice_cache();
+            self.refresh_build_cache();
         }
         if !self.settings {
             self.token_draft.clear();
@@ -1497,6 +1549,11 @@ impl App {
             };
             if let Some(result) = result {
                 self.installation_selection = None;
+                ctx.animate_value_with_time(
+                    egui::Id::new(("installation-actions-opacity", &self.app)),
+                    0.55,
+                    0.0,
+                );
                 self.config_receiver = None;
                 self.config_refresh_at = std::time::Instant::now();
                 match result {
@@ -1513,18 +1570,32 @@ impl App {
             }
         }
         if let Some(receiver) = &self.shared_window_receiver {
-            if let Ok((root, theme, logs)) = receiver.try_recv() {
-                self.shared_window_receiver = None;
-                if root == self.paths.root {
-                    self.shared_build_logs = logs;
-                    if self.builder {
-                        if let Some(theme) = theme {
-                            self.preferences.theme = theme;
-                            self.settings_draft.theme = theme;
-                            theme::apply(ctx, theme);
+            match receiver.try_recv() {
+                Ok((root, appearance, logs)) => {
+                    self.shared_window_receiver = None;
+                    if root == self.paths.root {
+                        self.shared_build_logs = logs;
+                        if let Some((_, badge)) = appearance {
+                            self.preferences.hide_activity_badge = badge;
+                            if !self.settings {
+                                self.settings_draft.hide_activity_badge = badge;
+                            }
+                        }
+                        if self.builder {
+                            if let Some((theme, _)) = appearance {
+                                self.preferences.theme = theme;
+                                self.settings_draft.theme = theme;
+                                theme::apply(ctx, theme);
+                            }
                         }
                     }
                 }
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.shared_window_receiver = None;
+                    self.build_job
+                        .log("Window synchronization worker stopped unexpectedly.");
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {}
             }
         }
         if self.operation_refresh.elapsed() >= Duration::from_secs(1) {
@@ -1541,7 +1612,10 @@ impl App {
                 self.shared_window_receiver = Some(receiver);
                 std::thread::spawn(move || {
                     use std::io::{Read, Seek, SeekFrom};
-                    let theme = paths.read_preferences().ok().map(|p| p.theme);
+                    let appearance = paths
+                        .read_preferences()
+                        .ok()
+                        .map(|p| (p.theme, p.hide_activity_badge));
                     let mut logs = std::collections::HashMap::new();
                     for operation in records.iter().filter(|op| {
                         matches!(
@@ -1567,7 +1641,7 @@ impl App {
                             }
                         }
                     }
-                    let _ = sender.send((paths.root, theme, logs));
+                    let _ = sender.send((paths.root, appearance, logs));
                     context.request_repaint();
                 });
             }
@@ -1585,7 +1659,9 @@ impl App {
             self.operation_refresh = Instant::now();
         }
         if let Some(receiver) = &self.catalog_receiver {
-            if let Ok(result) = receiver.try_recv() {
+            if let Some(result) =
+                poll_worker_result(receiver, || "App list worker stopped unexpectedly.".into())
+            {
                 self.catalog_receiver = None;
                 match result {
                     Ok(()) => {
@@ -1705,7 +1781,7 @@ impl App {
         let building = self.build_job.snapshot().busy;
         if self.operation_was_busy && !busy {
             if self.job_action == "clean-build" && self.build_options_open {
-                self.refresh_build_choice_cache();
+                self.refresh_build_cache();
             }
             self.catalog_changed();
         }
@@ -1720,7 +1796,9 @@ impl App {
         self.operation_was_busy = busy;
         self.build_was_busy = building;
         if let Some(receiver) = &self.config_receiver {
-            if let Ok(result) = receiver.try_recv() {
+            if let Some(result) = poll_worker_result(receiver, || {
+                "Installation discovery worker stopped unexpectedly.".into()
+            }) {
                 match result {
                     Ok(snapshot) => {
                         let changed_versions: Vec<_> = snapshot
@@ -1871,7 +1949,9 @@ impl App {
             }
         }
         if let Some(receiver) = &self.periodic_receiver {
-            if let Ok(result) = receiver.try_recv() {
+            if let Some(result) = poll_worker_result(receiver, || {
+                "Background check worker stopped unexpectedly.".into()
+            }) {
                 self.periodic_receiver = None;
                 self.app_check_at = Instant::now();
                 match result {
@@ -1942,7 +2022,9 @@ impl App {
             self.check_manager(ctx);
         }
         if let Some(receiver) = &self.manager_receiver {
-            if let Ok(result) = receiver.try_recv() {
+            if let Some(result) = poll_worker_result(receiver, || {
+                "Manager update check stopped unexpectedly.".into()
+            }) {
                 match result {
                     Ok(Some(available)) => {
                         self.manager_message =
@@ -1960,7 +2042,12 @@ impl App {
             }
         }
         if let Some(receiver) = &self.manager_plan {
-            if let Ok(result) = receiver.try_recv() {
+            if let Some(result) = poll_worker_result(receiver, || {
+                (
+                    false,
+                    "Manager update preparation stopped unexpectedly.".into(),
+                )
+            }) {
                 self.manager_plan = None;
                 match result {
                     Ok(plan) => match self_update::launch(&plan) {
@@ -2210,6 +2297,17 @@ fn result_for_display<T: Clone>(result: &Result<T>) -> Result<T, (bool, String)>
         )),
     }
 }
+/// A disconnected one-shot worker is a failure, not a request still loading.
+fn poll_worker_result<T, E>(
+    receiver: &std::sync::mpsc::Receiver<Result<T, E>>,
+    disconnected: impl FnOnce() -> E,
+) -> Option<Result<T, E>> {
+    match receiver.try_recv() {
+        Ok(result) => Some(result),
+        Err(std::sync::mpsc::TryRecvError::Disconnected) => Some(Err(disconnected())),
+        Err(std::sync::mpsc::TryRecvError::Empty) => None,
+    }
+}
 fn poll_custom_result(
     receiver: &mut Option<std::sync::mpsc::Receiver<Result<CustomAppAddition, String>>>,
 ) -> Option<Result<CustomAppAddition, String>> {
@@ -2230,6 +2328,18 @@ fn poll_custom_result(
 #[cfg(test)]
 mod outcome_tests {
     use super::*;
+    #[test]
+    fn worker_poll_distinguishes_pending_result_and_abandoned_work() {
+        let (tx, rx) = std::sync::mpsc::channel::<Result<u32, String>>();
+        assert!(poll_worker_result(&rx, || "stopped".into()).is_none());
+        tx.send(Ok(42)).unwrap();
+        drop(tx);
+        assert_eq!(poll_worker_result(&rx, || "stopped".into()), Some(Ok(42)));
+        assert_eq!(
+            poll_worker_result(&rx, || "stopped".into()),
+            Some(Err("stopped".into()))
+        );
+    }
     #[test]
     fn custom_lookup_failure_releases_add_for_retry() {
         let (tx, rx) = std::sync::mpsc::channel();

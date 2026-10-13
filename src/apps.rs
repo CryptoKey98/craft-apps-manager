@@ -234,7 +234,11 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     if let Err(error) = crate::portable::remove_shortcut(&temporary) {
         eprintln!("Shortcut cleanup: {error:#}");
     }
-    files::remove_managed(&temporary, &releases)
+    files::remove_managed(&temporary, &releases)?;
+    if let Err(error) = crate::portable::cleanup_empty_installation_parent(paths, app, &root) {
+        eprintln!("Empty installation folder cleanup: {error:#}");
+    }
+    Ok(())
 }
 /// Remove only the completed uninstall target; keep other verified copies
 /// available immediately and preserve the format of an empty selected record.

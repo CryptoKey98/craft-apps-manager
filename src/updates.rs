@@ -687,7 +687,7 @@ fn plan_additional_with(
     plan.additional_installation = true;
     for entry in &mut plan.entries {
         if entry.preferences.release_format == "installer" && native_exists {
-            entry.error = Some("An installer copy already exists. Select it to update it, or choose Portable ZIP for another installation.".into());
+            entry.error = Some("An installer copy already exists. Select it to update it, or choose Portable for another installation.".into());
         }
         if entry.preferences.release_format == "portable" {
             entry.destination = Some(paths.at(format!(

@@ -21,6 +21,38 @@ fn body_text(ui: &mut egui::Ui, text: &str) {
     ui.add(egui::Label::new(RichText::new(text).size(13.0).color(theme::palette().muted)).wrap());
 }
 
+/// A narrow accent moves gently back and forth below the stationary label.
+fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32) {
+    let line = egui::Rect::from_min_max(
+        egui::pos2(header.left() + 18.0, header.bottom() - 2.0),
+        egui::pos2(header.right() - 3.0, header.bottom()),
+    );
+    if line.width() <= 0.0 || !ui.is_rect_visible(line) {
+        return;
+    }
+    // Six seconds for a full round trip, slowing naturally at either end.
+    let phase = (ui.input(|input| input.time) / 6.0).fract() as f32;
+    let center = 0.5 - 0.5 * (phase * std::f32::consts::TAU).cos();
+    let mut mesh = egui::Mesh::default();
+    for index in 0..=32 {
+        let position = index as f32 / 32.0;
+        // Keep the accent short while its center travels the full label width.
+        let strength = (1.0 - ((position - center) / 0.19).abs()).max(0.0);
+        let ink = color.gamma_multiply(0.85 * strength);
+        let x = line.left() + line.width() * position;
+        mesh.colored_vertex(egui::pos2(x, line.top()), ink);
+        mesh.colored_vertex(egui::pos2(x, line.bottom()), ink);
+        if index < 32 {
+            let vertex = index * 2;
+            mesh.add_triangle(vertex, vertex + 1, vertex + 2);
+            mesh.add_triangle(vertex + 1, vertex + 3, vertex + 2);
+        }
+    }
+    ui.painter().add(egui::Shape::mesh(mesh));
+    ui.ctx()
+        .request_repaint_after(std::time::Duration::from_millis(33));
+}
+
 pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
     let id = egui::Id::new("whats-new-github-mark");
     let cached = ui
@@ -109,24 +141,37 @@ impl App {
                     .show(ui, |ui| {
                         body_text(ui, "More control over your apps. A clearer view of every operation.");
                         ui.add_space(22.0);
-                        feature(ui, Some(theme::Icon::Sliders), "Install your way", "Choose the package format and architecture for each app, using the downloads available for that release.");
-                        feature(ui, Some(theme::Icon::Layers), "Multiple installations", "Keep installer and portable copies side by side. Use the Installation dropdown to choose which copy to open, update, move or remove.");
-                        feature(ui, Some(theme::Icon::Activity), "Follow every operation", "See downloads, installs and builds in Activity, with progress, cancellation and detailed results.");
-                        feature(ui, None, "Add your own GitHub apps", "Review detected downloads before adding an app. Custom app support is experimental.");
-                        #[cfg(target_os = "windows")]
-                        {
-                        egui::Frame::new().fill(p.card).corner_radius(8).inner_margin(egui::Margin::symmetric(14, 12)).show(ui, |ui| {
-                            ui.horizontal_top(|ui| {
-                                ui.spacing_mut().item_spacing.x = 10.0;
-                                let (rect, _) = ui.allocate_exact_size(egui::Vec2::splat(17.0), Sense::hover());
-                                theme::paint_icon(ui.painter(), rect, theme::Icon::Archive, p.muted);
-                                body_text(ui, "Supported Windows MSI downgrades prepare a verified recovery installer before replacing the current version.");
-                            });
-                        });
-                        ui.add_space(18.0);
-                        }
-                        egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
+                        feature(ui, Some(theme::Icon::Sliders), "Install your way", "Choose the package type and architecture for each app.");
+                        feature(ui, Some(theme::Icon::Layers), "Multiple installations", "Keep multiple copies and choose which one to open, update or remove.");
+                        feature(ui, Some(theme::Icon::Activity), "Follow every operation", "Track installs, updates and builds, with progress and cancellation.");
+                        feature(ui, None, "Add your own GitHub apps", "Add apps from GitHub releases. Custom app support is experimental.");
+                        feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "New Craft apps appear automatically, marked New so they're easy to find.");
+                        let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
+                                theme::heading(ui, "New in 0.8.2", 13.0);
+                                ui.add_space(10.0);
+                                for note in [
+                                    "See the selected installation on each Home tile. Use its compact switcher to choose another copy; the app page uses the same selection.",
+                                    "Newly discovered Craft apps appear at the top of available apps with a New badge. The badge fades when you open the app, and its top position is remembered.",
+                                    "New apps get a subtitle from their repository description. Discovery checks package names and versions more carefully, and keeps known apps if their repositories disappear.",
+                                    "Hide the Activity button's notification badge in Settings → General. Unread activities still stay highlighted inside the menu.",
+                                    "Separate installations get distinct desktop shortcut names. Moves and updates preserve those shortcuts, and cleanup respects user changes.",
+                                    "Uninstalling an additional portable copy also removes its empty manager-created parent folder.",
+                                    "Clean temporary files left by interrupted builds, even before your first successful build. Completed builds and source ZIPs are kept; the next build recreates its cache.",
+                                    "Saving settings keeps additional installations, including copies with the same architecture. Older portable copies are detected more reliably.",
+                                    "Installation buttons transition more smoothly when switching copies or finishing an operation. Progress bars align with the installation details below.",
+                                    "App descriptions appear above the installation selector. Package labels now say Portable, and New badges have softer light-theme styling.",
+                                    "Background checks and dialogs report when their worker stops unexpectedly, instead of staying stuck loading.",
+                                    "PDFCraft source builds use the correct package name after the upstream rename.",
+                                    "Portable backup restoration uses the selected installation rather than old global settings, and refreshes architecture information from the restored executable where supported.",
+                                    "Backup handling supports app names containing numbers. Failed downloads clean up temporary files more reliably.",
+                                ] {
+                                    body_text(ui, &format!("• {note}"));
+                                    ui.add_space(8.0);
+                                }
+                                ui.add_space(8.0);
+                                theme::heading(ui, "Also included from 0.8.1", 13.0);
+                                ui.add_space(10.0);
                                 for note in [
                                     "Choose which completed build to launch in Build Options. The manager and builder use the same selection.",
                                     "Builder progress, logs and cancellation stay synchronized between windows, including when reopening the manager with the same data folder.",
@@ -142,6 +187,9 @@ impl App {
                                     ui.add_space(8.0);
                                 }
                             });
+                        if notes.body_returned.is_none() {
+                            patch_notes_underline(ui, notes.header_response.rect, p.link);
+                        }
                     });
             });
             ui.separator();

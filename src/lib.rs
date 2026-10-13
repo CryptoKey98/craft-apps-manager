@@ -2,6 +2,7 @@ pub mod apps;
 pub mod backups;
 pub mod builder;
 pub mod catalog;
+pub mod discovery;
 pub mod downloads;
 pub mod files;
 pub mod hourly;
