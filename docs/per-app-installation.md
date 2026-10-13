@@ -22,6 +22,10 @@ Existing installations remain visible. Existing reliable type/architecture metad
 
 The app-page Installation dropdown switches the selected copy and its action context. Add another installation opens the existing install dialog using a separate, validated plan; portable copies require unused, non-overlapping folders, and a second native installer copy is rejected. Previewing or cancelling does not remove or replace the selected installation. Update All and background updates target the selected copy.
 
+Home's compact installation switcher uses the same selected copy. Portable copies receive matching letters in both selectors and desktop shortcuts. Existing letters stay attached to their copies; a new copy reuses the first free letter without renaming surviving copies. Legacy records receive labels when loaded. Versions in selectors use a `v` prefix, with the letter at the end in parentheses.
+
+Additional portable copies in the default library use flat numbered folders such as `releases/filmcraft-2`. Existing folders retain their paths. Uninstall removes empty legacy manager-created wrapper folders, preserving user-selected parent folders and folders containing other files. New installs and moves create requested desktop shortcuts without extra library shortcuts.
+
 The install dialog includes a Version dropdown for first installs and additional copies. Selecting a version from the app page preselects its release tag. Explicit versions remain pinned while changing compatible installation options; installing an older additional copy does not downgrade the existing copy.
 
 Uninstall removes only the selected copy's record and selects a remaining verified copy. Lost legacy records can be recovered from the default portable library; unknown external folders cannot be rediscovered without their saved location. Launch options are scoped by app and installation path, with migration when a copy moves. Different copies may still share application-managed user settings.

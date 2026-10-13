@@ -4,7 +4,7 @@
 
 Install, update, launch, and build the Craft apps from Storytold in one place. Choose installation options for each app, keep multiple copies, and follow your downloads and builds in Activity.
 
-Version **0.8.2** includes clearer installation switching, improved app discovery, and safer build-cache cleanup. See the [changelog](CHANGELOG.md) for all changes.
+Version **0.8.2** includes Home installation switching, reusable portable-copy letters, improved app discovery, and safer folder and build-cache cleanup. See the [changelog](CHANGELOG.md) for all changes.
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
@@ -15,7 +15,7 @@ Available for **Windows, Linux, and macOS**. This is an independent community pr
 <details>
 <summary>More screenshots</summary>
 
-Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2× resolution. Some controls have changed in 0.8.1.
+Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2× resolution. Some controls have changed since then; these images do not show every 0.8.2 feature.
 
 **Home** — launch installed apps and review updates.
 
@@ -70,6 +70,7 @@ Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2�
 - **Install options belong to each app.** Choose a version, release format, and architecture in its installation window. Only compatible combinations are offered; there are no global format or architecture controls in Settings.
 - **Open, update, or uninstall** from the app page. Launch options let you select an executable and add arguments.
 - **Keep multiple installations.** After the first install, use the **Installation** dropdown to select the copy you want to manage. **Add another installation…** opens the usual install window. Portable copies need separate folders; one native installer copy is supported. Apps may share their own user settings between copies.
+- **Identify portable copies by letter.** The installation selectors and desktop shortcuts use matching letters. Removing B leaves A and C unchanged; the next new copy uses B. Home's compact installation switcher shares the app page's selection.
 - **Move a copy** with **Move…** where supported: managed portable apps and supported Windows MSI installations. Linux native packages and macOS installer copies keep their system-managed locations.
 - **Hide apps** from the sidebar or Home context menu. Restore them in **Settings → Apps → App visibility**. Hiding does not uninstall an app or change its update selection.
 
@@ -83,6 +84,8 @@ In **Settings → Updates**, configure startup checks, periodic checks while the
 
 **Activity**, beside Settings, shows progress, cancellation, and results. Manager and Builder share operation records. Closing a dialog does not cancel its operation; use its Cancel button. Native package transactions may need to finish before cancellation can be confirmed.
 
+To hide the Activity button's notification badge, enable **Hide activity badge** in **Settings → General**. Unread activity highlights still appear inside the panel.
+
 **Approve administrator access once per batch** is enabled by default for eligible Windows and Linux installer batches. Linux uses PolicyKit with apt, dnf, or pacman. Individual installers can still show their own prompts. macOS uses its existing authorization workflow.
 
 **What's New** appears on first launch and after a version change. Reopen it with the info icon beside the manager version.
@@ -92,6 +95,8 @@ In **Settings → Updates**, configure startup checks, periodic checks while the
 Starting with **0.8.1**, downloaded setup files are automatically removed after a successful, verified installation or update. Cleanup appears in the operation's progress and Activity details.
 
 Older setup files left by previous versions are not automatically swept up. Recovery packages or files required for installer maintenance may be retained. Failed or cancelled installations do not run successful-install cleanup; deletion problems are reported without marking a verified installation as failed.
+
+Version 0.8.2 also removes an app's empty setup-download folder after cleanup. Additional portable library copies use flat folders such as `filmcraft-2`; uninstalling removes empty legacy wrapper folders while preserving user-selected parents and folders containing other files.
 
 ### Run in the background
 
@@ -157,6 +162,8 @@ runtime/            Staging, operation records, and migration recovery copies
 Use an app's tools to **Set up build tools**, download its source, and **Build** or **Rebuild**. Open the separate Builder through **Settings → Builds → Open builder window**. Build Options lets you choose which completed build the Launch button uses; that choice is shared between Manager and Builder.
 
 Builds use upstream source and lockfiles. Upstream compilation failures are shown in the log. Required tools depend on the app and platform; Windows Rust builds need Microsoft's C++ build tools, and ArtCraft X also needs frontend tools. Failed or cancelled builds keep their cache for a retry.
+
+**Build Options** can delete temporary cache from interrupted builds, even before a successful build exists. Cleanup is unavailable during a build and preserves completed builds and source ZIPs. The next build recreates its cache.
 
 Optional portable-app and source backups are configured in Settings. Use **Backups → Manage…** on an app page to restore or delete a selected backup. Native installer applications are not backed up by the manager. There is no universal automatic rollback for every installer.
 
