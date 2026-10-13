@@ -29,3 +29,4 @@ pub mod batch_admin;
 #[path = "batch_admin/linux.rs"]
 pub mod batch_admin;
 pub mod install_options;
+pub mod installation_labels;

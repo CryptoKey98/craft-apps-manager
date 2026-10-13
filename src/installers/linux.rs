@@ -235,6 +235,7 @@ fn detect_package(app: &str, package: &str) -> Result<Option<Installed>> {
         _ => bail!("Unsupported installed package architecture"),
     };
     Ok(Some(Installed {
+        installation_label: Default::default(),
         name: app.into(),
         version,
         path: executable

@@ -76,6 +76,7 @@ pub fn save_with_custom_apps<T: Serialize>(
                 config.installations.push(app.clone());
             }
         }
+        crate::installation_labels::assign(&mut config)?;
         writes.push((
             paths.at("settings.json"),
             files::json_bytes(&paths.at("settings.json"), &config)?,

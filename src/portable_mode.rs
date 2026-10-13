@@ -886,6 +886,7 @@ mod tests {
         crate::files::write_json(
             &paths.at("settings.json"),
             &crate::model::Config {
+                portable_label_counters: Default::default(),
                 apps_root: library.display().to_string(),
                 apps: Vec::new(),
                 installations: Vec::new(),

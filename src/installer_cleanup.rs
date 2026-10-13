@@ -38,6 +38,21 @@ fn remove_download(
         );
         std::fs::remove_file(package).context("Could not remove the downloaded installer")?;
     }
+    // Remove only this app's empty download directory. A non-recursive removal
+    // preserves retained packages, recovery files and concurrent downloads.
+    match std::fs::remove_dir(&cache) {
+        Ok(()) => {}
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::NotFound | std::io::ErrorKind::DirectoryNotEmpty
+            ) => {}
+        Err(error) => {
+            return Err(error).context(
+                "Setup file was removed, but its empty download folder could not be removed",
+            )
+        }
+    }
     Ok("Downloaded installer removed.".into())
 }
 
@@ -70,7 +85,8 @@ fn finish_with_retention(
             job.log(&message);
         }
         Err(error) => {
-            let message = format!("Installation succeeded; setup file was kept because cleanup could not finish: {error:#}");
+            let message =
+                format!("Installation succeeded; setup-file cleanup could not finish: {error:#}");
             job.report("Cleanup", &message);
             job.log(&message);
         }
@@ -108,6 +124,24 @@ mod tests {
         assert!(recovery.exists() && other.exists());
         std::fs::remove_dir_all(root).unwrap();
     }
+    #[test]
+    fn empty_app_download_folder_is_removed_and_can_be_recreated() {
+        let (root, paths, app, package) = fixture();
+        let cache = package.parent().unwrap();
+        let installers = paths.at("releases/installers");
+        remove_download(&paths, &app, &package, || Ok(None)).unwrap();
+        assert!(!cache.exists());
+        assert!(installers.is_dir());
+        // Repeated cleanup is harmless; the next download recreates its folder.
+        remove_download(&paths, &app, &package, || Ok(None)).unwrap();
+        std::fs::create_dir_all(cache).unwrap();
+        std::fs::write(&package, b"next installer").unwrap();
+        assert_eq!(std::fs::read(&package).unwrap(), b"next installer");
+        remove_download(&paths, &app, &package, || Ok(None)).unwrap();
+        assert!(!cache.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn retained_packages_and_uncertain_dependencies_are_not_deleted() {
         let (root, paths, app, package) = fixture();

@@ -5,10 +5,15 @@
 - Switch between installations directly from Home. The selected copy stays synchronized with the app page.
 - Discover new Craft apps automatically, with descriptions and a New badge. Newly discovered apps stay at the top of available apps, even after you view them.
 - Give each installation a distinct desktop shortcut. Moves and updates preserve the shortcuts, and removal respects shortcuts you have edited.
+- Shorten installer shortcut names to the app name and architecture, such as FilmCraft (x64). Portable shortcut labels keep their copy identifiers.
+- Use matching letters for portable shortcuts and installation selectors. Existing copies keep their letters through updates and moves; new installations reuse the first available letter after a copy is removed.
 - Hide the Activity notification badge with a new setting. Unread highlights remain visible inside Activity.
 - Improve installation transitions, progress-bar alignment, and light-theme badges. What's New has clearer highlights and a subtle animated underline on its patch-notes link.
 - Preserve additional installations more reliably when saving settings, and improve detection of older portable copies.
 - Remove empty manager-created folders after uninstalling additional portable copies. Folders containing other files and user-selected parent folders are kept.
+- Store additional library copies directly in numbered app folders, without nested random-name folders. Clean up both older wrapper-folder layouts on uninstall, and stop creating extra shortcuts in the releases folder.
+- Remove empty app download folders after installer cleanup, while preserving retained setup files, recovery packages and other downloads.
+- Keep installer destinations separate from portable locations when changing versions or install options. Use architecture-appropriate Program Files defaults on Windows and prevent new installer copies from using manager storage folders.
 - Clean temporary files after interrupted builds, even without a completed build. Cleanup is blocked while building and preserves completed builds and source ZIPs.
 - Fix PDFCraft source builds using the wrong package name after its upstream rename.
 - Restore portable backups to the selected installation with the correct architecture where it can be detected. Support app names containing numbers.

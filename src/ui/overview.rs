@@ -1015,13 +1015,7 @@ impl App {
 
 /// The height egui gives one line of text in `font`.
 fn home_installation_label(copy: &model::Installed) -> String {
-    let format = if copy.install_kind == "installer" {
-        "Installer"
-    } else {
-        "Portable"
-    };
-    let architecture = model::architecture_label(&copy.architecture);
-    format!("{format} · {architecture}")
+    craft_apps_manager::installation_labels::summary(copy)
 }
 
 fn home_installation_detail(copy: &model::Installed, paths: &model::Paths) -> String {
@@ -1036,7 +1030,10 @@ fn home_installation_detail(copy: &model::Installed, paths: &model::Paths) -> St
     } else {
         "External folder"
     };
-    format!("{} · {location}", copy.version)
+    format!(
+        "v{} · {location}",
+        copy.version.trim_start_matches(['v', 'V'])
+    )
 }
 
 fn row_height(ui: &Ui, font: &FontId) -> f32 {

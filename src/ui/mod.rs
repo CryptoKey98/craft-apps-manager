@@ -283,6 +283,7 @@ pub struct App {
     install_selected_tag: Option<String>,
     additional_installation: bool,
     install_draft_app: Option<String>,
+    install_location_context: Option<(String, String, String, bool)>,
     install_parent: String,
     install_shortcut: bool,
     install_result: Option<Result<updates::ReleasePlan, String>>,
@@ -597,6 +598,7 @@ impl App {
             install_selected_tag: None,
             additional_installation: false,
             install_draft_app: None,
+            install_location_context: None,
             install_parent: String::new(),
             install_shortcut: true,
             install_result: None,
@@ -1096,14 +1098,6 @@ impl App {
             self.result(Err(error));
             return;
         }
-        let target = self
-            .display_config
-            .as_ref()
-            .and_then(|c| c.apps.iter().find(|a| a.name == app))
-            .filter(|a| !a.path.is_empty() && a.install_kind != "installer")
-            .map(|a| PathBuf::from(&a.path))
-            .unwrap_or_else(|| self.paths.at(format!("releases/{app}")));
-        self.install_parent = target.parent().unwrap().display().to_string();
         self.install_shortcut = true;
         self.install_draft_app = Some(app.clone());
         self.confirm_install = Some(app.clone());

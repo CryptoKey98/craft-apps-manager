@@ -508,17 +508,11 @@ impl App {
             ui.spacing_mut().item_spacing.y = 4.0;
             theme::text(ui, "Other installations", 12.0, theme::palette().muted);
             for copy in other_copies {
-                let format = if copy.install_kind == "installer" {
-                    "Installer"
-                } else {
-                    "Portable"
-                };
                 ui.add(
                     egui::Label::new(
                         RichText::new(format!(
-                            "• {format} · {} · {} — {}",
-                            model::architecture_label(&copy.architecture),
-                            copy.version,
+                            "• {} — {}",
+                            craft_apps_manager::installation_labels::version_summary(copy),
                             copy.path
                         ))
                         .size(12.0)
@@ -649,18 +643,7 @@ impl App {
             return;
         };
         let copies = self.installation_copies(&app);
-        let label = |copy: &model::Installed| {
-            format!(
-                "{} · {} · {}",
-                if copy.install_kind == "installer" {
-                    "Installer"
-                } else {
-                    "Portable"
-                },
-                model::architecture_label(&copy.architecture),
-                copy.version
-            )
-        };
+        let label = craft_apps_manager::installation_labels::version_summary;
         theme::text(ui, "Installation", 12.0, theme::palette().muted);
         ui.add_space(6.0);
         let mut selection = None;

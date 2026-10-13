@@ -36,6 +36,7 @@ fn portable_backup_restore_ignores_obsolete_global_format_and_recovers_architect
     fs::write(folder.join("designcraft.exe"), b"old fixture").unwrap();
     paths
         .save_config(&model::Config {
+            portable_label_counters: Default::default(),
             apps_root: paths.root.display().to_string(),
             apps: vec![model::Installed {
                 name: "designcraft".into(),
@@ -159,6 +160,7 @@ fn startup_checks_default_on_preserve_opt_out_and_target_active_installed_apps()
     .unwrap();
     // Explicit inventory avoids native discovery of applications installed on the test machine.
     let mut config = model::Config {
+        portable_label_counters: Default::default(),
         apps: ["designcraft", "effectcraft", "filmcraft"]
             .into_iter()
             .map(|name| model::Installed {
@@ -269,6 +271,61 @@ fn write_release_fixture(folder: &Path, app: &str, payload: &str) {
 }
 fn job(root: &Path) -> Job {
     Job::new(root.join("logs/test.log"), &BuilderPreferences::default())
+}
+#[test]
+fn uninstall_additional_portable_copies_removes_flat_and_legacy_folders_only() {
+    for layout in ["flat", "dialog", "architecture"] {
+        let f = Fixture::new();
+        let paths = f.paths();
+        files::write_json(
+            &paths.at("manager-settings.json"),
+            &portable_test_preferences(),
+        )
+        .unwrap();
+        let first = paths.at("releases/filmcraft");
+        let id = uuid::Uuid::new_v4().simple().to_string();
+        let second = match layout {
+            "flat" => paths.at("releases/filmcraft-2"),
+            "dialog" => paths.at(format!("releases/filmcraft-{id}/filmcraft")),
+            _ => paths.at(format!("releases/filmcraft-x64-{id}/filmcraft")),
+        };
+        for folder in [&first, &second] {
+            fs::create_dir_all(folder).unwrap();
+            write_release_fixture(folder, "filmcraft", "fixture");
+        }
+        let mut config = paths.config().unwrap();
+        let mut selected = config
+            .apps
+            .iter()
+            .find(|app| app.name == "filmcraft")
+            .unwrap()
+            .clone();
+        selected.path = second.to_string_lossy().into_owned();
+        selected.install_kind = "portable".into();
+        selected.version = "0.1.0".into();
+        let mut original = selected.clone();
+        original.path = first.to_string_lossy().into_owned();
+        config.installations = vec![original, selected.clone()];
+        *config
+            .apps
+            .iter_mut()
+            .find(|app| app.name == "filmcraft")
+            .unwrap() = selected;
+        paths.save_config(&config).unwrap();
+        craft_apps_manager::portable::mark_additional(&paths, "filmcraft", &second).unwrap();
+        craft_apps_manager::apps::uninstall(&paths, "filmcraft").unwrap();
+        assert!(!second.exists(), "{layout}");
+        if layout != "flat" {
+            assert!(!second.parent().unwrap().exists(), "{layout}");
+        }
+        assert!(first.exists());
+        assert_eq!(
+            craft_apps_manager::apps::installed(&paths, "filmcraft")
+                .unwrap()
+                .path,
+            first.to_string_lossy()
+        );
+    }
 }
 #[test]
 fn portable_photo_profile_survives_uninstall_and_reinstall() {
@@ -957,6 +1014,7 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     )
     .unwrap();
     let record = Installed {
+        installation_label: Default::default(),
         name: "craft-test-missing-app".into(),
         version: "1.0.0".into(),
         path: f.0.join("missing").display().to_string(),
@@ -965,6 +1023,7 @@ fn stale_installation_records_do_not_mark_apps_installed() {
         product_code: "{00000000-0000-0000-0000-000000000000}".into(),
     };
     let config = Config {
+        portable_label_counters: Default::default(),
         apps_root: f.0.display().to_string(),
         apps: vec![record.clone()],
         installations: vec![record],

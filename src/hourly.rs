@@ -242,6 +242,7 @@ mod tests {
                 ..Default::default()
             };
             let config = Config {
+                portable_label_counters: Default::default(),
                 apps: vec![
                     crate::model::Installed {
                         name: "filmcraft".into(),

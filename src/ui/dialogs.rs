@@ -13,6 +13,64 @@ pub(super) const CHECK_RED: Color32 = Color32::from_rgb(0xd9, 0x53, 0x4f);
 /// Footer, title bar and the dialog's own height, from the mockups.
 pub(super) const BAR_HEIGHT: f32 = 61.0;
 
+fn windows_installer_parent(architecture: &str, lookup: impl Fn(&str) -> Option<String>) -> String {
+    let preferred = if architecture == "x86" {
+        "ProgramFiles(x86)"
+    } else {
+        "ProgramW6432"
+    };
+    [preferred, "ProgramFiles"]
+        .into_iter()
+        .filter_map(lookup)
+        .find(|path| std::path::Path::new(path).is_absolute())
+        .unwrap_or_default()
+}
+
+fn default_install_parent(
+    paths: &model::Paths,
+    current: Option<&model::Installed>,
+    prefs: &model::Preferences,
+    additional: bool,
+) -> String {
+    if prefs.release_format == "installer" && cfg!(target_os = "windows") {
+        return windows_installer_parent(&prefs.architecture, |name| std::env::var(name).ok());
+    }
+    if !additional && prefs.release_format == "portable" {
+        if let Some(parent) = current
+            .filter(|copy| !copy.path.is_empty() && copy.install_kind != "installer")
+            .and_then(|copy| std::path::Path::new(&copy.path).parent())
+        {
+            return parent.display().to_string();
+        }
+    }
+    paths.at("releases").display().to_string()
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod install_location_tests {
+    use super::*;
+
+    #[test]
+    fn installer_defaults_follow_architecture_and_never_fall_back_to_releases() {
+        let lookup = |name: &str| match name {
+            "ProgramW6432" => Some(r"C:\Program Files".into()),
+            "ProgramFiles(x86)" | "ProgramFiles" => Some(r"C:\Program Files (x86)".into()),
+            _ => None,
+        };
+        assert_eq!(windows_installer_parent("x64", lookup), r"C:\Program Files");
+        assert_eq!(
+            windows_installer_parent("arm64", lookup),
+            r"C:\Program Files"
+        );
+        assert_eq!(
+            windows_installer_parent("x86", lookup),
+            r"C:\Program Files (x86)"
+        );
+        assert!(windows_installer_parent("x64", |_| None).is_empty());
+        assert!(windows_installer_parent("x64", |_| Some("relative".into())).is_empty());
+    }
+}
+
 fn desktop_shortcut_option(ui: &mut egui::Ui, checked: &mut bool) {
     ui.horizontal(|ui| {
         ui.set_min_height(24.0);
@@ -2026,26 +2084,29 @@ impl App {
                 && current
                     .as_ref()
                     .is_some_and(|a| !a.path.is_empty() && a.install_kind != "installer");
-            if self.install_draft_app.as_deref() != Some(&app) {
+            let new_draft = self.install_draft_app.as_deref() != Some(&app);
+            if new_draft {
                 self.install_draft_app = Some(app.clone());
-                let target = current
-                    .as_ref()
-                    .filter(|a| !a.path.is_empty() && a.install_kind != "installer")
-                    .map(|a| std::path::PathBuf::from(&a.path))
-                    .unwrap_or_else(|| self.paths.at(format!("releases/{app}")));
-                self.install_parent = if self.additional_installation && !installer {
-                    self.paths
-                        .at(format!("releases/{app}-{}", uuid::Uuid::new_v4().simple()))
-                        .display()
-                        .to_string()
-                } else if installer && cfg!(target_os = "windows") {
-                    std::env::var("ProgramFiles")
-                        .unwrap_or_else(|_| target.parent().unwrap().display().to_string())
-                } else {
-                    target.parent().unwrap().display().to_string()
-                };
                 self.install_shortcut = true;
                 self.load_install(&app, ctx);
+            }
+            let location_context = (
+                app.clone(),
+                install_preferences.release_format.clone(),
+                install_preferences.architecture.clone(),
+                self.additional_installation,
+            );
+            if new_draft || self.install_location_context.as_ref() != Some(&location_context) {
+                self.install_parent = default_install_parent(
+                    &self.paths,
+                    current.as_ref(),
+                    &install_preferences,
+                    self.additional_installation,
+                );
+                self.install_location_context = Some(location_context);
+                // A folder-picker result for the previous package type cannot
+                // replace this package type's destination.
+                self.folder_receiver = None;
             }
             let plan = self
                 .install_result
@@ -2260,6 +2321,12 @@ impl App {
                         ui.add_space(8.0);
                         let target = if installed_portable {
                             Ok(std::path::PathBuf::from(&current.as_ref().unwrap().path))
+                        } else if self.additional_installation && !installer {
+                            craft_apps_manager::portable::additional_destination(
+                                &self.paths,
+                                std::path::Path::new(&self.install_parent),
+                                &app,
+                            )
                         } else {
                             craft_apps_manager::portable::destination(
                                 std::path::Path::new(&self.install_parent),
@@ -2361,6 +2428,7 @@ impl App {
                                 #[cfg(target_os = "windows")]
                                 {
                                     updates::choose_installer_destination(
+                                        &self.paths,
                                         &mut plan,
                                         std::path::Path::new(&self.install_parent),
                                     )
@@ -2396,6 +2464,7 @@ impl App {
             if self.confirm_install.is_none() {
                 self.additional_installation = false;
                 self.install_draft_app = None;
+                self.install_location_context = None;
                 self.install_receiver = None;
                 self.folder_receiver = None;
                 self.install_result = None;

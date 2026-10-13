@@ -309,6 +309,8 @@ pub struct Installed {
     pub install_kind: String,
     #[serde(default)]
     pub product_code: String,
+    #[serde(default)]
+    pub installation_label: String,
 }
 fn default_arch() -> String {
     MANAGER_ARCH.into()
@@ -320,6 +322,8 @@ pub struct Config {
     pub apps: Vec<Installed>,
     #[serde(default)]
     pub installations: Vec<Installed>,
+    #[serde(default)]
+    pub portable_label_counters: std::collections::BTreeMap<String, u32>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -431,6 +435,7 @@ impl Paths {
                 .unwrap_or_default();
             let direct = self.at(format!("releases/{name}"));
             apps.push(Installed {
+                installation_label: Default::default(),
                 name: name.into(),
                 version,
                 path: if path.is_empty() && installed_executable(&direct, name).is_some() {
@@ -445,6 +450,7 @@ impl Paths {
         }
         self.refresh_config(
             Config {
+                portable_label_counters: Default::default(),
                 apps_root: self.root.to_string_lossy().into_owned(),
                 apps,
                 installations: Vec::new(),
@@ -531,6 +537,7 @@ impl Paths {
             {
                 if let Some(executable) = installed_executable(&library, &app.name) {
                     config.installations.push(Installed {
+                        installation_label: Default::default(),
                         name: app.name.clone(),
                         path: library.display().to_string(),
                         version: crate::platform::executable_version(&executable)
@@ -620,6 +627,7 @@ impl Paths {
                     .unwrap_or_default();
             }
         }
+        crate::installation_labels::assign(&mut config)?;
         Ok(config)
     }
     pub fn save_config(&self, config: &Config) -> Result<()> {
@@ -635,6 +643,7 @@ impl Paths {
                 config.installations.push(app.clone());
             }
         }
+        crate::installation_labels::assign(&mut config)?;
         crate::files::write_json(&self.at("settings.json"), &config)
     }
     /// Read preferences without migrating or changing any file.
@@ -930,6 +939,7 @@ mod detection_tests {
             .collect();
         paths
             .save_config(&Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![copies[0].clone()],
                 installations: copies.clone(),
@@ -1036,6 +1046,7 @@ mod detection_tests {
             .collect();
         for selected in &copies {
             let config = Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![selected.clone()],
                 installations: copies.clone(),
@@ -1180,6 +1191,7 @@ mod detection_tests {
             };
             crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
             let mut config = Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![removed.clone()],
                 installations: copies.clone(),
@@ -1238,6 +1250,7 @@ mod detection_tests {
         crate::files::write_json(
             &paths.at("settings.json"),
             &Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![Installed {
                     name: "filmcraft".into(),
@@ -1286,6 +1299,7 @@ mod detection_tests {
             ..Default::default()
         };
         let mut config = Config {
+            portable_label_counters: Default::default(),
             apps: vec![native.clone()],
             installations: vec![native.clone()],
             apps_root: root.display().to_string(),
@@ -1462,6 +1476,7 @@ mod detection_tests {
         crate::files::write_json(
             &paths.at("settings.json"),
             &Config {
+                portable_label_counters: Default::default(),
                 apps: vec![copies[0].clone()],
                 installations: copies.clone(),
                 apps_root: root.display().to_string(),
@@ -1540,6 +1555,7 @@ mod detection_tests {
         };
         crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
         let config = Config {
+            portable_label_counters: Default::default(),
             apps_root: root.display().to_string(),
             apps: vec![Installed {
                 name: "filmcraft".into(),
@@ -1621,6 +1637,7 @@ mod detection_tests {
             Ok(["photocraft", "printcraft"]
                 .contains(&name)
                 .then(|| Installed {
+                    installation_label: Default::default(),
                     name: name.into(),
                     path: root.join("system").join(name).display().to_string(),
                     version: "0.2.1".into(),
