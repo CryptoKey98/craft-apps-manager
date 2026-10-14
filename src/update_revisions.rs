@@ -183,9 +183,9 @@ mod tests {
         assert_eq!(display_version("0.8.3", 2), "0.8.3 · Rev. 2");
     }
     #[test]
-    fn friendly_revision_filenames_are_selected_from_signed_metadata() {
+    fn legacy_compatible_filenames_are_selected_from_signed_metadata() {
         let (mut manifest, mut release) = fixture();
-        let name = "Craft Apps Manager-0.8.3-Rev-2-linux-x64.zip";
+        let name = "Craft-Apps-Manager-0.8.3-linux-x64.zip";
         manifest.packages[0].asset = name.into();
         release.assets[0].name = name.into();
         release.assets[0].browser_download_url = format!(
@@ -197,6 +197,14 @@ mod tests {
             .unwrap();
         assert_eq!(offered.asset.name, name);
         assert_eq!(offered.revision, 2);
+        assert_eq!(
+            select(&manifest, &release, ("linux", "x64", "zip"), ("0.8.2", 1))
+                .unwrap()
+                .unwrap()
+                .asset
+                .name,
+            name
+        );
     }
     fn hex_text(bytes: &[u8]) -> String {
         bytes.iter().map(|byte| format!("{byte:02x}")).collect()

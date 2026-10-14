@@ -305,7 +305,7 @@ impl Network {
         Ok(())
     }
     pub fn asset(&self, a: &Asset, dest: &Path, job: &Job) -> Result<()> {
-        self.download(&a.browser_download_url, dest, job)?;
+        self.download(&asset_download_url(a)?, dest, job)?;
         job.check()?;
         job.stage(
             "Verifying checksum",
@@ -315,6 +315,18 @@ impl Network {
         verify_asset(dest, a)
     }
 }
+/// A replaced GitHub asset must not reuse a cached download redirect from the
+/// previous bytes. The published digest versions the URL without extra files.
+pub(crate) fn asset_download_url(asset: &Asset) -> Result<String> {
+    let mut url = reqwest::Url::parse(&asset.browser_download_url)?;
+    if url.host_str() == Some("github.com") && url.path().contains("/releases/download/") {
+        if let Some(digest) = &asset.digest {
+            url.query_pairs_mut().append_pair("asset_digest", digest);
+        }
+    }
+    Ok(url.into())
+}
+
 pub fn verify_asset(p: &Path, a: &Asset) -> Result<()> {
     if fs::metadata(p)?.len() != a.size {
         bail!("Download size mismatch");
@@ -336,6 +348,42 @@ pub fn verify_asset(p: &Path, a: &Asset) -> Result<()> {
 #[cfg(test)]
 mod token_tests {
     use super::*;
+
+    #[test]
+    fn replaced_release_assets_use_distinct_urls_without_changing_unverified_urls() {
+        let mut asset = Asset {
+            name: "manager.zip".into(),
+            size: 1,
+            digest: Some(format!("sha256:{}", "ab".repeat(32))),
+            browser_download_url:
+                "https://github.com/owner/manager/releases/download/v0.8.3/manager.zip?download=1"
+                    .into(),
+        };
+        let first = asset_download_url(&asset).unwrap();
+        asset.digest = Some(format!("sha256:{}", "cd".repeat(32)));
+        let second = asset_download_url(&asset).unwrap();
+        assert_ne!(first, second);
+        let url = reqwest::Url::parse(&second).unwrap();
+        assert_eq!(url.host_str(), Some("github.com"));
+        assert!(url
+            .query_pairs()
+            .any(|(key, value)| key == "download" && value == "1"));
+        assert!(url
+            .query_pairs()
+            .any(|(key, value)| key == "asset_digest"
+                && Some(value.as_ref()) == asset.digest.as_deref()));
+        asset.digest = None;
+        assert_eq!(
+            asset_download_url(&asset).unwrap(),
+            asset.browser_download_url
+        );
+        asset.browser_download_url = "https://example.com/file?download=1".into();
+        asset.digest = Some("sha256:fixture".into());
+        assert_eq!(
+            asset_download_url(&asset).unwrap(),
+            asset.browser_download_url
+        );
+    }
 
     #[test]
     fn failed_download_publication_removes_partial_file() {

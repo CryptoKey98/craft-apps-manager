@@ -94,6 +94,16 @@ fn create_stage_root(paths: &Paths) -> Result<PathBuf> {
     Ok(paths.at("runtime/self-update"))
 }
 
+fn install_command(kind: PackageKind) -> &'static [&'static str] {
+    match kind {
+        // Compatible Debian downloads retain the release version even when
+        // their executable advances to a newer signed build revision.
+        PackageKind::Debian => &["/usr/bin/apt-get", "install", "--reinstall", "-y"],
+        PackageKind::Rpm => &["/usr/bin/dnf", "install", "-y"],
+        PackageKind::Arch => &["/usr/bin/pacman", "-U", "--noconfirm"],
+    }
+}
+
 pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
     use std::os::unix::fs::DirBuilderExt;
     let kind = package_kind()?;
@@ -125,11 +135,7 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
     job.check()?;
     job.stage("Installing package", None, "Approve the administrator prompt. The package manager must finish before the manager restarts.");
     let log = fs::File::create(stage.join("install.log"))?;
-    let args = match kind {
-        PackageKind::Debian => ["/usr/bin/apt-get", "install", "-y"],
-        PackageKind::Rpm => ["/usr/bin/dnf", "install", "-y"],
-        PackageKind::Arch => ["/usr/bin/pacman", "-U", "--noconfirm"],
-    };
+    let args = install_command(kind);
     let status = Command::new("pkexec")
         .args(args)
         .arg(&package)
@@ -200,6 +206,21 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn debian_revisions_reinstall_while_other_package_managers_keep_upgrade_commands() {
+        assert_eq!(
+            install_command(PackageKind::Debian),
+            ["/usr/bin/apt-get", "install", "--reinstall", "-y"]
+        );
+        assert_eq!(
+            install_command(PackageKind::Rpm),
+            ["/usr/bin/dnf", "install", "-y"]
+        );
+        assert_eq!(
+            install_command(PackageKind::Arch),
+            ["/usr/bin/pacman", "-U", "--noconfirm"]
+        );
+    }
     #[test]
     fn staging_works_in_a_fresh_library_and_rejects_links() {
         let root =

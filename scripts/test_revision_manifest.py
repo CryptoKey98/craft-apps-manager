@@ -1,7 +1,6 @@
 import json
 import hashlib
 import os
-import runpy
 from pathlib import Path
 import shutil
 import subprocess
@@ -45,13 +44,13 @@ class RevisionManifestTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return folder
 
-    def test_baseline_keeps_legacy_downloads_and_creates_signed_immutable_copies(self):
+    def test_baseline_signs_only_legacy_downloads(self):
         folder = self.baseline()
         manifest = self.read_manifest(folder)
         self.assertEqual(len(manifest["packages"]), 3)
         for package in manifest["packages"]:
             self.assertEqual(package["revision"], 1)
-            self.assertEqual(package["asset"], f"Craft Apps Manager-0.8.3-{package['platform']}-{package['architecture']}.zip")
+            self.assertEqual(package["asset"], f"Craft-Apps-Manager-0.8.3-{package['platform']}-{package['architecture']}.zip")
             self.assertNotIn("Rev", package["asset"])
             self.assertTrue((folder / package["asset"]).exists())
         self.assertTrue((folder / "Craft-Apps-Manager-0.8.3-linux-x64.zip").exists())
@@ -68,22 +67,15 @@ class RevisionManifestTests(unittest.TestCase):
         revisions = {p["platform"]: p["revision"] for p in manifest["packages"]}
         self.assertEqual(revisions, {"windows": 1, "linux": 2, "macos": 1})
         self.assertEqual(legacy.read_bytes(), b"revision 2 fixture")
-        self.assertEqual((baseline / "Craft Apps Manager-0.8.3-linux-x64.zip").read_bytes(), b"revision 1 fixture")
+        self.assertEqual((baseline / "Craft-Apps-Manager-0.8.3-linux-x64.zip").read_bytes(), b"revision 1 fixture")
         linux = next(p for p in manifest["packages"] if p["platform"] == "linux")
-        self.assertEqual(linux["asset"], "Craft Apps Manager-0.8.3-Rev-2-linux-x64.zip")
+        self.assertEqual(linux["asset"], "Craft-Apps-Manager-0.8.3-linux-x64.zip")
+        self.assertEqual(len(list(folder.glob("*.zip"))), 1)
+        self.assertEqual(linux["sha256"], hashlib.sha256(legacy.read_bytes()).hexdigest())
 
-    def test_revision_names_cover_all_package_formats(self):
-        name = runpy.run_path(str(self.script))["revision_name"]
-        for platform, architecture, kind, extension in [
-            ("windows", "x64", "zip", ".zip"),
-            ("windows", "x86", "msi", ".msi"),
-            ("macos", "universal", "zip", ".zip"),
-            ("linux", "x64", "deb", ".deb"),
-            ("linux", "x86", "rpm", ".rpm"),
-            ("linux", "x64", "arch", ".pkg.tar.zst"),
-        ]:
-            self.assertEqual(name("0.8.3", 1, platform, architecture, kind), f"Craft Apps Manager-0.8.3-{platform}-{architecture}{extension}")
-            self.assertEqual(name("0.8.3", 2, platform, architecture, kind), f"Craft Apps Manager-0.8.3-Rev-2-{platform}-{architecture}{extension}")
+    def test_baseline_has_no_duplicate_packages(self):
+        folder = self.baseline()
+        self.assertEqual(len(list(folder.glob("*.zip"))), 3)
 
     def test_nonadvancing_revision_and_tampered_previous_manifest_are_rejected(self):
         baseline = self.baseline()
@@ -124,15 +116,34 @@ class RevisionManifestTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         entry = next(p for p in self.read_manifest(folder)["packages"] if p["format"] == "deb")
         canonical = folder / entry["asset"]
-        self.assertEqual(entry["package_version"], "0.8.3-2")
+        self.assertEqual(entry["package_version"], "0.8.3")
         self.assertEqual(entry["sha256"], hashlib.sha256(canonical.read_bytes()).hexdigest())
         compatibility = folder / "craft-apps-manager_0.8.3_amd64.deb"
-        for label, file, expected in [("canonical", canonical, "0.8.3-2"), ("legacy", compatibility, "0.8.3")]:
+        for label, file, expected in [("canonical", canonical, "0.8.3"), ("legacy", compatibility, "0.8.3")]:
             version = subprocess.check_output(["dpkg-deb", "-f", str(file), "Version"], text=True).strip()
             self.assertEqual(version, expected)
             destination = self.root / label
             subprocess.run(["dpkg-deb", "-x", str(file), str(destination)], check=True)
             self.assertEqual((destination / "usr/bin/craft-apps-manager").read_bytes(), payload)
+        self.assertEqual(len(list(folder.glob("*.deb"))), 1)
+        if shutil.which("apt-get"):
+            # Simulate both upgrade routes against an isolated package database.
+            # No administrator access or real package installation is involved.
+            status = self.root / "status"
+            for installed in ["0.8.2", "0.8.3"]:
+                status.write_text(
+                    "Package: craft-apps-manager\nStatus: install ok installed\n"
+                    f"Version: {installed}\nArchitecture: amd64\n"
+                    "Maintainer: Test <test@example.com>\nDescription: Fixture\n\n"
+                )
+                result = subprocess.run([
+                    "apt-get", "--simulate", "-o", f"Dir::State::status={status}",
+                    "-o", "Debug::NoLocking=true", "install", "--reinstall",
+                    str(compatibility.resolve())
+                ], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("Inst craft-apps-manager", result.stdout)
+
 
 
 if __name__ == "__main__":
