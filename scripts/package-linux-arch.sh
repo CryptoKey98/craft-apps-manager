@@ -4,7 +4,10 @@ project=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 binary=${1:-"$project/target/release/craft-apps-manager"}
 output=${2:-"$project/dist/linux"}
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project/Cargo.toml" | head -1)
+revision=${CRAFT_BUILD_REVISION:-1}
+case "$revision" in ''|*[!0-9]*) echo "Invalid build revision" >&2; exit 1;; esac
 case "$version" in ''|*[!0-9.]*) echo "Invalid package version" >&2; exit 1;; esac
+python3 "$project/scripts/check-build-identity.py" --binary "$(realpath "$binary")" --version "$version" --revision "${CRAFT_BUILD_REVISION:-1}"
 [ "$(id -u)" != 0 ] || { echo "Run makepkg as a regular user, not root" >&2; exit 1; }
 command -v makepkg >/dev/null
 [ -f "$binary" ] || { echo "Build the Linux executable first" >&2; exit 1; }
@@ -28,6 +31,6 @@ printf 'pkgver=%s\n' "$version" > "$work/PKGBUILD"
 cat "$project/packaging/linux/PKGBUILD" >> "$work/PKGBUILD"
 printf '\nsha256sums=(%s)\n' "$hash" >> "$work/PKGBUILD"
 (cd "$work" && PKGEXT='.pkg.tar.zst' makepkg --force)
-cp "$work/craft-apps-manager-$version-1-x86_64.pkg.tar.zst" "$output/"
+cp "$work/craft-apps-manager-$version-$revision-x86_64.pkg.tar.zst" "$output/"
 case "$work" in "$output"/arch-build.*) rm -rf -- "$work";; *) echo "Unexpected staging path" >&2; exit 1;; esac
-printf '\nArch package: %s/craft-apps-manager-%s-1-x86_64.pkg.tar.zst\n' "$output" "$version"
+printf '\nArch package: %s/craft-apps-manager-%s-%s-x86_64.pkg.tar.zst\n' "$output" "$version" "$revision"

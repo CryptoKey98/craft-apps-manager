@@ -19,6 +19,12 @@ foreach ($path in @($exe, $seven)) {
     if ([BitConverter]::ToUInt16($bytes, $offset + 4) -ne $machine) { throw "Wrong architecture: $path" }
 }
 $version = [regex]::Match([IO.File]::ReadAllText((Join-Path $projectRoot 'Cargo.toml')), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
+$buildRevision = if ($env:CRAFT_BUILD_REVISION) { [int]$env:CRAFT_BUILD_REVISION } else { 1 }
+$buildIdentityPath = Join-Path $TargetFolder ('package-build-identity-' + [Guid]::NewGuid().ToString('N') + '.json')
+$buildProcess = Start-Process -FilePath $exe -ArgumentList '--build-identity' -NoNewWindow -Wait -PassThru -RedirectStandardOutput $buildIdentityPath
+$buildIdentity = Get-Content -LiteralPath $buildIdentityPath -Raw | ConvertFrom-Json
+Remove-Item -LiteralPath $buildIdentityPath
+if ($buildProcess.ExitCode -ne 0 -or $buildIdentity.version -ne $version -or $buildIdentity.revision -ne $buildRevision) { throw 'Executable version/revision does not match the package' }
 $stage = Join-Path $OutputFolder "msi-payload-$version"
 if (Test-Path -LiteralPath $stage) { throw "Package staging folder already exists: $stage" }
 # DirectoryInfo.FullName normalizes relative output paths before deriving stable
@@ -71,7 +77,7 @@ $icon = Escape-Xml (Join-Path $projectRoot 'assets/icon.ico')
 $xml = @"
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="Craft Apps Manager ($Architecture)" Manufacturer="CryptoKey98" Version="$version" UpgradeCode="$upgrade" Scope="perUser">
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Craft Apps Manager is already installed." Schedule="afterInstallInitialize"/>
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of Craft Apps Manager is already installed." Schedule="afterInstallInitialize"/>
     <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
     <Icon Id="ManagerIcon" SourceFile="$icon"/>
     <Property Id="ARPPRODUCTICON" Value="ManagerIcon"/>

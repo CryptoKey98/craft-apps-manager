@@ -21,6 +21,7 @@ pub mod scheduler;
 pub mod self_update;
 pub mod settings;
 pub mod tools;
+pub mod update_revisions;
 pub mod updates;
 
 #[cfg(target_os = "windows")]

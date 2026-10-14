@@ -51,6 +51,13 @@ fn main() {
 }
 fn run() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
+    if args.iter().any(|arg| arg == "--build-identity") {
+        println!(
+            "{}",
+            serde_json::json!({"version": env!("CARGO_PKG_VERSION"), "revision": craft_apps_manager::update_revisions::BUILD_REVISION, "target": env!("CRAFT_BUILD_TARGET")})
+        );
+        return Ok(());
+    }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     if let Some(index) = args.iter().position(|arg| arg == "--approved-admin-batch") {
         return craft_apps_manager::batch_admin::worker(

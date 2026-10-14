@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+- Support platform-specific manager update revisions, with verified downloads and revision details for troubleshooting.
+- Keep existing update paths available for older managers. Minor platform fixes can be delivered without updating unaffected platforms.
+- Fix a Linux accessibility startup error caused by conflicting credential-store runtime settings.
+
 ## 0.8.2
 
 - Switch between installations directly from Home. The selected copy stays synchronized with the app page.

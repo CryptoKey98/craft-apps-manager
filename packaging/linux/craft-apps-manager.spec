@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 Name:           craft-apps-manager
 Version:        %{manager_version}
-Release:        0.2%{?dist}
+Release:        %{manager_release}%{?dist}
 Summary:        Manage Craft app releases, sources and builds
 License:        MIT
 URL:            https://github.com/CryptoKey98/craft-apps-manager

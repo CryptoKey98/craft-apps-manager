@@ -2,9 +2,32 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to update
+        required: true
+        default: v0.8.3
+      revision:
+        description: New build revision (2 or higher)
+        required: true
+        default: '2'
+      platform:
+        description: Platform receiving the hotfix
+        type: choice
+        options: [windows, linux, macos]
+        required: true
+      source_ref:
+        description: Commit SHA containing the hotfix
+        required: true
 permissions:
   contents: write
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 env:
+  CRAFT_BUILD_REVISION: ${{ inputs.revision || '1' }}
+  CRAFT_RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
   # Packages self-update from the releases of the repository that built them.
   CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
 jobs:
@@ -13,18 +36,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - name: Validate tag, version references and release notes
-        run: python3 scripts/validate-release.py --tag "$GITHUB_REF_NAME" --notes-file notes.md
+        run: python3 scripts/validate-release.py --tag "$CRAFT_RELEASE_TAG" --notes-file notes.md
+      - name: Validate revision publishing inputs
+        env:
+          CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
+          REVISION_SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          test -n "$CRAFT_UPDATE_SIGNING_KEY" || { echo "Configure CRAFT_UPDATE_SIGNING_KEY before publishing" >&2; exit 1; }
+          if [ "${{ github.event_name }}" = workflow_dispatch ] && [ "$CRAFT_BUILD_REVISION" = 1 ]; then
+            echo "Manual hotfix publication requires revision 2 or higher" >&2
+            exit 1
+          fi
+          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
+            case "$CRAFT_BUILD_REVISION" in *[!0-9]*|'') exit 1;; esac
+            test "$CRAFT_BUILD_REVISION" -ge 2 && test "$CRAFT_BUILD_REVISION" -le 65535
+            case "$REVISION_SOURCE_REF" in *[!0-9a-f]*|'') echo "Use an immutable commit SHA" >&2; exit 1;; esac
+            test "${#REVISION_SOURCE_REF}" -eq 40
+            test "${#CRAFT_RELEASE_TAG}" -gt 1
+          fi
       - name: Reject an already-published release
+        if: github.event_name != 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
-          if printf '%s' "$releases" | jq -e --arg tag "$GITHUB_REF_NAME" 'any(.[]; .tag_name == $tag and .draft == false)' >/dev/null; then
+          if printf '%s' "$releases" | jq -e --arg tag "$CRAFT_RELEASE_TAG" 'any(.[]; .tag_name == $tag and .draft == false)' >/dev/null; then
             echo "This tag already has a published release. Use a new version instead." >&2
             exit 1
           fi
   windows:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'windows'
     needs: validate
     runs-on: windows-latest
     strategy:
@@ -38,6 +82,8 @@ jobs:
             seven: 7zip
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -67,9 +113,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern 'Craft-Apps-Manager-0.5.1-windows-${{ matrix.arch }}.msi' --dir baseline
+          if ($env:CRAFT_BUILD_REVISION -eq '1') {
+            gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern 'Craft-Apps-Manager-0.5.1-windows-${{ matrix.arch }}.msi' --dir baseline
+          } else {
+            gh release download $env:CRAFT_RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern updates-v1.json --dir baseline-metadata
+            if ($LASTEXITCODE -ne 0) { throw 'Could not download the current revision manifest' }
+            $envelope = Get-Content baseline-metadata/updates-v1.json -Raw | ConvertFrom-Json
+            $manifest = $envelope.payload | ConvertFrom-Json
+            $previous = @($manifest.packages | Where-Object { $_.platform -eq 'windows' -and $_.architecture -eq '${{ matrix.arch }}' -and $_.format -eq 'msi' })
+            if ($previous.Count -ne 1) { throw 'Expected one previous MSI revision for this architecture' }
+            gh release download $env:CRAFT_RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern $previous[0].asset --dir baseline
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the baseline MSI' }
+          $baseline = (Get-ChildItem baseline/*.msi).FullName
           $candidate = (Get-ChildItem 'dist/windows-${{ matrix.arch }}/*.msi').FullName
-          ./scripts/smoke-windows-msi.ps1 -Architecture ${{ matrix.arch }} -BaselineMsi 'baseline/Craft-Apps-Manager-0.5.1-windows-${{ matrix.arch }}.msi' -CandidateMsi $candidate
+          ./scripts/smoke-windows-msi.ps1 -Architecture ${{ matrix.arch }} -BaselineMsi $baseline -CandidateMsi $candidate
       - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.arch }}
@@ -78,6 +136,7 @@ jobs:
             dist/windows-${{ matrix.arch }}/*.msi
           if-no-files-found: error
   linux:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'linux'
     needs: validate
     runs-on: ubuntu-22.04
     strategy:
@@ -92,6 +151,8 @@ jobs:
       PKG_CONFIG_LIBDIR: ${{ matrix.pkgconfig }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev dpkg-dev rpm zip
       - if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
@@ -117,12 +178,15 @@ jobs:
             dist/linux/*.rpm
           if-no-files-found: error
   arch:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'linux'
     needs: validate
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:
-      - run: pacman -Syu --needed --noconfirm git rust pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils
+      - run: pacman -Syu --needed --noconfirm git rust python pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - name: Build and package as a regular user
         run: |
           useradd -m builder
@@ -134,10 +198,13 @@ jobs:
           path: dist/linux/*.pkg.tar.zst
           if-no-files-found: error
   macos:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'macos'
     needs: validate
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
@@ -148,29 +215,81 @@ jobs:
           path: dist/macos/*.zip
           if-no-files-found: error
   publish:
-    needs: [windows, linux, arch, macos]
+    needs: [validate, windows, linux, arch, macos]
+    if: ${{ always() && needs.validate.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
       - uses: actions/download-artifact@v4
         with:
           path: packages
           merge-multiple: true
+      - name: Prepare signed revision metadata and legacy downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
+          REVISION_PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y rpm libarchive-tools
+          python3 -m pip install 'cryptography==50.0.1'
+          previous=()
+          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
+            gh release download "$CRAFT_RELEASE_TAG" --pattern updates-v1.json --dir "$RUNNER_TEMP/revision-previous"
+            previous=(--previous "$RUNNER_TEMP/revision-previous/updates-v1.json")
+          fi
+          python3 scripts/revision-manifest.py --packages packages --version "${CRAFT_RELEASE_TAG#v}" --repository "$GITHUB_REPOSITORY" --revision "$CRAFT_BUILD_REVISION" --platform "$REVISION_PLATFORM" "${previous[@]}"
       - name: Checksums
-        run: cd packages && find . -maxdepth 1 -type f ! -name SHA256SUMS.txt -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt && cat SHA256SUMS.txt
+        env:
+          REVISION_PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          cd packages
+          checksum=SHA256SUMS.txt
+          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
+            checksum="SHA256SUMS-${REVISION_PLATFORM}-Rev-${CRAFT_BUILD_REVISION}.txt"
+          fi
+          # Compatibility downloads change during a hotfix. Only immutable
+          # revision packages belong in permanent checksum lists.
+          pattern="Craft Apps Manager-${CRAFT_RELEASE_TAG#v}-*"
+          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
+            pattern="Craft Apps Manager-${CRAFT_RELEASE_TAG#v}-Rev-${CRAFT_BUILD_REVISION}-*"
+          fi
+          find . -maxdepth 1 -type f -name "$pattern" -print0 | sort -z | xargs -0 -r sha256sum > "$checksum"
+          cat "$checksum"
       - name: Release notes from the changelog
         run: |
-          python3 scripts/validate-release.py --tag "$GITHUB_REF_NAME" --notes-file notes.md
-      - name: Publish
+          python3 scripts/validate-release.py --tag "$CRAFT_RELEASE_TAG" --notes-file notes.md
+      - name: Publish packages before revision metadata
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
-          existing=$(printf '%s' "$releases" | jq -c --arg tag "$GITHUB_REF_NAME" '.[] | select(.tag_name == $tag)')
-          if [ -n "$existing" ]; then
-            test "$(printf '%s' "$existing" | jq -r .draft)" = true || { echo "Refusing to replace a published release" >&2; exit 1; }
-            gh release upload "$GITHUB_REF_NAME" packages/* --clobber
-            gh release edit "$GITHUB_REF_NAME" --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md --draft=false
+          existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[] | select(.tag_name == $tag)')
+          manifest="$RUNNER_TEMP/updates-v1.json"
+          mv packages/updates-v1.json "$manifest"
+          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
+            test -n "$existing" && test "$(printf '%s' "$existing" | jq -r .draft)" = false
+            # Revision packages are immutable. Only compatibility filenames are
+            # replaced; their original revision-1 snapshots remain available.
+            for package in packages/*; do
+              name=$(basename "$package")
+              case "$name" in "Craft Apps Manager-"*.zip|"Craft Apps Manager-"*.msi|"Craft Apps Manager-"*.deb|"Craft Apps Manager-"*.rpm|"Craft Apps Manager-"*.pkg.tar.zst|*-r*.zip|*-r*.msi|*-r*.deb|*-r*.rpm|*-r*.pkg.tar.zst)
+                  old_digest=$(printf '%s' "$existing" | jq -r --arg name "$name" '.assets[] | select(.name == $name) | .digest')
+                  if [ -n "$old_digest" ]; then
+                    local_digest="sha256:$(sha256sum "$package" | cut -d ' ' -f1)"
+                    test "$old_digest" = "$local_digest" || { echo "Existing immutable revision asset differs: $name" >&2; exit 1; }
+                  else
+                    gh release upload "$CRAFT_RELEASE_TAG" "$package"
+                  fi;;
+                *) gh release upload "$CRAFT_RELEASE_TAG" "$package" --clobber;; esac
+            done
+            gh release upload "$CRAFT_RELEASE_TAG" "$manifest" --clobber
+          elif [ -n "$existing" ]; then
+            test "$(printf '%s' "$existing" | jq -r .draft)" = true || { echo "Refusing to replace a published baseline release" >&2; exit 1; }
+            gh release upload "$CRAFT_RELEASE_TAG" packages/* --clobber
+            gh release upload "$CRAFT_RELEASE_TAG" "$manifest" --clobber
+            gh release edit "$CRAFT_RELEASE_TAG" --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md --draft=false
           else
-            gh release create "$GITHUB_REF_NAME" packages/* --verify-tag --title "Craft Apps Manager ${GITHUB_REF_NAME#v}" --notes-file notes.md
+            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" --verify-tag --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md
           fi

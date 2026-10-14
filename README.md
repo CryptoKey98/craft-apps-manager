@@ -4,7 +4,7 @@
 
 Install, update, launch, and build the Craft apps from Storytold in one place. Choose installation options for each app, keep multiple copies, and follow your downloads and builds in Activity.
 
-Version **0.8.2** includes Home installation switching, reusable portable-copy letters, improved app discovery, and safer folder and build-cache cleanup. See the [changelog](CHANGELOG.md) for all changes.
+Version **0.8.3** includes platform-specific update revisions, so minor fixes can reach only the systems that need them. See the [changelog](CHANGELOG.md) for all changes.
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
@@ -87,6 +87,8 @@ In **Settings → Updates**, configure startup checks, periodic checks while the
 To hide the Activity button's notification badge, enable **Hide activity badge** in **Settings → General**. Unread activity highlights still appear inside the panel.
 
 **Approve administrator access once per batch** is enabled by default for eligible Windows and Linux installer batches. Linux uses PolicyKit with apt, dnf, or pacman. Individual installers can still show their own prompts. macOS uses its existing authorization workflow.
+
+Platform-specific manager hotfixes use build revisions. Only affected platforms are offered an update; About shows the installed revision. See [Update revisions](docs/update-revisions.md) for publishing details.
 
 **What's New** appears on first launch and after a version change. Reopen it with the info icon beside the manager version.
 

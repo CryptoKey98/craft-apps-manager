@@ -6,6 +6,7 @@ output=${2:-"$project/dist/linux"}
 [ -f "$binary" ] || { echo "Build the Linux executable first" >&2; exit 1; }
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project/Cargo.toml" | head -1)
 case "$version" in ''|*[!0-9.]*) echo "Invalid package version" >&2; exit 1;; esac
+python3 "$project/scripts/check-build-identity.py" --binary "$(realpath "$binary")" --version "$version" --revision "${CRAFT_BUILD_REVISION:-1}"
 machine=$(od -An -tu2 -j18 -N2 "$binary" | tr -d ' ')
 header=$(od -An -tx1 -N6 "$binary" | tr -d ' \n')
 case "$header:$machine" in

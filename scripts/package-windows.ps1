@@ -21,6 +21,12 @@ $seven = Join-Path $SevenZipFolder '7za.exe'
 Assert-Machine $exe
 Assert-Machine $seven
 $version = [regex]::Match((Get-Content (Join-Path $projectRoot 'Cargo.toml') -Raw), '(?m)^version\s*=\s*"([^"]+)"').Groups[1].Value
+$buildRevision = if ($env:CRAFT_BUILD_REVISION) { [int]$env:CRAFT_BUILD_REVISION } else { 1 }
+$buildIdentityPath = Join-Path $TargetFolder ('package-build-identity-' + [Guid]::NewGuid().ToString('N') + '.json')
+$buildProcess = Start-Process -FilePath $exe -ArgumentList '--build-identity' -NoNewWindow -Wait -PassThru -RedirectStandardOutput $buildIdentityPath
+$buildIdentity = Get-Content -LiteralPath $buildIdentityPath -Raw | ConvertFrom-Json
+Remove-Item -LiteralPath $buildIdentityPath
+if ($buildProcess.ExitCode -ne 0 -or $buildIdentity.version -ne $version -or $buildIdentity.revision -ne $buildRevision) { throw 'Executable version/revision does not match the package' }
 $output = if ($OutputFolder) { $OutputFolder } else { Join-Path $projectRoot "dist/windows-$Architecture" }
 $appFolder = Join-Path $output 'Craft Apps Manager'
 if (Test-Path -LiteralPath $appFolder) { throw "Package folder already exists: $appFolder" }

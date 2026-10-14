@@ -84,7 +84,14 @@ fn linux_package_owner(command: &str, output: &str) -> bool {
 #[derive(Clone)]
 pub struct Available {
     pub version: String,
+    pub revision: u32,
+    pub package_version: Option<String>,
     pub asset: Asset,
+}
+impl Available {
+    pub fn display_version(&self) -> String {
+        crate::update_revisions::display_version(&self.version, self.revision)
+    }
 }
 pub fn select(release: Release, current: &str) -> Result<Option<Available>> {
     select_package(release, current, installed_with_msi())
@@ -128,13 +135,10 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     let mut assets = release.assets;
     let index = names
         .iter()
-        .find_map(|name| assets.iter().position(|a| &a.name == name))
-        .with_context(|| {
-            format!(
-                "This release has no supported {} {arch} package",
-                crate::model::release_os()
-            )
-        })?;
+        .find_map(|name| assets.iter().position(|a| &a.name == name));
+    let Some(index) = index else {
+        return Ok(None);
+    };
     let asset = assets.swap_remove(index);
     if !asset
         .browser_download_url
@@ -142,12 +146,80 @@ fn select_package(release: Release, current: &str, msi: bool) -> Result<Option<A
     {
         bail!("Unexpected manager download location");
     }
-    Ok(Some(Available { version, asset }))
+    Ok(Some(Available {
+        version,
+        revision: 1,
+        package_version: None,
+        asset,
+    }))
 }
 pub fn check(paths: &Paths) -> Result<Option<Available>> {
-    let release = Network::new(&paths.root)?.json(&format!(
-        "https://api.github.com/repos/{REPOSITORY_NAME}/releases/latest"
-    ))?;
+    let network = Network::new(&paths.root)?;
+    let url = format!("https://api.github.com/repos/{REPOSITORY_NAME}/releases/latest");
+    let mut release: Release = network.json(&url)?;
+    if let Some(asset) = release
+        .assets
+        .iter()
+        .find(|asset| asset.name == "updates-v1.json")
+    {
+        anyhow::ensure!(
+            asset.size <= 256 * 1024
+                && asset.browser_download_url.starts_with(&format!(
+                    "{REPOSITORY}/releases/download/{}/",
+                    release.tag_name
+                )),
+            "Invalid revision manifest location or size"
+        );
+        let envelope: crate::update_revisions::Envelope =
+            network.json_bounded(&asset.browser_download_url, 256 * 1024)?;
+        let version = release.tag_name.trim_start_matches('v');
+        let manifest = crate::update_revisions::verify(
+            &envelope,
+            include_str!("../assets/update-public-key.hex"),
+            REPOSITORY_NAME,
+            version,
+            chrono::Utc::now().timestamp(),
+        )?;
+        let architecture = if cfg!(target_os = "macos") {
+            "universal"
+        } else {
+            crate::model::MANAGER_ARCH
+        };
+        #[cfg(target_os = "linux")]
+        let format = if installed_with_linux_package() {
+            match crate::installers::package_kind()? {
+                crate::installers::PackageKind::Debian => "deb",
+                crate::installers::PackageKind::Rpm => "rpm",
+                crate::installers::PackageKind::Arch => "arch",
+            }
+        } else {
+            "zip"
+        };
+        #[cfg(not(target_os = "linux"))]
+        let format = if installed_with_msi() { "msi" } else { "zip" };
+        // A manifest can advance while the five-minute release cache still
+        // lists older assets. Refresh that snapshot once when this is observed.
+        if manifest.packages.iter().any(|package| {
+            package.platform == crate::model::release_os()
+                && package.architecture == architecture
+                && package.format == format
+                && !release
+                    .assets
+                    .iter()
+                    .any(|asset| asset.name == package.asset)
+        }) {
+            release = network.json_fresh(&url)?;
+        }
+        return crate::update_revisions::select(
+            &manifest,
+            &release,
+            (crate::model::release_os(), architecture, format),
+            (
+                env!("CARGO_PKG_VERSION"),
+                crate::update_revisions::BUILD_REVISION,
+            ),
+        );
+    }
     select(release, env!("CARGO_PKG_VERSION"))
 }
 #[derive(Serialize, Deserialize)]
@@ -1085,8 +1157,12 @@ mod tests {
                 ),
             }],
         };
-        assert!(select_package(release("zip"), "0.4.0", true).is_err());
-        assert!(select_package(release("msi"), "0.4.0", false).is_err());
+        assert!(select_package(release("zip"), "0.4.0", true)
+            .unwrap()
+            .is_none());
+        assert!(select_package(release("msi"), "0.4.0", false)
+            .unwrap()
+            .is_none());
         assert!(select_package(release("msi"), "0.4.0", true)
             .unwrap()
             .is_some());
@@ -1114,7 +1190,7 @@ mod tests {
             prerelease: false,
             assets: vec![asset(other)],
         };
-        assert!(select(release.clone(), "0.3.0").is_err());
+        assert!(select(release.clone(), "0.3.0").unwrap().is_none());
         release.assets.push(asset(crate::model::MANAGER_ARCH));
         let selected = select(release, "0.3.0").unwrap().unwrap();
         assert!(selected
@@ -1186,7 +1262,8 @@ mod macos_tests {
             release("Craft-Apps-Manager-0.5.0-linux-x64.zip", &url),
             "0.4.0"
         )
-        .is_err());
+        .unwrap()
+        .is_none());
         assert!(select(
             release(
                 "Craft-Apps-Manager-0.5.0-macos-universal.zip",

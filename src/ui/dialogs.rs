@@ -3289,8 +3289,8 @@ impl App {
                             "Version {} is available. {} Your library and settings are kept.",
                             self.manager_available
                                 .as_ref()
-                                .map(|a| a.version.as_str())
-                                .unwrap_or("?"),
+                                .map(|a| a.display_version())
+                                .unwrap_or_else(|| "?".into()),
                             if packaged {
                                 "The system package manager installs it after administrator approval."
                             } else if msi {

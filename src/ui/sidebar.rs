@@ -127,7 +127,7 @@ impl App {
                                 theme::palette().accent_text,
                             );
                         } else if let Some(available) = &self.manager_available {
-                            let version = available.version.clone();
+                            let version = available.display_version();
                             if btn("Update available")
                                 .kind(Kind::Soft)
                                 .size(Size::Pill)

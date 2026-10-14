@@ -130,6 +130,17 @@ pub fn verify_token() -> TokenStatus {
         .unwrap_or(TokenStatus::UnableToVerify)
 }
 impl Network {
+    /// Signed update metadata is small. Bound the body before parsing it.
+    pub fn json_bounded<T: DeserializeOwned>(&self, url: &str, limit: u64) -> Result<T> {
+        let response = self.client.get(url).send()?.error_for_status()?;
+        let mut body = Vec::new();
+        response.take(limit + 1).read_to_end(&mut body)?;
+        anyhow::ensure!(
+            body.len() as u64 <= limit,
+            "Update metadata exceeds its size limit"
+        );
+        Ok(serde_json::from_slice(&body)?)
+    }
     /// Reads known release metadata without constructing a client or contacting GitHub.
     pub fn cached_json<T: DeserializeOwned>(root: &Path, url: &str) -> Option<T> {
         use sha2::{Digest, Sha256};
@@ -166,13 +177,19 @@ impl Network {
         }
     }
     pub fn json<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
+        self.json_with_cache(url, false)
+    }
+    pub fn json_fresh<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
+        self.json_with_cache(url, true)
+    }
+    fn json_with_cache<T: DeserializeOwned>(&self, url: &str, fresh: bool) -> Result<T> {
         use sha2::{Digest, Sha256};
         let path = self
             .cache
             .join(format!("{:x}.json", Sha256::digest(url.as_bytes())));
         let old = files::read_json::<Cached>(&path).ok();
         if let Some(c) = &old {
-            if chrono::Utc::now().timestamp() - c.at < 300 {
+            if !fresh && chrono::Utc::now().timestamp() - c.at < 300 {
                 return Ok(serde_json::from_value(c.value.clone())?);
             }
         }
