@@ -480,7 +480,8 @@ impl Paths {
             if !app.path.is_empty()
                 && !config.installations.iter().any(|a| {
                     a.name == app.name
-                        && a.path == app.path
+                        && crate::installation_labels::path_identity(&a.path)
+                            == crate::installation_labels::path_identity(&app.path)
                         && (a.install_kind == "installer") == (app.install_kind == "installer")
                 })
             {
@@ -564,7 +565,8 @@ impl Paths {
             if let Some(selected) = config.installations.iter().find(|copy| {
                 !selected_kind.is_empty()
                     && copy.name == app.name
-                    && copy.path == selected_path
+                    && crate::installation_labels::path_identity(&copy.path)
+                        == crate::installation_labels::path_identity(&selected_path)
                     && copy.install_kind == selected_kind
                     && !copy.path.is_empty()
                     && installed_executable(Path::new(&copy.path), &copy.name).is_some()
@@ -627,6 +629,14 @@ impl Paths {
                     .unwrap_or_default();
             }
         }
+        let mut seen = std::collections::BTreeSet::new();
+        config.installations.retain(|copy| {
+            seen.insert((
+                copy.name.clone(),
+                copy.install_kind == "installer",
+                crate::installation_labels::path_identity(&copy.path),
+            ))
+        });
         crate::installation_labels::assign(&mut config)?;
         Ok(config)
     }
@@ -637,7 +647,8 @@ impl Paths {
             config.installations.retain(|a| {
                 !(a.name == app.name
                     && (a.install_kind == "installer") == installer
-                    && a.path == app.path)
+                    && crate::installation_labels::path_identity(&a.path)
+                        == crate::installation_labels::path_identity(&app.path))
             });
             if !app.path.is_empty() {
                 config.installations.push(app.clone());
@@ -917,6 +928,58 @@ pub fn release_arch(architecture: &str) -> &str {
 
 #[cfg(test)]
 mod detection_tests {
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn legacy_path_aliases_are_one_installation_after_refresh_and_save() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let folder = root.join("copies/filmcraft");
+        release_fixture(&folder, "filmcraft");
+        let first = Installed {
+            name: "filmcraft".into(),
+            path: folder.display().to_string(),
+            version: "0.6.0".into(),
+            architecture: "x64".into(),
+            install_kind: "portable".into(),
+            installation_label: "A".into(),
+            ..Default::default()
+        };
+        let mut alias = first.clone();
+        alias.path = alias.path.replace('\\', "/").to_uppercase();
+        alias.installation_label = "B".into();
+        let config = Config {
+            apps_root: root.display().to_string(),
+            apps: vec![alias.clone()],
+            installations: vec![first, alias],
+            portable_label_counters: Default::default(),
+        };
+        crate::files::write_json(&paths.at("settings.json"), &config).unwrap();
+        let mut refreshed = paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert_eq!(
+            refreshed
+                .installations
+                .iter()
+                .filter(|copy| copy.name == "filmcraft")
+                .count(),
+            1
+        );
+        let selected = refreshed
+            .apps
+            .iter()
+            .find(|copy| copy.name == "filmcraft")
+            .unwrap()
+            .clone();
+        assert_eq!(selected.installation_label, "A");
+        paths.save_config(&refreshed).unwrap();
+        crate::apps::forget_installation(&mut refreshed, &selected);
+        assert!(!refreshed
+            .installations
+            .iter()
+            .any(|copy| copy.name == "filmcraft"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn settings_save_preserves_same_architecture_installations_in_other_folders() {
         use super::*;

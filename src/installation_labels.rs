@@ -65,12 +65,19 @@ fn label(index: u32) -> String {
 }
 
 fn identity(copy: &crate::model::Installed) -> (String, String) {
-    let path = if cfg!(target_os = "windows") {
-        copy.path.to_lowercase()
+    (copy.name.clone(), path_identity(&copy.path))
+}
+
+/// Normalize separators and redundant current-directory components without
+/// disk access. Preserve case on platforms with case-sensitive paths.
+pub fn path_identity(path: &str) -> String {
+    let normalized: std::path::PathBuf = std::path::Path::new(path).components().collect();
+    let normalized = normalized.to_string_lossy();
+    if cfg!(target_os = "windows") {
+        normalized.to_lowercase()
     } else {
-        copy.path.clone()
-    };
-    (copy.name.clone(), path)
+        normalized.into_owned()
+    }
 }
 
 /// Migrate unlabeled records deterministically, sharing the selected record's
@@ -177,6 +184,22 @@ pub(crate) fn migrate(paths: &crate::model::Paths) -> Result<Option<Config>> {
 mod tests {
     use super::*;
     use crate::model::Installed;
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn windows_path_aliases_share_one_label() {
+        let mut config: Config = serde_json::from_value(serde_json::json!({
+            "appsRoot":"", "apps":[], "installations":[
+                {"name":"filmcraft","version":"","path":"C:\\Apps\\FilmCraft","installation_label":"A"},
+                {"name":"filmcraft","version":"","path":"c:/Apps/./filmcraft/"},
+                {"name":"filmcraft","version":"","path":"C:\\Apps\\other"}
+            ]
+        })).unwrap();
+        assign(&mut config).unwrap();
+        assert_eq!(config.installations[0].installation_label, "A");
+        assert_eq!(config.installations[1].installation_label, "A");
+        assert_eq!(config.installations[2].installation_label, "B");
+    }
 
     #[test]
     fn legacy_migration_preserves_unknown_fields_and_is_idempotent() {

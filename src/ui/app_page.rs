@@ -494,15 +494,22 @@ impl App {
             .filter(|copy| {
                 copy.name == app
                     && !copy.path.is_empty()
-                    && status
-                        .installed
-                        .as_ref()
-                        .is_none_or(|selected| copy.path != selected.path)
+                    && status.installed.as_ref().is_none_or(|selected| {
+                        craft_apps_manager::installation_labels::path_identity(&copy.path)
+                            != craft_apps_manager::installation_labels::path_identity(
+                                &selected.path,
+                            )
+                    })
                     && std::path::Path::new(&copy.path).exists()
             })
             .collect();
-        other_copies.sort_by(|a, b| a.path.cmp(&b.path));
-        other_copies.dedup_by(|a, b| a.path == b.path);
+        other_copies.sort_by_cached_key(|copy| {
+            craft_apps_manager::installation_labels::path_identity(&copy.path)
+        });
+        other_copies.dedup_by(|a, b| {
+            craft_apps_manager::installation_labels::path_identity(&a.path)
+                == craft_apps_manager::installation_labels::path_identity(&b.path)
+        });
         if !other_copies.is_empty() {
             ui.add_space(12.0);
             ui.spacing_mut().item_spacing.y = 4.0;
@@ -620,12 +627,20 @@ impl App {
             .iter()
             .find(|copy| copy.name == app && !copy.path.is_empty())
         {
-            if !copies.iter().any(|copy| copy.path == selected.path) {
+            if !copies.iter().any(|copy| {
+                craft_apps_manager::installation_labels::path_identity(&copy.path)
+                    == craft_apps_manager::installation_labels::path_identity(&selected.path)
+            }) {
                 copies.push(selected.clone());
             }
         }
-        copies.sort_by(|a, b| a.path.cmp(&b.path));
-        copies.dedup_by(|a, b| a.path == b.path);
+        copies.sort_by_cached_key(|copy| {
+            craft_apps_manager::installation_labels::path_identity(&copy.path)
+        });
+        copies.dedup_by(|a, b| {
+            craft_apps_manager::installation_labels::path_identity(&a.path)
+                == craft_apps_manager::installation_labels::path_identity(&b.path)
+        });
         copies
     }
 
@@ -724,7 +739,11 @@ impl App {
                                         ui,
                                         &label(copy),
                                         Some(&copy.path),
-                                        copy.path == selected.path,
+                                        craft_apps_manager::installation_labels::path_identity(
+                                            &copy.path,
+                                        ) == craft_apps_manager::installation_labels::path_identity(
+                                            &selected.path,
+                                        ),
                                     )
                                     .on_hover_text(&copy.path)
                                     .clicked()

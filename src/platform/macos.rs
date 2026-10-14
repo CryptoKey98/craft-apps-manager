@@ -20,6 +20,13 @@ pub fn atomic_replace(from: &Path, to: &Path) -> Result<()> {
 pub struct Lock(File);
 impl Lock {
     pub fn take(name: &str) -> Result<Self> {
+        Self::acquire(name, false)
+    }
+    /// Wait on the OS lock in a background worker, without polling.
+    pub fn wait(name: &str) -> Result<Self> {
+        Self::acquire(name, true)
+    }
+    fn acquire(name: &str, wait: bool) -> Result<Self> {
         // TMPDIR is a private per-user folder on macOS.
         let base = std::env::var_os("TMPDIR")
             .map(PathBuf::from)
@@ -42,7 +49,16 @@ impl Lock {
             .custom_flags(libc::O_NOFOLLOW)
             .open(base.join(format!("{filename}.lock")))?;
         use std::os::fd::AsRawFd;
-        if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+        let flags = libc::LOCK_EX | if wait { 0 } else { libc::LOCK_NB };
+        let result = loop {
+            let result = unsafe { libc::flock(file.as_raw_fd(), flags) };
+            if result == 0
+                || std::io::Error::last_os_error().kind() != std::io::ErrorKind::Interrupted
+            {
+                break result;
+            }
+        };
+        if result != 0 {
             bail!(
                 "Another operation is already running: {}",
                 std::io::Error::last_os_error()

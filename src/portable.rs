@@ -314,47 +314,70 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
 
 /// Upgrade only unchanged, manager-owned portable desktop shortcuts.
 pub fn migrate_installation_labels(paths: &Paths) -> Result<()> {
-    let _lock = crate::platform::Lock::take(r"Local\CraftAppsManager")?;
+    let _lock = crate::platform::Lock::wait(r"Local\CraftAppsManager")?;
     let Some(config) = crate::installation_labels::migrate(paths)? else {
         return Ok(());
     };
+    migrate_shortcut_records(&config, |copy| migrate_installation_shortcut(paths, copy))
+}
+
+fn migrate_shortcut_records(
+    config: &crate::model::Config,
+    mut migrate: impl FnMut(&crate::model::Installed) -> Result<()>,
+) -> Result<()> {
     let mut seen = std::collections::BTreeSet::new();
+    let mut errors = Vec::new();
     for copy in config.installations.iter().chain(&config.apps) {
         if copy.install_kind == "installer"
             || copy.path.is_empty()
-            || !seen.insert((copy.name.clone(), copy.path.clone()))
+            || !seen.insert((
+                copy.name.clone(),
+                crate::installation_labels::path_identity(&copy.path),
+            ))
         {
             continue;
         }
-        let target = Path::new(&copy.path);
-        if !target.exists() {
-            continue;
+        if let Err(error) = migrate(copy) {
+            errors.push(format!("{} ({}): {error:#}", copy.name, copy.path));
         }
-        let marker = target.join(MARKER);
-        if !marker.exists() {
-            continue;
-        }
-        validate(paths, &copy.name, target)?;
-        let owner: Ownership = files::read_json(&marker)?;
-        let Some((shortcut, proof)) = &owner.shortcut else {
-            continue;
-        };
-        let desktop = desktop()?;
-        let wanted = installation_shortcut_title(
-            &copy.name,
-            target,
-            "Portable",
-            &copy.architecture,
-            &copy.installation_label,
-        )?;
-        if shortcut.file_stem().and_then(|name| name.to_str()) == Some(&wanted)
-            || owned_installation_title(&copy.name, shortcut, &desktop).is_none()
-            || !shortcut_proof(shortcut).is_ok_and(|actual| actual == *proof)
-        {
-            continue;
-        }
-        create_installation_shortcut(paths, &marker, owner, target, &desktop, "Portable")?;
     }
+    anyhow::ensure!(
+        errors.is_empty(),
+        "Some installation shortcuts could not be migrated:\n{}",
+        errors.join("\n")
+    );
+    Ok(())
+}
+
+fn migrate_installation_shortcut(paths: &Paths, copy: &crate::model::Installed) -> Result<()> {
+    let target = Path::new(&copy.path);
+    if !target.exists() {
+        return Ok(());
+    }
+    let marker = target.join(MARKER);
+    if !marker.exists() {
+        return Ok(());
+    }
+    validate(paths, &copy.name, target)?;
+    let owner: Ownership = files::read_json(&marker)?;
+    let Some((shortcut, proof)) = &owner.shortcut else {
+        return Ok(());
+    };
+    let desktop = desktop()?;
+    let wanted = installation_shortcut_title(
+        &copy.name,
+        target,
+        "Portable",
+        &copy.architecture,
+        &copy.installation_label,
+    )?;
+    if shortcut.file_stem().and_then(|name| name.to_str()) == Some(&wanted)
+        || owned_installation_title(&copy.name, shortcut, &desktop).is_none()
+        || !shortcut_proof(shortcut).is_ok_and(|actual| actual == *proof)
+    {
+        return Ok(());
+    }
+    create_installation_shortcut(paths, &marker, owner, target, &desktop, "Portable")?;
     Ok(())
 }
 
@@ -405,14 +428,13 @@ fn create_installation_shortcut(
     if let Some(config) = &mut config {
         crate::installation_labels::assign(config)?;
     }
-    let target_identity = crate::portable_mode::identity(target)?;
+    let target_identity = crate::installation_labels::path_identity(&target.to_string_lossy());
     let copy = config
         .iter()
         .flat_map(|config| config.apps.iter().chain(&config.installations))
         .find(|copy| {
             copy.name == owner.app
-                && crate::portable_mode::identity(Path::new(&copy.path))
-                    .is_ok_and(|identity| identity == target_identity)
+                && crate::installation_labels::path_identity(&copy.path) == target_identity
         });
     let architecture = copy
         .map(|copy| copy.architecture.as_str())
@@ -911,6 +933,33 @@ pub fn pick_folder(initial: &Path) -> Result<Option<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn shortcut_migration_continues_after_errors_and_visits_each_copy_once() {
+        let copy = |path: &str| crate::model::Installed {
+            name: "filmcraft".into(),
+            path: path.into(),
+            install_kind: "portable".into(),
+            ..Default::default()
+        };
+        let config = crate::model::Config {
+            apps_root: String::new(),
+            installations: vec![copy("damaged"), copy("conflict"), copy("healthy")],
+            apps: vec![copy("healthy")],
+            portable_label_counters: Default::default(),
+        };
+        let mut visited = Vec::new();
+        let result = super::migrate_shortcut_records(&config, |copy| {
+            visited.push(copy.path.clone());
+            if copy.path != "healthy" {
+                anyhow::bail!("fixture migration failure");
+            }
+            Ok(())
+        });
+        assert_eq!(visited, ["damaged", "conflict", "healthy"]);
+        let message = result.unwrap_err().to_string();
+        assert!(message.contains("damaged") && message.contains("conflict"));
+    }
+
     #[test]
     fn empty_generated_installation_parents_are_removed_but_user_folders_are_kept() {
         let (root, paths) = fixture();

@@ -69,9 +69,16 @@ pub fn atomic_replace(from: &Path, to: &Path) -> Result<()> {
 pub struct Lock(HANDLE);
 impl Lock {
     pub fn take(name: &str) -> Result<Self> {
+        Self::acquire(name, false)
+    }
+    /// Wait on the OS lock in a background worker, without polling.
+    pub fn wait(name: &str) -> Result<Self> {
+        Self::acquire(name, true)
+    }
+    fn acquire(name: &str, wait: bool) -> Result<Self> {
         let name = wide(name);
         let h = unsafe { CreateMutexW(None, false, PCWSTR(name.as_ptr())) }?;
-        let wait = unsafe { WaitForSingleObject(h, 0) };
+        let wait = unsafe { WaitForSingleObject(h, if wait { u32::MAX } else { 0 }) };
         if wait != WAIT_OBJECT_0 && wait != WAIT_ABANDONED {
             unsafe {
                 let _ = CloseHandle(h);
