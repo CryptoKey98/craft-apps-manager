@@ -42,14 +42,6 @@ def compatibility_name(version, platform, architecture, kind):
     return f"craft-apps-manager-{version}-1-x86_64.pkg.tar.zst"
 
 
-def revision_name(version, revision, platform, architecture, kind):
-    suffix = ".pkg.tar.zst" if kind == "arch" else "." + kind
-    label = f"-Rev-{revision}" if revision >= 2 else ""
-    # Friendly immutable names differ from the legacy compatibility aliases,
-    # which can be refreshed without replacing the original baseline package.
-    return f"Craft Apps Manager-{version}{label}-{platform}-{architecture}{suffix}"
-
-
 def native_version(file, kind):
     if kind == "deb":
         return subprocess.check_output(["dpkg-deb", "-f", str(file), "Version"], text=True).strip()
@@ -100,13 +92,10 @@ def main():
         old = packages.get(identity)
         if old and args.revision <= old["revision"]:
             raise ValueError("Revision must advance for every affected target")
-        canonical = args.packages / revision_name(args.version, args.revision, *identity)
-        shutil.copyfile(file, canonical)
-        packages[identity] = dict(platform=identity[0], architecture=identity[1], format=identity[2], revision=args.revision, asset=canonical.name, size=canonical.stat().st_size, sha256=hashlib.sha256(canonical.read_bytes()).hexdigest(), package_version=native_version(canonical, identity[2]))
         legacy = args.packages / compatibility_name(args.version, *identity)
         if identity[2] == "deb" and args.revision > 1:
-            # Pre-0.8.3 updaters require exact Version metadata. This compatibility
-            # package carries the same revision executable with the old metadata.
+            # Older managers require exact Version metadata; sign this same
+            # compatible package for newer managers as well.
             work = args.packages / ("compat-deb-" + identity[1])
             subprocess.run(["dpkg-deb", "-R", str(file), str(work)], check=True)
             control = work / "DEBIAN/control"
@@ -115,6 +104,9 @@ def main():
             shutil.rmtree(work)
         elif file != legacy:
             shutil.copyfile(file, legacy)
+        if file != legacy:
+            file.unlink()
+        packages[identity] = dict(platform=identity[0], architecture=identity[1], format=identity[2], revision=args.revision, asset=legacy.name, size=legacy.stat().st_size, sha256=hashlib.sha256(legacy.read_bytes()).hexdigest(), package_version=native_version(legacy, identity[2]))
     if not seen:
         raise ValueError("No packages to publish")
     payload = json.dumps(dict(schema=1, repository=args.repository, version=args.version, expires=int(time.time()) + 365 * 86400, packages=list(packages.values())), separators=(",", ":"))

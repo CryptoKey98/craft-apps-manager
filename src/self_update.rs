@@ -171,7 +171,7 @@ pub fn check(paths: &Paths) -> Result<Option<Available>> {
             "Invalid revision manifest location or size"
         );
         let envelope: crate::update_revisions::Envelope =
-            network.json_bounded(&asset.browser_download_url, 256 * 1024)?;
+            network.json_bounded(&crate::network::asset_download_url(asset)?, 256 * 1024)?;
         let version = release.tag_name.trim_start_matches('v');
         let manifest = crate::update_revisions::verify(
             &envelope,
@@ -197,16 +197,20 @@ pub fn check(paths: &Paths) -> Result<Option<Available>> {
         };
         #[cfg(not(target_os = "linux"))]
         let format = if installed_with_msi() { "msi" } else { "zip" };
-        // A manifest can advance while the five-minute release cache still
-        // lists older assets. Refresh that snapshot once when this is observed.
+        // Hotfixes replace downloads under the same compatible filenames.
+        // Refresh a cached release when its asset metadata no longer matches
+        // the signed manifest; never weaken verification to accept stale data.
         if manifest.packages.iter().any(|package| {
             package.platform == crate::model::release_os()
                 && package.architecture == architecture
                 && package.format == format
-                && !release
-                    .assets
-                    .iter()
-                    .any(|asset| asset.name == package.asset)
+                && !release.assets.iter().any(|asset| {
+                    asset.name == package.asset
+                        && asset.size == package.size
+                        && asset.digest.as_ref().is_none_or(|digest| {
+                            digest.eq_ignore_ascii_case(&format!("sha256:{}", package.sha256))
+                        })
+                })
         }) {
             release = network.json_fresh(&url)?;
         }

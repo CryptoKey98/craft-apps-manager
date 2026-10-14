@@ -9,14 +9,18 @@ on:
         required: true
         default: v0.8.3
       revision:
-        description: New build revision (2 or higher)
+        description: Build revision (1 rebuilds a draft baseline)
         required: true
         default: '2'
       platform:
         description: Platform receiving the hotfix
         type: choice
-        options: [windows, linux, macos]
+        options: [all, windows, linux, macos]
         required: true
+      publish_baseline:
+        description: Publish the baseline after rebuilding (leave off to keep it draft)
+        type: boolean
+        default: false
       source_ref:
         description: Commit SHA containing the hotfix
         required: true
@@ -46,9 +50,12 @@ jobs:
           REVISION_SOURCE_REF: ${{ inputs.source_ref }}
         run: |
           test -n "$CRAFT_UPDATE_SIGNING_KEY" || { echo "Configure CRAFT_UPDATE_SIGNING_KEY before publishing" >&2; exit 1; }
-          if [ "${{ github.event_name }}" = workflow_dispatch ] && [ "$CRAFT_BUILD_REVISION" = 1 ]; then
-            echo "Manual hotfix publication requires revision 2 or higher" >&2
-            exit 1
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+            case "$REVISION_SOURCE_REF" in *[!0-9a-f]*|'') echo "Use an immutable commit SHA" >&2; exit 1;; esac
+            test "${#REVISION_SOURCE_REF}" -eq 40
+            if [ "$CRAFT_BUILD_REVISION" = 1 ]; then
+              test "${{ inputs.platform }}" = all || { echo "Baseline rebuilds must include all platforms" >&2; exit 1; }
+            fi
           fi
           if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
             case "$CRAFT_BUILD_REVISION" in *[!0-9]*|'') exit 1;; esac
@@ -246,16 +253,12 @@ jobs:
         run: |
           cd packages
           checksum=SHA256SUMS.txt
-          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
-            checksum="SHA256SUMS-${REVISION_PLATFORM}-Rev-${CRAFT_BUILD_REVISION}.txt"
-          fi
-          # Compatibility downloads change during a hotfix. Only immutable
-          # revision packages belong in permanent checksum lists.
-          pattern="Craft Apps Manager-${CRAFT_RELEASE_TAG#v}-*"
-          if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
-            pattern="Craft Apps Manager-${CRAFT_RELEASE_TAG#v}-Rev-${CRAFT_BUILD_REVISION}-*"
-          fi
-          find . -maxdepth 1 -type f -name "$pattern" -print0 | sort -z | xargs -0 -r sha256sum > "$checksum"
+          python3 - <<'PY' > "$checksum"
+          import json
+          manifest = json.loads(json.loads(open("updates-v1.json").read())["payload"])
+          for package in sorted(manifest["packages"], key=lambda p: p["asset"]):
+              print(f"{package['sha256']}  {package['asset']}")
+          PY
           cat "$checksum"
       - name: Release notes from the changelog
         run: |
@@ -263,6 +266,7 @@ jobs:
       - name: Publish packages before revision metadata
         env:
           GH_TOKEN: ${{ github.token }}
+          PUBLISH_BASELINE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_baseline }}
         run: |
           releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
           existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[] | select(.tag_name == $tag)')
@@ -270,26 +274,22 @@ jobs:
           mv packages/updates-v1.json "$manifest"
           if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
             test -n "$existing" && test "$(printf '%s' "$existing" | jq -r .draft)" = false
-            # Revision packages are immutable. Only compatibility filenames are
-            # replaced; their original revision-1 snapshots remain available.
+            # Replace affected platform downloads, then publish signed metadata.
             for package in packages/*; do
-              name=$(basename "$package")
-              case "$name" in "Craft Apps Manager-"*.zip|"Craft Apps Manager-"*.msi|"Craft Apps Manager-"*.deb|"Craft Apps Manager-"*.rpm|"Craft Apps Manager-"*.pkg.tar.zst|*-r*.zip|*-r*.msi|*-r*.deb|*-r*.rpm|*-r*.pkg.tar.zst)
-                  old_digest=$(printf '%s' "$existing" | jq -r --arg name "$name" '.assets[] | select(.name == $name) | .digest')
-                  if [ -n "$old_digest" ]; then
-                    local_digest="sha256:$(sha256sum "$package" | cut -d ' ' -f1)"
-                    test "$old_digest" = "$local_digest" || { echo "Existing immutable revision asset differs: $name" >&2; exit 1; }
-                  else
-                    gh release upload "$CRAFT_RELEASE_TAG" "$package"
-                  fi;;
-                *) gh release upload "$CRAFT_RELEASE_TAG" "$package" --clobber;; esac
+              gh release upload "$CRAFT_RELEASE_TAG" "$package" --clobber
             done
             gh release upload "$CRAFT_RELEASE_TAG" "$manifest" --clobber
           elif [ -n "$existing" ]; then
             test "$(printf '%s' "$existing" | jq -r .draft)" = true || { echo "Refusing to replace a published baseline release" >&2; exit 1; }
             gh release upload "$CRAFT_RELEASE_TAG" packages/* --clobber
             gh release upload "$CRAFT_RELEASE_TAG" "$manifest" --clobber
-            gh release edit "$CRAFT_RELEASE_TAG" --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md --draft=false
+            gh release edit "$CRAFT_RELEASE_TAG" --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md
+            if [ "$PUBLISH_BASELINE" = true ]; then
+              gh release edit "$CRAFT_RELEASE_TAG" --draft=false
+            fi
           else
-            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" --verify-tag --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md
+            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" --verify-tag --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md --draft
+            if [ "${{ github.event_name }}" = push ] || [ "$PUBLISH_BASELINE" = true ]; then
+              gh release edit "$CRAFT_RELEASE_TAG" --draft=false
+            fi
           fi
