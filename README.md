@@ -88,7 +88,7 @@ To hide the Activity button's notification badge, enable **Hide activity badge**
 
 **Approve administrator access once per batch** is enabled by default for eligible Windows and Linux installer batches. Linux uses PolicyKit with apt, dnf, or pacman. Individual installers can still show their own prompts. macOS uses its existing authorization workflow.
 
-Platform-specific manager hotfixes use build revisions. Only affected platforms are offered an update; About shows the installed revision. See [Update revisions](docs/update-revisions.md) for publishing details.
+Platform-specific manager hotfixes use build revisions. Only affected platforms are offered an update; About shows `Rev. 2` or higher when installed.
 
 **What's New** appears on first launch and after a version change. Reopen it with the info icon beside the manager version.
 
