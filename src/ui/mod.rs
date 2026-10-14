@@ -2026,7 +2026,7 @@ impl App {
                 match result {
                     Ok(Some(available)) => {
                         self.manager_message =
-                            format!("Version {} is available.", available.version);
+                            format!("Version {} is available.", available.display_version());
                         self.manager_available = Some(available);
                     }
                     Ok(None) => {

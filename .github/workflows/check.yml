@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/test_validate_release.py
+      - run: python3 -m pip install 'cryptography==50.0.1'
+      - run: python3 scripts/test_revision_manifest.py
       - name: Validate current release notes
         run: |
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
@@ -131,7 +133,7 @@ jobs:
     steps:
       - name: Install Arch build and runtime dependencies
         run: |
-          pacman -Syu --noconfirm --needed base-devel git rust pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl 7zip libarchive polkit libnotify xdg-utils
+          pacman -Syu --noconfirm --needed base-devel git rust python pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl 7zip libarchive polkit libnotify xdg-utils
           useradd --create-home builder
       - uses: actions/checkout@v4
       - name: Prepare unprivileged build workspace

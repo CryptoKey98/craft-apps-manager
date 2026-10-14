@@ -1,4 +1,13 @@
 fn main() {
+    println!("cargo:rerun-if-env-changed=CRAFT_BUILD_REVISION");
+    let revision = std::env::var("CRAFT_BUILD_REVISION").unwrap_or_else(|_| "1".into());
+    assert!(
+        revision
+            .parse::<u32>()
+            .is_ok_and(|revision| (1..=65535).contains(&revision)),
+        "CRAFT_BUILD_REVISION must be an integer from 1 to 65535"
+    );
+    println!("cargo:rustc-env=CRAFT_BUILD_REVISION={revision}");
     if std::env::var("CARGO_CFG_TARGET_OS").is_ok_and(|os| os == "windows") {
         winresource::WindowsResource::new()
             .set_icon("assets/icon.ico")

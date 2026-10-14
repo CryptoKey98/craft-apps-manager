@@ -151,7 +151,13 @@ impl App {
                         feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "New Craft apps appear automatically, marked New so they're easy to find.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 0.8.2", 13.0);
+                                theme::heading(ui, "New in 0.8.3", 13.0);
+                                ui.add_space(10.0);
+                                body_text(ui, "• Manager updates now support platform-specific build revisions. Minor fixes can reach only the systems that need them.");
+                                ui.add_space(8.0);
+                                body_text(ui, "• Update packages use signed revision metadata and verified checksums. Older managers retain a compatible update path.");
+                                ui.add_space(16.0);
+                                theme::heading(ui, "Also included from 0.8.2", 13.0);
                                 ui.add_space(10.0);
                                 for note in [
                                     "See the selected installation on each Home tile. Use its compact switcher to choose another copy; the app page uses the same selection.",

@@ -6,6 +6,11 @@ output=${2:-"$project/dist/linux"}
 binary=$(realpath "$binary")
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project/Cargo.toml" | head -1)
 case "$version" in ''|*[!0-9.]*) echo "Invalid package version" >&2; exit 1;; esac
+python3 "$project/scripts/check-build-identity.py" --binary "$(realpath "$binary")" --version "$version" --revision "${CRAFT_BUILD_REVISION:-1}"
+revision=${CRAFT_BUILD_REVISION:-1}
+case "$revision" in ''|*[!0-9]*) echo "Invalid build revision" >&2; exit 1;; esac
+package_version=$version
+[ "$revision" = 1 ] || package_version="$version-$revision"
 command -v dpkg-deb >/dev/null
 command -v dpkg-shlibdeps >/dev/null
 machine=$(od -An -tu2 -j18 -N2 "$binary" | tr -d ' ')
@@ -18,7 +23,7 @@ case "$header:$machine" in
 esac
 mkdir -p "$output"
 output=$(CDPATH= cd -- "$output" && pwd)
-package="$output/craft-apps-manager_${version}_${architecture}.deb"
+package="$output/craft-apps-manager_${package_version}_${architecture}.deb"
 [ ! -e "$package" ] || { echo "Package already exists: $package" >&2; exit 1; }
 work=$(mktemp -d "$output/deb-build.XXXXXX")
 mkdir -p "$work/debian" "$work/package/DEBIAN" "$work/package/usr/bin" \
@@ -45,7 +50,7 @@ linked=$(printf '%s\n' "$linked" | sed -n 's/^shlibs:Depends=//p')
 notification_helper='libnotify-bin:amd64 | libnotify-bin:i386 | libnotify-bin:arm64'
 cat > "$work/package/DEBIAN/control" <<EOF
 Package: craft-apps-manager
-Version: $version
+Version: $package_version
 Architecture: $architecture
 Section: utils
 Priority: optional

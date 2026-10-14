@@ -31,12 +31,16 @@ fn validate_metadata(output: &str, version: &str, arch: &str, kind: PackageKind)
     Ok(())
 }
 
-fn metadata(file: &Path, kind: PackageKind) -> Result<String> {
+fn metadata(file: &Path, kind: PackageKind, full: bool) -> Result<String> {
     if kind == PackageKind::Arch {
         let (name, version, arch) = crate::installers::arch_metadata(file)?;
         return Ok(format!(
             "{name} {} {arch}",
-            crate::installers::upstream_version(&version)
+            if full {
+                version.as_str()
+            } else {
+                crate::installers::upstream_version(&version)
+            }
         ));
     }
     let output = match kind {
@@ -46,7 +50,15 @@ fn metadata(file: &Path, kind: PackageKind) -> Result<String> {
             .args(["Package", "Version", "Architecture"])
             .output()?,
         PackageKind::Rpm => Command::new("rpm")
-            .args(["-qp", "--queryformat", "%{NAME} %{VERSION} %{ARCH}"])
+            .args([
+                "-qp",
+                "--queryformat",
+                if full {
+                    "%{NAME} %{VERSION}-%{RELEASE} %{ARCH}"
+                } else {
+                    "%{NAME} %{VERSION} %{ARCH}"
+                },
+            ])
             .arg(file)
             .output()?,
         PackageKind::Arch => unreachable!("Arch metadata handled above"),
@@ -85,8 +97,11 @@ fn create_stage_root(paths: &Paths) -> Result<PathBuf> {
 pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result<PathBuf> {
     use std::os::unix::fs::DirBuilderExt;
     let kind = package_kind()?;
-    let expected = asset_name(&available.version, crate::model::MANAGER_ARCH, kind)?;
-    if available.asset.name != expected {
+    let expected = available.asset.name.clone();
+    crate::files::safe_relative(&expected)?;
+    if available.package_version.is_none()
+        && available.asset.name != asset_name(&available.version, crate::model::MANAGER_ARCH, kind)?
+    {
         bail!("Update package does not match this installation type");
     }
     let target = std::env::current_exe()?.canonicalize()?;
@@ -97,8 +112,11 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
     let package = stage.join(&expected);
     Network::new(&paths.root)?.asset(&available.asset, &package, job)?;
     validate_metadata(
-        &metadata(&package, kind)?,
-        &available.version,
+        &metadata(&package, kind, available.package_version.is_some())?,
+        available
+            .package_version
+            .as_deref()
+            .unwrap_or(&available.version),
         crate::model::MANAGER_ARCH,
         kind,
     )?;
@@ -126,14 +144,25 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
             .args(["-W", "-f=${Version}", "craft-apps-manager"])
             .output()?,
         PackageKind::Rpm => Command::new("rpm")
-            .args(["-q", "--queryformat", "%{VERSION}", "craft-apps-manager"])
+            .args([
+                "-q",
+                "--queryformat",
+                if available.package_version.is_some() {
+                    "%{VERSION}-%{RELEASE}"
+                } else {
+                    "%{VERSION}"
+                },
+                "craft-apps-manager",
+            ])
             .output()?,
         PackageKind::Arch => Command::new("pacman")
             .args(["-Q", "craft-apps-manager"])
             .output()?,
     };
     let installed_text = String::from_utf8_lossy(&output.stdout);
-    let installed_version = if kind == PackageKind::Arch {
+    let installed_version = if kind == PackageKind::Arch && available.package_version.is_some() {
+        installed_text.split_whitespace().nth(1).unwrap_or_default()
+    } else if kind == PackageKind::Arch {
         crate::installers::upstream_version(
             installed_text.split_whitespace().nth(1).unwrap_or_default(),
         )
@@ -141,7 +170,11 @@ pub(super) fn prepare(paths: &Paths, available: &Available, job: &Job) -> Result
         installed_text.trim()
     };
     if !output.status.success()
-        || installed_version != available.version
+        || installed_version
+            != available
+                .package_version
+                .as_deref()
+                .unwrap_or(&available.version)
         || !installed_with_linux_package_at(&target)
     {
         bail!("Package installation completed, but the new manager version could not be verified. See {}", stage.join("install.log").display());

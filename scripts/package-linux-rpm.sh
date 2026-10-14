@@ -5,6 +5,11 @@ binary=${1:-"$project/target/release/craft-apps-manager"}
 output=${2:-"$project/dist/linux"}
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$project/Cargo.toml" | head -1)
 case "$version" in ''|*[!0-9.]*) echo "Invalid package version" >&2; exit 1;; esac
+python3 "$project/scripts/check-build-identity.py" --binary "$(realpath "$binary")" --version "$version" --revision "${CRAFT_BUILD_REVISION:-1}"
+revision=${CRAFT_BUILD_REVISION:-1}
+case "$revision" in ''|*[!0-9]*) echo "Invalid build revision" >&2; exit 1;; esac
+package_release=0.2
+[ "$revision" = 1 ] || package_release="0.2.$revision"
 command -v rpmbuild >/dev/null
 [ -f "$binary" ] || { echo "Build the native release executable first" >&2; exit 1; }
 # Read the ELF machine field rather than the host CPU: an x86_64 host can
@@ -27,7 +32,7 @@ cp "$project/packaging/linux/craft-apps-manager.spec" "$work/SPECS/"
 tar -czf "$work/SOURCES/package.tar.gz" -C "$work/staged" .
 # The executable is prebuilt and this spec has no BuildRequires. Avoid querying
 # or creating an RPM database during this packaging-only operation.
-rpmbuild -bb --nodeps --target "$architecture" --define "_topdir $work" --define "manager_version $version" --define "_build_id_links none" "$work/SPECS/craft-apps-manager.spec"
+rpmbuild -bb --nodeps --target "$architecture" --define "_topdir $work" --define "manager_version $version" --define "manager_release $package_release" --define "_build_id_links none" "$work/SPECS/craft-apps-manager.spec"
 find "$work/RPMS" -type f -name '*.rpm' -exec cp {} "$output/" \;
 printf '\nRPM packages: %s\n' "$output"
 case "$work" in "$output"/rpm-build.*) rm -rf -- "$work";; *) echo "Unexpected staging path; leaving it intact" >&2; exit 1;; esac

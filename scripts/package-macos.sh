@@ -41,7 +41,7 @@ cat > "$bundle/Contents/Info.plist" <<PLIST
   <key>CFBundleIconFile</key><string>icon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$version</string>
-  <key>CFBundleVersion</key><string>$version</string>
+  <key>CFBundleVersion</key><string>${CRAFT_BUILD_REVISION:-1}</string>
   <key>LSMinimumSystemVersion</key><string>11.0</string>
   <key>NSHighResolutionCapable</key><true/>
 </dict>
@@ -57,6 +57,7 @@ cp assets/app-icons/*.txt "$bundle/Contents/Resources/licenses/app-icons/"
 # Open Anyway.
 codesign --force --sign - "$bundle"
 codesign --verify --strict "$bundle"
+python3 "$project/scripts/check-build-identity.py" --binary "$bundle/Contents/MacOS/craft-apps-manager" --version "$version" --revision "${CRAFT_BUILD_REVISION:-1}"
 ditto -c -k --norsrc --noextattr --keepParent "$bundle" "$archive"
 printf 'Craft Apps Manager portable mode\n' > "$output/portable.txt"
 zip -j "$archive" "$output/portable.txt" >/dev/null

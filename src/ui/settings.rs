@@ -908,7 +908,13 @@ impl App {
                         ui.add_space(6.0);
                         theme::text(
                             ui,
-                            format!("Version {}", env!("CARGO_PKG_VERSION")),
+                            format!(
+                                "Version {}",
+                                craft_apps_manager::update_revisions::display_version(
+                                    env!("CARGO_PKG_VERSION"),
+                                    craft_apps_manager::update_revisions::BUILD_REVISION
+                                )
+                            ),
                             14.0,
                             theme::palette().text_2,
                         );
@@ -1122,7 +1128,13 @@ impl App {
             let checking = self.manager_receiver.is_some() || self.manager_plan.is_some();
             row(
                 ui,
-                &format!("Version {}", env!("CARGO_PKG_VERSION")),
+                &format!(
+                    "Version {}",
+                    craft_apps_manager::update_revisions::display_version(
+                        env!("CARGO_PKG_VERSION"),
+                        craft_apps_manager::update_revisions::BUILD_REVISION
+                    )
+                ),
                 Some(&detail),
                 56.0,
                 |ui| {

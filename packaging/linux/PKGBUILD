@@ -1,6 +1,6 @@
 # scripts/package-linux-arch.sh sets pkgver and the payload checksum.
 pkgname=craft-apps-manager
-pkgrel=1
+pkgrel=${CRAFT_BUILD_REVISION:-1}
 pkgdesc='Manage Craft app releases, sources and builds'
 arch=('x86_64')
 url='https://github.com/CryptoKey98/craft-apps-manager'

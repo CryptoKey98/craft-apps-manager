@@ -36,6 +36,14 @@ try {
     if (!(Test-Path -LiteralPath $exe)) { throw 'Upgrade removed the manager executable' }
     $installedVersion = (Get-Item -LiteralPath $exe).VersionInfo.ProductVersion
     if ($installedVersion -ne $version) { throw "Installed executable version '$installedVersion' differs from MSI version '$version'" }
+    # The visible software version is unchanged for a hotfix. Verify the actual
+    # installed executable revision, rather than only MSI ProductVersion.
+    $identityFile = Join-Path $logHome 'installed-identity.json'
+    $identityProcess = Start-Process -FilePath $exe -ArgumentList '--build-identity' -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $identityFile
+    if ($identityProcess.ExitCode -ne 0) { throw 'Installed build identity query failed' }
+    $identity = Get-Content -LiteralPath $identityFile -Raw | ConvertFrom-Json
+    $expectedRevision = if ($env:CRAFT_BUILD_REVISION) { [int]$env:CRAFT_BUILD_REVISION } else { 1 }
+    if ($identity.version -ne $version -or $identity.revision -ne $expectedRevision) { throw 'MSI upgrade left an old executable revision installed' }
     foreach ($file in @('installation-msi.json', "tools\7zip\$Architecture\7za.exe")) {
         if (!(Test-Path -LiteralPath (Join-Path $installFolder $file))) { throw "Upgrade removed $file" }
     }
