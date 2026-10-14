@@ -322,6 +322,16 @@ fn run() -> Result<()> {
             }),
         ..Default::default()
     };
+    if !builder {
+        let migration_paths = paths.clone();
+        std::thread::spawn(move || {
+            if let Err(error) =
+                craft_apps_manager::portable::migrate_installation_labels(&migration_paths)
+            {
+                eprintln!("Installation label migration: {error:#}");
+            }
+        });
+    }
     eframe::run_native(
         if builder {
             "Craft Apps Builder"

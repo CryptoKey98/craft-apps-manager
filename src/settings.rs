@@ -70,12 +70,13 @@ pub fn save_with_custom_apps<T: Serialize>(
             config.installations.retain(|a| {
                 !(a.name == app.name
                     && (a.install_kind == "installer") == installer
-                    && (a.architecture == app.architecture || a.path == app.path))
+                    && a.path == app.path)
             });
             if !app.path.is_empty() {
                 config.installations.push(app.clone());
             }
         }
+        crate::installation_labels::assign(&mut config)?;
         writes.push((
             paths.at("settings.json"),
             files::json_bytes(&paths.at("settings.json"), &config)?,

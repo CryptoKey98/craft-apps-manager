@@ -192,12 +192,15 @@ impl App {
     }
 
     fn home_tiles(&mut self, ui: &mut Ui, state: &State, order: &[String], installed: bool) {
-        let names: Vec<_> = order
+        let mut names: Vec<_> = order
             .iter()
             .filter(|name| self.status(name).installed.is_some() == installed)
             .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .collect();
+        if !installed {
+            names.sort_by_cached_key(|name| self.new_app_rank(name));
+        }
         ui.label(
             RichText::new(format!(
                 "{} · {}",
@@ -233,7 +236,7 @@ impl App {
         let columns = ((ui.available_width() + gap) / 168.0).floor().max(1.0) as usize;
         let width =
             ((ui.available_width() - gap * (columns - 1) as f32) / columns as f32).max(80.0);
-        let size = egui::vec2(width, 158.0);
+        let size = egui::vec2(width, if installed { 180.0 } else { 158.0 });
         let rows = names.len().div_ceil(columns);
         let (grid, _) = ui.allocate_exact_size(
             egui::vec2(ui.available_width(), rows as f32 * (size.y + gap) - gap),
@@ -389,6 +392,13 @@ impl App {
         let install_available = self.install_available(name);
         let unavailable_message = self.unavailable_download_message(name);
         let palette = theme::palette();
+        let actions_enabled = !state.busy && self.installation_selection.is_none();
+        let copies = if installed && !floating {
+            self.installation_copies(name)
+        } else {
+            Vec::new()
+        };
+        let has_switch = copies.len() > 1;
         let response = ui.interact(
             rect,
             ui.id().with(("home-tile", name)),
@@ -456,9 +466,34 @@ impl App {
                 );
             }
         }
+        if has_switch {
+            self.home_installation_picker(
+                ui,
+                state,
+                name,
+                rect,
+                &copies,
+                status.installed.as_ref(),
+            );
+        }
+        let new_opacity = self.new_app_opacity(name);
+        if new_opacity > 0.0 {
+            let right = rect.right() - if has_switch { 48.0 } else { 8.0 };
+            theme::new_app_badge(
+                ui,
+                Rect::from_min_size(
+                    egui::pos2(right - 33.0, rect.top() + 8.0),
+                    egui::vec2(33.0, 18.0),
+                ),
+                new_opacity,
+            );
+        }
         if status.update.is_some() {
             ui.painter().circle_filled(
-                egui::pos2(rect.right() - 12.0, rect.top() + 12.0),
+                egui::pos2(
+                    rect.right() - if has_switch { 53.0 } else { 12.0 },
+                    rect.top() + 12.0,
+                ),
                 4.0,
                 palette.link,
             );
@@ -509,6 +544,36 @@ impl App {
             )
             .truncate(),
         );
+        if let Some(copy) = &status.installed {
+            let label = home_installation_label(copy);
+            let mut job = egui::text::LayoutJob::simple_singleline(
+                label,
+                FontId::proportional(12.0),
+                palette.muted,
+            );
+            job.wrap.max_width = (tile.available_width() - 20.0).max(1.0);
+            job.wrap.max_rows = 1;
+            let text = tile.painter().layout_job(job);
+            let total_width = (text.size().x + 18.0).min(tile.available_width());
+            let (line, _) =
+                tile.allocate_exact_size(egui::vec2(tile.available_width(), 18.0), Sense::hover());
+            let left = line.center().x - total_width / 2.0;
+            theme::paint_icon(
+                tile.painter(),
+                Rect::from_center_size(egui::pos2(left + 6.5, line.center().y), Vec2::splat(13.0)),
+                if copy.install_kind == "installer" {
+                    Icon::Archive
+                } else {
+                    Icon::Folder
+                },
+                palette.muted,
+            );
+            tile.painter().galley(
+                egui::pos2(left + 18.0, line.center().y - text.size().y / 2.0),
+                text,
+                palette.muted,
+            );
+        }
         tile.add_space(8.0);
         if floating {
             tile.disable();
@@ -522,19 +587,20 @@ impl App {
                     ui.add_space(((ui.available_width() - action_width) / 2.0).max(0.0));
                     if btn("Update")
                         .primary()
-                        .enabled(!state.busy && !status.checking)
+                        .enabled(actions_enabled && !status.checking)
                         .show(ui)
                         .clicked()
                     {
+                        self.mark_app_seen(name);
                         self.confirm_install = Some(name.into());
                     }
-                    if btn("Open").enabled(!state.busy).show(ui).clicked() {
+                    if btn("Open").enabled(actions_enabled).show(ui).clicked() {
                         self.result(craft_apps_manager::apps::launch(&self.paths, name));
                     }
                 });
             } else if btn("Open")
                 .icon(Icon::Play)
-                .enabled(!state.busy)
+                .enabled(actions_enabled)
                 .show(&mut tile)
                 .clicked()
             {
@@ -551,6 +617,7 @@ impl App {
             })
             .clicked()
         {
+            self.mark_app_seen(name);
             self.confirm_install = Some(name.into());
         }
         if !floating {
@@ -558,6 +625,184 @@ impl App {
         }
         if !floating && response.clicked() {
             self.select(name);
+        }
+    }
+
+    fn home_installation_picker(
+        &mut self,
+        ui: &mut Ui,
+        state: &State,
+        app: &str,
+        tile: Rect,
+        copies: &[model::Installed],
+        selected: Option<&model::Installed>,
+    ) {
+        let p = theme::palette();
+        let popup_id = ui.make_persistent_id(("home-installation-picker", app));
+        let enabled =
+            !state.busy && !self.release_pending() && self.installation_selection.is_none();
+        let button = Rect::from_min_size(
+            egui::pos2(tile.right() - 43.0, tile.top() + 7.0),
+            egui::vec2(36.0, 24.0),
+        );
+        let response = ui
+            .add_enabled_ui(enabled, |ui| {
+                ui.interact(
+                    button,
+                    ui.id().with(("home-installation-switch", app)),
+                    Sense::click(),
+                )
+            })
+            .inner;
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(
+                egui::WidgetType::Button,
+                enabled,
+                format!("Switch {} installation", model::title(app)),
+            )
+        });
+        let open = ui.memory(|memory| memory.is_popup_open(popup_id));
+        if response.hovered() || open {
+            ui.painter()
+                .rect_filled(button, CornerRadius::same(7), p.button_hover);
+        }
+        let color = if open { p.link } else { p.muted };
+        theme::paint_icon(
+            ui.painter(),
+            Rect::from_center_size(
+                egui::pos2(button.left() + 11.0, button.center().y),
+                Vec2::splat(15.0),
+            ),
+            Icon::Layers,
+            color,
+        );
+        theme::paint_icon(
+            ui.painter(),
+            Rect::from_center_size(
+                egui::pos2(button.right() - 8.0, button.center().y),
+                Vec2::splat(12.0),
+            ),
+            Icon::ChevronDown,
+            color,
+        );
+        if response.clicked() {
+            ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+        }
+        response
+            .clone()
+            .on_hover_text(format!("Switch installation · {} copies", copies.len()));
+        let mut anchor = response;
+        anchor.rect = Rect::from_min_max(
+            egui::pos2(tile.left() + 7.0, tile.top() + 35.0),
+            egui::pos2(tile.right() - 7.0, tile.top() + 35.0),
+        );
+        let mut selection = None;
+        ui.scope(|ui| {
+            ui.spacing_mut().menu_margin = egui::Margin::same(4);
+            ui.visuals_mut().menu_corner_radius = CornerRadius::same(10);
+            ui.visuals_mut().window_fill = p.panel;
+            ui.visuals_mut().window_stroke = egui::Stroke::new(1.0_f32, p.border);
+            egui::popup::popup_below_widget(
+                ui,
+                popup_id,
+                &anchor,
+                egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+                |ui| {
+                    ui.set_width((tile.width() - 24.0).max(1.0));
+                    ui.spacing_mut().item_spacing.y = 0.0;
+                    let (heading, _) = ui.allocate_exact_size(
+                        egui::vec2(ui.available_width(), 28.0),
+                        Sense::hover(),
+                    );
+                    ui.painter().text(
+                        heading.left_top() + egui::vec2(7.0, 6.0),
+                        egui::Align2::LEFT_TOP,
+                        "Choose installation",
+                        FontId::proportional(12.0),
+                        p.muted,
+                    );
+                    egui::ScrollArea::vertical()
+                        .id_salt(("home-installation-scroll", app))
+                        .max_height(240.0)
+                        .show(ui, |ui| {
+                            ui.add_enabled_ui(enabled, |ui| {
+                                for copy in copies {
+                                    let chosen =
+                                        selected.is_some_and(|selected| selected.path == copy.path);
+                                    let label = home_installation_label(copy);
+                                    let (row, response) = ui.allocate_exact_size(
+                                        egui::vec2(ui.available_width(), 48.0),
+                                        Sense::click(),
+                                    );
+                                    response.widget_info(|| {
+                                        egui::WidgetInfo::selected(
+                                            egui::WidgetType::SelectableLabel,
+                                            enabled,
+                                            chosen,
+                                            &label,
+                                        )
+                                    });
+                                    if chosen || response.hovered() {
+                                        ui.painter().rect_filled(
+                                            row,
+                                            CornerRadius::same(7),
+                                            if chosen {
+                                                p.accent_soft
+                                            } else {
+                                                p.button_hover
+                                            },
+                                        );
+                                    }
+                                    let width = (row.width() - 35.0).max(1.0);
+                                    for (text, size, color, top) in [
+                                        (&label, 14.0, p.text, 8.0),
+                                        (
+                                            &home_installation_detail(copy, &self.paths),
+                                            12.0,
+                                            p.muted,
+                                            28.0,
+                                        ),
+                                    ] {
+                                        let mut job = egui::text::LayoutJob::simple_singleline(
+                                            text.into(),
+                                            FontId::proportional(size),
+                                            color,
+                                        );
+                                        job.wrap.max_width = width;
+                                        job.wrap.max_rows = 1;
+                                        let text = ui.painter().layout_job(job);
+                                        ui.painter().galley(
+                                            row.left_top() + egui::vec2(7.0, top),
+                                            text,
+                                            color,
+                                        );
+                                    }
+                                    if chosen {
+                                        theme::paint_icon(
+                                            ui.painter(),
+                                            Rect::from_center_size(
+                                                egui::pos2(row.right() - 13.0, row.center().y),
+                                                Vec2::splat(15.0),
+                                            ),
+                                            Icon::Check,
+                                            p.link,
+                                        );
+                                    }
+                                    if response
+                                        .on_hover_text(format!("{}\n{}", copy.version, copy.path))
+                                        .clicked()
+                                    {
+                                        selection = Some(copy.clone());
+                                        ui.memory_mut(|memory| memory.close_popup());
+                                    }
+                                }
+                            });
+                        });
+                },
+            );
+        });
+        if let Some(copy) = selection {
+            self.choose_installation(ui.ctx(), app, copy);
         }
     }
 
@@ -769,6 +1014,28 @@ impl App {
 }
 
 /// The height egui gives one line of text in `font`.
+fn home_installation_label(copy: &model::Installed) -> String {
+    craft_apps_manager::installation_labels::summary(copy)
+}
+
+fn home_installation_detail(copy: &model::Installed, paths: &model::Paths) -> String {
+    let location = if copy.install_kind == "installer" {
+        std::path::Path::new(&copy.path)
+            .parent()
+            .and_then(|path| path.file_name())
+            .and_then(|name| name.to_str())
+            .unwrap_or("Installed app")
+    } else if std::path::Path::new(&copy.path).starts_with(paths.at("releases")) {
+        "Portable Library"
+    } else {
+        "External folder"
+    };
+    format!(
+        "v{} · {location}",
+        copy.version.trim_start_matches(['v', 'V'])
+    )
+}
+
 fn row_height(ui: &Ui, font: &FontId) -> f32 {
     ui.fonts(|f| f.row_height(font))
 }
@@ -814,6 +1081,6 @@ pub(super) fn release_format_label(format: &str) -> &'static str {
     } else if cfg!(target_os = "macos") {
         "Portable app"
     } else {
-        "Portable ZIP"
+        "Portable"
     }
 }

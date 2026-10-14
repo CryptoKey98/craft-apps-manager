@@ -63,14 +63,48 @@ pub fn finish(
     Ok(())
 }
 fn managed_name(s: &str, source: bool, app: Option<&str>) -> bool {
-    let pattern = if source {
-        r"^([a-z]+)-source-[a-f0-9]{7}-[a-f0-9]{32}\.zip(?:\.7z)?$"
+    backup_app_name(s, source)
+        .is_some_and(|name| crate::catalog::get(&name).is_some() && app.is_none_or(|n| n == name))
+}
+fn backup_app_name(s: &str, source: bool) -> Option<String> {
+    static SOURCE: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    static RELEASE: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    let re = if source {
+        SOURCE.get_or_init(|| {
+            regex::Regex::new(r"^([a-z0-9]+)-source-[a-f0-9]{7}-[a-f0-9]{32}\.zip(?:\.7z)?$")
+                .unwrap()
+        })
     } else {
-        r"^([a-z]+)-\d+\.\d+\.\d+-[a-f0-9]{32}(?:\.(?:zip|7z))?$"
+        RELEASE.get_or_init(|| {
+            regex::Regex::new(r"^([a-z0-9]+)-\d+\.\d+\.\d+-[a-f0-9]{32}(?:\.(?:zip|7z))?$").unwrap()
+        })
     };
-    let re = regex::Regex::new(pattern).unwrap();
-    re.captures(s)
-        .is_some_and(|c| crate::catalog::get(&c[1]).is_some() && app.is_none_or(|n| n == &c[1]))
+    re.captures(s).map(|captures| captures[1].to_owned())
+}
+
+#[cfg(test)]
+mod name_tests {
+    use super::*;
+    #[test]
+    fn custom_numeric_keys_are_recognized_without_accepting_unmanaged_names() {
+        let id = "a".repeat(32);
+        assert_eq!(
+            backup_app_name(&format!("7zip-1.2.3-{id}.7z"), false).as_deref(),
+            Some("7zip")
+        );
+        assert_eq!(
+            backup_app_name(&format!("app2-source-abcdef0-{id}.zip"), true).as_deref(),
+            Some("app2")
+        );
+        for name in [format!("../7zip-1.2.3-{id}"), "7zip-1.2.3-personal".into()] {
+            assert!(backup_app_name(&name, false).is_none());
+        }
+        assert!(!managed_name(
+            &format!("notincatalog123-1.2.3-{id}"),
+            false,
+            None
+        ));
+    }
 }
 #[derive(Clone)]
 pub struct Backup {
@@ -155,8 +189,13 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
         bail!("Not a managed backup for this app");
     }
     files::no_links(&backup.path)?;
-    if !backup.source && paths.preferences()?.release_format != "portable" {
-        bail!("Select Portable ZIP in Settings to restore a portable release. MSI installations are not changed.");
+    if !backup.source {
+        let config = paths.config()?;
+        if config.apps.iter().any(|copy| {
+            copy.name == app && !copy.path.is_empty() && copy.install_kind != "portable"
+        }) {
+            bail!("Select a portable installation before restoring this backup. Native or unidentified installations are not changed.");
+        }
     }
     if !backup.source && platform::running_app(app)? {
         bail!("Close the app before restoring its backup");
@@ -301,6 +340,14 @@ pub fn restore(paths: &Paths, app: &str, backup: &Backup, job: &Job) -> Result<(
             record.path = target.to_string_lossy().into_owned();
             record.install_kind = "portable".into();
             record.product_code.clear();
+            // The backup's binary is authoritative; the selected installation
+            // may have a different architecture. Never retain that stale fact.
+            #[cfg(not(target_os = "macos"))]
+            {
+                record.architecture =
+                    crate::install_options::executable_architecture(matches[0].path())
+                        .unwrap_or_default();
+            }
             if platform::running_app(app)? {
                 bail!("App opened during restore; close it and retry");
             }

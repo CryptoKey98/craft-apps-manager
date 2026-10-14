@@ -114,16 +114,6 @@ fn save_location(paths: &Paths, app: &Installed, previous_path: &str) -> Result<
 
 fn update_shortcuts(paths: &Paths, old: &Installed, new: &Installed, job: &Job) {
     let target = Path::new(&new.path);
-    if let Some(executable) = crate::model::installed_executable(target, &new.name) {
-        let shortcut = paths.at(format!(
-            "releases/{}.{}",
-            new.name,
-            platform::shortcut_extension()
-        ));
-        if let Err(error) = platform::shortcut(&shortcut, &executable, "", target) {
-            job.log(&format!("Library shortcut warning: {error:#}"));
-        }
-    }
     if let Err(error) =
         portable::refresh_moved_shortcut(paths, &new.name, target, new.install_kind == "installer")
     {
@@ -458,6 +448,7 @@ mod tests {
             ..Default::default()
         };
         let config = crate::model::Config {
+            portable_label_counters: Default::default(),
             apps: vec![app.clone()],
             installations: vec![app.clone()],
             apps_root: paths.root.display().to_string(),

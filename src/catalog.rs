@@ -285,6 +285,9 @@ fn merge(
     customs.sort_by(|a, b| a.key.cmp(&b.key));
     entries.extend(customs);
     for entry in &mut entries {
+        if entry.category.trim().is_empty() {
+            entry.category = repository_subtitle(&entry.title, &entry.description);
+        }
         for alias in learned.get(&entry.key).into_iter().flatten() {
             if valid_alias(alias) && !entry.aliases.contains(alias) {
                 entry.aliases.push(alias.clone());
@@ -721,7 +724,10 @@ fn classify_custom(
         key,
         repository: slug.into(),
         title: release_title(release.name.as_deref(), &repository.name),
-        category: String::new(),
+        category: repository_subtitle(
+            &release_title(release.name.as_deref(), &repository.name),
+            repository.description.as_deref().unwrap_or_default(),
+        ),
         description: repository
             .description
             .clone()
@@ -891,6 +897,40 @@ struct Repository {
     #[serde(default)]
     disabled: bool,
 }
+
+/// Use the publisher's description rather than guessing an app's purpose.
+/// Keep curated subtitles intact and bound discovery text to one short line.
+fn repository_subtitle(title: &str, description: &str) -> String {
+    let description = description.trim();
+    let description = description
+        .split_once(':')
+        .filter(|(prefix, _)| prefix.trim().eq_ignore_ascii_case(title))
+        .map_or(description, |(_, rest)| rest.trim());
+    let clause = description.split([';', '\n']).next().unwrap_or_default();
+    let clause = clause.split(". ").next().unwrap_or_default();
+    let normalized = clause.split_whitespace().collect::<Vec<_>>().join(" ");
+    if normalized.is_empty() {
+        return "Desktop application".into();
+    }
+    if normalized.chars().count() <= 72 {
+        return normalized;
+    }
+    let mut short: String = normalized.chars().take(69).collect();
+    if let Some(space) = short.rfind(' ') {
+        short.truncate(space);
+    }
+    format!("{}…", short.trim_end())
+}
+
+fn apply_repository_metadata(entry: &mut Entry, repository: &Repository) {
+    entry.description = repository
+        .description
+        .as_deref()
+        .unwrap_or_default()
+        .trim()
+        .into();
+    entry.category = repository_subtitle(&entry.title, &entry.description);
+}
 /// Lists Storytold repositories and classifies new Craft apps.
 pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
     let network = Network::new(root)?;
@@ -908,7 +948,9 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
     }
     let pattern = regex::Regex::new(r"^[a-z0-9]+craft[a-z0-9]*$")?;
     let known = builtin();
-    let mut discovered = Vec::new();
+    // A catalog refresh may discover more apps, but is not an uninstall or
+    // removal request. Keep existing identities even if a repository vanishes.
+    let mut discovered = previous.entries.clone();
     for repository in repositories {
         if repository.archived
             || repository.fork
@@ -925,7 +967,9 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
             .iter()
             .find(|e| e.repository == repository.name && e.scheme != Scheme::None)
         {
-            discovered.push(entry.clone());
+            let mut entry = entry.clone();
+            apply_repository_metadata(&mut entry, &repository);
+            retain_discovery(&mut discovered, entry);
             continue;
         }
         let release: Option<Release> = network.json_optional(&format!(
@@ -933,12 +977,12 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
             repository.name
         ))?;
         let mut entry = classify(&repository.name, release.as_ref());
-        entry.description = repository
-            .description
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        discovered.push(entry);
+        apply_repository_metadata(&mut entry, &repository);
+        // Do not admit source-only candidates or infer a new app's identity
+        // from an unrelated release asset. Existing curated aliases still work.
+        if verified_discovery(&entry) {
+            retain_discovery(&mut discovered, entry);
+        }
     }
     let cache = Cache {
         checked_at: chrono::Utc::now().timestamp(),
@@ -948,6 +992,25 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
     files::write_json(&cache_path(root), &cache)?;
     reload(root, &cache);
     Ok(all())
+}
+
+fn verified_discovery(entry: &Entry) -> bool {
+    entry.release && entry.asset_prefix.eq_ignore_ascii_case(&entry.repository)
+}
+
+fn retain_discovery(entries: &mut Vec<Entry>, entry: Entry) {
+    if let Some(existing) = entries
+        .iter_mut()
+        .find(|e| e.repository == entry.repository)
+    {
+        // A formerly source-only candidate may have gained its first release.
+        // Keep its stable key so saved build/installation state remains attached.
+        let key = existing.key.clone();
+        *existing = entry;
+        existing.key = key;
+    } else {
+        entries.push(entry);
+    }
 }
 
 /// Readable name for a repository without a curated title: `mapcraft` â†’ `MapCraft`.
@@ -1004,6 +1067,15 @@ pub fn classify(repository: &str, release: Option<&Release>) -> Entry {
         .filter_map(|a| parse_asset(&a.name))
         .filter(|a| a.version == version)
         .collect();
+    // Multiple application prefixes are ambiguous; never choose the first
+    // download and associate another app's settings or installation with it.
+    let prefixes: std::collections::BTreeSet<_> = parsed
+        .iter()
+        .map(|asset| asset.prefix.to_ascii_lowercase())
+        .collect();
+    if prefixes.len() != 1 {
+        return entry;
+    }
     if let Some(a) = parsed.iter().find(|a| a.scheme == Scheme::Craft) {
         entry.key = a.prefix.clone();
         entry.scheme = Scheme::Craft;
@@ -1031,10 +1103,19 @@ pub fn parse_asset(name: &str) -> Option<ParsedAsset> {
     static CRAFT: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
     static TAURI: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
     let craft = CRAFT.get_or_init(|| {
-        regex::Regex::new(r"^([a-z0-9]+)-(\d+\.\d+\.\d+)-(windows|macos|linux)-[a-z0-9_]+[-.]")
+        regex::Regex::new(r"^([a-z0-9]+)-(\d+\.\d+\.\d+)-(windows|macos|linux)-(?:x64|x86|x86_64|amd64|i686|i386|arm64|aarch64|universal)(-portable\.zip|\.msi|\.exe|\.dmg|\.AppImage|\.deb|\.rpm|\.pkg\.tar\.zst)$")
             .unwrap()
     });
     if let Some(c) = craft.captures(name) {
+        let compatible = match &c[3] {
+            "windows" => matches!(&c[4], "-portable.zip" | ".msi" | ".exe"),
+            "macos" => &c[4] == ".dmg",
+            "linux" => matches!(&c[4], ".AppImage" | ".deb" | ".rpm" | ".pkg.tar.zst"),
+            _ => false,
+        };
+        if !compatible {
+            return None;
+        }
         return Some(ParsedAsset {
             scheme: Scheme::Craft,
             prefix: c[1].into(),
@@ -1067,6 +1148,128 @@ pub fn parse_asset(name: &str) -> Option<ParsedAsset> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn discovery_rejects_non_packages_unrelated_and_ambiguous_assets() {
+        for filename in [
+            "mapcraft-1.0.0-windows-x64-portable.zip.sha256",
+            "mapcraft-1.0.0-windows-x64.pdb",
+            "mapcraft-1.0.0-linux-x64.msi",
+            "mapcraft-1.0.0-windows-nonsense-portable.zip",
+        ] {
+            assert!(parse_asset(filename).is_none(), "{filename}");
+            assert!(!verified_discovery(&classify(
+                "mapcraft",
+                Some(&release("v1.0.0", "", &[filename]))
+            )));
+        }
+        assert!(!verified_discovery(&classify("mapcraft", None)));
+        let wrong = release("v1.0.0", "", &["othercraft-1.0.0-windows-x64-portable.zip"]);
+        assert!(!verified_discovery(&classify("mapcraft", Some(&wrong))));
+        let ambiguous = release(
+            "v1.0.0",
+            "",
+            &[
+                "mapcraft-1.0.0-windows-x64-portable.zip",
+                "othercraft-1.0.0-windows-x64-portable.zip",
+            ],
+        );
+        assert!(!verified_discovery(&classify("mapcraft", Some(&ambiguous))));
+        let valid = release(
+            "v1.0.0",
+            "",
+            &[
+                "mapcraft-1.0.0-windows-x64-portable.zip",
+                "mapcraft-1.0.0-linux-x86_64.AppImage",
+                "mapcraft-1.0.0-macos-universal.dmg",
+            ],
+        );
+        assert!(verified_discovery(&classify("mapcraft", Some(&valid))));
+    }
+
+    #[test]
+    fn refreshing_discovery_preserves_missing_apps_and_stable_identity() {
+        let missing = craft("oldcraft", "OldCraft", "", "");
+        let mut renamed = craft("savedkey", "MapCraft", "", "");
+        renamed.repository = "mapcraft".into();
+        let mut entries = vec![missing.clone(), renamed];
+        retain_discovery(&mut entries, craft("mapcraft", "Updated title", "", ""));
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0], missing);
+        assert_eq!(entries[1].key, "savedkey");
+        assert_eq!(entries[1].title, "Updated title");
+        retain_discovery(&mut entries, craft("newcraft", "NewCraft", "", ""));
+        assert_eq!(entries.len(), 3);
+        assert_eq!(entries[0], missing);
+    }
+
+    #[test]
+    fn discovered_subtitles_use_publisher_descriptions() {
+        assert_eq!(
+            repository_subtitle(
+                "FigCraft",
+                "FigCraft: interface design and prototyping; an open-source app in pure Rust"
+            ),
+            "interface design and prototyping"
+        );
+        assert_eq!(repository_subtitle("Unknown", "  "), "Desktop application");
+        let long = repository_subtitle("App", &"界".repeat(100));
+        assert!(long.chars().count() <= 72);
+    }
+
+    #[test]
+    fn cached_discovery_refreshes_metadata_without_reclassifying() {
+        let mut entry = craft("figcraft", "FigCraft", "", "Old description");
+        let scheme = entry.scheme;
+        let repository = Repository {
+            name: "figcraft".into(),
+            topics: Vec::new(),
+            description: Some("FigCraft: interface design and prototyping; open source".into()),
+            archived: false,
+            fork: false,
+            disabled: false,
+        };
+        apply_repository_metadata(&mut entry, &repository);
+        assert_eq!(entry.category, "interface design and prototyping");
+        assert_eq!(entry.scheme, scheme);
+        assert_eq!(entry.key, "figcraft");
+        let loaded = merge(vec![entry], &BTreeMap::new(), &[]);
+        assert_eq!(
+            loaded
+                .iter()
+                .find(|e| e.key == "figcraft")
+                .unwrap()
+                .category,
+            "interface design and prototyping"
+        );
+    }
+
+    #[test]
+    fn old_catalogs_gain_subtitles_and_curated_labels_are_preserved() {
+        let discovered = craft(
+            "figcraft",
+            "FigCraft",
+            "",
+            "FigCraft: interface design and prototyping; open source",
+        );
+        let entries = merge(vec![discovered], &BTreeMap::new(), &[]);
+        assert_eq!(
+            entries
+                .iter()
+                .find(|e| e.key == "figcraft")
+                .unwrap()
+                .category,
+            "interface design and prototyping"
+        );
+        assert_eq!(
+            entries
+                .iter()
+                .find(|e| e.key == "soundcraft")
+                .unwrap()
+                .category,
+            "Audio production"
+        );
+    }
+
     #[test]
     fn fresh_catalog_uses_cache_without_a_network_request() {
         let root =
@@ -1726,7 +1929,7 @@ mod tests {
 
         let custom = Entry {
             repository: "someone/customcraft".into(),
-            ..craft("customcraft", "CustomCraft", "", "")
+            ..craft("customcraft", "CustomCraft", "Desktop application", "")
         };
         let merged = merge(Vec::new(), &BTreeMap::new(), std::slice::from_ref(&custom));
         assert!(merged.contains(&custom));

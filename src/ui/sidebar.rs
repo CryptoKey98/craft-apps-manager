@@ -46,7 +46,7 @@ impl App {
                 format!("{count} unread activities")
             });
         self.activity_anchor = Some(response.rect.right_bottom() + egui::vec2(0.0, 8.0));
-        if count > 0 {
+        if count > 0 && !self.preferences.hide_activity_badge {
             let center = response.rect.right_top() + egui::vec2(-3.0, 3.0);
             ui.painter()
                 .circle_filled(center, 7.0, theme::palette().accent);
@@ -371,12 +371,13 @@ impl App {
             self.page = Page::Overview;
         }
         let mut reorder = None;
-        let (installed, available): (Vec<_>, Vec<_>) = order
+        let (installed, mut available): (Vec<_>, Vec<_>) = order
             .iter()
             .filter(|name| matches(name))
             .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .partition(|name| self.status(name).installed.is_some());
+        available.sort_by_cached_key(|name| self.new_app_rank(name));
         // Until the first snapshot loads nothing is known to be installed or not.
         let groups = if self.display_config.is_some() {
             vec![
@@ -802,7 +803,9 @@ impl App {
         });
         let text_right = chip_rect.map_or(rect.right() - 10.0, |chip| chip.left() - 12.0);
         let max_text = (text_right - text_left).max(1.0);
-        let title = ui.painter().layout(
+        let new_opacity = self.new_app_opacity(name);
+        let show_new = new_opacity > 0.0;
+        let mut title_job = egui::text::LayoutJob::simple_singleline(
             model::title(name),
             if is_installed {
                 theme::medium(14.0)
@@ -814,8 +817,10 @@ impl App {
             } else {
                 theme::palette().text_3
             },
-            max_text,
         );
+        title_job.wrap.max_width = (max_text - if show_new { 38.0 } else { 0.0 }).max(1.0);
+        title_job.wrap.max_rows = 1;
+        let title = ui.painter().layout_job(title_job);
         let (detail, detail_color) = if installing {
             (
                 match state.progress {
@@ -878,6 +883,19 @@ impl App {
         let top = rect.center().y - (title_line + 1.0 + detail_line) / 2.0;
         let title_top = top + (title_line - title.size().y) / 2.0;
         let detail_top = top + title_line + 1.0 + (detail_line - detail.size().y) / 2.0;
+        if show_new {
+            theme::new_app_badge(
+                ui,
+                Rect::from_min_size(
+                    egui::pos2(
+                        (text_left + title.size().x + 6.0).min(text_right - 33.0),
+                        top,
+                    ),
+                    egui::vec2(33.0, 18.0),
+                ),
+                new_opacity,
+            );
+        }
         ui.painter().galley(
             egui::pos2(text_left, title_top),
             title,
@@ -961,6 +979,7 @@ impl App {
             self.app_visibility_menu(&response, name);
         }
         if !floating && chip_clicked {
+            self.mark_app_seen(name);
             self.confirm_install = Some(name.into());
         } else if !floating && response.clicked() {
             response.request_focus();

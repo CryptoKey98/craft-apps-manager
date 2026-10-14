@@ -5,6 +5,54 @@ use serde::{Deserialize, Serialize};
 use std::path::{Component, Path, PathBuf};
 
 const MARKER: &str = ".craft-manager-install.json";
+
+/// Remove empty legacy UUID containers, never a user-selected parent.
+pub fn cleanup_empty_installation_parent(paths: &Paths, app: &str, target: &Path) -> Result<()> {
+    crate::model::valid_app(app)?;
+    let Some(parent) = target.parent() else {
+        return Ok(());
+    };
+    let library = paths.at("releases");
+    if target.file_name().is_none_or(|name| name != app)
+        || parent.parent() != Some(library.as_path())
+        || !parent.exists()
+    {
+        return Ok(());
+    }
+    let Some(suffix) = parent
+        .file_name()
+        .and_then(|name| name.to_str())
+        .and_then(|name| name.strip_prefix(&format!("{app}-")))
+    else {
+        return Ok(());
+    };
+    let id = match suffix.split_once('-') {
+        Some(("x64" | "x86" | "arm64", id)) => id,
+        None => suffix,
+        _ => return Ok(()),
+    };
+    if id.len() != 32
+        || !id
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        || files::linked(parent)?
+    {
+        return Ok(());
+    }
+    files::inside(parent, &library)?;
+    match std::fs::remove_dir(parent) {
+        Ok(()) => Ok(()),
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::NotFound | std::io::ErrorKind::DirectoryNotEmpty
+            ) =>
+        {
+            Ok(())
+        }
+        Err(error) => Err(error.into()),
+    }
+}
 #[derive(Serialize, Deserialize)]
 struct Ownership {
     app: String,
@@ -24,6 +72,43 @@ pub fn destination(parent: &Path, app: &str) -> Result<PathBuf> {
     let target = parent.join(app);
     validate_path(&target)?;
     Ok(target)
+}
+
+/// Library copies live in flat numbered folders. Custom destinations keep
+/// their existing parent/app layout and collision checks.
+pub fn additional_destination(paths: &Paths, parent: &Path, app: &str) -> Result<PathBuf> {
+    let target = destination(parent, app)?;
+    if parent != paths.at("releases") {
+        return Ok(target);
+    }
+    match std::fs::symlink_metadata(&target) {
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(target),
+        Err(error) => return Err(error.into()),
+    }
+    for number in 2..=u32::MAX {
+        let candidate = parent.join(format!("{app}-{number}"));
+        validate_path(&candidate)?;
+        match std::fs::symlink_metadata(&candidate) {
+            Ok(_) => continue,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(candidate),
+            Err(error) => return Err(error.into()),
+        }
+    }
+    bail!("No unused installation folder is available")
+}
+
+fn numbered_library_copy(paths: &Paths, app: &str, target: &Path) -> bool {
+    target.parent() == Some(paths.at("releases").as_path())
+        && target
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.strip_prefix(&format!("{app}-")))
+            .is_some_and(|number| {
+                number
+                    .parse::<u32>()
+                    .is_ok_and(|value| value >= 2 && number == value.to_string())
+            })
 }
 fn validate_path(target: &Path) -> Result<()> {
     let parent = target.parent().context("Missing app parent folder")?;
@@ -91,10 +176,15 @@ pub fn validate(paths: &Paths, app: &str, target: &Path) -> Result<()> {
 }
 pub fn validate_install(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     let parent = target.parent().context("Missing app parent folder")?;
+    if numbered_library_copy(paths, app, target) {
+        validate_path(target)?;
+    }
     if target.starts_with(&paths.root) && !target.starts_with(paths.at("releases")) {
         bail!("Choose a folder outside the manager's sources, builds and runtime folders");
     }
-    if !target.starts_with(paths.at("releases")) || !target.exists() {
+    if (!target.starts_with(paths.at("releases")) || !target.exists())
+        && !numbered_library_copy(paths, app, target)
+    {
         anyhow::ensure!(destination(parent, app)? == target, "Invalid app folder");
     }
     // Never replace a pre-existing folder merely because the user chose its parent.
@@ -154,7 +244,7 @@ pub fn desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     validate(paths, app, target)?;
     let marker = target.join(MARKER);
     let owner: Ownership = files::read_json(&marker)?;
-    create_shortcut(&marker, owner, target, &desktop()?)
+    create_installation_shortcut(paths, &marker, owner, target, &desktop()?, "Portable")
 }
 pub fn refresh_moved_shortcut(
     paths: &Paths,
@@ -172,7 +262,14 @@ pub fn refresh_moved_shortcut(
     }
     let owner: Ownership = files::read_json(&marker)?;
     if owner.shortcut.is_some() {
-        create_shortcut(&marker, owner, target, &desktop()?)?;
+        create_installation_shortcut(
+            paths,
+            &marker,
+            owner,
+            target,
+            &desktop()?,
+            if installer { "Installer" } else { "Portable" },
+        )?;
     }
     Ok(())
 }
@@ -212,7 +309,206 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
             ),
         "Shortcut record belongs to another app library"
     );
-    create_shortcut(&marker, owner, target, &desktop()?)
+    create_installation_shortcut(paths, &marker, owner, target, &desktop()?, "Installer")
+}
+
+/// Upgrade only unchanged, manager-owned portable desktop shortcuts.
+pub fn migrate_installation_labels(paths: &Paths) -> Result<()> {
+    let _lock = crate::platform::Lock::wait(r"Local\CraftAppsManager")?;
+    let Some(config) = crate::installation_labels::migrate(paths)? else {
+        return Ok(());
+    };
+    migrate_shortcut_records(&config, |copy| migrate_installation_shortcut(paths, copy))
+}
+
+fn migrate_shortcut_records(
+    config: &crate::model::Config,
+    mut migrate: impl FnMut(&crate::model::Installed) -> Result<()>,
+) -> Result<()> {
+    let mut seen = std::collections::BTreeSet::new();
+    let mut errors = Vec::new();
+    for copy in config.installations.iter().chain(&config.apps) {
+        if copy.install_kind == "installer"
+            || copy.path.is_empty()
+            || !seen.insert((
+                copy.name.clone(),
+                crate::installation_labels::path_identity(&copy.path),
+            ))
+        {
+            continue;
+        }
+        if let Err(error) = migrate(copy) {
+            errors.push(format!("{} ({}): {error:#}", copy.name, copy.path));
+        }
+    }
+    anyhow::ensure!(
+        errors.is_empty(),
+        "Some installation shortcuts could not be migrated:\n{}",
+        errors.join("\n")
+    );
+    Ok(())
+}
+
+fn migrate_installation_shortcut(paths: &Paths, copy: &crate::model::Installed) -> Result<()> {
+    let target = Path::new(&copy.path);
+    if !target.exists() {
+        return Ok(());
+    }
+    let marker = target.join(MARKER);
+    if !marker.exists() {
+        return Ok(());
+    }
+    validate(paths, &copy.name, target)?;
+    let owner: Ownership = files::read_json(&marker)?;
+    let Some((shortcut, proof)) = &owner.shortcut else {
+        return Ok(());
+    };
+    let desktop = desktop()?;
+    let wanted = installation_shortcut_title(
+        &copy.name,
+        target,
+        "Portable",
+        &copy.architecture,
+        &copy.installation_label,
+    )?;
+    if shortcut.file_stem().and_then(|name| name.to_str()) == Some(&wanted)
+        || owned_installation_title(&copy.name, shortcut, &desktop).is_none()
+        || !shortcut_proof(shortcut).is_ok_and(|actual| actual == *proof)
+    {
+        return Ok(());
+    }
+    create_installation_shortcut(paths, &marker, owner, target, &desktop, "Portable")?;
+    Ok(())
+}
+
+fn installation_shortcut_title(
+    app: &str,
+    target: &Path,
+    kind: &str,
+    architecture: &str,
+    label: &str,
+) -> Result<String> {
+    let _ = target;
+    let architecture = match architecture {
+        "x64" | "x86" | "arm64" => format!(" {architecture}"),
+        _ => String::new(),
+    };
+    if kind == "Installer" {
+        let title = crate::model::title(app);
+        return Ok(if architecture.is_empty() {
+            title
+        } else {
+            format!("{title} ({})", architecture.trim())
+        });
+    }
+    anyhow::ensure!(
+        crate::installation_labels::valid_label(label),
+        "Portable installation label is missing"
+    );
+    Ok(format!(
+        "{} ({kind}{architecture} · {})",
+        crate::model::title(app),
+        label
+    ))
+}
+
+fn create_installation_shortcut(
+    paths: &Paths,
+    marker: &Path,
+    owner: Ownership,
+    target: &Path,
+    desktop: &Path,
+    kind: &str,
+) -> Result<()> {
+    let mut config: Option<crate::model::Config> = if paths.at("settings.json").exists() {
+        Some(files::read_json(&paths.at("settings.json"))?)
+    } else {
+        None
+    };
+    if let Some(config) = &mut config {
+        crate::installation_labels::assign(config)?;
+    }
+    let target_identity = crate::installation_labels::path_identity(&target.to_string_lossy());
+    let copy = config
+        .iter()
+        .flat_map(|config| config.apps.iter().chain(&config.installations))
+        .find(|copy| {
+            copy.name == owner.app
+                && crate::installation_labels::path_identity(&copy.path) == target_identity
+        });
+    let architecture = copy
+        .map(|copy| copy.architecture.as_str())
+        .unwrap_or_default();
+    let label = copy
+        .map(|copy| copy.installation_label.as_str())
+        .unwrap_or_default();
+    // Keep the identity across relocation; legacy names are upgraded on creation.
+    let previous = owner.shortcut.clone();
+    let title = installation_shortcut_title(&owner.app, target, kind, architecture, label)?;
+    let desired = desktop.join(format!("{title}.{}", crate::platform::shortcut_extension()));
+    anyhow::ensure!(
+        !previous
+            .as_ref()
+            .is_some_and(|(old, _)| *old != desired && desired.exists()),
+        "An existing shortcut with the new name was left unchanged"
+    );
+    let app = owner.app.clone();
+    create_named_shortcut(marker, owner, target, desktop, &title)?;
+    if let Some((old, proof)) = previous {
+        let new = desktop.join(format!("{title}.{}", crate::platform::shortcut_extension()));
+        if old != new
+            && owned_installation_title(&app, &old, desktop).is_some()
+            && shortcut_proof(&old).is_ok_and(|actual| actual == proof)
+        {
+            std::fs::remove_file(old)?;
+        }
+    }
+    Ok(())
+}
+
+fn owned_installation_title(app: &str, path: &Path, desktop: &Path) -> Option<String> {
+    if path.parent() != Some(desktop)
+        || path.extension()?.to_str()? != crate::platform::shortcut_extension()
+    {
+        return None;
+    }
+    let title = path.file_stem()?.to_str()?;
+    let base = crate::model::title(app);
+    if title == base {
+        return Some(title.into());
+    }
+    let suffix = title
+        .strip_prefix(&format!("{base} ("))?
+        .strip_suffix(')')?;
+    if matches!(
+        suffix,
+        "x64"
+            | "x86"
+            | "arm64"
+            | "Installer"
+            | "Installer x64"
+            | "Installer x86"
+            | "Installer arm64"
+    ) {
+        return Some(title.into());
+    }
+    let (label, digest) = suffix.rsplit_once(" · ")?;
+    if !matches!(
+        label,
+        "Portable"
+            | "Portable x64"
+            | "Portable x86"
+            | "Portable arm64"
+            | "Installer"
+            | "Installer x64"
+            | "Installer x86"
+            | "Installer arm64"
+    ) || !(crate::installation_labels::valid_label(digest)
+        || digest.len() == 8 && digest.bytes().all(|c| c.is_ascii_hexdigit()))
+    {
+        return None;
+    }
+    Some(title.into())
 }
 #[derive(Serialize, Deserialize)]
 struct BuildShortcutOwnership {
@@ -389,6 +685,7 @@ fn legacy_build_shortcut_matches(shortcut: &Path, folder: &Path, app: &str) -> b
     }
 }
 
+#[cfg(all(test, target_os = "windows"))]
 fn create_shortcut(marker: &Path, owner: Ownership, target: &Path, desktop: &Path) -> Result<()> {
     let title = crate::model::title(&owner.app);
     create_named_shortcut(marker, owner, target, desktop, &title)
@@ -499,8 +796,14 @@ pub fn remove_installer_shortcut(paths: &Paths, app: &str) -> Result<()> {
     Ok(())
 }
 fn remove_owned_shortcut(owner: Ownership, desktop: &Path) -> Result<()> {
-    let title = crate::model::title(&owner.app);
-    remove_owned_named_shortcut(owner, desktop, &title)
+    let title = owner
+        .shortcut
+        .as_ref()
+        .and_then(|(path, _)| owned_installation_title(&owner.app, path, desktop));
+    if let Some(title) = title {
+        remove_owned_named_shortcut(owner, desktop, &title)?;
+    }
+    Ok(())
 }
 fn remove_owned_named_shortcut(owner: Ownership, desktop: &Path, title: &str) -> Result<()> {
     if let Some((path, expected)) = owner.shortcut {
@@ -630,6 +933,238 @@ pub fn pick_folder(initial: &Path) -> Result<Option<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn shortcut_migration_continues_after_errors_and_visits_each_copy_once() {
+        let copy = |path: &str| crate::model::Installed {
+            name: "filmcraft".into(),
+            path: path.into(),
+            install_kind: "portable".into(),
+            ..Default::default()
+        };
+        let config = crate::model::Config {
+            apps_root: String::new(),
+            installations: vec![copy("damaged"), copy("conflict"), copy("healthy")],
+            apps: vec![copy("healthy")],
+            portable_label_counters: Default::default(),
+        };
+        let mut visited = Vec::new();
+        let result = super::migrate_shortcut_records(&config, |copy| {
+            visited.push(copy.path.clone());
+            if copy.path != "healthy" {
+                anyhow::bail!("fixture migration failure");
+            }
+            Ok(())
+        });
+        assert_eq!(visited, ["damaged", "conflict", "healthy"]);
+        let message = result.unwrap_err().to_string();
+        assert!(message.contains("damaged") && message.contains("conflict"));
+    }
+
+    #[test]
+    fn empty_generated_installation_parents_are_removed_but_user_folders_are_kept() {
+        let (root, paths) = fixture();
+        let parent = paths.at(format!(
+            "releases/filmcraft-x64-{}",
+            uuid::Uuid::new_v4().simple()
+        ));
+        std::fs::create_dir_all(&parent).unwrap();
+        cleanup_empty_installation_parent(&paths, "filmcraft", &parent.join("filmcraft")).unwrap();
+        assert!(!parent.exists());
+        assert!(paths.at("releases").exists());
+
+        // The install dialog historically omitted the architecture component.
+        let dialog_parent = paths.at(format!(
+            "releases/filmcraft-{}",
+            uuid::Uuid::new_v4().simple()
+        ));
+        std::fs::create_dir_all(&dialog_parent).unwrap();
+        cleanup_empty_installation_parent(&paths, "filmcraft", &dialog_parent.join("filmcraft"))
+            .unwrap();
+        assert!(!dialog_parent.exists());
+
+        std::fs::create_dir_all(&parent).unwrap();
+        std::fs::write(parent.join("notes.txt"), b"keep").unwrap();
+        cleanup_empty_installation_parent(&paths, "filmcraft", &parent.join("filmcraft")).unwrap();
+        assert_eq!(std::fs::read(parent.join("notes.txt")).unwrap(), b"keep");
+
+        let custom = root.join("my-apps");
+        std::fs::create_dir_all(&custom).unwrap();
+        cleanup_empty_installation_parent(&paths, "filmcraft", &custom.join("filmcraft")).unwrap();
+        assert!(custom.exists());
+        let ordinary = paths.at("releases/my-folder");
+        std::fs::create_dir_all(&ordinary).unwrap();
+        cleanup_empty_installation_parent(&paths, "filmcraft", &ordinary.join("filmcraft"))
+            .unwrap();
+        assert!(ordinary.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn installation_shortcut_names_distinguish_copies_and_validate_ownership() {
+        let root = std::env::temp_dir().join("shortcut-names");
+        let desktop = root.join("desktop");
+        let first =
+            installation_shortcut_title("filmcraft", &root.join("first"), "Portable", "x64", "A")
+                .unwrap();
+        let second =
+            installation_shortcut_title("filmcraft", &root.join("second"), "Portable", "x64", "B")
+                .unwrap();
+        let installer =
+            installation_shortcut_title("filmcraft", &root.join("first"), "Installer", "x64", "")
+                .unwrap();
+        assert_ne!(first, second);
+        assert_ne!(first, installer);
+        assert_eq!(installer, "FilmCraft (x64)");
+        for title in ["FilmCraft (x64)", "FilmCraft (Installer x64)"] {
+            let shortcut =
+                desktop.join(format!("{title}.{}", crate::platform::shortcut_extension()));
+            assert_eq!(
+                owned_installation_title("filmcraft", &shortcut, &desktop).as_deref(),
+                Some(title)
+            );
+        }
+        let shortcut = desktop.join(format!("{first}.{}", crate::platform::shortcut_extension()));
+        assert_eq!(
+            owned_installation_title("filmcraft", &shortcut, &desktop),
+            Some(first)
+        );
+        assert!(owned_installation_title("photocraft", &shortcut, &desktop).is_none());
+        assert!(owned_installation_title("filmcraft", &shortcut, &root).is_none());
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn multiple_installation_shortcuts_survive_updates_moves_and_individual_removal() {
+        let (root, paths) = fixture();
+        let desktop = root.join("desktop");
+        let mut copies = Vec::new();
+        let mut config = paths.config().unwrap();
+        for (name, kind) in [
+            ("first", "Portable"),
+            ("second", "Portable"),
+            ("native", "Installer"),
+        ] {
+            let target = root.join(name);
+            std::fs::create_dir_all(&target).unwrap();
+            std::fs::write(target.join("filmcraft.exe"), b"fixture").unwrap();
+            let record = crate::model::Installed {
+                name: "filmcraft".into(),
+                path: target.display().to_string(),
+                install_kind: if kind == "Installer" {
+                    "installer"
+                } else {
+                    "portable"
+                }
+                .into(),
+                architecture: "x64".into(),
+                ..Default::default()
+            };
+            *config
+                .apps
+                .iter_mut()
+                .find(|copy| copy.name == "filmcraft")
+                .unwrap() = record.clone();
+            config.installations.push(record);
+            paths.save_config(&config).unwrap();
+            config = files::read_json(&paths.at("settings.json")).unwrap();
+            let marker = target.join(MARKER);
+            let owner = Ownership {
+                app: "filmcraft".into(),
+                library: paths.root.clone(),
+                shortcut: None,
+            };
+            let owner = if name == "first" {
+                create_named_shortcut(
+                    &marker,
+                    owner,
+                    &target,
+                    &desktop,
+                    "FilmCraft (Portable x64 · 1234abcd)",
+                )
+                .unwrap();
+                files::read_json(&marker).unwrap()
+            } else {
+                owner
+            };
+            create_installation_shortcut(&paths, &marker, owner, &target, &desktop, kind).unwrap();
+            let owner: Ownership = files::read_json(&marker).unwrap();
+            let shortcut = owner.shortcut.as_ref().unwrap().0.clone();
+            assert_eq!(
+                PathBuf::from(crate::platform::shortcut_target(&shortcut).unwrap())
+                    .canonicalize()
+                    .unwrap(),
+                target.join("filmcraft.exe").canonicalize().unwrap()
+            );
+            copies.push((target, marker, shortcut));
+        }
+        assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 3);
+        let (target, marker, shortcut) = &copies[0];
+        let owner: Ownership = files::read_json(marker).unwrap();
+        create_installation_shortcut(&paths, marker, owner, target, &desktop, "Portable").unwrap();
+        assert_eq!(std::fs::read_dir(&desktop).unwrap().count(), 3);
+        let moved = root.join("moved");
+        std::fs::rename(target, &moved).unwrap();
+        config
+            .installations
+            .iter_mut()
+            .find(|copy| Path::new(&copy.path) == target)
+            .unwrap()
+            .path = moved.display().to_string();
+        paths.save_config(&config).unwrap();
+        let marker = moved.join(MARKER);
+        let owner: Ownership = files::read_json(&marker).unwrap();
+        create_installation_shortcut(&paths, &marker, owner, &moved, &desktop, "Portable").unwrap();
+        assert_eq!(
+            PathBuf::from(crate::platform::shortcut_target(shortcut).unwrap())
+                .canonicalize()
+                .unwrap(),
+            moved.join("filmcraft.exe").canonicalize().unwrap()
+        );
+        let owner: Ownership = files::read_json(&marker).unwrap();
+        remove_owned_shortcut(owner, &desktop).unwrap();
+        assert!(!shortcut.exists());
+        assert!(copies[1].2.exists() && copies[2].2.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn legacy_shortcut_is_replaced_only_when_still_owned() {
+        for edited in [false, true] {
+            let (root, paths) = fixture();
+            let target = root.join("app");
+            let desktop = root.join("desktop");
+            std::fs::create_dir_all(&target).unwrap();
+            std::fs::write(target.join("filmcraft.exe"), b"fixture").unwrap();
+            // A pre-label installation record must still be usable.
+            files::write_json(&paths.at("settings.json"), &serde_json::json!({"appsRoot":paths.root, "apps":[{"name":"filmcraft","path":target,"version":"0.1.0","architecture":"x64","install_kind":"portable"}]})).unwrap();
+            let marker = target.join(MARKER);
+            create_shortcut(
+                &marker,
+                Ownership {
+                    app: "filmcraft".into(),
+                    library: paths.root.clone(),
+                    shortcut: None,
+                },
+                &target,
+                &desktop,
+            )
+            .unwrap();
+            let legacy = desktop.join("FilmCraft.lnk");
+            if edited {
+                std::fs::write(&legacy, b"user edit").unwrap();
+            }
+            let owner: Ownership = files::read_json(&marker).unwrap();
+            create_installation_shortcut(&paths, &marker, owner, &target, &desktop, "Portable")
+                .unwrap();
+            assert_eq!(legacy.exists(), edited);
+            if edited {
+                assert_eq!(std::fs::read(&legacy).unwrap(), b"user edit");
+            }
+            std::fs::remove_dir_all(root).unwrap();
+        }
+    }
+
     #[cfg(target_os = "windows")]
     #[test]
     fn installer_shortcuts_are_tracked_without_writing_to_app_folder() {
@@ -809,6 +1344,38 @@ mod tests {
         std::fs::write(target.join("work.png"), b"personal").unwrap();
         assert!(validate_install(&paths, "photocraft", &target).is_err());
         assert_eq!(std::fs::read(target.join("work.png")).unwrap(), b"personal");
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn additional_library_copies_are_flat_numbered_and_never_replace_existing_files() {
+        let (root, paths) = fixture();
+        let library = paths.at("releases");
+        assert_eq!(
+            additional_destination(&paths, &library, "filmcraft").unwrap(),
+            library.join("filmcraft")
+        );
+        std::fs::create_dir_all(library.join("filmcraft")).unwrap();
+        std::fs::write(library.join("filmcraft/keep.txt"), b"original").unwrap();
+        let second = additional_destination(&paths, &library, "filmcraft").unwrap();
+        assert_eq!(second, library.join("filmcraft-2"));
+        validate_install(&paths, "filmcraft", &second).unwrap();
+        std::fs::write(&second, b"unrelated file").unwrap();
+        assert!(validate_install(&paths, "filmcraft", &second).is_err());
+        assert_eq!(
+            additional_destination(&paths, &library, "filmcraft").unwrap(),
+            library.join("filmcraft-3")
+        );
+        let custom_parent = root.join("custom");
+        assert_eq!(
+            additional_destination(&paths, &custom_parent, "filmcraft").unwrap(),
+            custom_parent.join("filmcraft")
+        );
+        assert!(validate_install(&paths, "filmcraft", &custom_parent.join("filmcraft-2")).is_err());
+        assert_eq!(
+            std::fs::read(library.join("filmcraft/keep.txt")).unwrap(),
+            b"original"
+        );
+        assert_eq!(std::fs::read(&second).unwrap(), b"unrelated file");
         std::fs::remove_dir_all(root).unwrap();
     }
     #[test]

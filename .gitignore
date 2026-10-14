@@ -1,5 +1,6 @@
 /target/
 /dist/
+/.vscode/
 /*.exe
 /runtime/
 /logs/
@@ -17,3 +18,4 @@
 /manager-settings.json
 /diagnostics.json
 *.tmp
+__pycache__/

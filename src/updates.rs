@@ -687,16 +687,14 @@ fn plan_additional_with(
     plan.additional_installation = true;
     for entry in &mut plan.entries {
         if entry.preferences.release_format == "installer" && native_exists {
-            entry.error = Some("An installer copy already exists. Select it to update it, or choose Portable ZIP for another installation.".into());
+            entry.error = Some("An installer copy already exists. Select it to update it, or choose Portable for another installation.".into());
         }
         if entry.preferences.release_format == "portable" {
-            entry.destination = Some(paths.at(format!(
-                "releases/{}-{}-{}/{}",
+            entry.destination = Some(crate::portable::additional_destination(
+                paths,
+                &paths.at("releases"),
                 app,
-                entry.preferences.architecture,
-                uuid::Uuid::new_v4().simple(),
-                app
-            )));
+            )?);
         }
     }
     Ok(plan)
@@ -716,7 +714,11 @@ pub fn choose_destination(
         "Native installer locations are managed by the installer"
     );
     let entry = &mut plan.entries[0];
-    let mut target = crate::portable::destination(parent, &entry.app)?;
+    let mut target = if plan.additional_installation {
+        crate::portable::additional_destination(paths, parent, &entry.app)?
+    } else {
+        crate::portable::destination(parent, &entry.app)?
+    };
     let current = paths
         .config()?
         .apps
@@ -746,7 +748,11 @@ pub fn choose_destination(
     Ok(())
 }
 #[cfg(target_os = "windows")]
-pub fn choose_installer_destination(plan: &mut ReleasePlan, parent: &Path) -> Result<()> {
+pub fn choose_installer_destination(
+    paths: &Paths,
+    plan: &mut ReleasePlan,
+    parent: &Path,
+) -> Result<()> {
     anyhow::ensure!(
         plan.entries.len() == 1 && plan.preferences.release_format == "installer",
         "Choose a location for one installer at a time"
@@ -757,8 +763,36 @@ pub fn choose_installer_destination(plan: &mut ReleasePlan, parent: &Path) -> Re
         "This installer keeps its own location"
     );
     let target = crate::portable::destination(parent, &entry.app)?;
-    crate::installers::validate_custom_location(&target)?;
+    validate_installer_destination(paths, &target)?;
     plan.installer_destination = Some(target);
+    Ok(())
+}
+#[cfg(target_os = "windows")]
+fn validate_installer_destination(paths: &Paths, target: &Path) -> Result<()> {
+    crate::installers::validate_custom_location(target)?;
+    // Resolve the existing ancestor: the new leaf need not exist yet.
+    // Windows casing and short-path aliases must not bypass this boundary.
+    let mut ancestor = target;
+    let mut suffix = Vec::new();
+    while !ancestor.exists() {
+        suffix.push(
+            ancestor
+                .file_name()
+                .context("Missing install folder name")?,
+        );
+        ancestor = ancestor.parent().context("Missing install parent")?;
+    }
+    let mut resolved = ancestor.canonicalize()?;
+    for component in suffix.into_iter().rev() {
+        resolved.push(component);
+    }
+    let root = paths.root.canonicalize()?;
+    let resolved = PathBuf::from(resolved.to_string_lossy().to_lowercase());
+    let root = PathBuf::from(root.to_string_lossy().to_lowercase());
+    anyhow::ensure!(
+        !resolved.starts_with(root),
+        "Choose an installer location outside the manager's data and releases folders"
+    );
     Ok(())
 }
 /// Recent published stable releases compatible with the chosen platform and format.
@@ -1190,6 +1224,10 @@ fn execute_validated(
             crate::portable::validate_install(paths, &entry.app, target)?;
         }
     }
+    #[cfg(target_os = "windows")]
+    if let Some(target) = &plan.installer_destination {
+        validate_installer_destination(paths, target)?;
+    }
     execute(&mut config)
 }
 #[cfg(any(target_os = "windows", test))]
@@ -1603,21 +1641,6 @@ fn execute_entries(
                     job.log(&format!(
                         "Retained profile was kept for recovery: {error:#}"
                     ));
-                }
-                let shortcut = paths.at(format!(
-                    "releases/{}.{}",
-                    app.name,
-                    crate::platform::shortcut_extension()
-                ));
-                if let Err(e) = platform::shortcut(
-                    &shortcut,
-                    &crate::model::installed_executable(&target, &app.name)
-                        .context("Installed executable is missing")?,
-                    "",
-                    &target,
-                ) {
-                    job.report("Manager shortcut", format!("Could not be updated: {e:#}"));
-                    job.log(&format!("Shortcut warning: {e}"))
                 }
                 if plan.desktop_shortcut {
                     job.stage(
@@ -2362,6 +2385,17 @@ mod planning_tests {
         })
         .unwrap();
         assert!(plan.additional_installation);
+        let default_target =
+            crate::portable::additional_destination(&paths, &paths.at("releases"), "photocraft")
+                .unwrap();
+        assert_eq!(plan.entries[0].destination.as_ref(), Some(&default_target));
+        assert_eq!(
+            default_target.parent(),
+            Some(paths.at("releases").as_path())
+        );
+        choose_destination(&paths, &mut plan, &paths.at("releases"), false).unwrap();
+        assert_eq!(plan.entries[0].destination.as_ref(), Some(&default_target));
+        execute_validated(&paths, &plan, |_| Ok(())).unwrap();
         assert_eq!(plan.entries[0].action, "Install");
         assert!(
             plan.entries[0].error.is_none(),
@@ -2394,6 +2428,43 @@ mod planning_tests {
         ))
         .is_err());
         assert!(Path::new(&existing.path).exists());
+        fs::remove_dir_all(paths.root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn installer_destinations_in_manager_storage_are_rejected_before_execution() {
+        let (paths, job) = installed_fixture();
+        for folder in [
+            "releases/wrong-native",
+            "releases/installers/wrong-native",
+            "sources/wrong-native",
+            "builds/wrong-native",
+        ] {
+            let mut plan = plan_with(&paths, &job, Some("photocraft"), |app| {
+                Ok(release(app, "0.2.0"))
+            })
+            .unwrap();
+            plan.installer_destination = Some(paths.at(folder));
+            assert!(execute_validated(&paths, &plan, |_| panic!(
+                "must reject native destination before starting an installer"
+            ))
+            .is_err());
+        }
+        let target = paths
+            .root
+            .parent()
+            .unwrap()
+            .join(format!("native-{}", uuid::Uuid::new_v4()))
+            .join("photocraft");
+        validate_installer_destination(&paths, &target).unwrap();
+        let differently_cased = PathBuf::from(
+            paths
+                .at("releases/wrong-native")
+                .to_string_lossy()
+                .to_uppercase(),
+        );
+        assert!(validate_installer_destination(&paths, &differently_cased).is_err());
         fs::remove_dir_all(paths.root).unwrap();
     }
 
@@ -2502,6 +2573,7 @@ mod planning_tests {
         files::write_json(
             &paths.at("settings.json"),
             &crate::model::Config {
+                portable_label_counters: Default::default(),
                 apps_root: paths.root.display().to_string(),
                 installations: apps.clone(),
                 apps,
@@ -2779,6 +2851,7 @@ mod planning_tests {
         files::write_json(
             &paths.at("settings.json"),
             &crate::model::Config {
+                portable_label_counters: Default::default(),
                 apps_root: paths.root.display().to_string(),
                 apps: vec![record.clone()],
                 installations: vec![record],
@@ -2892,6 +2965,7 @@ mod planning_tests {
             ..Default::default()
         };
         let config = crate::model::Config {
+            portable_label_counters: Default::default(),
             apps_root: paths.root.display().to_string(),
             apps: vec![record.clone()],
             installations: vec![record],

@@ -151,6 +151,8 @@ impl Theme {
 pub struct Preferences {
     pub theme: Theme,
     pub close_to_tray: bool,
+    /// Presentation only; unread activity is still tracked and highlighted.
+    pub hide_activity_badge: bool,
     pub batch_admin: bool,
     pub keep_app_backups: bool,
     pub keep_source_backups: bool,
@@ -188,6 +190,7 @@ impl Default for Preferences {
         Self {
             theme: Theme::System,
             close_to_tray: false,
+            hide_activity_badge: false,
             batch_admin: true,
             keep_app_backups: false,
             keep_source_backups: false,
@@ -306,6 +309,8 @@ pub struct Installed {
     pub install_kind: String,
     #[serde(default)]
     pub product_code: String,
+    #[serde(default)]
+    pub installation_label: String,
 }
 fn default_arch() -> String {
     MANAGER_ARCH.into()
@@ -317,6 +322,8 @@ pub struct Config {
     pub apps: Vec<Installed>,
     #[serde(default)]
     pub installations: Vec<Installed>,
+    #[serde(default)]
+    pub portable_label_counters: std::collections::BTreeMap<String, u32>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -428,6 +435,7 @@ impl Paths {
                 .unwrap_or_default();
             let direct = self.at(format!("releases/{name}"));
             apps.push(Installed {
+                installation_label: Default::default(),
                 name: name.into(),
                 version,
                 path: if path.is_empty() && installed_executable(&direct, name).is_some() {
@@ -442,6 +450,7 @@ impl Paths {
         }
         self.refresh_config(
             Config {
+                portable_label_counters: Default::default(),
                 apps_root: self.root.to_string_lossy().into_owned(),
                 apps,
                 installations: Vec::new(),
@@ -471,7 +480,8 @@ impl Paths {
             if !app.path.is_empty()
                 && !config.installations.iter().any(|a| {
                     a.name == app.name
-                        && a.path == app.path
+                        && crate::installation_labels::path_identity(&a.path)
+                            == crate::installation_labels::path_identity(&app.path)
                         && (a.install_kind == "installer") == (app.install_kind == "installer")
                 })
             {
@@ -494,6 +504,32 @@ impl Paths {
                     .retain(|copy| !(copy.name == app.name && copy.install_kind == "installer"));
                 config.installations.push(native.clone());
             }
+            // Legacy discovery supplied a path but no package type/version. Recover
+            // only verified portable files: unknown external folders stay unknown,
+            // and a detected native installation must never become portable.
+            for copy in config.installations.iter_mut().filter(|copy| {
+                copy.name == app.name
+                    && !copy.path.is_empty()
+                    && (copy.install_kind == "portable"
+                        || (copy.install_kind.is_empty()
+                            && Path::new(&copy.path).starts_with(self.at("releases"))))
+                    && detected
+                        .as_ref()
+                        .is_none_or(|native| Path::new(&native.path) != Path::new(&copy.path))
+            }) {
+                if let Some(executable) = installed_executable(Path::new(&copy.path), &copy.name) {
+                    copy.install_kind = "portable".into();
+                    if copy.version.is_empty() {
+                        copy.version = crate::platform::executable_version(&executable)
+                            .unwrap_or_else(|| "0.0.0".into());
+                    }
+                    if copy.architecture.is_empty() {
+                        copy.architecture =
+                            crate::install_options::executable_architecture(&executable)
+                                .unwrap_or_default();
+                    }
+                }
+            }
             let library = self.at(format!("releases/{}", app.name));
             if !config
                 .installations
@@ -502,6 +538,7 @@ impl Paths {
             {
                 if let Some(executable) = installed_executable(&library, &app.name) {
                     config.installations.push(Installed {
+                        installation_label: Default::default(),
                         name: app.name.clone(),
                         path: library.display().to_string(),
                         version: crate::platform::executable_version(&executable)
@@ -528,7 +565,8 @@ impl Paths {
             if let Some(selected) = config.installations.iter().find(|copy| {
                 !selected_kind.is_empty()
                     && copy.name == app.name
-                    && copy.path == selected_path
+                    && crate::installation_labels::path_identity(&copy.path)
+                        == crate::installation_labels::path_identity(&selected_path)
                     && copy.install_kind == selected_kind
                     && !copy.path.is_empty()
                     && installed_executable(Path::new(&copy.path), &copy.name).is_some()
@@ -591,6 +629,15 @@ impl Paths {
                     .unwrap_or_default();
             }
         }
+        let mut seen = std::collections::BTreeSet::new();
+        config.installations.retain(|copy| {
+            seen.insert((
+                copy.name.clone(),
+                copy.install_kind == "installer",
+                crate::installation_labels::path_identity(&copy.path),
+            ))
+        });
+        crate::installation_labels::assign(&mut config)?;
         Ok(config)
     }
     pub fn save_config(&self, config: &Config) -> Result<()> {
@@ -600,12 +647,14 @@ impl Paths {
             config.installations.retain(|a| {
                 !(a.name == app.name
                     && (a.install_kind == "installer") == installer
-                    && a.path == app.path)
+                    && crate::installation_labels::path_identity(&a.path)
+                        == crate::installation_labels::path_identity(&app.path))
             });
             if !app.path.is_empty() {
                 config.installations.push(app.clone());
             }
         }
+        crate::installation_labels::assign(&mut config)?;
         crate::files::write_json(&self.at("settings.json"), &config)
     }
     /// Read preferences without migrating or changing any file.
@@ -879,6 +928,165 @@ pub fn release_arch(architecture: &str) -> &str {
 
 #[cfg(test)]
 mod detection_tests {
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn legacy_path_aliases_are_one_installation_after_refresh_and_save() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let folder = root.join("copies/filmcraft");
+        release_fixture(&folder, "filmcraft");
+        let first = Installed {
+            name: "filmcraft".into(),
+            path: folder.display().to_string(),
+            version: "0.6.0".into(),
+            architecture: "x64".into(),
+            install_kind: "portable".into(),
+            installation_label: "A".into(),
+            ..Default::default()
+        };
+        let mut alias = first.clone();
+        alias.path = alias.path.replace('\\', "/").to_uppercase();
+        alias.installation_label = "B".into();
+        let config = Config {
+            apps_root: root.display().to_string(),
+            apps: vec![alias.clone()],
+            installations: vec![first, alias],
+            portable_label_counters: Default::default(),
+        };
+        crate::files::write_json(&paths.at("settings.json"), &config).unwrap();
+        let mut refreshed = paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert_eq!(
+            refreshed
+                .installations
+                .iter()
+                .filter(|copy| copy.name == "filmcraft")
+                .count(),
+            1
+        );
+        let selected = refreshed
+            .apps
+            .iter()
+            .find(|copy| copy.name == "filmcraft")
+            .unwrap()
+            .clone();
+        assert_eq!(selected.installation_label, "A");
+        paths.save_config(&refreshed).unwrap();
+        crate::apps::forget_installation(&mut refreshed, &selected);
+        assert!(!refreshed
+            .installations
+            .iter()
+            .any(|copy| copy.name == "filmcraft"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn settings_save_preserves_same_architecture_installations_in_other_folders() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let copies: Vec<_> = ["first", "second", "third"]
+            .into_iter()
+            .map(|name| {
+                let folder = root.join(name);
+                release_fixture(&folder, "filmcraft");
+                Installed {
+                    name: "filmcraft".into(),
+                    path: folder.display().to_string(),
+                    version: "0.6.0".into(),
+                    architecture: "x64".into(),
+                    install_kind: "portable".into(),
+                    ..Default::default()
+                }
+            })
+            .collect();
+        paths
+            .save_config(&Config {
+                portable_label_counters: Default::default(),
+                apps_root: root.display().to_string(),
+                apps: vec![copies[0].clone()],
+                installations: copies.clone(),
+            })
+            .unwrap();
+        crate::settings::save(
+            &paths,
+            &root.join("locations.json"),
+            &(),
+            &root,
+            &paths.tools,
+            Some(&Preferences::default()),
+            None,
+        )
+        .unwrap();
+        let saved: Config = crate::files::read_json(&paths.at("settings.json")).unwrap();
+        for copy in &copies {
+            assert!(
+                saved
+                    .installations
+                    .iter()
+                    .any(|a| a.name == copy.name && a.path == copy.path),
+                "Settings save lost installation {}",
+                copy.path
+            );
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn legacy_versioned_portable_recovers_package_type() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let folder = paths.at(format!("releases/filmcraft-0.6.0-{}-x64", release_os()));
+        release_fixture(&folder, "filmcraft");
+        let config = paths.config_with_detector(|_| Ok(None)).unwrap();
+        let installed = config.apps.iter().find(|a| a.name == "filmcraft").unwrap();
+        assert_eq!(Path::new(&installed.path), folder);
+        assert_eq!(installed.install_kind, "portable");
+        // A folder name is not sufficient proof of the executable architecture.
+        #[cfg(not(target_os = "macos"))]
+        assert!(installed.architecture.is_empty());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn discovered_portable_has_consistent_installed_state_without_settings() {
+        use super::*;
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let paths = Paths::new(root.clone(), None);
+        let folder = paths.at("releases/designcraft");
+        release_fixture(&folder, "designcraft");
+        // A minimal PE header: architecture is evidence from the executable, not preferences.
+        #[cfg(target_os = "windows")]
+        {
+            let mut bytes = vec![0u8; 256];
+            bytes[..2].copy_from_slice(b"MZ");
+            bytes[60..64].copy_from_slice(&128u32.to_le_bytes());
+            bytes[128..132].copy_from_slice(b"PE\0\0");
+            bytes[132..134].copy_from_slice(&0x8664u16.to_le_bytes());
+            bytes[148..150].copy_from_slice(&70u16.to_le_bytes());
+            bytes[152..154].copy_from_slice(&0x20bu16.to_le_bytes());
+            std::fs::write(folder.join(executable_name("designcraft")), bytes).unwrap();
+        }
+        for _ in 0..2 {
+            let config = paths.config_with_detector(|_| Ok(None)).unwrap();
+            let installed = config
+                .apps
+                .iter()
+                .find(|a| a.name == "designcraft")
+                .unwrap();
+            assert!(
+                !installed.version.is_empty(),
+                "An existing executable must not display Get"
+            );
+            assert_eq!(installed.install_kind, "portable");
+            #[cfg(target_os = "windows")]
+            assert!(crate::install_options::InstallOptions::installed(installed).is_some());
+            paths.save_config(&config).unwrap();
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn same_architecture_copies_can_be_selected_and_uninstalled_independently() {
         use super::*;
@@ -901,6 +1109,7 @@ mod detection_tests {
             .collect();
         for selected in &copies {
             let config = Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![selected.clone()],
                 installations: copies.clone(),
@@ -1045,6 +1254,7 @@ mod detection_tests {
             };
             crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
             let mut config = Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![removed.clone()],
                 installations: copies.clone(),
@@ -1103,6 +1313,7 @@ mod detection_tests {
         crate::files::write_json(
             &paths.at("settings.json"),
             &Config {
+                portable_label_counters: Default::default(),
                 apps_root: root.display().to_string(),
                 apps: vec![Installed {
                     name: "filmcraft".into(),
@@ -1151,6 +1362,7 @@ mod detection_tests {
             ..Default::default()
         };
         let mut config = Config {
+            portable_label_counters: Default::default(),
             apps: vec![native.clone()],
             installations: vec![native.clone()],
             apps_root: root.display().to_string(),
@@ -1327,6 +1539,7 @@ mod detection_tests {
         crate::files::write_json(
             &paths.at("settings.json"),
             &Config {
+                portable_label_counters: Default::default(),
                 apps: vec![copies[0].clone()],
                 installations: copies.clone(),
                 apps_root: root.display().to_string(),
@@ -1405,6 +1618,7 @@ mod detection_tests {
         };
         crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
         let config = Config {
+            portable_label_counters: Default::default(),
             apps_root: root.display().to_string(),
             apps: vec![Installed {
                 name: "filmcraft".into(),
@@ -1486,6 +1700,7 @@ mod detection_tests {
             Ok(["photocraft", "printcraft"]
                 .contains(&name)
                 .then(|| Installed {
+                    installation_label: Default::default(),
                     name: name.into(),
                     path: root.join("system").join(name).display().to_string(),
                     version: "0.2.1".into(),

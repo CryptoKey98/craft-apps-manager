@@ -55,6 +55,7 @@ fn build_owned(
     let index: BTreeMap<String, Source> = files::read_json(&paths.at("sources/source-index.json"))
         .context("No managed source ZIP. Use Update source files first.")?;
     let commit = index.get(app).context("No managed source for this app")?;
+    let cargo_target = cargo_target(app, commit);
     let archive = paths.at(format!("sources/{app}-source.zip"));
     if !files::hash(&archive)?.eq_ignore_ascii_case(&commit.archive_sha256) {
         bail!("Source checksum differs. Update source files first.");
@@ -143,9 +144,9 @@ fn build_owned(
         "--release",
         "--locked",
         "-p",
-        app,
+        cargo_target,
         "--bin",
-        app,
+        cargo_target,
         "--message-format=json-render-diagnostics",
     ]);
     if app == "artcraftx" {
@@ -161,7 +162,7 @@ fn build_owned(
         .executable
         .clone()
         .context("Cargo did not report a finished executable")?;
-    if executable.file_stem().is_none_or(|n| n != app) {
+    if executable.file_stem().is_none_or(|n| n != cargo_target) {
         bail!("Unexpected build executable")
     }
     let out = root.join(format!(
@@ -245,6 +246,32 @@ fn build_owned(
         }
     }
     Ok(())
+}
+
+/// PDFCraft retained its `printcraft` library key after the upstream package rename.
+/// The source record identifies which Cargo package the downloaded archive contains.
+fn cargo_target<'a>(app: &'a str, source: &Source) -> &'a str {
+    if app == "printcraft" && source.repository == "storytold/pdfcraft" {
+        "pdfcraft"
+    } else {
+        app
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn pdfcraft_build_target_follows_downloaded_source() {
+    let mut source = Source {
+        sha: String::new(),
+        branch: String::new(),
+        repository: "storytold/printcraft".into(),
+        archive_sha256: String::new(),
+        downloaded_at: String::new(),
+    };
+    assert_eq!(cargo_target("printcraft", &source), "printcraft");
+    source.repository = "storytold/pdfcraft".into();
+    assert_eq!(cargo_target("printcraft", &source), "pdfcraft");
+    assert_eq!(cargo_target("filmcraft", &source), "filmcraft");
 }
 #[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -358,6 +385,20 @@ pub fn has_local_cache(paths: &Paths, app: &str, folder: &std::path::Path) -> Re
         .iter()
         .any(|(path, _)| path.exists()))
 }
+/// Interrupted builds have no completed build record to select.
+pub fn has_app_cache(paths: &Paths, app: &str) -> Result<bool> {
+    Ok(app_cache_paths(paths, app, None)?
+        .iter()
+        .any(|(path, _)| path.exists()))
+}
+pub fn clean_app_cache(paths: &Paths, app: &str) -> Result<()> {
+    let _lock = platform::Lock::take(r"Local\CraftAppsSourceBuilder")?;
+    let targets = app_cache_paths(paths, app, None)?;
+    for (path, root) in targets {
+        files::remove_managed(&path, &root)?;
+    }
+    Ok(())
+}
 fn local_cache_paths(
     paths: &Paths,
     app: &str,
@@ -376,6 +417,14 @@ fn local_cache_paths(
         info.commit.len() == 40 && info.commit.bytes().all(|b| b.is_ascii_hexdigit()),
         "Invalid build commit"
     );
+    app_cache_paths(paths, app, Some(&info.commit))
+}
+fn app_cache_paths(
+    paths: &Paths,
+    app: &str,
+    commit: Option<&str>,
+) -> Result<Vec<(PathBuf, PathBuf)>> {
+    crate::model::valid_app(app)?;
     let work_root = paths.at(format!("workspace/{app}"));
     let mut targets = vec![(
         paths.at(format!("workspace/cache/{app}")),
@@ -388,7 +437,12 @@ fn local_cache_paths(
             files::inside(&folder, &work_root)?;
             if folder.is_dir() && folder.join(".extracted").is_file() {
                 files::inside(&folder.join(".extracted"), &work_root)?;
-                if fs::read_to_string(folder.join(".extracted"))?.trim() == info.commit {
+                let extracted = fs::read_to_string(folder.join(".extracted"))?;
+                let extracted = extracted.trim();
+                if extracted.len() == 40
+                    && extracted.bytes().all(|b| b.is_ascii_hexdigit())
+                    && commit.is_none_or(|commit| extracted == commit)
+                {
                     targets.push((folder, work_root.clone()));
                 }
             }
@@ -637,6 +691,87 @@ mod local_build_tests {
         clean_local(&paths, "filmcraft", &folder).unwrap();
         fs::remove_dir_all(root).unwrap();
     }
+    #[test]
+    fn interrupted_build_cache_cleanup_is_locked_and_sources_can_be_extracted_again() {
+        use std::io::Write;
+
+        let root =
+            std::env::temp_dir().join(format!("craft-interrupted-cache-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let commit = "a".repeat(40);
+        let work = paths.at(format!("workspace/filmcraft/{}", &commit[..12]));
+        let cache = paths.at("workspace/cache/filmcraft");
+        let archive = paths.at("sources/filmcraft-source.zip");
+        fs::create_dir_all(archive.parent().unwrap()).unwrap();
+        let mut zip = zip::ZipWriter::new(fs::File::create(&archive).unwrap());
+        zip.start_file(
+            format!("filmcraft-{commit}/Cargo.toml"),
+            zip::write::SimpleFileOptions::default(),
+        )
+        .unwrap();
+        zip.write_all(b"[package]\nname = 'filmcraft'\nversion = '0.1.0'\n")
+            .unwrap();
+        zip.finish().unwrap();
+        let hash = files::hash(&archive).unwrap();
+        let job = Job::new(
+            paths.at("logs/test.log"),
+            &crate::model::BuilderPreferences::default(),
+        );
+        let extract = || {
+            files::verify_source(&archive, "filmcraft", &commit).unwrap();
+            files::extract_zip(&archive, &work, &job).unwrap();
+            fs::rename(work.join(format!("filmcraft-{commit}")), work.join("src")).unwrap();
+            fs::write(work.join(".extracted"), &commit).unwrap();
+            fs::create_dir_all(&cache).unwrap();
+            fs::write(cache.join("intermediate"), b"partial compilation").unwrap();
+        };
+        extract();
+        for name in [
+            "workspace/cache/soundcraft",
+            "workspace/filmcraft/user-files",
+            "builds/filmcraft/completed",
+        ] {
+            fs::create_dir_all(paths.at(name)).unwrap();
+            fs::write(paths.at(format!("{name}/keep.txt")), b"keep").unwrap();
+        }
+        // No completed build record is required to discover these intermediates.
+        assert!(completed_builds(&paths, "filmcraft").is_empty());
+        assert!(has_app_cache(&paths, "filmcraft").unwrap());
+        {
+            let _active_builder = platform::Lock::take(r"Local\CraftAppsSourceBuilder").unwrap();
+            // Windows mutexes are reentrant on their owner thread: simulate a
+            // separate cleanup worker, as used by both windows.
+            let cleanup_paths = paths.clone();
+            assert!(
+                std::thread::spawn(move || clean_app_cache(&cleanup_paths, "filmcraft"))
+                    .join()
+                    .unwrap()
+                    .is_err()
+            );
+            assert!(cache.join("intermediate").is_file());
+            assert!(work.join("src/Cargo.toml").is_file());
+        }
+        clean_app_cache(&paths, "filmcraft").unwrap();
+        assert!(!has_app_cache(&paths, "filmcraft").unwrap());
+        assert!(!work.exists());
+        assert_eq!(files::hash(&archive).unwrap(), hash);
+        for name in [
+            "workspace/cache/soundcraft",
+            "workspace/filmcraft/user-files",
+            "builds/filmcraft/completed",
+        ] {
+            assert!(paths.at(format!("{name}/keep.txt")).is_file());
+        }
+        // Exercise the same extraction and compiler-cache creation used by
+        // build_owned; a fresh build can recreate both after cleanup.
+        extract();
+        assert!(work.join("src/Cargo.toml").is_file());
+        assert!(cache.join("intermediate").is_file());
+        clean_app_cache(&paths, "filmcraft").unwrap();
+        clean_app_cache(&paths, "filmcraft").unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn build_launch_options_are_persisted_separately_from_release_options() {
         let temp =

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.2
+
+- Switch between installations directly from Home. The selected copy stays synchronized with the app page.
+- Discover new Craft apps automatically, with descriptions and a New badge. Newly discovered apps stay at the top of available apps, even after you view them.
+- Identify portable copies with matching letters in desktop shortcuts and installation selectors. Existing copies keep their letters through updates and moves; new installations reuse the first available letter after removal. Selectors show versions with a v prefix and letters in parentheses.
+- Shorten installer shortcut names to the app name and architecture, such as FilmCraft (x64). Shortcut removal preserves user-edited shortcuts.
+- Hide the Activity notification badge with a new setting. Unread highlights remain visible inside Activity.
+- Improve installation transitions, progress-bar alignment, and light-theme badges. What's New has clearer highlights and a subtle animated underline on its patch-notes link.
+- Preserve additional installations more reliably when saving settings, and improve detection of older portable copies.
+- Store additional portable library copies directly in numbered app folders. Uninstall removes empty legacy wrapper folders while preserving user-selected parents and folders containing other files. New installs and moves no longer create extra shortcuts in the releases folder.
+- Remove empty app download folders after installer cleanup, while preserving retained setup files, recovery packages and other downloads.
+- Keep installer destinations separate from portable locations when changing versions or install options. Use architecture-appropriate Program Files defaults on Windows and prevent new installer copies from using manager storage folders.
+- Clean temporary files after interrupted builds, even without a completed build. Cleanup is blocked while building and preserves completed builds and source ZIPs.
+- Fix PDFCraft source builds using the wrong package name after its upstream rename.
+- Restore portable backups to the selected installation with the correct architecture where it can be detected. Support app names containing numbers.
+- Report interrupted background checks instead of leaving dialogs loading, and clean up temporary files from failed or cancelled downloads.
+
 ## 0.8.1
 
 - Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings → Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
