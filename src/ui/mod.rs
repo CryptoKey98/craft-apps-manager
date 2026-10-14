@@ -219,6 +219,7 @@ pub struct App {
     page: Page,
     search: String,
     whats_new_open: bool,
+    whats_new_animation_started: Option<f64>,
     preferences: Preferences,
     build_preferences: BuilderPreferences,
     settings: bool,
@@ -515,6 +516,7 @@ impl App {
             download_availability: BTreeMap::new(),
             root_text: paths.root.display().to_string(),
             tools_text: paths.tools.display().to_string(),
+            whats_new_animation_started: None,
             whats_new_open: !builder
                 && whats_new::should_show(&paths.root, env!("CARGO_PKG_VERSION")),
             paths,

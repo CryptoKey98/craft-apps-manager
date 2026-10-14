@@ -22,7 +22,7 @@ fn body_text(ui: &mut egui::Ui, text: &str) {
 }
 
 /// A narrow accent moves gently back and forth below the stationary label.
-fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32) {
+fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32, elapsed: f64) {
     let line = egui::Rect::from_min_max(
         egui::pos2(header.left() + 18.0, header.bottom() - 2.0),
         egui::pos2(header.right() - 3.0, header.bottom()),
@@ -31,7 +31,7 @@ fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32) {
         return;
     }
     // Six seconds for a full round trip, slowing naturally at either end.
-    let phase = (ui.input(|input| input.time) / 6.0).fract() as f32;
+    let phase = (elapsed / 6.0).fract() as f32;
     let center = 0.5 - 0.5 * (phase * std::f32::consts::TAU).cos();
     let mut mesh = egui::Mesh::default();
     for index in 0..=32 {
@@ -109,8 +109,11 @@ fn feature(ui: &mut egui::Ui, icon: Option<theme::Icon>, title: &str, text: &str
 impl App {
     pub(super) fn whats_new_dialog(&mut self, ctx: &egui::Context) {
         if !self.whats_new_open || self.builder {
+            self.whats_new_animation_started = None;
             return;
         }
+        let now = ctx.input(|input| input.time);
+        let elapsed = now - *self.whats_new_animation_started.get_or_insert(now);
         let mut dismiss = false;
         let p = theme::palette();
         let response = modal(ctx, "What's new", 548.0, |ui| {
@@ -191,7 +194,7 @@ impl App {
                                 }
                             });
                         if notes.body_returned.is_none() {
-                            patch_notes_underline(ui, notes.header_response.rect, p.link);
+                            patch_notes_underline(ui, notes.header_response.rect, p.link, elapsed);
                         }
                     });
             });
@@ -221,6 +224,7 @@ impl App {
             });
         });
         if dismiss || response.should_close() {
+            self.whats_new_animation_started = None;
             match remember(&self.paths.root, env!("CARGO_PKG_VERSION")) {
                 Ok(()) => self.whats_new_open = false,
                 Err(error) => {
