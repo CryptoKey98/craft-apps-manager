@@ -1262,7 +1262,8 @@ mod macos_tests {
             release("Craft-Apps-Manager-0.5.0-linux-x64.zip", &url),
             "0.4.0"
         )
-        .is_err());
+        .unwrap()
+        .is_none());
         assert!(select(
             release(
                 "Craft-Apps-Manager-0.5.0-macos-universal.zip",
