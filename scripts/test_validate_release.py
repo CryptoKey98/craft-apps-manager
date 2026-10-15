@@ -1,5 +1,6 @@
 import importlib.util
 from pathlib import Path
+import re
 import tempfile
 import unittest
 
@@ -48,6 +49,35 @@ class ReleaseValidationTests(unittest.TestCase):
             (self.root / "CHANGELOG.md").write_text(f"# Changelog\n\n## 0.8.2\n\n{notes}\n", encoding="utf-8")
             with self.assertRaises(ValueError):
                 validator.release_notes(self.root, "v0.8.2")
+
+
+class ReleaseWorkflowTests(unittest.TestCase):
+    def test_build_jobs_cover_tag_releases_and_manual_platform_selection(self):
+        workflow = (Path(__file__).resolve().parent.parent / ".github/workflows/release.yml").read_text()
+        conditions = dict(re.findall(r"^  (windows|linux|arch|macos):\n    if: (.+)$", workflow, re.MULTILINE))
+        self.assertEqual(set(conditions), {"windows", "linux", "arch", "macos"})
+
+        def selected(condition, event, platform):
+            # Evaluate only the equality/disjunction grammar used by build jobs.
+            # Reject unexpected syntax rather than executing workflow text.
+            comparisons = []
+            for clause in condition.split(" || "):
+                match = re.fullmatch(r"(github.event_name|inputs.platform) (==|!=) '([^']*)'", clause)
+                self.assertIsNotNone(match, f"Unsupported job condition: {clause}")
+                value = event if match[1] == "github.event_name" else platform
+                comparisons.append((value == match[3]) if match[2] == "==" else (value != match[3]))
+            return any(comparisons)
+
+        for event, platform, expected in [
+            ("push", "", {"windows", "linux", "arch", "macos"}),
+            ("workflow_dispatch", "all", {"windows", "linux", "arch", "macos"}),
+            ("workflow_dispatch", "windows", {"windows"}),
+            ("workflow_dispatch", "linux", {"linux", "arch"}),
+            ("workflow_dispatch", "macos", {"macos"}),
+        ]:
+            with self.subTest(event=event, platform=platform):
+                actual = {job for job, condition in conditions.items() if selected(condition, event, platform)}
+                self.assertEqual(actual, expected)
 
 
 if __name__ == "__main__":
