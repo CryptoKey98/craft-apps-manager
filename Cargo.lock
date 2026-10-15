@@ -853,8 +853,10 @@ dependencies = [
  "uuid",
  "walkdir",
  "windows",
+ "winit",
  "winreg",
  "winresource",
+ "x11rb",
  "zbus 5.19.0",
  "zip",
 ]

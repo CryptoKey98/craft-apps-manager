@@ -978,7 +978,8 @@ impl App {
     }
     fn settings_general(&mut self, ui: &mut egui::Ui) {
         group(ui, "Window behavior", |ui| {
-            check_row(
+            ui.add_enabled_ui(self.tray_wake.can_hide(), |ui| {
+                check_row(
                 ui,
                 &mut self.settings_draft.close_to_tray,
                 "Keep running in the system tray when closed",
@@ -986,6 +987,10 @@ impl App {
                     "Closing hides the window. Update checks continue. Use the tray menu to exit.",
                 ),
             );
+            });
+            if !self.tray_wake.can_hide() {
+                note(ui, "Close-to-tray needs X11 or XWayland. Closing will quit normally on this desktop.");
+            }
             if let Some(message) = &self.tray_error {
                 note(ui, message);
             }

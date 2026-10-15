@@ -13,8 +13,20 @@ use tray_icon::{
 pub(super) struct Wake {
     #[cfg(target_os = "windows")]
     hwnd: isize,
+    #[cfg(target_os = "linux")]
+    can_hide: bool,
 }
 impl Wake {
+    pub(super) fn can_hide(self) -> bool {
+        #[cfg(target_os = "linux")]
+        {
+            self.can_hide
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            true
+        }
+    }
     pub(super) fn new(cc: &eframe::CreationContext<'_>) -> Self {
         #[cfg(target_os = "windows")]
         {
@@ -25,7 +37,17 @@ impl Wake {
             };
             Self { hwnd }
         }
-        #[cfg(not(target_os = "windows"))]
+        #[cfg(target_os = "linux")]
+        {
+            use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+            Self {
+                can_hide: matches!(
+                    cc.window_handle().map(|handle| handle.as_raw()),
+                    Ok(RawWindowHandle::Xlib(_) | RawWindowHandle::Xcb(_))
+                ),
+            }
+        }
+        #[cfg(target_os = "macos")]
         {
             let _ = cc;
             Self {}
@@ -64,6 +86,11 @@ pub(super) struct Tray {
 
 impl Tray {
     pub(super) fn new(ctx: &egui::Context, wake: Wake) -> Result<Self> {
+        #[cfg(target_os = "linux")]
+        anyhow::ensure!(
+            wake.can_hide,
+            "Close-to-tray needs X11 or XWayland on this desktop. Closing will quit normally."
+        );
         anyhow::ensure!(
             host_available(),
             "A system tray is not available on this desktop. Closing will quit normally."

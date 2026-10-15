@@ -315,18 +315,32 @@ fn run() -> Result<()> {
             Some([width.parse::<f32>().ok()?, height.parse::<f32>().ok()?])
         });
     let options = eframe::NativeOptions {
-        viewport: eframe::egui::ViewportBuilder::default()
-            .with_icon(icon)
-            .with_inner_size(screenshot_size.unwrap_or(if builder {
-                [1050.0, 740.0]
-            } else {
-                [1320.0, 820.0]
-            }))
-            .with_min_inner_size(if builder {
-                [780.0, 580.0]
-            } else {
-                [1100.0, 480.0]
-            }),
+        #[cfg(target_os = "linux")]
+        event_loop_builder: Some(Box::new(move |event_loop| {
+            // Wayland cannot hide a winit window. Prefer XWayland when present
+            // so enabling close-to-tray later also works without a restart.
+            if platform::prefer_x11_for_manager(builder) {
+                use winit::platform::x11::EventLoopBuilderExtX11;
+                event_loop.with_x11();
+            }
+        })),
+        viewport: {
+            let viewport = eframe::egui::ViewportBuilder::default()
+                .with_icon(icon)
+                .with_inner_size(screenshot_size.unwrap_or(if builder {
+                    [1050.0, 740.0]
+                } else {
+                    [1320.0, 820.0]
+                }))
+                .with_min_inner_size(if builder {
+                    [780.0, 580.0]
+                } else {
+                    [1100.0, 480.0]
+                });
+            #[cfg(target_os = "linux")]
+            let viewport = viewport.with_app_id(platform::desktop_app_id(builder));
+            viewport
+        },
         ..Default::default()
     };
     if !builder {

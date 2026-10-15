@@ -603,6 +603,7 @@ fn detect_in_roots_for_architecture(
             }
             let candidate = Installed {
                 installation_label: Default::default(),
+                package_type: Default::default(),
                 name: app.into(),
                 path: location,
                 version: key.get_value("DisplayVersion").unwrap_or_default(),

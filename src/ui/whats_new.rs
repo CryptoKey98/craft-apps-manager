@@ -6,15 +6,35 @@ use std::path::Path;
 
 const SEEN_FILE: &str = "whats-new-seen.json";
 
-pub(super) fn should_show(root: &Path, version: &str) -> bool {
-    files::read_json::<String>(&root.join(SEEN_FILE))
-        .ok()
-        .as_deref()
-        != Some(version)
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+enum Seen {
+    Legacy(String),
+    Build { version: String, revision: u32 },
 }
 
-fn remember(root: &Path, version: &str) -> anyhow::Result<()> {
-    files::write_json(&root.join(SEEN_FILE), &version)
+pub(super) fn should_show(root: &Path, version: &str, revision: u32) -> bool {
+    let Ok(seen) = files::read_json::<Seen>(&root.join(SEEN_FILE)) else {
+        return true;
+    };
+    let (seen_version, seen_revision) = match seen {
+        Seen::Legacy(version) => (version, 1),
+        Seen::Build { version, revision } => (version, revision),
+    };
+    seen_version != version || seen_revision < revision
+}
+
+fn remember(root: &Path, version: &str, revision: u32) -> anyhow::Result<()> {
+    // Baseline dismissals remain readable by managers released before revisions.
+    let seen = if revision == 1 {
+        Seen::Legacy(version.to_owned())
+    } else {
+        Seen::Build {
+            version: version.to_owned(),
+            revision,
+        }
+    };
+    files::write_json(&root.join(SEEN_FILE), &seen)
 }
 
 fn body_text(ui: &mut egui::Ui, text: &str) {
@@ -202,6 +222,26 @@ impl App {
                         if notes.body_returned.is_none() {
                             patch_notes_underline(ui, notes.header_response.rect, p.link, elapsed);
                         }
+                        #[cfg(target_os = "linux")]
+                        {
+                            ui.add_space(12.0);
+                            egui::CollapsingHeader::new(RichText::new("Patch notes for 0.8.3 Rev. 2 · Linux").size(13.0).color(p.link))
+                                .id_salt("whats-new-linux-rev2-notes")
+                                .default_open(true)
+                                .show(ui, |ui| {
+                                    ui.add_space(6.0);
+                                    for note in [
+                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
+                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
+                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
+                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
+                                        "What's New opens once after a revision update, while keeping your existing dismissal history.",
+                                    ] {
+                                        body_text(ui, &format!("• {note}"));
+                                        ui.add_space(8.0);
+                                    }
+                                });
+                        }
                     });
             });
             ui.separator();
@@ -231,7 +271,11 @@ impl App {
         });
         if dismiss || response.should_close() {
             self.whats_new_animation_started = None;
-            match remember(&self.paths.root, env!("CARGO_PKG_VERSION")) {
+            match remember(
+                &self.paths.root,
+                env!("CARGO_PKG_VERSION"),
+                craft_apps_manager::update_revisions::BUILD_REVISION,
+            ) {
                 Ok(()) => self.whats_new_open = false,
                 Err(error) => {
                     self.whats_new_open = false;
@@ -248,11 +292,47 @@ mod tests {
     #[test]
     fn highlights_show_on_first_launch_and_version_change_only() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
-        assert!(should_show(&root, "0.8.0"));
-        remember(&root, "0.8.0").unwrap();
-        assert!(!should_show(&root, "0.8.0"));
-        assert!(should_show(&root, "0.9.0"));
+        assert!(should_show(&root, "0.8.0", 1));
+        remember(&root, "0.8.0", 1).unwrap();
+        assert!(!should_show(&root, "0.8.0", 1));
+        assert!(should_show(&root, "0.9.0", 1));
         assert!(!root.join("manager-settings.json").exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn legacy_dismissal_counts_as_revision_one_without_rewriting_it() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        files::write_json(&root.join(SEEN_FILE), &"0.8.3").unwrap();
+        let original = std::fs::read(root.join(SEEN_FILE)).unwrap();
+        assert!(!should_show(&root, "0.8.3", 1));
+        assert!(should_show(&root, "0.8.3", 2));
+        assert_eq!(std::fs::read(root.join(SEEN_FILE)).unwrap(), original);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn revision_dismissal_survives_restart_and_only_newer_revisions_show_again() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        assert!(should_show(&root, "0.8.3", 2));
+        remember(&root, "0.8.3", 2).unwrap();
+        assert!(!should_show(&root, "0.8.3", 2));
+        assert!(should_show(&root, "0.8.3", 3));
+        remember(&root, "0.8.3", 3).unwrap();
+        assert!(!should_show(&root, "0.8.3", 3));
+        assert!(!should_show(&root, "0.8.3", 2));
+        assert!(should_show(&root, "0.8.4", 1));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn baseline_dismissal_stays_readable_by_older_managers() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        remember(&root, "0.8.3", 1).unwrap();
+        assert_eq!(
+            files::read_json::<String>(&root.join(SEEN_FILE)).unwrap(),
+            "0.8.3"
+        );
         std::fs::remove_dir_all(root).unwrap();
     }
 }

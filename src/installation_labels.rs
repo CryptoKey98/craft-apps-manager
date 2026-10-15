@@ -16,11 +16,7 @@ pub fn version_summary(copy: &crate::model::Installed) -> String {
 }
 
 fn display_summary(copy: &crate::model::Installed, include_version: bool) -> String {
-    let kind = if copy.install_kind == "installer" {
-        "Installer"
-    } else {
-        "Portable"
-    };
+    let kind = package_label(copy);
     let mut text = format!(
         "{kind} · {}",
         crate::model::architecture_label(&copy.architecture)
@@ -31,10 +27,20 @@ fn display_summary(copy: &crate::model::Installed, include_version: bool) -> Str
             copy.version.trim_start_matches(['v', 'V'])
         ));
     }
-    if kind == "Portable" && valid_label(&copy.installation_label) {
+    if copy.install_kind != "installer" && valid_label(&copy.installation_label) {
         text.push_str(&format!(" ({})", copy.installation_label));
     }
     text
+}
+
+pub fn package_label(copy: &crate::model::Installed) -> &'static str {
+    if copy.install_kind == "installer" {
+        "Installer"
+    } else if cfg!(target_os = "linux") && copy.package_type == "appimage" {
+        "AppImage"
+    } else {
+        "Portable"
+    }
 }
 
 fn index(label: &str) -> Option<u32> {
@@ -184,6 +190,32 @@ pub(crate) fn migrate(paths: &crate::model::Paths) -> Result<Option<Config>> {
 mod tests {
     use super::*;
     use crate::model::Installed;
+
+    #[test]
+    fn package_labels_keep_portable_identifiers_and_respect_platform() {
+        let mut copy = Installed {
+            install_kind: "portable".into(),
+            package_type: "appimage".into(),
+            architecture: "x64".into(),
+            version: "0.8.2".into(),
+            installation_label: "A".into(),
+            ..Default::default()
+        };
+        assert_eq!(
+            package_label(&copy),
+            if cfg!(target_os = "linux") {
+                "AppImage"
+            } else {
+                "Portable"
+            }
+        );
+        assert!(version_summary(&copy).ends_with("v0.8.2 (A)"));
+        copy.package_type.clear();
+        assert_eq!(package_label(&copy), "Portable");
+        copy.install_kind = "installer".into();
+        assert_eq!(package_label(&copy), "Installer");
+        assert!(!version_summary(&copy).contains("(A)"));
+    }
 
     #[cfg(target_os = "windows")]
     #[test]

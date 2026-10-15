@@ -37,6 +37,8 @@ zip = { version = "2.4", default-features = false, features = ["deflate"] }
 tray-icon = { version = "0.26.1", default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+winit = { version = "0.30", default-features = false, features = ["x11", "wayland"] }
+x11rb = { version = "0.13", default-features = false }
 # AccessKit uses the shared zbus 4 dependency from its async-io executor.
 # Enabling zbus 4's Tokio backend through keyring breaks accessibility startup.
 keyring = { version = "3.6.3", default-features = false, features = ["async-secret-service", "async-io", "crypto-rust"] }

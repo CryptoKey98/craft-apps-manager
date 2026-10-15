@@ -8,6 +8,53 @@ use craft_apps_manager::{
 use std::{fs, os::unix::fs::PermissionsExt};
 
 #[test]
+fn manager_and_builder_desktop_launchers_have_distinct_matching_identities() {
+    let root =
+        std::env::temp_dir().join(format!("craft-desktop-identity-{}", uuid::Uuid::new_v4()));
+    fs::create_dir_all(&root).unwrap();
+    let executable = root.join("craft-apps-manager");
+    fs::write(&executable, "fixture").unwrap();
+    fs::write(root.join("icon.png"), "fixture").unwrap();
+    for (builder, id, title) in [
+        (false, "craft-apps-manager", "Craft Apps Manager"),
+        (true, "craft-apps-builder", "Craft Apps Builder"),
+    ] {
+        let packaged = fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join(format!("packaging/linux/{id}.desktop")),
+        )
+        .unwrap();
+        assert!(packaged.lines().any(|line| line == format!("Name={title}")));
+        assert!(packaged
+            .lines()
+            .any(|line| line == format!("StartupWMClass={id}")));
+        assert!(packaged
+            .lines()
+            .any(|line| line == "Icon=craft-apps-manager"));
+        let shortcut = root.join(format!("{id}.desktop"));
+        platform::shortcut(
+            &shortcut,
+            &executable,
+            if builder { "--builder" } else { "" },
+            &root,
+        )
+        .unwrap();
+        let generated = fs::read_to_string(shortcut).unwrap();
+        assert!(generated
+            .lines()
+            .any(|line| line == format!("Name={title}")));
+        assert!(generated
+            .lines()
+            .any(|line| line == format!("StartupWMClass={id}")));
+        assert!(generated
+            .lines()
+            .any(|line| line == format!("Icon={}", root.join("icon.png").display())));
+        assert_eq!(generated.contains("--builder"), builder);
+    }
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn linux_x86_selects_i686_appimage_without_accepting_x64() {
     let release = Release {
         tag_name: "v1.2.3".into(),

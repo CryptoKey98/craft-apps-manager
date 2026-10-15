@@ -6,6 +6,57 @@ use std::{
     process::{Command, Output},
 };
 
+/// Match the installed desktop filenames for both Wayland app IDs and X11 classes.
+pub fn desktop_app_id(builder: bool) -> &'static str {
+    if builder {
+        "craft-apps-builder"
+    } else {
+        "craft-apps-manager"
+    }
+}
+
+/// Prefer a reachable X11/XWayland connection so close-to-tray can hide the
+/// manager. Preserve winit's normal backend choice when X11 is unavailable.
+pub fn prefer_x11_for_manager(builder: bool) -> bool {
+    prefer_x11_with(
+        builder,
+        std::env::var_os("DISPLAY").is_some_and(|display| !display.is_empty()),
+        || {
+            // A stale display socket may accept a connection without answering
+            // the X11 handshake. Bound this probe so Wayland can still start.
+            let (tx, rx) = std::sync::mpsc::sync_channel(1);
+            std::thread::spawn(move || {
+                let _ = tx.send(x11rb::connect(None).is_ok());
+            });
+            rx.recv_timeout(std::time::Duration::from_secs(2))
+                .unwrap_or(false)
+        },
+    )
+}
+
+fn prefer_x11_with(builder: bool, has_display: bool, connect: impl FnOnce() -> bool) -> bool {
+    !builder && has_display && connect()
+}
+
+#[cfg(test)]
+mod window_backend_tests {
+    #[test]
+    fn inaccessible_x11_retains_the_default_backend() {
+        assert!(!super::prefer_x11_with(false, true, || false));
+        assert!(super::prefer_x11_with(false, true, || true));
+    }
+
+    #[test]
+    fn builder_and_wayland_only_do_not_probe_x11() {
+        assert!(!super::prefer_x11_with(true, true, || panic!(
+            "Builder must keep its backend"
+        )));
+        assert!(!super::prefer_x11_with(false, false, || panic!(
+            "No display to probe"
+        )));
+    }
+}
+
 pub fn hidden(command: &mut Command) -> &mut Command {
     command.process_group(0)
 }
@@ -179,7 +230,20 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
     } else {
         quoted(target)?
     };
-    fs::write(path,format!("[Desktop Entry]\nType=Application\nName={title}\nExec={} {args}\nPath={}\nTerminal=false\nCategories=Utility;\n",command,working.display()))?;
+    let identity = if app.is_none() {
+        let id = desktop_app_id(args == "--builder");
+        let icon = target
+            .parent()
+            .map(|folder| folder.join("icon.png"))
+            .filter(|icon| icon.is_file())
+            .map(|icon| icon.display().to_string())
+            .unwrap_or_else(|| "craft-apps-manager".into())
+            .replace('\\', "\\\\");
+        format!("StartupWMClass={id}\nIcon={icon}\n")
+    } else {
+        String::new()
+    };
+    fs::write(path,format!("[Desktop Entry]\nType=Application\nName={title}\nExec={} {args}\nPath={}\n{identity}Terminal=false\nCategories=Utility;\n",command,working.display()))?;
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(path, fs::Permissions::from_mode(0o755))?;
     Ok(())

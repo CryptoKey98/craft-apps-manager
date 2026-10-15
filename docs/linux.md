@@ -10,6 +10,10 @@ App updates, source downloads, backups, logs, launch settings and the source bui
 
 Profile deletion remains disabled on Linux until each app's actual profile directories have been checked. Installer cancellation is available during downloading, but an authorized package transaction must finish to protect the package database.
 
+Installation selectors identify AppImages from their file headers, including older installations whose executable was renamed. Other portable packages keep the Portable label; installation letters and selections remain unchanged.
+
+Close-to-tray requires both a usable tray host and an X11/XWayland window. The manager prefers a reachable X11 display when one is available. Native Wayland windows cannot be hidden by the current window backend, so the setting is disabled there and closing quits normally. The Builder retains its normal backend selection.
+
 ## Arch Linux (experimental)
 
 Arch and distributions identifying as Arch-compatible use pacman for native

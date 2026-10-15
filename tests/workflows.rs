@@ -1015,6 +1015,7 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     .unwrap();
     let record = Installed {
         installation_label: Default::default(),
+        package_type: Default::default(),
         name: "craft-test-missing-app".into(),
         version: "1.0.0".into(),
         path: f.0.join("missing").display().to_string(),
