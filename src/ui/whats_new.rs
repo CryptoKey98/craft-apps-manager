@@ -202,6 +202,25 @@ impl App {
                         if notes.body_returned.is_none() {
                             patch_notes_underline(ui, notes.header_response.rect, p.link, elapsed);
                         }
+                        #[cfg(target_os = "linux")]
+                        {
+                            ui.add_space(12.0);
+                            egui::CollapsingHeader::new(RichText::new("Patch notes for 0.8.3 Rev. 2 · Linux").size(13.0).color(p.link))
+                                .id_salt("whats-new-linux-rev2-notes")
+                                .default_open(true)
+                                .show(ui, |ui| {
+                                    ui.add_space(6.0);
+                                    for note in [
+                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
+                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
+                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
+                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
+                                    ] {
+                                        body_text(ui, &format!("• {note}"));
+                                        ui.add_space(8.0);
+                                    }
+                                });
+                        }
                     });
             });
             ui.separator();
