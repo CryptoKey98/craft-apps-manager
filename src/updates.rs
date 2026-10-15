@@ -1622,6 +1622,13 @@ fn execute_entries(
                     prefs.architecture.clone()
                 };
                 config.apps[i].install_kind = "portable".into();
+                config.apps[i].package_type =
+                    if asset.name.to_ascii_lowercase().ends_with(".appimage") {
+                        "appimage"
+                    } else {
+                        ""
+                    }
+                    .into();
                 config.apps[i].product_code.clear();
                 if let Err(e) = replace_transaction(
                     executables[0].path().parent().unwrap(),

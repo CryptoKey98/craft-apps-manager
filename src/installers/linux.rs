@@ -236,6 +236,7 @@ fn detect_package(app: &str, package: &str) -> Result<Option<Installed>> {
     };
     Ok(Some(Installed {
         installation_label: Default::default(),
+        package_type: Default::default(),
         name: app.into(),
         version,
         path: executable

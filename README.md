@@ -106,6 +106,8 @@ Enable **Keep running in system tray when closed** in General settings to hide t
 
 This needs a usable desktop tray. On Linux, some GNOME desktops require a compatible tray extension. If there is no tray host, closing quits normally so the manager cannot become inaccessible.
 
+Linux close-to-tray also needs X11 or XWayland. The manager prefers a reachable XWayland display when available. On native Wayland, the setting is disabled and closing quits normally.
+
 ## Custom GitHub apps
 
 Paste a repository link into **Settings → Apps → Custom apps**. The setup dialog lets you review the detected download, package type, and architecture, and choose a download when several are possible.

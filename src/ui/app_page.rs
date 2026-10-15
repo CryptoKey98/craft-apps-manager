@@ -1136,7 +1136,9 @@ impl App {
             .as_ref()
             .map(|record| {
                 let format = match record.install_kind.as_str() {
-                    "installer" | "portable" => release_format_label(&record.install_kind),
+                    "installer" | "portable" => {
+                        craft_apps_manager::installation_labels::package_label(record)
+                    }
                     _ => "Unknown format",
                 };
                 let architecture = if record.architecture.is_empty() {

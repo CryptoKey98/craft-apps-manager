@@ -6,6 +6,11 @@
 - Keep existing update paths available for older managers. Minor platform fixes can be delivered without updating unaffected platforms.
 - Fix a Linux accessibility startup error caused by conflicting credential-store runtime settings.
 
+### Linux Rev. 2
+
+- Fix closing to the system tray on X11 and XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally. Keep the manager able to start when XWayland is unavailable.
+- Show AppImage installations as AppImage in installation selectors and package details, including existing installations. Preserve installation selections and portable letters.
+
 ## 0.8.2
 
 - Switch between installations directly from Home. The selected copy stays synchronized with the app page.

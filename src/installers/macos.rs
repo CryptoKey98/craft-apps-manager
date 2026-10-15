@@ -75,6 +75,7 @@ pub fn resolve_bundle(folder: &Path, app: &str) -> Option<PathBuf> {
 fn installed_bundle(bundle: &Path, app: &str) -> Result<Installed> {
     Ok(Installed {
         installation_label: String::new(),
+        package_type: String::new(),
         name: app.into(),
         version: platform::executable_version(bundle).unwrap_or_else(|| "0.0.0".into()),
         path: bundle

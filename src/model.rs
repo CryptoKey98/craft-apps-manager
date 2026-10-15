@@ -311,6 +311,8 @@ pub struct Installed {
     pub product_code: String,
     #[serde(default)]
     pub installation_label: String,
+    #[serde(default)]
+    pub package_type: String,
 }
 fn default_arch() -> String {
     MANAGER_ARCH.into()
@@ -436,6 +438,7 @@ impl Paths {
             let direct = self.at(format!("releases/{name}"));
             apps.push(Installed {
                 installation_label: Default::default(),
+                package_type: Default::default(),
                 name: name.into(),
                 version,
                 path: if path.is_empty() && installed_executable(&direct, name).is_some() {
@@ -539,6 +542,7 @@ impl Paths {
                 if let Some(executable) = installed_executable(&library, &app.name) {
                     config.installations.push(Installed {
                         installation_label: Default::default(),
+                        package_type: Default::default(),
                         name: app.name.clone(),
                         path: library.display().to_string(),
                         version: crate::platform::executable_version(&executable)
@@ -620,6 +624,15 @@ impl Paths {
                     app.install_kind = "portable".into();
                     app.product_code.clear();
                 }
+            }
+        }
+        #[cfg(target_os = "linux")]
+        for copy in config.apps.iter_mut().chain(&mut config.installations) {
+            if copy.install_kind != "installer" && !copy.path.is_empty() {
+                copy.package_type = installed_executable(Path::new(&copy.path), &copy.name)
+                    .filter(|executable| is_appimage(executable))
+                    .map(|_| "appimage".to_owned())
+                    .unwrap_or_default();
             }
         }
         for app in &mut config.apps {
@@ -856,6 +869,19 @@ mod desktop_executable_tests {
         assert!(unix.contains(&"example-gui".into()));
     }
 }
+/// AppImages retain their identifying ELF header even when renamed on install.
+#[cfg(any(target_os = "linux", test))]
+fn is_appimage(path: &Path) -> bool {
+    use std::io::Read;
+    let mut header = [0u8; 11];
+    std::fs::File::open(path)
+        .and_then(|mut file| file.read_exact(&mut header))
+        .is_ok()
+        && &header[..4] == b"\x7fELF"
+        && &header[8..10] == b"AI"
+        && matches!(header[10], 1 | 2)
+}
+
 pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
     #[cfg(target_os = "macos")]
     {
@@ -1701,6 +1727,7 @@ mod detection_tests {
                 .contains(&name)
                 .then(|| Installed {
                     installation_label: Default::default(),
+                    package_type: Default::default(),
                     name: name.into(),
                     path: root.join("system").join(name).display().to_string(),
                     version: "0.2.1".into(),
@@ -1759,6 +1786,121 @@ mod detection_tests {
                 .unwrap()
                 .path
         );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod appimage_header_tests {
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn legacy_copies_recover_appimage_labels_without_changing_selection_or_letters() {
+        use super::*;
+        let root =
+            std::env::temp_dir().join(format!("craft-appimage-migration-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let mut header = [0u8; 64];
+        header[..4].copy_from_slice(b"\x7fELF");
+        header[8..11].copy_from_slice(b"AI\x02");
+        let mut copies = Vec::new();
+        for (folder, label, bytes) in [
+            ("filmcraft", "A", header.as_slice()),
+            ("filmcraft-2", "B", b"\x7fELFordinary".as_slice()),
+        ] {
+            let folder = paths.at(format!("releases/{folder}"));
+            std::fs::create_dir_all(&folder).unwrap();
+            std::fs::write(folder.join(executable_name("filmcraft")), bytes).unwrap();
+            copies.push(Installed {
+                name: "filmcraft".into(),
+                path: folder.display().to_string(),
+                version: "0.8.2".into(),
+                architecture: "x64".into(),
+                install_kind: "portable".into(),
+                installation_label: label.into(),
+                ..Default::default()
+            });
+        }
+        let config = Config {
+            apps_root: root.display().to_string(),
+            apps: vec![copies[0].clone()],
+            installations: copies.clone(),
+            portable_label_counters: Default::default(),
+        };
+        let mut legacy = serde_json::to_value(config).unwrap();
+        for field in ["apps", "installations"] {
+            for copy in legacy[field].as_array_mut().unwrap() {
+                assert!(copy
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("package_type")
+                    .is_some());
+            }
+        }
+        crate::files::write_json(&paths.at("settings.json"), &legacy).unwrap();
+        let refreshed = paths.config_with_detector(|_| Ok(None)).unwrap();
+        let selected = refreshed
+            .apps
+            .iter()
+            .find(|copy| copy.name == "filmcraft")
+            .unwrap();
+        assert_eq!(selected.path, copies[0].path);
+        assert_eq!(selected.package_type, "appimage");
+        assert_eq!(selected.installation_label, "A");
+        assert!(crate::installation_labels::summary(selected).starts_with("AppImage"));
+        paths.save_config(&refreshed).unwrap();
+        let reopened = paths.config_with_detector(|_| Ok(None)).unwrap();
+        for expected in &copies {
+            let copy = reopened
+                .installations
+                .iter()
+                .find(|copy| copy.path == expected.path)
+                .unwrap();
+            assert_eq!(copy.installation_label, expected.installation_label);
+            assert_eq!(
+                copy.package_type,
+                if expected.installation_label == "A" {
+                    "appimage"
+                } else {
+                    ""
+                }
+            );
+            assert_eq!(copy.install_kind, "portable");
+        }
+        // A later ordinary portable replacement must not retain a stale AppImage label.
+        std::fs::write(
+            Path::new(&copies[0].path).join(executable_name("filmcraft")),
+            b"\x7fELFordinary",
+        )
+        .unwrap();
+        let replaced = paths.config_with_detector(|_| Ok(None)).unwrap();
+        let selected = replaced
+            .apps
+            .iter()
+            .find(|copy| copy.name == "filmcraft")
+            .unwrap();
+        assert_eq!(selected.package_type, "");
+        assert_eq!(selected.installation_label, "A");
+        assert!(crate::installation_labels::summary(selected).starts_with("Portable"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn renamed_appimages_are_detected_without_mislabeling_other_elf_files() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        std::fs::create_dir_all(&root).unwrap();
+        let file = root.join("filmcraft");
+        for kind in [1u8, 2] {
+            let mut header = [0u8; 11];
+            header[..4].copy_from_slice(b"\x7fELF");
+            header[8..10].copy_from_slice(b"AI");
+            header[10] = kind;
+            std::fs::write(&file, header).unwrap();
+            assert!(super::is_appimage(&file));
+        }
+        std::fs::write(&file, b"\x7fELFordinary").unwrap();
+        assert!(!super::is_appimage(&file));
+        std::fs::write(&file, b"short").unwrap();
+        assert!(!super::is_appimage(&file));
         std::fs::remove_dir_all(root).unwrap();
     }
 }

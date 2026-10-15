@@ -6,6 +6,48 @@ use std::{
     process::{Command, Output},
 };
 
+/// Prefer a reachable X11/XWayland connection so close-to-tray can hide the
+/// manager. Preserve winit's normal backend choice when X11 is unavailable.
+pub fn prefer_x11_for_manager(builder: bool) -> bool {
+    prefer_x11_with(
+        builder,
+        std::env::var_os("DISPLAY").is_some_and(|display| !display.is_empty()),
+        || {
+            // A stale display socket may accept a connection without answering
+            // the X11 handshake. Bound this probe so Wayland can still start.
+            let (tx, rx) = std::sync::mpsc::sync_channel(1);
+            std::thread::spawn(move || {
+                let _ = tx.send(x11rb::connect(None).is_ok());
+            });
+            rx.recv_timeout(std::time::Duration::from_secs(2))
+                .unwrap_or(false)
+        },
+    )
+}
+
+fn prefer_x11_with(builder: bool, has_display: bool, connect: impl FnOnce() -> bool) -> bool {
+    !builder && has_display && connect()
+}
+
+#[cfg(test)]
+mod window_backend_tests {
+    #[test]
+    fn inaccessible_x11_retains_the_default_backend() {
+        assert!(!super::prefer_x11_with(false, true, || false));
+        assert!(super::prefer_x11_with(false, true, || true));
+    }
+
+    #[test]
+    fn builder_and_wayland_only_do_not_probe_x11() {
+        assert!(!super::prefer_x11_with(true, true, || panic!(
+            "Builder must keep its backend"
+        )));
+        assert!(!super::prefer_x11_with(false, false, || panic!(
+            "No display to probe"
+        )));
+    }
+}
+
 pub fn hidden(command: &mut Command) -> &mut Command {
     command.process_group(0)
 }
