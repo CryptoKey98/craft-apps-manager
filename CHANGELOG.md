@@ -8,6 +8,7 @@
 
 ### Linux Rev. 2
 
+- Show What's New once after a revision update, preserving existing dismissal records.
 - Give Manager and Builder matching desktop identities so Linux desktops can associate their windows with the correct launcher and icon.
 - Fix closing to the system tray on X11 and XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally. Keep the manager able to start when XWayland is unavailable.
 - Show AppImage installations as AppImage in installation selectors and package details, including existing installations. Preserve installation selections and portable letters.

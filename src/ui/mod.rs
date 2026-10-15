@@ -519,7 +519,11 @@ impl App {
             tools_text: paths.tools.display().to_string(),
             whats_new_animation_started: None,
             whats_new_open: !builder
-                && whats_new::should_show(&paths.root, env!("CARGO_PKG_VERSION")),
+                && whats_new::should_show(
+                    &paths.root,
+                    env!("CARGO_PKG_VERSION"),
+                    craft_apps_manager::update_revisions::BUILD_REVISION,
+                ),
             paths,
             home,
             builder,
