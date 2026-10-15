@@ -6,6 +6,15 @@ use std::{
     process::{Command, Output},
 };
 
+/// Match the installed desktop filenames for both Wayland app IDs and X11 classes.
+pub fn desktop_app_id(builder: bool) -> &'static str {
+    if builder {
+        "craft-apps-builder"
+    } else {
+        "craft-apps-manager"
+    }
+}
+
 /// Prefer a reachable X11/XWayland connection so close-to-tray can hide the
 /// manager. Preserve winit's normal backend choice when X11 is unavailable.
 pub fn prefer_x11_for_manager(builder: bool) -> bool {
@@ -221,7 +230,20 @@ pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Resul
     } else {
         quoted(target)?
     };
-    fs::write(path,format!("[Desktop Entry]\nType=Application\nName={title}\nExec={} {args}\nPath={}\nTerminal=false\nCategories=Utility;\n",command,working.display()))?;
+    let identity = if app.is_none() {
+        let id = desktop_app_id(args == "--builder");
+        let icon = target
+            .parent()
+            .map(|folder| folder.join("icon.png"))
+            .filter(|icon| icon.is_file())
+            .map(|icon| icon.display().to_string())
+            .unwrap_or_else(|| "craft-apps-manager".into())
+            .replace('\\', "\\\\");
+        format!("StartupWMClass={id}\nIcon={icon}\n")
+    } else {
+        String::new()
+    };
+    fs::write(path,format!("[Desktop Entry]\nType=Application\nName={title}\nExec={} {args}\nPath={}\n{identity}Terminal=false\nCategories=Utility;\n",command,working.display()))?;
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(path, fs::Permissions::from_mode(0o755))?;
     Ok(())

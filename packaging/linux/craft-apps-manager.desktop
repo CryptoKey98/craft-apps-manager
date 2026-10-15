@@ -4,5 +4,6 @@ Name=Craft Apps Manager
 Comment=Manage Craft app releases, sources and builds
 Exec=craft-apps-manager
 Icon=craft-apps-manager
+StartupWMClass=craft-apps-manager
 Terminal=false
 Categories=Utility;

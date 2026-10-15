@@ -324,18 +324,23 @@ fn run() -> Result<()> {
                 event_loop.with_x11();
             }
         })),
-        viewport: eframe::egui::ViewportBuilder::default()
-            .with_icon(icon)
-            .with_inner_size(screenshot_size.unwrap_or(if builder {
-                [1050.0, 740.0]
-            } else {
-                [1320.0, 820.0]
-            }))
-            .with_min_inner_size(if builder {
-                [780.0, 580.0]
-            } else {
-                [1100.0, 480.0]
-            }),
+        viewport: {
+            let viewport = eframe::egui::ViewportBuilder::default()
+                .with_icon(icon)
+                .with_inner_size(screenshot_size.unwrap_or(if builder {
+                    [1050.0, 740.0]
+                } else {
+                    [1320.0, 820.0]
+                }))
+                .with_min_inner_size(if builder {
+                    [780.0, 580.0]
+                } else {
+                    [1100.0, 480.0]
+                });
+            #[cfg(target_os = "linux")]
+            let viewport = viewport.with_app_id(platform::desktop_app_id(builder));
+            viewport
+        },
         ..Default::default()
     };
     if !builder {
