@@ -34,7 +34,20 @@ pub struct State {
     pub units: usize,
 }
 #[derive(Clone)]
+pub struct IdentityChoice {
+    pub title: String,
+    pub candidates: Vec<String>,
+    answer: std::sync::mpsc::Sender<Option<usize>>,
+}
+impl IdentityChoice {
+    pub fn answer(&self, selected: Option<usize>) {
+        let _ = self.answer.send(selected);
+    }
+}
+#[derive(Clone)]
 pub struct Job {
+    interactive: bool,
+    choice: Arc<Mutex<Option<IdentityChoice>>>,
     pub state: Arc<Mutex<State>>,
     pub cancel: Arc<AtomicBool>,
     pub log_path: PathBuf,
@@ -60,6 +73,8 @@ impl Job {
             parent
         };
         Self {
+            interactive: false,
+            choice: Arc::new(Mutex::new(None)),
             operations: crate::operations::Manager::new(root),
             active: Arc::new(Mutex::new(None)),
             descriptor: ("Operation".into(), String::new()),
@@ -73,6 +88,51 @@ impl Job {
             max_bytes: prefs.log_size_mb * 1024 * 1024,
             archives: prefs.log_archives,
         }
+    }
+    pub fn interactive(log_path: PathBuf, prefs: &crate::model::BuilderPreferences) -> Self {
+        let mut job = Self::new(log_path, prefs);
+        job.enable_identity_choices();
+        job
+    }
+    pub fn identity_choices_available(&self) -> bool {
+        self.interactive
+    }
+    pub fn enable_identity_choices(&mut self) {
+        self.interactive = true;
+    }
+    pub fn identity_choice(&self) -> Option<IdentityChoice> {
+        self.choice.lock().unwrap().clone()
+    }
+    pub fn choose_identity(&self, title: &str, candidates: Vec<String>) -> Result<usize> {
+        anyhow::ensure!(
+            self.interactive,
+            "This package needs an executable choice. Install it individually from the manager."
+        );
+        anyhow::ensure!(
+            !candidates.is_empty(),
+            "No compatible desktop executable found"
+        );
+        let count = candidates.len();
+        let (tx, rx) = std::sync::mpsc::channel();
+        *self.choice.lock().unwrap() = Some(IdentityChoice {
+            title: title.into(),
+            candidates,
+            answer: tx,
+        });
+        self.stage("Choose application", None, title);
+        let result = (|| loop {
+            self.check()?;
+            match rx.recv_timeout(Duration::from_millis(100)) {
+                Ok(Some(index)) if index < count => return Ok(index),
+                Ok(_) => return Err(Cancelled.into()),
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    bail!("Application choice window closed")
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
+            }
+        })();
+        *self.choice.lock().unwrap() = None;
+        result
     }
     pub fn describe(&mut self, kind: &str, resource: &str) {
         self.descriptor = (
@@ -397,6 +457,8 @@ impl Job {
                 child.parent = self.operation_id().or_else(|| self.parent.clone());
                 child.active = Arc::new(Mutex::new(Some(handle)));
                 child.cancel = self.cancel.clone();
+                child.interactive = self.interactive;
+                child.choice = self.choice.clone();
                 child.relay = Some(self.state.clone());
                 child
             })
@@ -683,6 +745,10 @@ impl Job {
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(job.clone())));
             let result =
                 result.unwrap_or_else(|_| Err(anyhow::anyhow!("Worker failed unexpectedly")));
+            job.choice
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner())
+                .take();
             job.state.clear_poison();
             if let Err(error) = &result {
                 job.log(&format!(
@@ -1140,5 +1206,51 @@ mod tests {
             panic!("worker panic");
         });
         assert_eq!(panic.stage, "Failed");
+    }
+}
+
+#[cfg(test)]
+mod identity_choice_tests {
+    use super::*;
+    #[test]
+    fn headless_identity_choice_never_waits_for_a_window() {
+        let job = Job::new(
+            std::env::temp_dir().join("identity-choice-unused.log"),
+            &Default::default(),
+        );
+        assert!(job
+            .choose_identity("Choose", vec!["app.exe".into()])
+            .is_err());
+        assert!(job.identity_choice().is_none());
+    }
+    #[test]
+    fn identity_choice_handles_selection_and_cancellation() {
+        let root = std::env::temp_dir().join(format!("craft-choice-{}", uuid::Uuid::new_v4()));
+        let mut job = Job::new(root.join("logs/test.log"), &Default::default());
+        job.enable_identity_choices();
+        for answer in [Some(1), None] {
+            let worker = job.clone();
+            let thread = std::thread::spawn(move || {
+                worker.choose_identity("Choose", vec!["first.exe".into(), "second.exe".into()])
+            });
+            let deadline = std::time::Instant::now() + Duration::from_secs(5);
+            loop {
+                if let Some(choice) = job.identity_choice() {
+                    choice.answer(answer);
+                    break;
+                }
+                assert!(std::time::Instant::now() < deadline);
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            let result = thread.join().unwrap();
+            match answer {
+                Some(index) => assert_eq!(result.unwrap(), index),
+                None => assert!(is_cancelled(&result.unwrap_err())),
+            }
+            assert!(job.identity_choice().is_none());
+        }
+        if root.exists() {
+            std::fs::remove_dir_all(root).unwrap();
+        }
     }
 }

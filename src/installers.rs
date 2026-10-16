@@ -16,3 +16,9 @@ pub use macos::*;
 #[allow(dead_code)]
 #[path = "installers/linux.rs"]
 mod linux_contract_tests;
+
+// Exercise bundle identity and rollback contracts without executing macOS tools.
+#[cfg(all(test, not(target_os = "macos")))]
+#[allow(dead_code)]
+#[path = "installers/macos.rs"]
+mod macos_contract_tests;

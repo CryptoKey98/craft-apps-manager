@@ -112,6 +112,19 @@ impl Drop for MsiHandle {
 }
 // Read the installed component key path: many MSI packages leave InstallLocation blank.
 fn msi_app_folder(product: &str, app: &str) -> Option<String> {
+    let known: Vec<_> = crate::app_identity::native(app)
+        .into_iter()
+        .filter(|identity| {
+            identity.platform == "windows" && identity.package.eq_ignore_ascii_case(product)
+        })
+        .map(|identity| identity.executable)
+        .collect();
+    let explicit_identity = !known.is_empty();
+    let names = if known.is_empty() {
+        crate::model::executable_names(app)
+    } else {
+        known
+    };
     let product = platform::wide(product);
     let property = platform::wide("LocalPackage");
     let mut value = vec![0u16; 32768];
@@ -153,10 +166,7 @@ fn msi_app_folder(product: &str, app: &str) -> Option<String> {
         }
         let name = String::from_utf16_lossy(&value[..size as usize]);
         let name = name.rsplit('|').next()?;
-        if !crate::model::executable_names(app)
-            .iter()
-            .any(|n| n.eq_ignore_ascii_case(name))
-        {
+        if !names.iter().any(|n| n.eq_ignore_ascii_case(name)) {
             continue;
         }
         let mut size = (value.len() - 1) as u32;
@@ -178,11 +188,448 @@ fn msi_app_folder(product: &str, app: &str) -> Option<String> {
         }
         let path = std::path::PathBuf::from(String::from_utf16_lossy(&value[..size as usize]));
         let folder = path.parent()?;
-        if crate::model::installed_executable(folder, app).is_some() {
+        let verified = if explicit_identity {
+            executable_architecture(&path).is_some_and(|arch| {
+                crate::downloads::verify_desktop_executable(&path, arch).is_ok()
+            })
+        } else {
+            crate::model::installed_executable(folder, app).is_some()
+        };
+        if verified {
             return Some(folder.display().to_string());
         }
     }
     None
+}
+// Read package metadata without executing the installer or trusting its filename.
+fn msi_rows(file: &Path, query: &str) -> Result<Vec<String>> {
+    let mut database = 0;
+    anyhow::ensure!(
+        unsafe {
+            MsiOpenDatabaseW(
+                platform::wide(file).as_ptr(),
+                std::ptr::null(),
+                &mut database,
+            )
+        } == 0,
+        "Could not read MSI identity"
+    );
+    let database = MsiHandle(database);
+    let mut view = 0;
+    anyhow::ensure!(
+        unsafe { MsiDatabaseOpenViewW(database.0, platform::wide(query).as_ptr(), &mut view) } == 0,
+        "Could not query MSI identity"
+    );
+    let view = MsiHandle(view);
+    anyhow::ensure!(
+        unsafe { MsiViewExecute(view.0, 0) } == 0,
+        "Could not read MSI identity table"
+    );
+    let mut rows = Vec::new();
+    loop {
+        let mut record = 0;
+        let code = unsafe { MsiViewFetch(view.0, &mut record) };
+        if code == 259 {
+            break;
+        }
+        anyhow::ensure!(code == 0, "Could not read MSI identity row ({code})");
+        let record = MsiHandle(record);
+        let mut text = vec![0u16; 32768];
+        let mut size = (text.len() - 1) as u32;
+        anyhow::ensure!(
+            unsafe { MsiRecordGetStringW(record.0, 1, text.as_mut_ptr(), &mut size) } == 0,
+            "Could not read MSI identity value"
+        );
+        rows.push(String::from_utf16_lossy(&text[..size as usize]));
+    }
+    Ok(rows)
+}
+fn preferred_msi_executable(
+    names: &[String],
+    saved: &[String],
+    guesses: &[String],
+) -> Option<usize> {
+    let matches = |known: &[String]| {
+        names
+            .iter()
+            .enumerate()
+            .filter(|(_, name)| known.iter().any(|known| known.eq_ignore_ascii_case(name)))
+            .map(|(index, _)| index)
+            .collect::<Vec<_>>()
+    };
+    let remembered = matches(saved);
+    if remembered.len() == 1 {
+        return Some(remembered[0]);
+    }
+    if !saved.is_empty() {
+        return None;
+    }
+    let guessed = matches(guesses);
+    (guessed.len() == 1).then(|| guessed[0])
+}
+pub fn batch_identity_ready(app: &str) -> bool {
+    !crate::catalog::get(app).is_some_and(|entry| entry.repository.contains('/'))
+        || exe_identity_ready(app).unwrap_or(false)
+}
+fn exe_identity_ready(app: &str) -> Result<bool> {
+    for identity in crate::app_identity::native(app) {
+        if identity.platform == "windows"
+            && identity.package.starts_with("exe:")
+            && detect_registered_product(app, None, None, Some(&identity.package))?.is_some()
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+pub fn prepare_custom_identity(
+    root: &Path,
+    file: &Path,
+    app: &str,
+    job: &crate::jobs::Job,
+) -> Result<()> {
+    if !crate::catalog::get(app).is_some_and(|entry| entry.repository.contains('/'))
+        || !file
+            .extension()
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("msi"))
+    {
+        return Ok(());
+    }
+    let products = msi_rows(
+        file,
+        "SELECT `Value` FROM `Property` WHERE `Property` = 'ProductCode'",
+    )?;
+    let [product] = products.as_slice() else {
+        bail!("MSI must identify one product");
+    };
+    anyhow::ensure!(
+        product.starts_with('{')
+            && product.ends_with('}')
+            && uuid::Uuid::parse_str(product).is_ok(),
+        "Invalid MSI product identity"
+    );
+    let families = msi_rows(
+        file,
+        "SELECT `Value` FROM `Property` WHERE `Property` = 'UpgradeCode'",
+    )?;
+    anyhow::ensure!(families.len() <= 1, "Invalid MSI upgrade family");
+    let family = families.first().cloned().unwrap_or_default();
+    anyhow::ensure!(
+        family.is_empty() || uuid::Uuid::parse_str(&family).is_ok(),
+        "Invalid MSI upgrade family"
+    );
+    let mut names: Vec<String> = msi_rows(file, "SELECT `FileName` FROM `File`")?
+        .into_iter()
+        .filter_map(|name| {
+            let name = name.rsplit('|').next()?.to_owned();
+            (name.to_ascii_lowercase().ends_with(".exe") && !name.contains(['/', '\\', ':']))
+                .then_some(name)
+        })
+        .collect();
+    names.sort();
+    names.dedup();
+    let remembered: Vec<_> = crate::app_identity::native(app)
+        .into_iter()
+        .filter(|identity| {
+            identity.platform == "windows"
+                && (identity.package.eq_ignore_ascii_case(product)
+                    || (!family.is_empty() && identity.family.eq_ignore_ascii_case(&family)))
+        })
+        .map(|identity| identity.executable)
+        .collect();
+    let index = if let Some(index) =
+        preferred_msi_executable(&names, &remembered, &crate::model::executable_names(app))
+    {
+        index
+    } else {
+        job.choose_identity("Choose this package's main application executable. The Windows Installer product ID will identify the installed copy.",names.clone())?
+    };
+    crate::app_identity::remember(
+        root,
+        app,
+        crate::app_identity::NativeIdentity {
+            launch: None,
+            family,
+            platform: "windows".into(),
+            package: product.clone(),
+            executable: names[index].clone(),
+        },
+    )
+}
+fn registry_scope(hive: winreg::HKEY, view: u32) -> &'static str {
+    match (hive == HKEY_CURRENT_USER, view == KEY_WOW64_64KEY) {
+        (true, true) => "HKCU/64",
+        (true, false) => "HKCU/32",
+        (false, true) => "HKLM/64",
+        (false, false) => "HKLM/32",
+    }
+}
+fn exe_registration_id(scope: &str, key: &str, folder: &Path) -> String {
+    format!(
+        "exe:{}",
+        serde_json::to_string(&[
+            scope.to_owned(),
+            key.to_owned(),
+            folder
+                .to_string_lossy()
+                .replace('/', "\\")
+                .trim_end_matches('\\')
+                .to_ascii_lowercase()
+        ])
+        .unwrap()
+    )
+}
+fn identity_for_registration(
+    app: &str,
+    name: &str,
+    key: &RegKey,
+    scope: Option<&str>,
+) -> Option<crate::app_identity::NativeIdentity> {
+    let msi = key
+        .get_value::<u32, _>("WindowsInstaller")
+        .unwrap_or_default()
+        == 1;
+    crate::app_identity::native(app)
+        .into_iter()
+        .find(|identity| {
+            if identity.platform != "windows" {
+                return false;
+            }
+            if msi {
+                return identity.package.eq_ignore_ascii_case(name);
+            }
+            let Some(raw) = identity.package.strip_prefix("exe:") else {
+                return false;
+            };
+            let Ok([saved_scope, saved_key, saved_folder]) =
+                serde_json::from_str::<[String; 3]>(raw)
+            else {
+                return false;
+            };
+            scope.is_none_or(|scope| scope == saved_scope)
+                && name.eq_ignore_ascii_case(&saved_key)
+                && registered_install_folder(key).is_some_and(|folder| {
+                    folder
+                        .to_string_lossy()
+                        .replace('/', "\\")
+                        .trim_end_matches('\\')
+                        .eq_ignore_ascii_case(&saved_folder)
+                })
+        })
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Registration {
+    identity: String,
+    display: String,
+    version: String,
+    folder: std::path::PathBuf,
+    icon: String,
+    uninstall: String,
+}
+fn registrations() -> Vec<Registration> {
+    let mut records = Vec::new();
+    for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+            let Ok(root) = RegKey::predef(hive).open_subkey_with_flags(
+                "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+                KEY_READ | view,
+            ) else {
+                continue;
+            };
+            for name in root.enum_keys().flatten() {
+                let Ok(key) = root.open_subkey(&name) else {
+                    continue;
+                };
+                if key
+                    .get_value::<u32, _>("SystemComponent")
+                    .unwrap_or_default()
+                    == 1
+                {
+                    continue;
+                }
+                let display: String = key.get_value("DisplayName").unwrap_or_default();
+                let Some(folder) = registered_install_folder(&key) else {
+                    continue;
+                };
+                if display.trim().is_empty() || !folder.is_dir() {
+                    continue;
+                }
+                let msi = key
+                    .get_value::<u32, _>("WindowsInstaller")
+                    .unwrap_or_default()
+                    == 1;
+                let uninstall: String = key.get_value("UninstallString").unwrap_or_default();
+                if msi {
+                    if !product_installed(&name) {
+                        continue;
+                    }
+                } else if uninstall_command(&uninstall).is_err() {
+                    continue;
+                }
+                records.push(Registration {
+                    identity: if msi {
+                        name
+                    } else {
+                        exe_registration_id(registry_scope(hive, view), &name, &folder)
+                    },
+                    display,
+                    version: key.get_value("DisplayVersion").unwrap_or_default(),
+                    folder,
+                    icon: key.get_value("DisplayIcon").unwrap_or_default(),
+                    uninstall,
+                });
+            }
+        }
+    }
+    records
+}
+fn changed_registrations<'a>(
+    before: &[Registration],
+    after: &'a [Registration],
+) -> Vec<&'a Registration> {
+    registration_candidates(before, after, false)
+}
+fn registration_candidates<'a>(
+    before: &[Registration],
+    after: &'a [Registration],
+    allow_existing: bool,
+) -> Vec<&'a Registration> {
+    let changed: Vec<_> = after
+        .iter()
+        .filter(|record| !before.contains(record))
+        .collect();
+    if allow_existing && changed.is_empty() {
+        after.iter().collect()
+    } else {
+        changed
+    }
+}
+fn same_user_registration(left: &Registration, right: &Registration) -> bool {
+    let decode =
+        |identity: &str| serde_json::from_str::<[String; 3]>(identity.strip_prefix("exe:")?).ok();
+    let (Some([left_scope, left_key, left_folder]), Some([right_scope, right_key, right_folder])) =
+        (decode(&left.identity), decode(&right.identity))
+    else {
+        return false;
+    };
+    let normalized = |path: &str| {
+        path.replace('/', "\\")
+            .trim_end_matches('\\')
+            .to_ascii_lowercase()
+    };
+    // HKCU's uninstall namespace is shared across registry views. Do not merge
+    // HKLM's separate 32/64-bit keys, different owners, uninstallers or products.
+    ["HKCU/64", "HKCU/32"].contains(&left_scope.as_str())
+        && ["HKCU/64", "HKCU/32"].contains(&right_scope.as_str())
+        && left_key.eq_ignore_ascii_case(&right_key)
+        && normalized(&left_folder) == normalized(&right_folder)
+        && normalized(&left.folder.to_string_lossy()) == normalized(&right.folder.to_string_lossy())
+        && left.display == right.display
+        && left.version == right.version
+        && left.icon == right.icon
+        && left.uninstall == right.uninstall
+}
+fn deduplicate_identity_choices(candidates: &mut Vec<(&Registration, std::path::PathBuf)>) {
+    let mut unique: Vec<(&Registration, std::path::PathBuf)> = Vec::new();
+    for candidate in candidates.drain(..) {
+        if !unique.iter().any(|(record, path)| {
+            same_user_registration(record, candidate.0) && path == &candidate.1
+        }) {
+            unique.push(candidate);
+        }
+    }
+    *candidates = unique;
+}
+fn learn_exe_installation(
+    app: &str,
+    before: &[Registration],
+    job: Option<&crate::jobs::Job>,
+    allow_existing: bool,
+    expected_version: Option<&str>,
+) -> Result<Installed> {
+    let after = registrations();
+    let changed = registration_candidates(before, &after, allow_existing);
+    let mut candidates = Vec::new();
+    for record in changed {
+        if allow_existing
+            && expected_version
+                .is_some_and(|expected| !matches_expected_version(&record.version, expected))
+        {
+            continue;
+        }
+        let mut executables = Vec::new();
+        if let Some(path) = registered_icon_executable(&record.folder, &record.icon) {
+            executables.push(path);
+        }
+        if executables.is_empty() {
+            let Ok(entries) = std::fs::read_dir(&record.folder) else {
+                continue;
+            };
+            for entry in entries.flatten() {
+                if entry.file_type().is_ok_and(|kind| kind.is_file()) {
+                    if let Some(path) = registered_icon_executable(
+                        &record.folder,
+                        &entry.path().display().to_string(),
+                    ) {
+                        executables.push(path);
+                    }
+                }
+            }
+        }
+        executables.sort();
+        executables.dedup();
+        for executable in executables {
+            candidates.push((record, executable));
+        }
+    }
+    deduplicate_identity_choices(&mut candidates);
+    anyhow::ensure!(!candidates.is_empty(), "Installer finished, but no matching desktop application registration could be verified. Check Windows Installed apps; no unrelated program was adopted.");
+    let job = job.context("Open the manager to confirm which program the installer registered")?;
+    let title = if allow_existing {
+        "The installer did not change Windows' application registrations. Explicitly choose the existing program to associate with this GitHub app, or cancel. Check its name, version, and location before selecting."
+    } else {
+        "Confirm the application registered by this installer. Only new or changed registrations are listed; select the program you installed."
+    };
+    let index = job.choose_identity(
+        title,
+        candidates
+            .iter()
+            .map(|(record, path)| {
+                format!("{} {} · {}", record.display, record.version, path.display())
+            })
+            .collect(),
+    )?;
+    let (record, path) = &candidates[index];
+    anyhow::ensure!(
+        registrations().contains(record),
+        "Selected Windows registration changed; refresh and try again"
+    );
+    anyhow::ensure!(
+        registered_icon_executable(&record.folder, &path.display().to_string()).as_ref()
+            == Some(path),
+        "Selected executable changed or is no longer usable"
+    );
+    job.check()?;
+    crate::app_identity::remember_current(
+        app,
+        crate::app_identity::NativeIdentity {
+            launch: None,
+            family: String::new(),
+            platform: "windows".into(),
+            package: record.identity.clone(),
+            executable: path
+                .file_name()
+                .context("Missing executable name")?
+                .to_string_lossy()
+                .into_owned(),
+        },
+    )?;
+    detect_registered_product(app, None, None, Some(&record.identity))?
+        .context("Selected application registration could not be verified")
+}
+fn matches_registration(app: &str, key_name: &str, key: &RegKey, display: &str) -> bool {
+    identity_for_registration(app, key_name, key, None).is_some()
+        || matches_display_name(app, display)
 }
 pub fn custom_location_supported(app: &str) -> bool {
     matches!(
@@ -266,7 +713,7 @@ fn product_installed(code: &str) -> bool {
 fn matches_display_name(app: &str, display: &str) -> bool {
     static SUFFIX: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
     let suffix = SUFFIX.get_or_init(|| {
-        regex::Regex::new(r"^(?:(?:version\s+)?v?\d+\.\d+\.\d+(?:\.\d+)?\s*)?(?:\([0-9a-f]{8,40}\)\s*)?(?:\((?:x64|x86|64-bit|32-bit)\))?$")
+        regex::Regex::new(r"^(?:(?:version\s+)?v?\d+\.\d+(?:\.\d+){0,2}\s*)?(?:\([0-9a-f]{8,40}\)\s*)?(?:\((?:x64|x86|64-bit|32-bit)\))?$")
             .unwrap()
     });
     let mut display = display.trim().to_ascii_lowercase();
@@ -295,6 +742,358 @@ fn matches_display_name(app: &str, display: &str) -> bool {
 }
 #[cfg(test)]
 mod detection_tests {
+    #[test]
+    fn intended_version_verification_rejects_old_or_unknown_copies() {
+        assert!(super::matches_expected_version("1.2.3.0", "v1.2.3"));
+        assert!(!super::matches_expected_version("1.2.2", "1.2.3"));
+        assert!(!super::matches_expected_version("unknown", "1.2.3"));
+    }
+
+    #[test]
+    fn identity_regressions_saved_choice_has_priority_over_guesses() {
+        assert_eq!(
+            super::preferred_msi_executable(
+                &["photocraft.exe".into(), "Different.exe".into()],
+                &["Different.exe".into()],
+                &["photocraft.exe".into()]
+            ),
+            Some(1)
+        );
+    }
+    #[test]
+    fn identity_regressions_other_platform_identity_never_authorizes_headless_exe() {
+        let root =
+            std::env::temp_dir().join(format!("craft-exe-preflight-{}", uuid::Uuid::new_v4()));
+        crate::app_identity::remember(
+            &root,
+            "photocraft",
+            crate::app_identity::NativeIdentity {
+                launch: None,
+                family: String::new(),
+                platform: "linux".into(),
+                package: "photocraft".into(),
+                executable: "/usr/bin/photocraft".into(),
+            },
+        )
+        .unwrap();
+        assert!(!super::exe_identity_ready("photocraft").unwrap());
+        crate::app_identity::load(&root.join("unused"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn mirrored_registration_views_produce_one_choice_without_merging_distinct_apps() {
+        use super::*;
+        let folder = std::path::PathBuf::from(r"C:\Apps\WinMerge");
+        let record = Registration {
+            identity: exe_registration_id("HKCU/64", "same-key", &folder),
+            display: "WinMerge".into(),
+            version: "2.16.58.2".into(),
+            folder: folder.clone(),
+            icon: "WinMergeU.exe".into(),
+            uninstall: "uninstall /user".into(),
+        };
+        let mirror = Registration {
+            identity: exe_registration_id("HKCU/32", "same-key", &folder),
+            ..record.clone()
+        };
+        let executable = folder.join("WinMergeU.exe");
+        let mut choices = vec![(&record, executable.clone()), (&mirror, executable.clone())];
+        deduplicate_identity_choices(&mut choices);
+        assert_eq!(
+            choices.len(),
+            1,
+            "shared per-user registration must appear once"
+        );
+        assert_eq!(choices[0].0.identity, record.identity);
+        for different in [
+            Registration {
+                identity: exe_registration_id("HKLM/32", "same-key", &folder),
+                ..mirror.clone()
+            },
+            Registration {
+                identity: exe_registration_id("HKCU/32", "different-key", &folder),
+                ..mirror.clone()
+            },
+            Registration {
+                version: "3.0".into(),
+                ..mirror.clone()
+            },
+            Registration {
+                uninstall: "uninstall /other-profile".into(),
+                ..mirror.clone()
+            },
+        ] {
+            let mut choices = vec![
+                (&record, executable.clone()),
+                (&different, executable.clone()),
+            ];
+            deduplicate_identity_choices(&mut choices);
+            assert_eq!(
+                choices.len(),
+                2,
+                "distinct registration must remain selectable"
+            );
+        }
+        let machine64 = Registration {
+            identity: exe_registration_id("HKLM/64", "same-key", &folder),
+            ..record.clone()
+        };
+        let machine32 = Registration {
+            identity: exe_registration_id("HKLM/32", "same-key", &folder),
+            ..record.clone()
+        };
+        let mut machine_choices = vec![
+            (&machine64, executable.clone()),
+            (&machine32, executable.clone()),
+        ];
+        deduplicate_identity_choices(&mut machine_choices);
+        assert_eq!(
+            machine_choices.len(),
+            2,
+            "machine registry views are separate registrations"
+        );
+        let mut choices = vec![
+            (&record, executable.clone()),
+            (&mirror, folder.join("Other.exe")),
+        ];
+        deduplicate_identity_choices(&mut choices);
+        assert_eq!(
+            choices.len(),
+            2,
+            "different executables must remain selectable"
+        );
+    }
+
+    #[test]
+    fn custom_exe_updates_never_substitute_a_different_saved_copy() {
+        use crate::model::Installed;
+        let selected = Installed {
+            name: "photocraft".into(),
+            path: r"C:\Apps\CopyA".into(),
+            product_code: "copy-a".into(),
+            version: "1.0.0".into(),
+            ..Default::default()
+        };
+        let other = Installed {
+            path: r"C:\Apps\CopyB".into(),
+            product_code: "copy-b".into(),
+            version: "2.0.0".into(),
+            ..selected.clone()
+        };
+        assert!(super::verify_selected_exe(&selected, "2.0.0", Some(other)).is_err());
+        assert!(super::verify_selected_exe(&selected, "2.0.0", Some(selected.clone())).is_err());
+        let updated = Installed {
+            version: "2.0.0".into(),
+            ..selected.clone()
+        };
+        assert_eq!(
+            super::verify_selected_exe(&selected, "2.0.0", Some(updated.clone()))
+                .unwrap()
+                .path,
+            updated.path
+        );
+    }
+
+    #[test]
+    fn existing_registration_requires_explicit_adoption_and_never_displaces_changed_records() {
+        let record = super::Registration {
+            identity: "verified-id".into(),
+            display: "Different name".into(),
+            version: "1.0".into(),
+            folder: r"C:\Apps\Different".into(),
+            icon: String::new(),
+            uninstall: "uninstall".into(),
+        };
+        let before = [record.clone()];
+        let unchanged = [record.clone()];
+        assert!(super::registration_candidates(&before, &unchanged, false).is_empty());
+        assert_eq!(
+            super::registration_candidates(&before, &unchanged, true),
+            vec![&unchanged[0]]
+        );
+        let after = [
+            record.clone(),
+            super::Registration {
+                identity: "new-id".into(),
+                ..record
+            },
+        ];
+        assert_eq!(
+            super::registration_candidates(&before, &after, true),
+            vec![&after[1]]
+        );
+    }
+
+    #[test]
+    fn registration_changes_never_include_unchanged_programs() {
+        let record = super::Registration {
+            identity: "registered-id".into(),
+            display: "Different Product Name".into(),
+            version: "1.0".into(),
+            folder: r"C:\Apps\Different".into(),
+            icon: String::new(),
+            uninstall: "uninstall".into(),
+        };
+        assert!(super::changed_registrations(
+            std::slice::from_ref(&record),
+            std::slice::from_ref(&record)
+        )
+        .is_empty());
+        let changed = super::Registration {
+            version: "2.0".into(),
+            ..record.clone()
+        };
+        assert_eq!(
+            super::changed_registrations(&[record], std::slice::from_ref(&changed)),
+            vec![&changed]
+        );
+    }
+    #[test]
+    fn real_msi_database_identity_is_read_without_executing_package() {
+        use super::*;
+        #[link(name = "msi")]
+        extern "system" {
+            fn MsiDatabaseCommit(database: u32) -> u32;
+        }
+        let path =
+            std::env::temp_dir().join(format!("craft-identity-msi-{}.msi", uuid::Uuid::new_v4()));
+        let mut database = 0;
+        assert_eq!(
+            unsafe {
+                MsiOpenDatabaseW(
+                    platform::wide(&path).as_ptr(),
+                    3usize as *const u16,
+                    &mut database,
+                )
+            },
+            0
+        );
+        let database = MsiHandle(database);
+        for query in [
+            "CREATE TABLE `Property` (`Property` CHAR(72) NOT NULL, `Value` CHAR(0) LOCALIZABLE PRIMARY KEY `Property`)",
+            "INSERT INTO `Property` (`Property`,`Value`) VALUES ('ProductCode','{01234567-89AB-CDEF-0123-456789ABCDEF}')",
+            "INSERT INTO `Property` (`Property`,`Value`) VALUES ('UpgradeCode','{11234567-89AB-CDEF-0123-456789ABCDEF}')",
+            "CREATE TABLE `File` (`File` CHAR(72) NOT NULL, `FileName` CHAR(255) LOCALIZABLE PRIMARY KEY `File`)",
+            "INSERT INTO `File` (`File`,`FileName`) VALUES ('MainFile','SHORT.EXE|DifferentName.exe')",
+        ] {
+            let mut view=0; assert_eq!(unsafe{MsiDatabaseOpenViewW(database.0,platform::wide(query).as_ptr(),&mut view)},0,"{query}");
+            let view=MsiHandle(view);assert_eq!(unsafe{MsiViewExecute(view.0,0)},0,"{query}");
+        }
+        assert_eq!(unsafe { MsiDatabaseCommit(database.0) }, 0);
+        drop(database);
+        assert_eq!(
+            msi_rows(
+                &path,
+                "SELECT `Value` FROM `Property` WHERE `Property` = 'ProductCode'"
+            )
+            .unwrap(),
+            ["{01234567-89AB-CDEF-0123-456789ABCDEF}"]
+        );
+        assert_eq!(
+            msi_rows(&path, "SELECT `FileName` FROM `File`").unwrap(),
+            ["SHORT.EXE|DifferentName.exe"]
+        );
+        let root = path.with_extension("data");
+        let mut entry = crate::catalog::builtin().remove(0);
+        entry.key = "identityfixture".into();
+        entry.repository = "someone/identityfixture".into();
+        entry.title = "IdentityFixture".into();
+        entry.asset_prefix = "identityfixture".into();
+        entry.scheme = crate::catalog::Scheme::Generic;
+        crate::files::write_json(&root.join("runtime/custom-apps.json"), &vec![entry]).unwrap();
+        crate::catalog::load(&root);
+        crate::app_identity::remember(
+            &root,
+            "identityfixture",
+            crate::app_identity::NativeIdentity {
+                launch: None,
+                platform: "windows".into(),
+                package: "{21234567-89AB-CDEF-0123-456789ABCDEF}".into(),
+                family: "{11234567-89AB-CDEF-0123-456789ABCDEF}".into(),
+                executable: "DifferentName.exe".into(),
+            },
+        )
+        .unwrap();
+        let job = crate::jobs::Job::new(root.join("logs/test.log"), &Default::default());
+        prepare_custom_identity(&root, &path, "identityfixture", &job).unwrap();
+        assert!(crate::app_identity::native("identityfixture")
+            .iter()
+            .any(
+                |identity| identity.package == "{01234567-89AB-CDEF-0123-456789ABCDEF}"
+                    && identity.executable == "DifferentName.exe"
+            ));
+        crate::catalog::load(&root.join("unused"));
+        std::fs::remove_dir_all(root).unwrap();
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn explicit_registration_choice_overrides_guesses_and_missing_choice_does_not_fall_back() {
+        use super::*;
+        let id = uuid::Uuid::new_v4();
+        let key_path = format!("Software\\CraftAppsManagerTests\\{id}");
+        let folder = std::env::temp_dir().join(format!("craft-identity-choice-{id}"));
+        std::fs::create_dir_all(&folder).unwrap();
+        let (key, _) = RegKey::predef(HKEY_CURRENT_USER)
+            .create_subkey(&key_path)
+            .unwrap();
+        key.set_value("DisplayName", &"Completely Different Product")
+            .unwrap();
+        key.set_value("InstallLocation", &folder.display().to_string())
+            .unwrap();
+        let mut pe = vec![0u8; 158];
+        pe[..2].copy_from_slice(b"MZ");
+        pe[60..64].copy_from_slice(&64u32.to_le_bytes());
+        pe[64..68].copy_from_slice(b"PE\0\0");
+        pe[68..70].copy_from_slice(&0x014cu16.to_le_bytes());
+        pe[84..86].copy_from_slice(&70u16.to_le_bytes());
+        pe[88..90].copy_from_slice(&0x10bu16.to_le_bytes());
+        pe[156..158].copy_from_slice(&2u16.to_le_bytes());
+        std::fs::write(folder.join("photocraft.exe"), &pe).unwrap();
+        std::fs::write(folder.join("Different.exe"), pe).unwrap();
+        let identity = crate::app_identity::NativeIdentity {
+            launch: None,
+            family: String::new(),
+            platform: "windows".into(),
+            package: exe_registration_id("HKCU/64", "chosen-key", &folder),
+            executable: "Different.exe".into(),
+        };
+        crate::app_identity::remember(&folder, "photocraft", identity).unwrap();
+        assert!(matches_registration(
+            "photocraft",
+            "chosen-key",
+            &key,
+            "Completely Different Product"
+        ));
+        assert_eq!(
+            registration_choice(&folder, "photocraft", "chosen-key", &key, "HKCU/64"),
+            Some(Some(folder.join("Different.exe")))
+        );
+        assert!(
+            registration_choice(&folder, "photocraft", "chosen-key", &key, "HKLM/64").is_none()
+        );
+        std::fs::remove_file(folder.join("Different.exe")).unwrap();
+        assert_eq!(
+            registration_choice(&folder, "photocraft", "chosen-key", &key, "HKCU/64"),
+            Some(None)
+        );
+        crate::app_identity::load(&folder.join("unused"));
+        drop(key);
+        RegKey::predef(HKEY_CURRENT_USER)
+            .delete_subkey_all(key_path)
+            .unwrap();
+        std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn custom_display_versions_support_two_components() {
+        assert!(super::matches_display_name("example", "Example 1.68 (x64)"));
+        assert!(!super::matches_display_name(
+            "example",
+            "Example 1.68 Helper"
+        ));
+        assert_eq!(super::installation_version("1.68"), Some([1, 68, 0, 0]));
+    }
     #[test]
     fn registered_icon_requires_a_desktop_executable_in_the_app_folder() {
         let folder = std::env::temp_dir().join(format!("craft-icon-{}", uuid::Uuid::new_v4()));
@@ -404,6 +1203,62 @@ mod detection_tests {
             assert_eq!(detected.version, "0.4.1");
             assert_eq!(detected.path, folder.join("new").display().to_string());
         }
+        let selected = Installed {
+            name: "printcraft".into(),
+            path: folder.join("old").display().to_string(),
+            architecture: "x64".into(),
+            install_kind: "installer".into(),
+            ..Default::default()
+        };
+        let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+        assert_eq!(
+            detect_in_roots_for_installation("printcraft", roots, Some("x64"), Some(&selected))
+                .unwrap()
+                .unwrap()
+                .path,
+            selected.path
+        );
+        let missing = Installed {
+            path: folder.join("missing").display().to_string(),
+            ..selected
+        };
+        let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+        assert!(
+            detect_in_roots_for_installation("printcraft", roots, Some("x64"), Some(&missing))
+                .unwrap()
+                .is_none()
+        );
+        // A folder discovered through Program Files is not registration ownership.
+        let guessed = folder.join("PrintCraft");
+        std::fs::create_dir_all(&guessed).unwrap();
+        std::fs::write(guessed.join("printcraft.exe"), b"fixture").unwrap();
+        let old_key = root
+            .open_subkey_with_flags(r"old\product", KEY_READ | KEY_WRITE)
+            .unwrap();
+        old_key.set_value("InstallLocation", &"").unwrap();
+        let previous_program_files = std::env::var_os("ProgramFiles");
+        std::env::set_var("ProgramFiles", &folder);
+        let guessed_selected = Installed {
+            name: "printcraft".into(),
+            path: guessed.display().to_string(),
+            architecture: "x64".into(),
+            install_kind: "installer".into(),
+            ..Default::default()
+        };
+        let guessed_result = detect_in_roots_for_installation(
+            "printcraft",
+            [(root.open_subkey("old").unwrap(), KEY_WOW64_64KEY)],
+            Some("x64"),
+            Some(&guessed_selected),
+        );
+        match previous_program_files {
+            Some(value) => std::env::set_var("ProgramFiles", value),
+            None => std::env::remove_var("ProgramFiles"),
+        }
+        old_key
+            .set_value("InstallLocation", &folder.join("old").display().to_string())
+            .unwrap();
+        assert!(guessed_result.unwrap().is_none());
         // PE architecture overrides registry view and preferred architecture overrides newest version.
         let mut pe = vec![0u8; 158];
         pe[..2].copy_from_slice(b"MZ");
@@ -483,6 +1338,21 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
     detect_for_architecture(app, None)
 }
 pub fn detect_for_architecture(app: &str, architecture: Option<&str>) -> Result<Option<Installed>> {
+    detect_registered(app, architecture, None)
+}
+fn detect_registered(
+    app: &str,
+    architecture: Option<&str>,
+    selected: Option<&Installed>,
+) -> Result<Option<Installed>> {
+    detect_registered_product(app, architecture, selected, None)
+}
+fn detect_registered_product(
+    app: &str,
+    architecture: Option<&str>,
+    selected: Option<&Installed>,
+    product: Option<&str>,
+) -> Result<Option<Installed>> {
     let mut roots = Vec::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -494,7 +1364,7 @@ pub fn detect_for_architecture(app: &str, architecture: Option<&str>) -> Result<
             }
         }
     }
-    detect_in_roots_for_architecture(app, roots, architecture)
+    detect_in_roots_for_product(app, roots, architecture, selected, product)
 }
 // MSI versions can have a fourth numeric component. Compare numbers, not text.
 fn installation_version(value: &str) -> Option<[u64; 4]> {
@@ -503,7 +1373,7 @@ fn installation_version(value: &str) -> Option<[u64; 4]> {
         .trim_start_matches('v')
         .split('.')
         .collect::<Vec<_>>();
-    if !(3..=4).contains(&parts.len()) {
+    if !(2..=4).contains(&parts.len()) {
         return None;
     }
     let mut version = [0; 4];
@@ -539,10 +1409,29 @@ fn registered_install_folder(key: &RegKey) -> Option<std::path::PathBuf> {
     // This is only a location hint. Detection still requires the app's executable.
     executable.parent().map(Path::to_path_buf)
 }
+#[cfg(test)]
 fn detect_in_roots_for_architecture(
     app: &str,
     roots: impl IntoIterator<Item = (RegKey, u32)>,
     architecture: Option<&str>,
+) -> Result<Option<Installed>> {
+    detect_in_roots_for_installation(app, roots, architecture, None)
+}
+#[cfg(test)]
+fn detect_in_roots_for_installation(
+    app: &str,
+    roots: impl IntoIterator<Item = (RegKey, u32)>,
+    architecture: Option<&str>,
+    selected: Option<&Installed>,
+) -> Result<Option<Installed>> {
+    detect_in_roots_for_product(app, roots, architecture, selected, None)
+}
+fn detect_in_roots_for_product(
+    app: &str,
+    roots: impl IntoIterator<Item = (RegKey, u32)>,
+    architecture: Option<&str>,
+    selected: Option<&Installed>,
+    product: Option<&str>,
 ) -> Result<Option<Installed>> {
     let mut best: Option<Installed> = None;
     for (root, view) in roots {
@@ -551,7 +1440,7 @@ fn detect_in_roots_for_architecture(
                 continue;
             };
             let display: String = key.get_value("DisplayName").unwrap_or_default();
-            if !matches_display_name(app, &display) {
+            if !matches_registration(app, &name, &key, &display) {
                 continue;
             }
             let mut location = registered_install_folder(&key)
@@ -568,6 +1457,14 @@ fn detect_in_roots_for_architecture(
                 }
             }
             if crate::model::installed_executable(Path::new(&location), app).is_none() {
+                if identity_for_registration(app, &name, &key, None).is_some() {
+                    continue;
+                }
+                // Conventional folders are discovery hints, not proof that this
+                // registration owns the copy the user asked us to uninstall.
+                if selected.is_some() {
+                    continue;
+                }
                 let mut candidates = Vec::new();
                 for variable in ["ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"] {
                     if let Some(base) = std::env::var_os(variable) {
@@ -614,8 +1511,18 @@ fn detect_in_roots_for_architecture(
                 }
                 .into(),
                 install_kind: "installer".into(),
-                product_code: if msi == 1 { name } else { String::new() },
+                product_code: if msi == 1 {
+                    name.clone()
+                } else {
+                    identity_for_registration(app, &name, &key, None)
+                        .map(|identity| identity.package)
+                        .unwrap_or_default()
+                },
             };
+            if product.is_some_and(|product| !candidate.product_code.eq_ignore_ascii_case(product))
+            {
+                continue;
+            }
             let mut candidate = candidate;
             if let Some(executable) =
                 crate::model::installed_executable(Path::new(&candidate.path), app)
@@ -625,6 +1532,18 @@ fn detect_in_roots_for_architecture(
                 }
             }
             if architecture.is_some_and(|wanted| candidate.architecture != wanted) {
+                continue;
+            }
+            if selected.is_some_and(|selected| {
+                !candidate
+                    .path
+                    .replace('/', "\\")
+                    .trim_end_matches('\\')
+                    .eq_ignore_ascii_case(selected.path.replace('/', "\\").trim_end_matches('\\'))
+                    || !candidate
+                        .product_code
+                        .eq_ignore_ascii_case(&selected.product_code)
+            }) {
                 continue;
             }
             if best.as_ref().is_none_or(|current| {
@@ -638,6 +1557,61 @@ fn detect_in_roots_for_architecture(
 }
 // Use the matching app's registered executable, rather than guessing its filename.
 // DisplayIcon may reference a DLL or uninstaller, so validate the target before use.
+fn registration_choice(
+    folder: &Path,
+    app: &str,
+    name: &str,
+    key: &RegKey,
+    scope: &str,
+) -> Option<Option<std::path::PathBuf>> {
+    let identity = identity_for_registration(app, name, key, Some(scope))?;
+    let registered = registered_install_folder(key)
+        .or_else(|| msi_app_folder(name, app).map(std::path::PathBuf::from))?;
+    let expected = folder.canonicalize().ok()?;
+    if registered.canonicalize().ok()? != expected {
+        return None;
+    }
+    Some(registered_icon_executable(
+        folder,
+        &folder.join(identity.executable).display().to_string(),
+    ))
+}
+/// An outer Some means a verified choice exists; a missing chosen file must not fall back to another executable.
+pub fn registered_launch_choice(folder: &Path, app: &str) -> Option<Option<std::path::PathBuf>> {
+    if crate::app_identity::native(app).is_empty() {
+        return None;
+    }
+    for identity in crate::app_identity::native(app)
+        .into_iter()
+        .filter(|identity| identity.platform == "windows")
+    {
+        let exe = identity
+            .package
+            .strip_prefix("exe:")
+            .and_then(|raw| serde_json::from_str::<[String; 3]>(raw).ok());
+        let name = exe
+            .as_ref()
+            .map_or(identity.package.as_str(), |parts| parts[1].as_str());
+        for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+            for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+                let scope = registry_scope(hive, view);
+                if exe.as_ref().is_some_and(|parts| parts[0] != scope) {
+                    continue;
+                }
+                let Ok(key) = RegKey::predef(hive).open_subkey_with_flags(
+                    format!("Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{name}"),
+                    KEY_READ | view,
+                ) else {
+                    continue;
+                };
+                if let Some(choice) = registration_choice(folder, app, name, &key, scope) {
+                    return Some(choice);
+                }
+            }
+        }
+    }
+    None
+}
 pub fn registered_launch_executable(folder: &Path, app: &str) -> Option<std::path::PathBuf> {
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -648,12 +1622,17 @@ pub fn registered_launch_executable(folder: &Path, app: &str) -> Option<std::pat
                 continue;
             };
             for name in root.enum_keys().flatten() {
-                let Ok(key) = root.open_subkey(name) else {
+                let Ok(key) = root.open_subkey(&name) else {
                     continue;
                 };
                 let display: String = key.get_value("DisplayName").unwrap_or_default();
-                if !matches_display_name(app, &display) {
+                if !matches_registration(app, &name, &key, &display) {
                     continue;
+                }
+                if let Some(choice) =
+                    registration_choice(folder, app, &name, &key, registry_scope(hive, view))
+                {
+                    return choice;
                 }
                 let icon: String = key.get_value("DisplayIcon").unwrap_or_default();
                 if let Some(path) = registered_icon_executable(folder, &icon) {
@@ -715,7 +1694,7 @@ pub fn run_with_destination(
     job: Option<&crate::jobs::Job>,
     destination: Option<&Path>,
 ) -> Result<Installed> {
-    run_with_destination_inner(file, app, job, destination, false)
+    run_with_destination_inner(file, app, job, destination, false, None)
 }
 /// Replace an already verified native installation without relocating its files.
 pub fn run_replacement(
@@ -729,7 +1708,54 @@ pub fn run_replacement(
         job,
         Some(Path::new(&previous.path)),
         true,
+        None,
     )
+}
+pub fn run_for_version(
+    file: &Path,
+    app: &str,
+    job: Option<&crate::jobs::Job>,
+    destination: Option<&Path>,
+    expected: &str,
+    selected: &Installed,
+) -> Result<Installed> {
+    run_with_destination_inner(
+        file,
+        app,
+        job,
+        destination,
+        false,
+        Some((expected, selected)),
+    )
+}
+fn matches_expected_version(installed: &str, expected: &str) -> bool {
+    match (
+        crate::updates::version(installed),
+        crate::updates::version(expected),
+    ) {
+        (Ok(installed), Ok(expected)) => installed == expected,
+        _ => false,
+    }
+}
+fn verify_selected_exe(
+    selected: &Installed,
+    expected: &str,
+    current: Option<Installed>,
+) -> Result<Installed> {
+    let current = current.context("The intended installed copy could not be verified")?;
+    let folder = |path: &str| {
+        path.replace('/', "\\")
+            .trim_end_matches('\\')
+            .to_ascii_lowercase()
+    };
+    anyhow::ensure!(folder(&current.path) == folder(&selected.path)
+        && (selected.product_code.is_empty() || current.product_code.eq_ignore_ascii_case(&selected.product_code)),
+        "Installer changed a different application copy; the selected installation was not replaced");
+    anyhow::ensure!(
+        matches_expected_version(&current.version, expected),
+        "Installer did not register the requested version for the selected installation"
+    );
+    Ok(current)
 }
 fn run_with_destination_inner(
     file: &Path,
@@ -737,6 +1763,7 @@ fn run_with_destination_inner(
     job: Option<&crate::jobs::Job>,
     destination: Option<&Path>,
     replacing: bool,
+    intended: Option<(&str, &Installed)>,
 ) -> Result<Installed> {
     validate_installer_package(file)?;
     if let Some(target) = destination {
@@ -786,6 +1813,17 @@ fn run_with_destination_inner(
             job.log("This package controls its installation location. The manager will use the registered installed path.");
         }
     }
+    let custom_exe = file
+        .extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("exe"))
+        && crate::catalog::get(app).is_some_and(|entry| entry.repository.contains('/'));
+    if custom_exe
+        && !exe_identity_ready(app)?
+        && !job.is_some_and(|job| job.identity_choices_available())
+    {
+        bail!("This custom installer needs an initial identity confirmation. Install it individually from the manager first.");
+    }
+    let before = custom_exe.then(registrations);
     let code = if file
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
@@ -814,7 +1852,55 @@ fn run_with_destination_inner(
         run_exe(file, job)?
     };
     installer_result(code)?;
-    let installed = detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check the installer or Windows Installed apps.")?;
+    let installed = if file
+        .extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("msi"))
+    {
+        let product = msi_rows(
+            file,
+            "SELECT `Value` FROM `Property` WHERE `Property` = 'ProductCode'",
+        )?;
+        let [product] = product.as_slice() else {
+            bail!("Installer package has no unique product identity");
+        };
+        detect_registered_product(app,None,None,Some(product))?.context("Installer finished, but its exact product registration and executable could not be verified")?
+    } else if custom_exe && intended.is_some_and(|(_, selected)| !selected.path.is_empty()) {
+        let (expected, selected) = intended.context("Missing selected installation")?;
+        verify_selected_exe(
+            selected,
+            expected,
+            detect_registered(app, None, Some(selected))?,
+        )?
+    } else if custom_exe {
+        let after = registrations();
+        let changed = changed_registrations(before.as_deref().unwrap_or_default(), &after);
+        let known = crate::app_identity::native(app);
+        let bound: Vec<_> = changed
+            .iter()
+            .filter(|record| {
+                known.iter().any(|identity| {
+                    identity.platform == "windows"
+                        && identity.package.eq_ignore_ascii_case(&record.identity)
+                })
+            })
+            .collect();
+        if bound.len() == 1 {
+            detect_registered_product(app, None, None, Some(&bound[0].identity))?
+                .context("Updated program registration could not be verified")?
+        } else if !changed.is_empty() {
+            learn_exe_installation(app, before.as_deref().unwrap_or_default(), job, false, None)?
+        } else {
+            learn_exe_installation(
+                app,
+                before.as_deref().unwrap_or_default(),
+                job,
+                true,
+                intended.map(|(expected, _)| expected),
+            )?
+        }
+    } else {
+        detect(app)?.context("Installer finished, but Windows has not registered a usable app installation. Check Windows Installed apps.")?
+    };
     if let Some(target) = destination {
         if std::fs::canonicalize(&installed.path).ok() != std::fs::canonicalize(target).ok() {
             if let Some(job) = job {
@@ -961,7 +2047,7 @@ fn wait_installer(
     }
 }
 pub fn uninstall(app: &Installed) -> Result<()> {
-    let current = detect_for_architecture(&app.name, Some(&app.architecture))?
+    let current = detect_registered(&app.name, Some(&app.architecture), Some(app))?
         .context("This app is no longer installed. Refresh its status before uninstalling.")?;
     let app = &current;
     let code = &app.product_code;
@@ -980,8 +2066,8 @@ pub fn uninstall(app: &Installed) -> Result<()> {
         MsiConfigureProductExW(product.as_ptr(), 0, 2, properties.as_ptr())
     })?;
     installer_result(code)?;
-    if detect(&app.name)?.is_some() {
-        bail!("Windows still reports the app installed");
+    if product_installed(&app.product_code) {
+        bail!("Windows still reports the selected app installation installed");
     }
     Ok(())
 }
@@ -1034,7 +2120,7 @@ fn registered_uninstaller(app: &Installed) -> Result<Option<(RegKey, String, Str
                     continue;
                 };
                 let display: String = key.get_value("DisplayName").unwrap_or_default();
-                if !matches_display_name(&app.name, &display) {
+                if !matches_registration(&app.name, &name, &key, &display) {
                     continue;
                 }
                 let Some(folder) = registered_install_folder(&key) else {
@@ -1044,6 +2130,17 @@ fn registered_uninstaller(app: &Installed) -> Result<Option<(RegKey, String, Str
                     .to_string_lossy()
                     .trim_end_matches(['\\', '/'])
                     .eq_ignore_ascii_case(app.path.trim_end_matches(['\\', '/']))
+                {
+                    continue;
+                }
+                if app.product_code.starts_with("exe:")
+                    && identity_for_registration(
+                        &app.name,
+                        &name,
+                        &key,
+                        Some(registry_scope(hive, view)),
+                    )
+                    .is_none_or(|identity| identity.package != app.product_code)
                 {
                     continue;
                 }
@@ -1142,7 +2239,7 @@ fn uninstall_exe(app: &Installed) -> Result<()> {
     // A cancelled wizard can return success. Never discard the installation in that case.
     for _ in 0..20 {
         if root.open_subkey(&key).is_err()
-            && detect_for_architecture(&app.name, Some(&app.architecture))?.is_none()
+            && detect_registered(&app.name, Some(&app.architecture), Some(app))?.is_none()
         {
             return Ok(());
         }

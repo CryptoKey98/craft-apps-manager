@@ -210,12 +210,14 @@ pub fn running_app(name: &str) -> Result<bool> {
         bail!("Could not check running apps");
     }
     let s = String::from_utf8_lossy(&out.stdout).to_lowercase();
-    Ok(crate::catalog::names(name).iter().any(|name| {
+    let mut names = crate::catalog::names(name)
+        .into_iter()
+        .flat_map(|name| [format!("{name}.exe"), format!("{name}-cli.exe")])
+        .collect::<Vec<_>>();
+    names.extend(crate::app_identity::running_executables(name));
+    Ok(names.iter().any(|name| {
         let name = name.to_lowercase();
-        s.lines().any(|l| {
-            l.starts_with(&format!("\"{name}.exe\""))
-                || l.starts_with(&format!("\"{name}-cli.exe\""))
-        })
+        s.lines().any(|l| l.starts_with(&format!("\"{name}\"")))
     }))
 }
 pub fn shortcut(path: &Path, target: &Path, args: &str, working: &Path) -> Result<()> {

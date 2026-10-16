@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.0
+
+- Show New badges only during the first 14 days after a Craft app's repository was created, for both fresh manager installs and existing users. Viewing an app clears its badge sooner; app updates do not reset the timer.
+- Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.
+- Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.
+- Target the selected installation when verifying installs and uninstalling, and preserve existing copies when identity cannot be confirmed.
+- Reject unsupported download architectures and recognize more Windows installation version formats.
+- Let users explicitly identify an existing Windows app when its installer makes no registration change.
+- Avoid duplicate application choices for per-user Windows installations.
+- Preserve supported Linux desktop launcher arguments and environment settings, and keep the previous app identity when installation fails or is cancelled.
+- Fix macOS manager updates failing because another application in the same folder contains symbolic links, while preserving update security checks.
+- Show saved macOS update failures once instead of repeating them on every launch, and retain their diagnostic details for troubleshooting.
+
 ## 0.8.3
 
 - Support platform-specific manager update revisions, with verified downloads and revision details for troubleshooting.

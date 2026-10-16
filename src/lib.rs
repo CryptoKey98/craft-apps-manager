@@ -1,3 +1,4 @@
+pub mod app_identity;
 pub mod apps;
 pub mod backups;
 pub mod builder;

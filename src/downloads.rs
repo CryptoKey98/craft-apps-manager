@@ -64,6 +64,18 @@ pub fn architecture_unspecified(name: &str) -> bool {
             "32bit",
             "x86",
             "universal",
+            "arm",
+            "armv6",
+            "armv7",
+            "armv7l",
+            "armhf",
+            "armel",
+            "riscv64",
+            "mips",
+            "mips64",
+            "ppc64",
+            "ppc64le",
+            "s390x",
         ]
         .contains(token)
     }) && !name.contains("x86_64")
@@ -224,6 +236,65 @@ pub fn select_for_entry<'a>(
 #[cfg(all(test, target_os = "windows"))]
 mod tests {
     use super::*;
+    #[test]
+    fn sampled_desktop_releases_preserve_package_choices() {
+        let installer = Preferences {
+            architecture: "x64".into(),
+            release_format: "installer".into(),
+            ..Default::default()
+        };
+        let portable = Preferences {
+            release_format: "portable".into(),
+            ..installer.clone()
+        };
+        // Release filenames sampled from the publishers' GitHub releases.
+        for name in [
+            "OBS-Studio-32.2.2-Windows-x64-Installer.exe",
+            "npp.8.9.8.1.Installer.x64.exe",
+            "npp.8.9.8.1.Installer.x64.msi",
+            "rustdesk-1.5.0-x86_64.msi",
+            "dbeaver-ce-26.2.2-windows-x86_64.exe",
+        ] {
+            assert!(compatible(name, &installer), "{name}");
+            assert!(!compatible(name, &portable), "{name}");
+        }
+        for name in [
+            "OBS-Studio-32.2.2-Windows-x64.zip",
+            "npp.8.9.8.1.portable.x64.zip",
+            "dbeaver-ce-26.2.2-windows-x86_64.zip",
+        ] {
+            assert!(compatible(name, &portable), "{name}");
+            assert!(!compatible(name, &installer), "{name}");
+        }
+        assert!(!compatible(
+            "OBS-Studio-32.2.2-Windows-x64-PDBs.zip",
+            &portable
+        ));
+        assert!(!compatible("npp.8.9.8.1.portable.arm64.zip", &portable));
+        let uncertain = Asset {
+            name: "rustdesk-1.5.0-x86_64.exe".into(),
+            size: 1,
+            digest: None,
+            browser_download_url: String::new(),
+        };
+        assert!(needs_confirmation(&uncertain, &installer));
+    }
+    #[test]
+    fn explicitly_unsupported_architectures_are_not_unknown_downloads() {
+        let prefs = Preferences {
+            architecture: "x64".into(),
+            release_format: "installer".into(),
+            ..Default::default()
+        };
+        for name in [
+            "Example-armv7-setup.exe",
+            "Example-armhf-setup.exe",
+            "Example-riscv64-setup.exe",
+            "Example-mips64-setup.exe",
+        ] {
+            assert!(!compatible_with_unknown(name, &prefs, true), "{name}");
+        }
+    }
     #[test]
     fn common_names_reject_wrong_architecture_source_and_other_systems() {
         let prefs = Preferences {

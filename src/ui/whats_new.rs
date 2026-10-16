@@ -171,7 +171,46 @@ impl App {
                         feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "New Craft apps appear automatically, marked New so they're easy to find.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 0.8.3", 13.0);
+                                theme::heading(ui, "New in 0.9.0", 13.0);
+                                ui.add_space(10.0);
+                                for note in [
+                                    "New badges expire 14 days after a Craft app's repository was created, including on fresh manager installs. Viewing the app clears its badge sooner; app updates do not reset the timer.",
+                                    "Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.",
+                                    "Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.",
+                                    "Target the selected installation when verifying installs and uninstalling, and preserve existing copies when identity cannot be confirmed.",
+                                    "Reject unsupported download architectures and recognize more Windows installation version formats.",
+                                    #[cfg(target_os = "windows")]
+                                    "Let users explicitly identify an existing Windows app when its installer makes no registration change.",
+                                    #[cfg(target_os = "windows")]
+                                    "Avoid duplicate application choices for per-user Windows installations.",
+                                    #[cfg(target_os = "linux")]
+                                    "Preserve supported Linux desktop launcher arguments and environment settings, and keep the previous app identity when installation fails or is cancelled.",
+                                    #[cfg(target_os = "macos")]
+                                    "Fix macOS manager updates failing because another application in the same folder contains symbolic links, while preserving update security checks.",
+                                    #[cfg(target_os = "macos")]
+                                    "Show saved macOS update failures once instead of repeating them on every launch, and retain their diagnostic details for troubleshooting.",
+                                ] {
+                                    body_text(ui, &format!("• {note}"));
+                                    ui.add_space(8.0);
+                                }
+                                #[cfg(target_os = "linux")]
+                                {
+                                    ui.add_space(16.0);
+                                    theme::heading(ui, "Also included from 0.8.3 Rev. 2 · Linux", 13.0);
+                                    ui.add_space(10.0);
+                                    for note in [
+                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
+                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
+                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
+                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
+                                        "What's New opens once after a revision update, while keeping your existing dismissal history.",
+                                    ] {
+                                        body_text(ui, &format!("• {note}"));
+                                        ui.add_space(8.0);
+                                    }
+                                }
+                                ui.add_space(16.0);
+                                theme::heading(ui, "Also included from 0.8.3", 13.0);
                                 ui.add_space(10.0);
                                 body_text(ui, "• Manager updates now support platform-specific build revisions. Minor fixes can reach only the systems that need them.");
                                 ui.add_space(8.0);
@@ -222,26 +261,7 @@ impl App {
                         if notes.body_returned.is_none() {
                             patch_notes_underline(ui, notes.header_response.rect, p.link, elapsed);
                         }
-                        #[cfg(target_os = "linux")]
-                        {
-                            ui.add_space(12.0);
-                            egui::CollapsingHeader::new(RichText::new("Patch notes for 0.8.3 Rev. 2 · Linux").size(13.0).color(p.link))
-                                .id_salt("whats-new-linux-rev2-notes")
-                                .default_open(true)
-                                .show(ui, |ui| {
-                                    ui.add_space(6.0);
-                                    for note in [
-                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
-                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
-                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
-                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
-                                        "What's New opens once after a revision update, while keeping your existing dismissal history.",
-                                    ] {
-                                        body_text(ui, &format!("• {note}"));
-                                        ui.add_space(8.0);
-                                    }
-                                });
-                        }
+
                     });
             });
             ui.separator();

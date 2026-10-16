@@ -115,3 +115,5 @@ sudo dnf install ./craft-apps-manager-0.5.1-0.2*.x86_64.rpm
 ```
 
 RPM packages are experimental during distribution testing. Removing the package leaves each user's app library intact. For a DEB/RPM installation, the manager update button downloads the matching native package and invokes apt-get or dnf with an administrator prompt. It verifies the installed package version before restarting, and preserves user settings and libraries. Portable ZIP installations use the separate executable-replacement update flow and require a writable installation folder.
+
+Custom GitHub native packages are inspected before installation. Debian packages use `dpkg-deb` and `bsdtar` (`libarchive-tools`); RPM packages use `rpm`, `rpm2cpio`, and `bsdtar`; Arch packages use `bsdtar` from `libarchive`. The manager records the package name and its desktop launcher's executable. If a package has several desktop launchers, choose the application to track. Shell-wrapper launch commands that cannot be tied to a package-owned executable are rejected with an explanation.

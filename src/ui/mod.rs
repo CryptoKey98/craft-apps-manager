@@ -851,7 +851,8 @@ impl App {
             "logs/updates.log".into()
         };
         let previous = self.job.state.lock().unwrap().output.clone();
-        self.job = Job::new(paths.at(log), &self.build_preferences);
+        self.job = Job::interactive(paths.at(log), &self.build_preferences);
+        self.job.enable_identity_choices();
         self.job.history(&self.job.log_path);
         self.job.state.lock().unwrap().output = previous;
         self.job_target = matches!(
@@ -1032,7 +1033,8 @@ impl App {
         self.install_draft_app = None;
         self.install_result = None;
         self.app = app.clone();
-        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+        self.job = Job::interactive(paths.at("logs/updates.log"), &self.build_preferences);
+        self.job.enable_identity_choices();
         self.job.history(&self.job.log_path);
         self.job.describe(
             if plan.installer_downgrade() {
@@ -1132,7 +1134,7 @@ impl App {
         let paths = self.paths.clone();
         let (tx, rx) = std::sync::mpsc::channel();
         self.plan_receiver = Some(rx);
-        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+        self.job = Job::interactive(paths.at("logs/updates.log"), &self.build_preferences);
         self.job_target = None;
         self.failure_dismissed = false;
         self.job_action = "releases".into();

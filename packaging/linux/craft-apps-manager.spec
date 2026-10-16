@@ -7,7 +7,7 @@ License:        MIT
 URL:            https://github.com/CryptoKey98/craft-apps-manager
 Source0:        package.tar.gz
 Requires:       libX11%{?_isa}, libXrandr%{?_isa}, libXi%{?_isa}, libXcursor%{?_isa}, libxkbcommon%{?_isa}, libwayland-client%{?_isa}, libwayland-cursor%{?_isa}, libwayland-egl%{?_isa}, mesa-libEGL%{?_isa}, mesa-libGL%{?_isa}
-Requires:       /usr/bin/notify-send, /usr/bin/xdg-open, /usr/bin/pkexec
+Requires:       /usr/bin/notify-send, /usr/bin/xdg-open, /usr/bin/pkexec, /usr/bin/bsdtar, /usr/bin/rpm2cpio
 Recommends:     7zip
 
 %description

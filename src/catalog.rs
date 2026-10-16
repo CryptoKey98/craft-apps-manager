@@ -36,6 +36,9 @@ pub struct Entry {
     /// Stable identity used in settings, folders and logs.
     pub key: String,
     pub repository: String,
+    /// GitHub repository creation time, independent of release updates or local discovery.
+    #[serde(default)]
+    pub created_at: Option<i64>,
     pub title: String,
     /// Short label under the app name.
     #[serde(default)]
@@ -77,6 +80,7 @@ fn craft(key: &str, title: &str, category: &str, description: &str) -> Entry {
         registered_formats: Vec::new(),
         asset_prefix: key.into(),
         aliases: Vec::new(),
+        created_at: None,
         bundle_ids: Vec::new(),
         release: true,
         source: true,
@@ -116,7 +120,8 @@ pub fn builtin() -> Vec<Entry> {
         registered_formats: Vec::new(),
             asset_prefix: "ArtCraft".into(),
             aliases: Vec::new(),
-            bundle_ids: vec!["ai.artcraft.app".into()],
+            created_at: None,
+        bundle_ids: vec!["ai.artcraft.app".into()],
             release: true,
             source: false,
         },
@@ -132,7 +137,8 @@ pub fn builtin() -> Vec<Entry> {
         registered_formats: Vec::new(),
             asset_prefix: String::new(),
             aliases: Vec::new(),
-            bundle_ids: Vec::new(),
+            created_at: None,
+        bundle_ids: Vec::new(),
             release: false,
             source: true,
         },
@@ -319,6 +325,7 @@ pub fn learn_alias(root: &Path, key: &str, alias: &str) -> Result<()> {
 }
 /// Uses the saved discovery result without contacting GitHub.
 pub fn load(root: &Path) {
+    crate::app_identity::load(root);
     let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
     reload(root, &cache);
 }
@@ -754,6 +761,7 @@ fn classify_custom(
         } else {
             Vec::new()
         },
+        created_at: None,
         bundle_ids: Vec::new(),
         release: true,
         source: false,
@@ -887,6 +895,8 @@ pub fn refresh_if_older(root: &Path, seconds: i64) -> Result<Vec<Entry>> {
 struct Repository {
     name: String,
     #[serde(default)]
+    created_at: Option<String>,
+    #[serde(default)]
     topics: Vec<String>,
     #[serde(default)]
     description: Option<String>,
@@ -923,6 +933,13 @@ fn repository_subtitle(title: &str, description: &str) -> String {
 }
 
 fn apply_repository_metadata(entry: &mut Entry, repository: &Repository) {
+    if let Some(created_at) = repository.created_at.as_deref().and_then(|date| {
+        chrono::DateTime::parse_from_rfc3339(date)
+            .ok()
+            .map(|date| date.timestamp())
+    }) {
+        entry.created_at = Some(created_at);
+    }
     entry.description = repository
         .description
         .as_deref()
@@ -1043,6 +1060,7 @@ pub fn classify(repository: &str, release: Option<&Release>) -> Entry {
         registered_formats: Vec::new(),
         asset_prefix: String::new(),
         aliases: Vec::new(),
+        created_at: None,
         bundle_ids: Vec::new(),
         release: false,
         source: true,
@@ -1217,10 +1235,39 @@ mod tests {
     }
 
     #[test]
+    fn repository_creation_date_survives_cache_and_metadata_refresh() {
+        let mut entry = craft("figcraft", "FigCraft", "", "");
+        let mut repository: Repository = serde_json::from_value(serde_json::json!({
+            "name": "figcraft", "created_at": "2026-10-01T12:00:00Z"
+        }))
+        .unwrap();
+        apply_repository_metadata(&mut entry, &repository);
+        let expected = chrono::DateTime::parse_from_rfc3339("2026-10-01T12:00:00Z")
+            .unwrap()
+            .timestamp();
+        assert_eq!(entry.created_at, Some(expected));
+        let mut cached: Entry =
+            serde_json::from_slice(&serde_json::to_vec(&entry).unwrap()).unwrap();
+        repository.created_at = Some("invalid".into());
+        apply_repository_metadata(&mut cached, &repository);
+        assert_eq!(cached.created_at, Some(expected));
+        repository.created_at = None;
+        apply_repository_metadata(&mut cached, &repository);
+        assert_eq!(cached.created_at, Some(expected));
+        let mut legacy = serde_json::to_value(entry).unwrap();
+        legacy.as_object_mut().unwrap().remove("createdAt");
+        assert!(serde_json::from_value::<Entry>(legacy)
+            .unwrap()
+            .created_at
+            .is_none());
+    }
+
+    #[test]
     fn cached_discovery_refreshes_metadata_without_reclassifying() {
         let mut entry = craft("figcraft", "FigCraft", "", "Old description");
         let scheme = entry.scheme;
         let repository = Repository {
+            created_at: None,
             name: "figcraft".into(),
             topics: Vec::new(),
             description: Some("FigCraft: interface design and prototyping; open source".into()),
@@ -1477,6 +1524,7 @@ mod tests {
             }
         }
         let repo = Repository {
+            created_at: None,
             topics: Vec::new(),
             name: "ZooKraft".into(),
             description: Some(" Puzzles ".into()),
@@ -1547,6 +1595,7 @@ mod tests {
             registered_formats: Vec::new(),
             asset_prefix: "zookraft".into(),
             aliases: Vec::new(),
+            created_at: None,
             bundle_ids: Vec::new(),
             release: true,
             source: false,
@@ -1576,6 +1625,7 @@ mod tests {
     #[test]
     fn common_custom_downloads_support_single_and_ambiguous_releases() {
         let repository = Repository {
+            created_at: None,
             topics: Vec::new(),
             name: "obs-studio".into(),
             description: None,
@@ -1651,6 +1701,7 @@ mod tests {
     #[test]
     fn rejected_architecture_does_not_block_retry_with_compatible_preferences() {
         let repository = Repository {
+            created_at: None,
             topics: Vec::new(),
             name: "exampletool".into(),
             description: None,
@@ -1768,6 +1819,7 @@ mod tests {
         let paths = crate::model::Paths::new(root.clone(), None);
         load(&root);
         let repository = Repository {
+            created_at: None,
             topics: Vec::new(),
             name: "exampletool".into(),
             description: None,

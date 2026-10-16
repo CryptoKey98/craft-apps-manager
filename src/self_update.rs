@@ -603,15 +603,7 @@ pub fn startup_message() -> Option<String> {
     #[cfg(target_os = "macos")]
     {
         let path = macos_data_home()?.join("self-update-result.json");
-        match files::read_json::<UpdateResult>(&path) {
-            Ok(result) if matches!(result.status, UpdateStatus::Failed) => Some(result.message),
-            Ok(_) => None,
-            Err(_) if path.exists() => Some(format!(
-                "Could not read the previous manager update result. See {}",
-                path.display()
-            )),
-            Err(_) => None,
-        }
+        macos_startup_message_at(&path)
     }
     #[cfg(target_os = "windows")]
     {
@@ -624,18 +616,59 @@ pub fn startup_message() -> Option<String> {
     None
 }
 
+#[cfg(any(target_os = "macos", test))]
+fn macos_startup_message_at(path: &Path) -> Option<String> {
+    // Deliver once, like the Windows startup result. Keep a bounded diagnostic
+    // copy outside the signed bundle; the helper also retains its recovery copy.
+    if !path.exists() {
+        return None;
+    }
+    let read = (|| -> Result<Vec<u8>> {
+        anyhow::ensure!(!files::linked(path)?, "Linked manager update result");
+        Ok(fs::read(path)?)
+    })();
+    let bytes = match read {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            return Some(format!(
+                "Could not read the previous manager update result at {}: {error:#}",
+                path.display()
+            ))
+        }
+    };
+    let message = match serde_json::from_slice::<UpdateResult>(&bytes) {
+        Ok(result) if matches!(result.status, UpdateStatus::Failed) => result.message,
+        Ok(_) => return None,
+        Err(_) => format!(
+            "Could not read the previous manager update result. See {}",
+            path.display()
+        ),
+    };
+    let acknowledged = (|| -> Result<()> {
+        crate::settings::commit_metadata(&[(path.with_extension("acknowledged.json"), bytes)])?;
+        fs::remove_file(path)?;
+        Ok(())
+    })();
+    match acknowledged {
+        Ok(()) => Some(message),
+        Err(error) => Some(format!(
+            "{message}\nCould not acknowledge this update notification: {error:#}"
+        )),
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn macos_data_home() -> Option<PathBuf> {
     std::env::var_os("HOME")
         .map(|home| PathBuf::from(home).join("Library/Application Support/Craft Apps Manager"))
 }
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", test))]
 #[derive(Serialize, Deserialize)]
 struct UpdateResult {
     status: UpdateStatus,
     message: String,
 }
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", test))]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum UpdateStatus {
@@ -1837,5 +1870,96 @@ mod linux_package_tests {
             "dpkg-query",
             "dpkg-query: no path found matching pattern"
         ));
+    }
+}
+
+#[cfg(test)]
+mod startup_result_tests {
+    use super::*;
+    #[test]
+    fn macos_failure_stays_pending_when_diagnostic_cannot_be_saved() {
+        let root =
+            std::env::temp_dir().join(format!("craft-startup-result-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("self-update-result.json");
+        fs::create_dir(path.with_extension("acknowledged.json")).unwrap();
+        let bytes = br#"{"status":"failed","message":"original failure"}"#;
+        fs::write(&path, bytes).unwrap();
+        let message = macos_startup_message_at(&path).unwrap();
+        assert!(message.contains("original failure"));
+        assert!(message.contains("Could not acknowledge"));
+        assert_eq!(fs::read(&path).unwrap(), bytes);
+        fs::remove_dir(path.with_extension("acknowledged.json")).unwrap();
+        assert_eq!(
+            macos_startup_message_at(&path).as_deref(),
+            Some("original failure")
+        );
+        assert!(macos_startup_message_at(&path).is_none());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn macos_malformed_result_is_reported_once_and_preserved() {
+        let root =
+            std::env::temp_dir().join(format!("craft-startup-result-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("self-update-result.json");
+        fs::write(&path, b"interrupted JSON write").unwrap();
+        assert!(macos_startup_message_at(&path)
+            .unwrap()
+            .contains("Could not read"));
+        assert!(macos_startup_message_at(&path).is_none());
+        assert_eq!(
+            fs::read(path.with_extension("acknowledged.json")).unwrap(),
+            b"interrupted JSON write"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn macos_success_and_missing_result_do_not_report_failure() {
+        let root =
+            std::env::temp_dir().join(format!("craft-startup-result-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("self-update-result.json");
+        assert!(macos_startup_message_at(&path).is_none());
+        for status in ["launch_pending", "launch_requested"] {
+            let bytes =
+                serde_json::to_vec(&serde_json::json!({"status":status,"message":"not a failure"}))
+                    .unwrap();
+            fs::write(&path, &bytes).unwrap();
+            assert!(macos_startup_message_at(&path).is_none());
+            assert_eq!(fs::read(&path).unwrap(), bytes);
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn macos_failure_is_reported_once_and_diagnostic_is_preserved() {
+        let root =
+            std::env::temp_dir().join(format!("craft-startup-result-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("self-update-result.json");
+        let bytes = br#"{"status":"failed","message":"previous manager was restored"}"#;
+        fs::write(&path, bytes).unwrap();
+        assert_eq!(
+            macos_startup_message_at(&path).as_deref(),
+            Some("previous manager was restored")
+        );
+        assert!(
+            macos_startup_message_at(&path).is_none(),
+            "relaunch must not repeat an already delivered failure"
+        );
+        assert_eq!(
+            fs::read(path.with_extension("acknowledged.json")).unwrap(),
+            bytes
+        );
+        // A later failed attempt must still produce a new notification.
+        fs::write(&path, br#"{"status":"failed","message":"new failure"}"#).unwrap();
+        assert_eq!(
+            macos_startup_message_at(&path).as_deref(),
+            Some("new failure")
+        );
+        assert!(macos_startup_message_at(&path).is_none());
+        fs::remove_dir_all(root).unwrap();
     }
 }

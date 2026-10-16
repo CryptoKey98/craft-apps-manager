@@ -819,6 +819,13 @@ pub fn executable_names(app: &str) -> Vec<String> {
     {
         names = desktop_executable_names(names);
     }
+    #[cfg(target_os = "macos")]
+    names.extend(
+        crate::app_identity::native(app)
+            .into_iter()
+            .filter(|identity| identity.platform == "macos")
+            .map(|identity| identity.executable),
+    );
     names.dedup();
     // Prefer the current release name on Unix; keep older names as fallbacks.
     // Windows installer resolution is handled separately.
@@ -883,12 +890,26 @@ fn is_appimage(path: &Path) -> bool {
 }
 
 pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
+    #[cfg(target_os = "windows")]
+    if let Some(executable) = crate::app_identity::portable(folder, app) {
+        return Some(executable);
+    }
     #[cfg(target_os = "macos")]
     {
         crate::installers::resolve_bundle(folder, app)
     }
     #[cfg(not(target_os = "macos"))]
     {
+        #[cfg(target_os = "windows")]
+        if !crate::app_identity::native(app).is_empty() {
+            if let Some(choice) = crate::installers::registered_launch_choice(folder, app) {
+                return choice;
+            }
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(executable) = crate::installers::registered_launch_executable(folder, app) {
+            return Some(executable);
+        }
         let executable = executable_names(app)
             .into_iter()
             .map(|name| folder.join(name))

@@ -4,7 +4,7 @@
 
 Install, update, launch, and build the Craft apps from Storytold in one place. Choose installation options for each app, keep multiple copies, and follow your downloads and builds in Activity.
 
-Version **0.8.3** includes platform-specific update revisions, so minor fixes can reach only the systems that need them. See the [changelog](CHANGELOG.md) for all changes.
+Version **0.9.0** includes improvements to custom GitHub app recognition, installation safety and macOS manager updates. See the [changelog](CHANGELOG.md) for all changes.
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
@@ -113,6 +113,12 @@ Linux close-to-tray also needs X11 or XWayland. The manager prefers a reachable 
 Paste a repository link into **Settings → Apps → Custom apps**. The setup dialog lets you review the detected download, package type, and architecture, and choose a download when several are possible.
 
 Adding a repository adds it to the list; it does not install the app. Removing it from the list does not uninstall it. A repository needs a compatible downloadable release for your system.
+
+The manager remembers verified package identities and your selected executable, even when their names differ from the GitHub repository. If a package contains several possible apps, choose the one you want to use. Background updates stop with an explanation when a new choice is required.
+
+If a Windows installer leaves an existing program unchanged, you can explicitly select its verified registration. Supported Linux desktop launchers retain their arguments and per-app environment; arbitrary shell commands are not evaluated.
+
+Linux native packages need a package-owned desktop launcher. Unsupported installer types or unusual launch wrappers may still need manual installation.
 
 **Custom-app support is experimental.** Asset naming and installer registration vary, so some apps may not install, be detected, or uninstall reliably. Third-party apps are not included by default.
 
