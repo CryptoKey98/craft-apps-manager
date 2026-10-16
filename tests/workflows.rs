@@ -457,6 +457,25 @@ fn obsolete_global_format_preserves_portable_and_discards_missing_native_install
     app.install_kind = "portable".into();
     fs::create_dir_all(&app.path).unwrap();
     write_release_fixture(Path::new(&app.path), "craft-test-missing-app", "fixture");
+    #[cfg(target_os = "macos")]
+    {
+        // This intentionally uncatalogued app must carry the same verified
+        // identity that a successful custom-app installation would record.
+        let folder = Path::new(&app.path);
+        assert!(model::installed_executable(folder, &app.name).is_none());
+        craft_apps_manager::app_identity::remember(
+            &paths.root,
+            &app.name,
+            craft_apps_manager::app_identity::NativeIdentity {
+                platform: "macos".into(),
+                package: format!("ai.storyteller.{}", model::repository_name(&app.name)),
+                executable: model::executable_name(&app.name),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(model::installed_executable(folder, &app.name).is_some());
+    }
     paths.save_config(&config).unwrap();
     for (format, expected) in [
         ("installer", "1.0.0"),
