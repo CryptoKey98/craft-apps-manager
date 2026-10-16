@@ -174,6 +174,7 @@ impl App {
                                 theme::heading(ui, "New in 0.9.0", 13.0);
                                 ui.add_space(10.0);
                                 for note in [
+                                    "Periodic update checks now include the manager alongside installed apps, using your chosen interval. Downloads and installations still require your approval.",
                                     "New badges expire 14 days after a Craft app's repository was created, including on fresh manager installs. Viewing the app clears its badge sooner; app updates do not reset the timer.",
                                     "Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.",
                                     "Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.",

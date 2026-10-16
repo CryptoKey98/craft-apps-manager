@@ -763,9 +763,11 @@ impl App {
         }
     }
     fn check_manager(&mut self, ctx: &egui::Context) {
+        if self.manager_receiver.is_some() || self.manager_plan.is_some() {
+            return;
+        }
         let (tx, rx) = std::sync::mpsc::channel();
         self.manager_receiver = Some(rx);
-        self.manager_available = None;
         self.manager_message = "Checking for manager updates…".into();
         let paths = self.paths.clone();
         let ctx = ctx.clone();
@@ -2007,6 +2009,7 @@ impl App {
         {
             let (tx, rx) = std::sync::mpsc::channel();
             self.periodic_receiver = Some(rx);
+            self.check_manager(ctx);
             let paths = self.paths.clone();
             let ctx = ctx.clone();
             std::thread::spawn(move || {
@@ -2036,6 +2039,7 @@ impl App {
                         self.manager_available = Some(available);
                     }
                     Ok(None) => {
+                        self.manager_available = None;
                         self.manager_message = "You’re running the latest manager version.".into()
                     }
                     Err(error) => {

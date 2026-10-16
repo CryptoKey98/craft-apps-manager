@@ -1336,7 +1336,7 @@ impl App {
                 ui,
                 &mut self.settings_draft.check_installed_apps_periodically,
                 "Periodically while the manager is open",
-                Some("Checks wait until downloads and builds finish."),
+                Some("Check the manager and installed apps. Waits until downloads and builds finish."),
             );
             row_with(
                 ui,

@@ -2,6 +2,7 @@
 
 ## 0.9.0
 
+- Include manager updates in periodic update checks while the manager is open, using the same interval as installed apps. Updates still require your approval.
 - Show New badges only during the first 14 days after a Craft app's repository was created, for both fresh manager installs and existing users. Viewing an app clears its badge sooner; app updates do not reset the timer.
 - Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.
 - Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.
