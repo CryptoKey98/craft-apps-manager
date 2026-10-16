@@ -56,7 +56,7 @@ Section: utils
 Priority: optional
 Maintainer: CryptoKey98 <cryptokey98@users.noreply.github.com>
 Homepage: https://github.com/CryptoKey98/craft-apps-manager
-Depends: $linked, libx11-6, libxcursor1, libxi6, libxrandr2, libxkbcommon0, libwayland-client0, libwayland-cursor0, libwayland-egl1, libegl1, libgl1, $notification_helper, xdg-utils, pkexec
+Depends: $linked, libx11-6, libxcursor1, libxi6, libxrandr2, libxkbcommon0, libwayland-client0, libwayland-cursor0, libwayland-egl1, libegl1, libgl1, $notification_helper, xdg-utils, pkexec, libarchive-tools
 Recommends: 7zip:amd64 | 7zip:i386 | 7zip:arm64
 Description: Manage Craft app releases, sources and builds
  Download Craft releases, check for updates, manage source archives,

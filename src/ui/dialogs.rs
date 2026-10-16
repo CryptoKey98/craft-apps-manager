@@ -948,6 +948,40 @@ impl App {
         }
     }
     pub(super) fn dialogs(&mut self, ctx: &egui::Context) {
+        if let Some(choice) = self.job.identity_choice() {
+            modal(ctx, "Choose application", 520.0, |ui| {
+                let mut close = false;
+                title_bar(ui, "Choose application", |ui| {
+                    close = close_button(ui).clicked();
+                });
+                band(ui, egui::Margin::same(20), 0.0, |ui| {
+                    paragraph(ui, &choice.title);
+                    ui.add_space(12.0);
+                    egui::ScrollArea::vertical()
+                        .max_height(260.0)
+                        .show(ui, |ui| {
+                            for (index, candidate) in choice.candidates.iter().enumerate() {
+                                if ui.selectable_label(false, candidate).clicked() {
+                                    choice.answer(Some(index));
+                                }
+                            }
+                        });
+                });
+                footer(ui, |ui| {
+                    if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        choice.answer(None);
+                    }
+                });
+                if close {
+                    choice.answer(None);
+                }
+            });
+            if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+                choice.answer(None);
+            }
+            return;
+        }
+
         if self.confirm_install.is_none() {
             self.additional_installation = false;
             self.install_selected_tag = None;
@@ -1624,7 +1658,7 @@ impl App {
                                         {
                                             let paths = self.paths.clone();
                                             let app = app.clone();
-                                            self.job = Job::new(self.paths.at("logs/updates.log"), &self.build_preferences);
+                                            self.job = Job::interactive(self.paths.at("logs/updates.log"), &self.build_preferences);
                                             self.job.describe("Delete cache", &app);
                                             self.job_target = Some((app.clone(), "clean-build".into()));
                                             self.job_action = "clean-build".into();
@@ -1872,7 +1906,8 @@ impl App {
                     {
                         self.release_plan = None;
                         let paths = self.paths.clone();
-                        self.job = Job::new(paths.at("logs/updates.log"), &self.build_preferences);
+                        self.job =
+                            Job::interactive(paths.at("logs/updates.log"), &self.build_preferences);
                         // A selected version is still a per-app install. Keep its
                         // target so the app page shows progress and install failures.
                         self.job_target = plan.requested_tag.as_ref().and_then(|_| {
@@ -3337,7 +3372,7 @@ impl App {
                             let ctx = ctx.clone();
                             let (tx, rx) = std::sync::mpsc::channel();
                             self.manager_plan = Some(rx);
-                            self.job = Job::new(
+                            self.job = Job::interactive(
                                 self.paths.at("logs/updates.log"),
                                 &self.build_preferences,
                             );

@@ -40,6 +40,13 @@ struct Outcome {
     cancelled: bool,
 }
 
+fn approved_asset(entry: &crate::updates::ReleaseEntry) -> bool {
+    entry.asset.as_ref().is_some_and(|asset| {
+        let name = asset.name.to_ascii_lowercase();
+        name.ends_with(".msi")
+            || (name.ends_with(".exe") && crate::installers::batch_identity_ready(&entry.app))
+    })
+}
 pub fn eligible(plan: &ReleasePlan) -> bool {
     plan.preferences.batch_admin
         && ((plan.requested_tag.is_none()
@@ -48,6 +55,7 @@ pub fn eligible(plan: &ReleasePlan) -> bool {
                 .iter()
                 .filter(|entry| {
                     entry.preferences.release_format == "installer"
+                        && approved_asset(entry)
                         && matches!(entry.action.as_str(), "Install" | "Update")
                         && entry.error.is_none()
                 })
@@ -64,6 +72,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     let mut native = plan.clone();
     native.entries.retain(|entry| {
         entry.preferences.release_format == "installer"
+            && approved_asset(entry)
             && matches!(entry.action.as_str(), "Install" | "Update")
             && entry.error.is_none()
     });
@@ -79,6 +88,12 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         } else {
             network.asset(asset, &destination, job)?;
         }
+    }
+    // Resolve user choices before elevation; the worker never waits for a GUI reply.
+    for entry in &native.entries {
+        let asset = entry.asset.as_ref().context("Missing approved installer")?;
+        let destination = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
+        crate::installers::prepare_custom_identity(&paths.root, &destination, &entry.app, job)?;
     }
     let mut recovery_packages = std::collections::BTreeMap::new();
     if native.installer_downgrade() {
@@ -415,7 +430,12 @@ mod tests {
                     app: name.into(),
                     action: "Update".into(),
                     version: "1.0".into(),
-                    asset: None,
+                    asset: Some(crate::model::Asset {
+                        name: format!("{name}.msi"),
+                        browser_download_url: "https://example.invalid/installer".into(),
+                        size: 1,
+                        digest: None,
+                    }),
                     destination: None,
                     error: None,
                     preferences: prefs,
@@ -428,6 +448,9 @@ mod tests {
         }))
         .unwrap();
         assert!(super::eligible(&plan));
+        plan.entries[0].asset.as_mut().unwrap().name = "photocraft.exe".into();
+        assert!(super::eligible(&plan)); // Built-in EXEs retain the existing elevated-batch path.
+        plan.entries[0].asset.as_mut().unwrap().name = "photocraft.msi".into();
         plan.preferences.batch_admin = false;
         assert!(!super::eligible(&plan));
         plan.preferences.batch_admin = true;

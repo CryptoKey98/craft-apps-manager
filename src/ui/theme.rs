@@ -333,9 +333,11 @@ pub enum Icon {
     Sun,
     Gear,
     Search,
+    ScanSearch,
     Grid,
     Download,
     Refresh,
+    RefreshCw,
     Play,
     Trash,
     ArrowUp,
@@ -568,6 +570,30 @@ pub fn paint_icon_weight(
             painter.circle_stroke(p(11.0, 11.0), 7.5 * scale, stroke);
             line(vec![p(16.5, 16.5), p(21.0, 21.0)]);
         }
+        Icon::ScanSearch => {
+            for (cx, cy, from) in [
+                (5.0, 5.0, 180.0),
+                (19.0, 5.0, 270.0),
+                (19.0, 19.0, 0.0),
+                (5.0, 19.0, 90.0),
+            ] {
+                let mut points = arc(cx, cy, 2.0, from, from + 90.0);
+                let start = points[0];
+                let end = *points.last().unwrap();
+                let direction = from.to_radians();
+                points.insert(
+                    0,
+                    start + egui::vec2(-direction.sin(), direction.cos()) * -2.0 * scale,
+                );
+                points.push(end + egui::vec2(-direction.cos(), -direction.sin()) * 2.0 * scale);
+                painter.circle_filled(points[0], stroke.width * 0.5, color);
+                painter.circle_filled(*points.last().unwrap(), stroke.width * 0.5, color);
+                line(points);
+            }
+            painter.circle_stroke(p(11.0, 11.0), 3.0 * scale, stroke);
+            line(vec![p(13.2, 13.2), p(16.0, 16.0)]);
+            painter.circle_filled(p(16.0, 16.0), stroke.width * 0.5, color);
+        }
         Icon::Grid => {
             for (x, y) in [(3.0, 3.0), (14.0, 3.0), (3.0, 14.0), (14.0, 14.0)] {
                 painter.rect_stroke(
@@ -595,6 +621,18 @@ pub fn paint_icon_weight(
             line(arc(12.0, 12.0, 9.0, 0.0, 312.0));
             line(vec![p(18.0, 5.3), p(21.0, 8.0)]);
             line(vec![p(21.0, 3.0), p(21.0, 8.0), p(16.0, 8.0)]);
+        }
+        Icon::RefreshCw => {
+            for points in [
+                arc(12.0, 12.0, 9.0, 200.0, 330.0),
+                arc(12.0, 12.0, 9.0, 20.0, 150.0),
+                vec![p(16.0, 7.5), p(20.0, 7.5), p(20.0, 3.5)],
+                vec![p(8.0, 16.5), p(4.0, 16.5), p(4.0, 20.5)],
+            ] {
+                painter.circle_filled(points[0], stroke.width * 0.5, color);
+                painter.circle_filled(*points.last().unwrap(), stroke.width * 0.5, color);
+                line(points);
+            }
         }
         Icon::Play => {
             painter.add(egui::Shape::closed_line(

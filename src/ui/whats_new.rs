@@ -73,27 +73,54 @@ fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32, elap
         .request_repaint_after(std::time::Duration::from_millis(33));
 }
 
+fn github_mask(size: u32) -> egui::ColorImage {
+    // GitHub's official 16px Octicon, rendered directly at common UI/DPI sizes.
+    // These PNGs have transparent backgrounds; their alpha is the coverage mask.
+    let bytes: &[u8] = match size {
+        13 => include_bytes!("../../assets/github-mark-ui-13.png"),
+        19 => include_bytes!("../../assets/github-mark-ui-19.png"),
+        26 => include_bytes!("../../assets/github-mark-ui-26.png"),
+        38 => include_bytes!("../../assets/github-mark-ui-38.png"),
+        _ => include_bytes!("../../assets/github-mark-ui-64.png"),
+    };
+    let image = image::load_from_memory(bytes)
+        .expect("bundled GitHub UI icon")
+        .into_rgba8();
+    let image = if image.width() == size {
+        image
+    } else {
+        image::imageops::resize(&image, size, size, image::imageops::FilterType::Lanczos3)
+    };
+    egui::ColorImage {
+        size: [size as usize, size as usize],
+        pixels: image
+            .pixels()
+            .map(|pixel| Color32::from_white_alpha(pixel[3]))
+            .collect(),
+    }
+}
+
 pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
-    let id = egui::Id::new("whats-new-github-mark");
+    let pixels_per_point = ui.ctx().pixels_per_point();
+    let size = (rect.width().min(rect.height()) * pixels_per_point)
+        .round()
+        .clamp(1.0, 256.0) as u32;
+    let side = size as f32 / pixels_per_point;
+    let origin = rect.center() - egui::Vec2::splat(side * 0.5);
+    let origin = egui::pos2(
+        (origin.x * pixels_per_point).round() / pixels_per_point,
+        (origin.y * pixels_per_point).round() / pixels_per_point,
+    );
+    let rect = egui::Rect::from_min_size(origin, egui::Vec2::splat(side));
+    let id = egui::Id::new(("github-octicon-small", size));
     let cached = ui
         .ctx()
         .data(|data| data.get_temp::<egui::TextureHandle>(id));
     let texture = cached.unwrap_or_else(|| {
-        let image = image::load_from_memory(include_bytes!("../../assets/github-mark.png"))
-            .expect("bundled GitHub logo")
-            .into_rgba8();
-        let size = [image.width() as usize, image.height() as usize];
-        // Publisher's mark has a white background: turn its ink into a tintable mask.
-        let pixels: Vec<Color32> = image
-            .pixels()
-            .map(|pixel| {
-                Color32::from_white_alpha(((255 - pixel[0]) as u16 * pixel[3] as u16 / 255) as u8)
-            })
-            .collect();
         let texture = ui.ctx().load_texture(
-            "github-mark",
-            egui::ColorImage { size, pixels },
-            Default::default(),
+            format!("github-mark-{size}"),
+            github_mask(size),
+            egui::TextureOptions::LINEAR,
         );
         ui.ctx()
             .data_mut(|data| data.insert_temp(id, texture.clone()));
@@ -103,7 +130,11 @@ pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
         texture.id(),
         rect,
         egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
-        theme::palette().muted,
+        if ui.visuals().dark_mode {
+            Color32::WHITE
+        } else {
+            Color32::BLACK
+        },
     );
 }
 
@@ -113,7 +144,12 @@ fn feature(ui: &mut egui::Ui, icon: Option<theme::Icon>, title: &str, text: &str
         let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 22.0), Sense::hover());
         let rect = egui::Rect::from_center_size(rect.center(), egui::Vec2::splat(19.0));
         if let Some(icon) = icon {
-            theme::paint_icon(ui.painter(), rect, icon, theme::palette().muted);
+            let weight = if icon == theme::Icon::RefreshCw {
+                1.5
+            } else {
+                2.0
+            };
+            theme::paint_icon_weight(ui.painter(), rect, icon, theme::palette().muted, weight);
         } else {
             github(ui, rect);
         }
@@ -162,16 +198,56 @@ impl App {
                 egui::ScrollArea::vertical().id_salt("whats-new-content")
                     .max_height((ctx.screen_rect().height() - 260.0).clamp(160.0, 490.0))
                     .show(ui, |ui| {
-                        body_text(ui, "More control over your apps. A clearer view of every operation.");
+                        body_text(ui, "Better app compatibility. More confidence in every installation.");
                         ui.add_space(22.0);
-                        feature(ui, Some(theme::Icon::Sliders), "Install your way", "Choose the package type and architecture for each app.");
+                        feature(ui, Some(theme::Icon::ScanSearch), "Smarter app detection", "Verified app identities help the manager recognize the right program and remember your choice.");
+                        feature(ui, None, "More custom GitHub apps supported", "Better recognition when app names, installers and executables differ.");
+                        feature(ui, Some(theme::Icon::RefreshCw), "Stay up to date", "Periodic checks now include the manager alongside your installed apps.");
                         feature(ui, Some(theme::Icon::Layers), "Multiple installations", "Keep multiple copies and choose which one to open, update or remove.");
-                        feature(ui, Some(theme::Icon::Activity), "Follow every operation", "Track installs, updates and builds, with progress and cancellation.");
-                        feature(ui, None, "Add your own GitHub apps", "Add apps from GitHub releases. Custom app support is experimental.");
-                        feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "New Craft apps appear automatically, marked New so they're easy to find.");
+                        feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "Find Craft apps automatically. Only apps less than two weeks old are marked New, and viewing an app clears its badge.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 0.8.3", 13.0);
+                                theme::heading(ui, "New in 0.9.0", 13.0);
+                                ui.add_space(10.0);
+                                for note in [
+                                    "Periodic update checks now include the manager alongside installed apps, using your chosen interval. Downloads and installations still require your approval.",
+                                    "New badges expire 14 days after a Craft app's repository was created, including on fresh manager installs. Viewing the app clears its badge sooner; app updates do not reset the timer.",
+                                    "Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.",
+                                    "Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.",
+                                    "Target the selected installation when verifying installs and uninstalling, and preserve existing copies when identity cannot be confirmed.",
+                                    "Reject unsupported download architectures and recognize more Windows installation version formats.",
+                                    #[cfg(target_os = "windows")]
+                                    "Let users explicitly identify an existing Windows app when its installer makes no registration change.",
+                                    #[cfg(target_os = "windows")]
+                                    "Avoid duplicate application choices for per-user Windows installations.",
+                                    #[cfg(target_os = "linux")]
+                                    "Preserve supported Linux desktop launcher arguments and environment settings, and keep the previous app identity when installation fails or is cancelled.",
+                                    #[cfg(target_os = "macos")]
+                                    "Fix macOS manager updates failing because another application in the same folder contains symbolic links, while preserving update security checks.",
+                                    #[cfg(target_os = "macos")]
+                                    "Show saved macOS update failures once instead of repeating them on every launch, and retain their diagnostic details for troubleshooting.",
+                                ] {
+                                    body_text(ui, &format!("• {note}"));
+                                    ui.add_space(8.0);
+                                }
+                                #[cfg(target_os = "linux")]
+                                {
+                                    ui.add_space(16.0);
+                                    theme::heading(ui, "Also included from 0.8.3 Rev. 2 · Linux", 13.0);
+                                    ui.add_space(10.0);
+                                    for note in [
+                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
+                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
+                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
+                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
+                                        "What's New opens once after a revision update, while keeping your existing dismissal history.",
+                                    ] {
+                                        body_text(ui, &format!("• {note}"));
+                                        ui.add_space(8.0);
+                                    }
+                                }
+                                ui.add_space(16.0);
+                                theme::heading(ui, "Also included from 0.8.3", 13.0);
                                 ui.add_space(10.0);
                                 body_text(ui, "• Manager updates now support platform-specific build revisions. Minor fixes can reach only the systems that need them.");
                                 ui.add_space(8.0);
@@ -222,26 +298,7 @@ impl App {
                         if notes.body_returned.is_none() {
                             patch_notes_underline(ui, notes.header_response.rect, p.link, elapsed);
                         }
-                        #[cfg(target_os = "linux")]
-                        {
-                            ui.add_space(12.0);
-                            egui::CollapsingHeader::new(RichText::new("Patch notes for 0.8.3 Rev. 2 · Linux").size(13.0).color(p.link))
-                                .id_salt("whats-new-linux-rev2-notes")
-                                .default_open(true)
-                                .show(ui, |ui| {
-                                    ui.add_space(6.0);
-                                    for note in [
-                                        "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",
-                                        "Start normally when XWayland is unavailable, using native Wayland when supported by your desktop.",
-                                        "See AppImage labels in installation selectors and package details, including for existing installations. Your selected copy and installation letters stay the same.",
-                                        "Manager and Builder now identify themselves to Linux desktops so their windows can match the correct launcher, name and icon.",
-                                        "What's New opens once after a revision update, while keeping your existing dismissal history.",
-                                    ] {
-                                        body_text(ui, &format!("• {note}"));
-                                        ui.add_space(8.0);
-                                    }
-                                });
-                        }
+
                     });
             });
             ui.separator();
@@ -288,6 +345,24 @@ impl App {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn small_github_mark_uses_the_icon_area_instead_of_source_padding() {
+        for size in [16, 19, 24, 38] {
+            let mask = super::github_mask(size);
+            let width = size as usize;
+            let occupied_columns = (0..width)
+                .filter(|&x| (0..width).any(|y| mask.pixels[y * width + x].a() > 128))
+                .count();
+            assert!(
+                occupied_columns >= width - 2,
+                "source padding shrank the {size}px logo"
+            );
+            assert!(mask
+                .pixels
+                .iter()
+                .any(|pixel| (1..255).contains(&pixel.a())));
+        }
+    }
     use super::*;
     #[test]
     fn highlights_show_on_first_launch_and_version_change_only() {

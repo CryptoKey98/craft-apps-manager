@@ -165,14 +165,32 @@ pub(crate) fn attach_existing(base: &Path, library: &Path) -> Result<()> {
 /// Preserve the old library before the first launch of a portable update.
 /// Old update helpers only replace the binary, so startup calls this too.
 pub fn adopt_updated_portable(base: &Path, library: &Path, tools: Option<&Path>) -> Result<()> {
-    if local_storage(base) {
-        return Ok(());
-    }
     anyhow::ensure!(
         base.is_absolute() && library.is_absolute(),
         "Invalid portable update location"
     );
-    crate::files::no_links(base)?;
+    // This may be /Applications, not a manager-owned tree. Validate only
+    // the directory and metadata we touch; updater staging/bundle checks
+    // independently validate the manager's executable files.
+    anyhow::ensure!(
+        !crate::files::linked(base)?,
+        "Linked portable update folder"
+    );
+    for name in [MARKER, "data-root.json"] {
+        let path = base.join(name);
+        match fs::symlink_metadata(&path) {
+            Ok(_) => anyhow::ensure!(
+                !crate::files::linked(&path)?,
+                "Linked portable update metadata: {}",
+                path.display()
+            ),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
+    if local_storage(base) {
+        return Ok(());
+    }
     let mut writes = Vec::new();
     if !base.join("data-root.json").exists() {
         writes.push((
@@ -749,6 +767,68 @@ pub fn default_library(base: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn portable_adoption_ignores_unrelated_link_but_rejects_linked_metadata() {
+        let temp =
+            std::env::temp_dir().join(format!("craft-adoption-links-{}", uuid::Uuid::new_v4()));
+        let base = temp.join("Applications");
+        let other = temp.join("unrelated");
+        fs::create_dir_all(&base).unwrap();
+        fs::create_dir_all(&other).unwrap();
+        let link = base.join("Unrelated-Test-Link");
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&other, &link).unwrap();
+        #[cfg(windows)]
+        assert!(std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(&link)
+            .arg(&other)
+            .output()
+            .unwrap()
+            .status
+            .success());
+        // Reproduce the old whole-folder rejection before testing scoped adoption.
+        assert!(crate::files::no_links(&base).is_err());
+        adopt_updated_portable(&base, &temp.join("library"), None).unwrap();
+        assert!(local_storage(&base));
+        assert!(link.exists());
+        fs::remove_file(base.join(MARKER)).unwrap();
+        fs::remove_file(base.join("data-root.json")).unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&other, base.join("data-root.json")).unwrap();
+        #[cfg(windows)]
+        assert!(std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(base.join("data-root.json"))
+            .arg(&other)
+            .output()
+            .unwrap()
+            .status
+            .success());
+        assert!(adopt_updated_portable(&base, &temp.join("library"), None).is_err());
+        assert!(!local_storage(&base));
+        #[cfg(unix)]
+        fs::remove_file(base.join("data-root.json")).unwrap();
+        #[cfg(windows)]
+        fs::remove_dir(base.join("data-root.json")).unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&other, base.join(MARKER)).unwrap();
+        #[cfg(windows)]
+        assert!(std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(base.join(MARKER))
+            .arg(&other)
+            .output()
+            .unwrap()
+            .status
+            .success());
+        assert!(adopt_updated_portable(&base, &temp.join("library"), None).is_err());
+        // The containing folder itself must also remain unlinked.
+        assert!(adopt_updated_portable(&link, &temp.join("library"), None).is_err());
+        assert!(fs::read_dir(&other).unwrap().next().is_none());
+        fs::remove_dir_all(temp).unwrap();
+    }
+
     #[test]
     fn old_portable_update_preserves_library_and_migrates_on_restart() {
         let temp = std::env::temp_dir().join(format!("craft-old-update-{}", uuid::Uuid::new_v4()));

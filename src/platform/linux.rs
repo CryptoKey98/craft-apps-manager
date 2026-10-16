@@ -153,16 +153,17 @@ pub fn executable_version(_: &Path) -> Option<String> {
     None
 }
 pub fn running_app(name: &str) -> Result<bool> {
+    let mut names = crate::model::executable_names(name);
+    names.extend(crate::app_identity::running_executables(name));
     for entry in fs::read_dir("/proc")?.flatten() {
         if entry.file_name().to_string_lossy().parse::<u32>().is_err() {
             continue;
         }
         if let Ok(exe) = fs::read_link(entry.path().join("exe")) {
-            if exe.file_name().is_some_and(|s| {
-                crate::model::executable_names(name)
-                    .iter()
-                    .any(|name| s == name.as_str())
-            }) {
+            if exe
+                .file_name()
+                .is_some_and(|s| names.iter().any(|name| s == name.as_str()))
+            {
                 return Ok(true);
             }
         }

@@ -1351,6 +1351,8 @@ fn execute_entries(
                 } else {
                     network.asset(asset, &dest, job)?;
                 }
+                #[cfg(target_os = "windows")]
+                crate::installers::prepare_custom_identity(&paths.root, &dest, &app.name, job)?;
                 job.stage(
                     "Installing",
                     None,
@@ -1455,11 +1457,13 @@ fn execute_entries(
                         },
                     )?
                 } else {
-                    crate::installers::run_with_destination(
+                    crate::installers::run_for_version(
                         &dest,
                         &app.name,
                         Some(job),
                         plan.installer_destination.as_deref(),
+                        &entry.version,
+                        &app,
                     )?
                 };
                 #[cfg(target_os = "macos")]
@@ -1474,10 +1478,7 @@ fn execute_entries(
                         && version(&entry.version)? < version(&app.version)?,
                 )?;
                 #[cfg(target_os = "windows")]
-                if !crate::model::installed_architecture_matches(&installed, prefs) {
-                    installed = crate::installers::detect_for_architecture(&app.name, Some(&prefs.architecture))?
-                    .context("Installer finished, but no installation matching the selected architecture was found")?;
-                }
+                anyhow::ensure!(crate::model::installed_architecture_matches(&installed,prefs), "Installer registered a different architecture than the selected package. Check Windows Installed apps; another copy was not selected.");
                 installed.architecture = if cfg!(target_os = "macos") {
                     "universal".into()
                 } else {
@@ -1559,7 +1560,8 @@ fn execute_entries(
                 } else {
                     files::extract_zip(&archive, &stage, job)?;
                 }
-                let executables: Vec<_> = walkdir::WalkDir::new(&stage)
+                #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
+                let mut executables: Vec<_> = walkdir::WalkDir::new(&stage)
                     .into_iter()
                     .collect::<std::result::Result<Vec<_>, _>>()?
                     .into_iter()
@@ -1577,6 +1579,49 @@ fn execute_entries(
                                 })
                     })
                     .collect();
+                #[cfg(target_os = "windows")]
+                if crate::catalog::get(&app.name)
+                    .is_some_and(|entry| entry.repository.contains('/'))
+                {
+                    let previous = crate::app_identity::portable(&target, &app.name)
+                        .and_then(|path| path.strip_prefix(&target).ok().map(Path::to_path_buf));
+                    let candidates: Vec<_> = walkdir::WalkDir::new(&stage)
+                        .max_depth(8)
+                        .into_iter()
+                        .filter_map(std::result::Result::ok)
+                        .filter(|entry| {
+                            entry.file_type().is_file()
+                                && !entry.path_is_symlink()
+                                && entry
+                                    .path()
+                                    .extension()
+                                    .is_some_and(|ext| ext.eq_ignore_ascii_case("exe"))
+                                && crate::downloads::verify_desktop_executable(
+                                    entry.path(),
+                                    &prefs.architecture,
+                                )
+                                .is_ok()
+                        })
+                        .collect();
+                    let remembered = previous.and_then(|relative| {
+                        candidates
+                            .iter()
+                            .position(|entry| entry.path() == stage.join(relative.clone()))
+                    });
+                    let index = if let Some(index) = remembered {
+                        index
+                    } else if executables.len() == 1 {
+                        candidates
+                            .iter()
+                            .position(|entry| entry.path() == executables[0].path())
+                            .context(
+                                "The expected executable is not a compatible desktop application",
+                            )?
+                    } else {
+                        job.choose_identity("Choose the program to launch from this package. Your choice will be remembered for this installation.", candidates.iter().map(|entry| entry.path().strip_prefix(&stage).unwrap().display().to_string()).collect())?
+                    };
+                    executables = vec![candidates[index].clone()];
+                }
                 if executables.len() != 1 {
                     bail!("Release must contain exactly one app executable");
                 }
@@ -1599,7 +1644,20 @@ fn execute_entries(
                 } else {
                     None
                 };
-                let staged_folder = executables[0].path().parent().unwrap();
+                let custom = crate::catalog::get(&app.name)
+                    .is_some_and(|entry| entry.repository.contains('/'));
+                let staged_folder = if custom && cfg!(target_os = "windows") {
+                    stage.as_path()
+                } else {
+                    executables[0].path().parent().unwrap()
+                };
+                if custom && cfg!(target_os = "windows") {
+                    crate::app_identity::remember_portable(
+                        staged_folder,
+                        &app.name,
+                        executables[0].path(),
+                    )?;
+                }
                 // PhotoCraft stores user data beside its portable executable.
                 // Copy it before activation; rollback keeps the original intact.
                 if app.name == "photocraft" && target.join("PhotoCraftData").is_dir() {
@@ -1630,12 +1688,11 @@ fn execute_entries(
                     }
                     .into();
                 config.apps[i].product_code.clear();
-                if let Err(e) = replace_transaction(
-                    executables[0].path().parent().unwrap(),
-                    &target,
-                    backup.as_deref(),
-                    || paths.save_config(config),
-                ) {
+                if let Err(e) =
+                    replace_transaction(staged_folder, &target, backup.as_deref(), || {
+                        paths.save_config(config)
+                    })
+                {
                     config.apps[i] = old;
                     return Err(e);
                 }

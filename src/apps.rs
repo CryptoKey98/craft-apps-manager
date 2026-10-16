@@ -184,10 +184,24 @@ pub fn launch(paths: &Paths, app: &str) -> Result<()> {
         command
     };
     #[cfg(not(target_os = "macos"))]
-    let mut command = Command::new(root.join(executable));
+    let mut command = Command::new(root.join(&executable));
     #[cfg(target_os = "linux")]
     if installed.install_kind != "installer" {
         command.env("APPIMAGE_EXTRACT_AND_RUN", "1");
+    }
+    #[cfg(target_os = "linux")]
+    if installed.install_kind == "installer" {
+        let selected = root.join(&executable);
+        if let Some(launch) = crate::app_identity::native(app)
+            .into_iter()
+            .find(|identity| {
+                identity.platform == "linux"
+                    && std::path::Path::new(&identity.executable) == selected
+            })
+            .and_then(|identity| identity.launch)
+        {
+            launch.apply(&mut command);
+        }
     }
     command.args(settings.arguments).current_dir(root).spawn()?;
     Ok(())
