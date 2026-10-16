@@ -1,112 +1,130 @@
-
 workflows:
   craft-apps-macos:
-    name: Craft Apps Manager v0.8.2 - macOS Testing
+    name: Craft Apps Manager - macOS Testing
     instance_type: mac_mini_m2
     max_build_duration: 120
 
+    # Build Codemagic's selected branch/tag/commit; never force an old checkout.
     environment:
+      xcode: latest
       vars:
-        TEST_TAG: "v0.8.2"
+        CRAFT_BUILD_REVISION: "1"
+        RUN_CHECKS: "true"
+        TEST_SESSION_SECONDS: "5400"
+        # Fixture catalogs use a different key; do not wire them into this app.
+        CRAFT_UPDATE_CATALOG_URL: ""
+        CRAFT_UPDATE_CATALOG_MIRROR: ""
+        CRAFT_UPDATE_CHECK_URL: ""
 
     scripts:
-      - name: Verify macOS environment
+      - name: Verify selected source and macOS environment
         script: |
-          set -eu
-
-          echo "=== macOS Testing Machine ==="
+          #!/usr/bin/env bash
+          set -euo pipefail
+          cd "$CM_BUILD_DIR"
           sw_vers
           uname -m
           xcode-select -p
+          python3 --version
+          git rev-parse HEAD
 
-      - name: Checkout Craft Apps Manager v0.8.2
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
+          case "$version" in ''|*[!0-9.]*) echo "Invalid Cargo package version" >&2; exit 1;; esac
+          case "$RUN_CHECKS" in true|false) ;; *) echo "RUN_CHECKS must be true or false" >&2; exit 1;; esac
+          case "$TEST_SESSION_SECONDS" in ''|*[!0-9]*) echo "Invalid test session duration" >&2; exit 1;; esac
+          test "$TEST_SESSION_SECONDS" -le 5400
+          echo "CRAFT_TEST_VERSION=$version" >> "$CM_ENV"
+          echo "CRAFT_TEST_STARTED_AT=$(date +%s)" >> "$CM_ENV"
+          mkdir -p target/codemagic-test-results
+          echo "Building selected checkout: version $version, Rev. $CRAFT_BUILD_REVISION"
+
+      - name: Install stable Rust and both macOS targets
         script: |
-          set -eu
-          cd "$CM_BUILD_DIR"
-
-          echo "Fetching ${TEST_TAG} source..."
-
-          git fetch --force origin \
-            "refs/tags/${TEST_TAG}:refs/tags/${TEST_TAG}"
-
-          git -c advice.detachedHead=false \
-            checkout --detach "$TEST_TAG"
-
-          VERSION="${TEST_TAG#v}"
-          grep -q "^version = \"$VERSION\"$" Cargo.toml
-
-          echo "Selected version: $VERSION"
-          git rev-parse --short HEAD
-
-      - name: Install Rust and Cargo
-        script: |
-          set -eu
-
-          if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf \
-              https://sh.rustup.rs | sh -s -- \
-              -y --profile minimal
-          fi
-
+          #!/usr/bin/env bash
+          set -euo pipefail
           export PATH="$HOME/.cargo/bin:$PATH"
-
-          rustup target add aarch64-apple-darwin
-          rustup target add x86_64-apple-darwin
-
+          if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
+              sh -s -- -y --profile minimal --default-toolchain stable
+          fi
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup component add rustfmt clippy
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
           cargo --version
           rustc --version
 
-      - name: Compile macOS v0.8.2 application
+      - name: Run macOS regression tests and lint
         script: |
-          set -eu
-
+          #!/usr/bin/env bash
+          set -euo pipefail
           export PATH="$HOME/.cargo/bin:$PATH"
           cd "$CM_BUILD_DIR"
+          if [ "$RUN_CHECKS" = true ]; then
+            cargo fmt --all -- --check
+            cargo test --locked --all-targets -- --test-threads=1 2>&1 |
+              tee target/codemagic-test-results/tests.log
+            cargo clippy --locked --all-targets -- -D warnings 2>&1 |
+              tee target/codemagic-test-results/clippy.log
+          else
+            echo "Automated regression checks explicitly skipped; desktop build only."
+          fi
 
-          echo "Building Craft Apps Manager ${TEST_TAG}"
-
-          sh scripts/package-macos.sh
-
-          echo "=== Build completed ==="
+      - name: Build repository universal application and ZIP
+        script: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cd "$CM_BUILD_DIR"
+          sh scripts/package-macos.sh 2>&1 |
+            tee target/codemagic-test-results/package.log
+          # New updater/DMG code stays local until transferred over SSH.
+          # This bootstrap must work with the already-committed repository.
+          binary="dist/macos/Craft Apps Manager.app/Contents/MacOS/craft-apps-manager"
+          lipo -verify_arch arm64 x86_64 "$binary"
+          "$binary" --build-identity |
+            tee target/codemagic-test-results/build-identity.json
           ls -lh dist/macos/
 
-      - name: Install application locally
+      - name: Prepare isolated desktop installation
         script: |
-          set -eu
+          #!/usr/bin/env bash
+          set -euo pipefail
           cd "$CM_BUILD_DIR"
+          source_bundle="dist/macos/Craft Apps Manager.app"
+          test_home="$HOME/Craft Apps Manager macOS Test"
+          destination="$test_home/Craft Apps Manager.app"
+          test -d "$source_bundle"
+          test ! -e "$destination"
+          mkdir -p "$test_home"
+          ditto "$source_bundle" "$destination"
+          cp dist/macos/portable.txt "$test_home/portable.txt"
+          codesign --verify --deep --strict "$destination"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
+            "$destination/Contents/Info.plist"
+          python3 scripts/check-build-identity.py \
+            --binary "$destination/Contents/MacOS/craft-apps-manager" \
+            --version "$CRAFT_TEST_VERSION" --revision "$CRAFT_BUILD_REVISION"
+          echo "CRAFT_MAC_TEST_HOME=$test_home" >> "$CM_ENV"
+          echo "Ready for manual testing: $destination"
 
-          SOURCE="dist/macos/Craft Apps Manager.app"
-          DEST="$HOME/Applications/Craft Apps Manager.app"
-
-          test -d "$SOURCE"
-
-          mkdir -p "$HOME/Applications"
-
-          ditto "$SOURCE" "$DEST"
-
-          codesign --verify --deep --strict "$DEST"
-
-          echo "=== Application installed ==="
-          echo "$DEST"
-
-          /usr/libexec/PlistBuddy \
-            -c "Print :CFBundleShortVersionString" \
-            "$DEST/Contents/Info.plist"
-
-          echo "Ready for desktop testing."
-
-      - name: Keep macOS desktop available
+      - name: Keep macOS available for SSH and desktop testing
         script: |
-          echo "====================================="
-          echo " Craft Apps Manager macOS Testing"
-          echo "====================================="
-          echo " Installed version: ${TEST_TAG}"
-          echo " Machine: Apple M2"
-          echo ""
-          echo " Connect using TigerVNC or SSH."
-          echo " Open the app from ~/Applications."
-          echo ""
-          echo " Testing session is now active."
-          echo "====================================="
+          #!/usr/bin/env bash
+          set -euo pipefail
+          echo "Selected source: Craft Apps Manager $CRAFT_TEST_VERSION, Rev. $CRAFT_BUILD_REVISION"
+          echo "Test folder: $CRAFT_MAC_TEST_HOME"
+          echo "Enable remote access in Codemagic and use its generated SSH/VNC credentials."
+          echo "Open the app from the test folder; its portable marker isolates its data."
+          echo "This initial build is the repository baseline. Transfer local updater source over SSH before testing the new updater."
+          echo "No releases, update catalogs, or Workers are published by this workflow."
+          # Reserve time for artifacts before Codemagic's two-hour build limit.
+          remaining=$((7200 - ($(date +%s) - CRAFT_TEST_STARTED_AT) - 180))
+          session_seconds=$TEST_SESSION_SECONDS
+          if [ "$remaining" -lt "$session_seconds" ]; then session_seconds=$remaining; fi
+          if [ "$session_seconds" -gt 0 ]; then sleep "$session_seconds"; fi
 
-          sleep 5400
+    artifacts:
+      - dist/macos/*.zip
+      - target/codemagic-test-results/*.log
+      - target/codemagic-test-results/build-identity.json
