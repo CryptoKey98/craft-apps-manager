@@ -1,0 +1,11 @@
+workflows:
+  craft-apps-macos:
+    name: Craft Apps Manager - macOS
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    scripts:
+      - name: Verify macOS machine
+        script: |
+          sw_vers
+          uname -m
