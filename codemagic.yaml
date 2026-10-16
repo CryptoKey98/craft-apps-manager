@@ -1,11 +1,112 @@
+
 workflows:
   craft-apps-macos:
-    name: Craft Apps Manager - macOS
+    name: Craft Apps Manager v0.8.2 - macOS Testing
     instance_type: mac_mini_m2
     max_build_duration: 120
 
+    environment:
+      vars:
+        TEST_TAG: "v0.8.2"
+
     scripts:
-      - name: Verify macOS machine
+      - name: Verify macOS environment
         script: |
+          set -eu
+
+          echo "=== macOS Testing Machine ==="
           sw_vers
           uname -m
+          xcode-select -p
+
+      - name: Checkout Craft Apps Manager v0.8.2
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR"
+
+          echo "Fetching ${TEST_TAG} source..."
+
+          git fetch --force origin \
+            "refs/tags/${TEST_TAG}:refs/tags/${TEST_TAG}"
+
+          git -c advice.detachedHead=false \
+            checkout --detach "$TEST_TAG"
+
+          VERSION="${TEST_TAG#v}"
+          grep -q "^version = \"$VERSION\"$" Cargo.toml
+
+          echo "Selected version: $VERSION"
+          git rev-parse --short HEAD
+
+      - name: Install Rust and Cargo
+        script: |
+          set -eu
+
+          if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf \
+              https://sh.rustup.rs | sh -s -- \
+              -y --profile minimal
+          fi
+
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
+
+          cargo --version
+          rustc --version
+
+      - name: Compile macOS v0.8.2 application
+        script: |
+          set -eu
+
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cd "$CM_BUILD_DIR"
+
+          echo "Building Craft Apps Manager ${TEST_TAG}"
+
+          sh scripts/package-macos.sh
+
+          echo "=== Build completed ==="
+          ls -lh dist/macos/
+
+      - name: Install application locally
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR"
+
+          SOURCE="dist/macos/Craft Apps Manager.app"
+          DEST="$HOME/Applications/Craft Apps Manager.app"
+
+          test -d "$SOURCE"
+
+          mkdir -p "$HOME/Applications"
+
+          ditto "$SOURCE" "$DEST"
+
+          codesign --verify --deep --strict "$DEST"
+
+          echo "=== Application installed ==="
+          echo "$DEST"
+
+          /usr/libexec/PlistBuddy \
+            -c "Print :CFBundleShortVersionString" \
+            "$DEST/Contents/Info.plist"
+
+          echo "Ready for desktop testing."
+
+      - name: Keep macOS desktop available
+        script: |
+          echo "====================================="
+          echo " Craft Apps Manager macOS Testing"
+          echo "====================================="
+          echo " Installed version: ${TEST_TAG}"
+          echo " Machine: Apple M2"
+          echo ""
+          echo " Connect using TigerVNC or SSH."
+          echo " Open the app from ~/Applications."
+          echo ""
+          echo " Testing session is now active."
+          echo "====================================="
+
+          sleep 5400
