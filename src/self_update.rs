@@ -1742,6 +1742,43 @@ mod macos_tests {
             .contains(&fixture.stage.display().to_string()));
     }
     #[test]
+    fn full_apply_ignores_links_inside_other_applications() {
+        // 0.8.1-0.8.3 helpers scanned the whole application folder and rolled
+        // back beside apps with framework links, such as Electron apps.
+        let fixture = Fixture::new();
+        let framework = fixture
+            .home
+            .join("Other.app/Contents/Frameworks/Example.framework");
+        fs::create_dir_all(framework.join("Versions/A")).unwrap();
+        fs::write(framework.join("Versions/A/Example"), "framework").unwrap();
+        std::os::unix::fs::symlink("Versions/A/Example", framework.join("Example")).unwrap();
+        assert!(files::no_links(&fixture.home).is_err());
+        let destination = fixture.home.join("startup-result.json");
+        let mut launches = 0;
+        apply_macos_with(
+            &fixture.stage.join("plan.json"),
+            &fixture.stage.join(helper_name()),
+            &destination,
+            Duration::from_secs(2),
+            |_| Ok(false),
+            |plan| {
+                assert_eq!(plan.target, fixture.plan.target);
+                launches += 1;
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(launches, 1);
+        assert_eq!(
+            fs::read(fixture.plan.target.join("Contents/Resources/new-marker")).unwrap(),
+            b"new bytes"
+        );
+        assert!(fixture.stage.join("previous.app").exists());
+        assert!(framework.join("Example").is_symlink());
+        let result: UpdateResult = files::read_json(&destination).unwrap();
+        assert!(matches!(result.status, UpdateStatus::LaunchRequested));
+    }
+    #[test]
     fn trusted_failure_retains_recovery_path_and_secondary_launch_error() {
         let fixture = Fixture::new();
         fs::write(staged_executable(&fixture.plan.staged), "corrupt").unwrap();
