@@ -21,6 +21,8 @@ After the manager closes, the old app bundle is moved into that folder as `previ
 
 A failed update is reported on the next manager startup, with a recovery path, and recorded outside the signed bundle in `~/Library/Application Support/Craft Apps Manager/self-update-result.json` and in the staging folder's `result.json`. Older library-based plans are rejected; reopen the manager and download again. The app must be in a folder you can write to, such as Applications. Development builds run outside a bundle and cannot update themselves.
 
+The previous manager runs the update, so a fix to the updater applies only from the next update onwards. Managers 0.8.1 to 0.8.3 cannot update themselves when another app in the same folder contains symbolic links, which includes Electron apps such as Visual Studio Code. The update fails with `Archive contains a linked path` and the previous manager is restored. Download the macOS ZIP from the [latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest) and replace `Craft Apps Manager.app` manually; your library stays in place. Later updates work from within the manager. Once the new version starts, you can delete the `.craft-manager-update-*` recovery folders that failed attempts left beside the app.
+
 Updates come from the GitHub repository set by `CRAFT_MANAGER_REPOSITORY` (owner/name) at build time. The default is `CryptoKey98/craft-apps-manager`. CI sets it to the repository being built, so a fork's packages update from the fork's releases.
 
 ## Not yet available on macOS

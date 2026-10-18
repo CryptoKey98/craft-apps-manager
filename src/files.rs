@@ -141,7 +141,7 @@ pub fn no_links(root: &Path) -> Result<()> {
     for e in WalkDir::new(root).follow_links(false) {
         let e = e?;
         if linked(e.path())? {
-            bail!("Archive contains a linked path: {}", e.path().display());
+            bail!("Linked path is not allowed: {}", e.path().display());
         }
     }
     Ok(())
