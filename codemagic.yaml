@@ -11,10 +11,6 @@ workflows:
         CRAFT_BUILD_REVISION: "1"
         RUN_CHECKS: "true"
         TEST_SESSION_SECONDS: "5400"
-        # Fixture catalogs use a different key; do not wire them into this app.
-        CRAFT_UPDATE_CATALOG_URL: ""
-        CRAFT_UPDATE_CATALOG_MIRROR: ""
-        CRAFT_UPDATE_CHECK_URL: ""
 
     scripts:
       - name: Verify selected source and macOS environment
@@ -76,6 +72,8 @@ workflows:
           set -euo pipefail
           export PATH="$HOME/.cargo/bin:$PATH"
           cd "$CM_BUILD_DIR"
+          # Keep fixture endpoints out of the repository baseline build.
+          unset CRAFT_UPDATE_CATALOG_URL CRAFT_UPDATE_CATALOG_MIRROR CRAFT_UPDATE_CHECK_URL
           sh scripts/package-macos.sh 2>&1 |
             tee target/codemagic-test-results/package.log
           # New updater/DMG code stays local until transferred over SSH.
