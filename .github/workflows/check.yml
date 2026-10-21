@@ -8,6 +8,11 @@ on:
     paths-ignore:
       - codemagic.yaml
   workflow_dispatch:
+    inputs:
+      production_catalog_only:
+        description: Test production catalog renewal only; never publish an application release
+        type: boolean
+        default: false
 permissions:
   contents: read
 env:
@@ -15,6 +20,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   updater-v2:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     name: Signed updater routing and Worker tests
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +40,7 @@ jobs:
       - run: python3 scripts/testing/test_update_catalog.py
       - run: python3 scripts/testing/test_immutable_assets.py
   release-metadata:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     name: Release metadata and validation tests
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +53,7 @@ jobs:
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
           python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
   windows:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -121,6 +129,7 @@ jobs:
           }
 
   linux:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -163,6 +172,7 @@ jobs:
           done
 
   archlinux:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     name: Arch Linux (x86_64)
     runs-on: ubuntu-latest
     container: archlinux:base
@@ -203,6 +213,7 @@ jobs:
           if-no-files-found: error
 
   macos:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -239,3 +250,14 @@ jobs:
             dist/macos/*.zip
             dist/macos/*.dmg
           if-no-files-found: error
+
+  production-catalog:
+    if: github.event_name == 'workflow_dispatch' && inputs.production_catalog_only == true
+    permissions:
+      contents: write
+    uses: ./.github/workflows/renew-update-catalog.yml
+    with:
+      source_ref: ${{ github.sha }}
+      mode: renew
+      force_renew: true
+    secrets: inherit

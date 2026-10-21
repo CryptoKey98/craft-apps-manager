@@ -59,3 +59,18 @@ test('official publication config is explicit and renewal is independent of clie
   assert.ok(renew.jobs.sign.if.includes('CRAFT_UPDATE_CATALOG_RENEW_ENABLED'));
   assert.ok(renew.jobs.deploy.steps.some((s:{run?:string})=>s.run?.includes('mirror_url')&&s.run.includes('Published mirror bytes differ')));
 });
+
+
+test('manual production renewal test is isolated from application builds and publication',()=>{
+ const check=YAML.parse(readFileSync(new URL('../../.github/workflows/check.yml',import.meta.url),'utf8'));
+ const renew=YAML.parse(readFileSync(new URL('../../.github/workflows/renew-update-catalog.yml',import.meta.url),'utf8'));
+ assert.equal(check.on.workflow_dispatch.inputs.production_catalog_only.default,false);
+ const job=check.jobs['production-catalog'];
+ assert.equal(job.uses,'./.github/workflows/renew-update-catalog.yml');
+ assert.equal(job.with.mode,'renew');assert.equal(job.with.force_renew,true);
+ assert.equal(job.with.source_ref,'${{ github.sha }}');
+ assert.equal(job.permissions.contents,'write');
+ for(const name of ['updater-v2','release-metadata','windows','linux','archlinux','macos']) assert.ok(check.jobs[name].if.includes('production_catalog_only'));
+ assert.equal(renew.on.workflow_call.inputs.force_renew.default,false);
+ assert.ok(renew.jobs.sign.steps.find((s:{id?:string})=>s.id==='policy').env.FORCE_RENEW.includes('inputs.force_renew'));
+});

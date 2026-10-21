@@ -7,6 +7,10 @@ on:
         options: [renew, release]
         default: renew
         description: Renew the current policy or validate the configured next release policy
+      force_renew:
+        type: boolean
+        default: false
+        description: Renew the existing signed policy now without changing update offers
   workflow_call:
     inputs:
       source_ref:
@@ -16,6 +20,9 @@ on:
       mode:
         type: string
         default: renew
+      force_renew:
+        type: boolean
+        default: false
     secrets:
       CRAFT_UPDATE_SIGNING_KEY:
         required: false
@@ -53,6 +60,7 @@ jobs:
         id: policy
         env:
           CATALOG_MODE: ${{ inputs.mode || 'renew' }}
+          FORCE_RENEW: ${{ inputs.force_renew || false }}
         run: |
           python3 - <<'PY'
           import json, pathlib, urllib.request, os, importlib.util, sys, time
@@ -68,7 +76,7 @@ jobs:
           tool=importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
           previous=tool.verified_previous(pathlib.Path('previous-catalog.json'), bytes.fromhex(config['public_key_hex']))
           if (previous['repository'],previous['channel']) != (config['repository'],config['channel']): raise SystemExit('Previous scope mismatch')
-          due=os.environ['CATALOG_MODE']!='renew' or renewal_due(previous['expires'],int(time.time()),config['renew_before_days'])
+          due=os.environ['FORCE_RENEW']=='true' or os.environ['CATALOG_MODE']!='renew' or renewal_due(previous['expires'],int(time.time()),config['renew_before_days'])
           with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('changed='+str(due).lower()+'\n')
           if not due: raise SystemExit(0)
           if os.environ['CATALOG_MODE']=='renew':
