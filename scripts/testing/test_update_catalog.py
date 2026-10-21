@@ -66,6 +66,28 @@ class CatalogTests(unittest.TestCase):
         result = module.renew(changed, 2, 2000)
         self.assertEqual(result["packages"][1], self.catalog["packages"][1])
 
+    def test_release_binding_refreshes_only_new_packages(self):
+        catalog = copy.deepcopy(self.catalog)
+        catalog["packages"][0]["id"] = "new-package"
+        entry = catalog["packages"][0]
+        release = next(r for r in catalog["releases"] if r["id"] == entry["release"])
+        response = {"tag_name": release["tag"], "draft": False, "prerelease": False,
+                    "assets": [{"name": entry["asset"], "state": "uploaded", "size": 123,
+                                "digest": "sha256:" + "f" * 64, "browser_download_url": entry["url"]}]}
+        updated = module.bind_release_assets(catalog, self.catalog, lambda repo, tag: response)
+        self.assertEqual(updated["packages"][0]["sha256"], "f" * 64)
+        self.assertEqual(updated["packages"][0]["size"], 123)
+        self.assertEqual(updated["packages"][1:], self.catalog["packages"][1:])
+        self.assertNotEqual(catalog["packages"][0]["sha256"], "f" * 64)
+        for field, bad in [("draft", True), ("tag_name", "v99.0.0")]:
+            invalid = dict(response, **{field: bad})
+            with self.assertRaises(ValueError):
+                module.bind_release_assets(catalog, self.catalog, lambda repo, tag: invalid)
+        for field, bad in [("digest", None), ("size", 0), ("browser_download_url", "https://evil.invalid/app.zip")]:
+            invalid = dict(response, assets=[dict(response["assets"][0], **{field: bad})])
+            with self.assertRaises(ValueError):
+                module.bind_release_assets(catalog, self.catalog, lambda repo, tag: invalid)
+
     def test_duplicate_ids_rejected(self):
         self.catalog["packages"].append(self.catalog["packages"][0])
         with self.assertRaises(ValueError): module.validate_shape(self.catalog)
