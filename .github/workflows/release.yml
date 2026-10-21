@@ -21,6 +21,10 @@ on:
         description: Publish the baseline after rebuilding (leave off to keep it draft)
         type: boolean
         default: false
+      prepare_draft:
+        description: Prepare baseline packages only; never publish or deploy catalog offers
+        type: boolean
+        default: false
       source_ref:
         description: Commit SHA containing the hotfix
         required: true
@@ -67,15 +71,34 @@ jobs:
         if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
         env:
           CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
-        run: python3 scripts/publishing/update-catalog.py preflight
+          GH_TOKEN: ${{ github.token }}
+          PREPARE_DRAFT: ${{ inputs.prepare_draft || false }}
+        run: |
+          if [ "$PREPARE_DRAFT" = true ]; then
+            test "$(gh release view "$CRAFT_RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+            # Validate source/key/scope and supported current clients. Final release
+            # routes/hashes cannot exist until this draft's packages have been built.
+            # This path cannot publish the application or deploy catalog offers.
+            env -u CRAFT_RELEASE_TAG python3 scripts/publishing/update-catalog.py preflight
+          else
+            python3 scripts/publishing/update-catalog.py preflight
+          fi
       - name: Validate tag, version references and release notes
         run: python3 scripts/publishing/validate-release.py --tag "$CRAFT_RELEASE_TAG" --notes-file notes.md
       - name: Validate revision publishing inputs
         env:
           CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
           REVISION_SOURCE_REF: ${{ inputs.source_ref }}
+          PREPARE_DRAFT: ${{ inputs.prepare_draft || false }}
+          PUBLISH_BASELINE: ${{ inputs.publish_baseline || false }}
         run: |
           test -n "$CRAFT_UPDATE_SIGNING_KEY" || { echo "Configure CRAFT_UPDATE_SIGNING_KEY before publishing" >&2; exit 1; }
+          if [ "$PREPARE_DRAFT" = true ]; then
+            test "${{ github.event_name }}" = workflow_dispatch
+            test "$CRAFT_BUILD_REVISION" = 1
+            test "${{ inputs.platform }}" = all
+            test "$PUBLISH_BASELINE" = false || { echo "Draft preparation cannot publish" >&2; exit 1; }
+          fi
           if [ "${{ github.event_name }}" = workflow_dispatch ]; then
             case "$REVISION_SOURCE_REF" in *[!0-9a-f]*|'') echo "Use an immutable commit SHA" >&2; exit 1;; esac
             test "${#REVISION_SOURCE_REF}" -eq 40
@@ -352,7 +375,7 @@ jobs:
           fi
   update-catalog:
     needs: publish
-    if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
+    if: vars.CRAFT_UPDATE_V2_ENABLED == 'true' && (github.event_name != 'workflow_dispatch' || inputs.revision != '1' || inputs.publish_baseline)
     uses: ./.github/workflows/renew-update-catalog.yml
     with:
       mode: release

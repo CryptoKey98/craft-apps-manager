@@ -74,3 +74,14 @@ test('manual production renewal test is isolated from application builds and pub
  assert.equal(renew.on.workflow_call.inputs.force_renew.default,false);
  assert.ok(renew.jobs.sign.steps.find((s:{id?:string})=>s.id==='policy').env.FORCE_RENEW.includes('inputs.force_renew'));
 });
+
+
+test('draft release preparation never publishes or deploys production offers',()=>{
+ const doc=YAML.parse(readFileSync(new URL('../../.github/workflows/release.yml',import.meta.url),'utf8'));
+ assert.equal(doc.on.workflow_dispatch.inputs.prepare_draft.default,false);
+ const inputs=doc.jobs.validate.steps.find((s:{name?:string})=>s.name==='Validate revision publishing inputs');
+ assert.ok(inputs.run.includes('PREPARE_DRAFT'));assert.ok(inputs.run.includes('PUBLISH_BASELINE'));
+ const preflight=doc.jobs.validate.steps.find((s:{name?:string})=>s.name==='Preflight activated updater publication before building packages');
+ assert.ok(preflight.run.includes('env -u CRAFT_RELEASE_TAG'));assert.ok(preflight.run.includes('isDraft'));
+ assert.ok(doc.jobs['update-catalog'].if.includes("inputs.revision != '1' || inputs.publish_baseline"));
+});
