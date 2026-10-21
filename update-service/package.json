@@ -1,0 +1,16 @@
+{
+  "name": "craft-apps-manager-updates",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "dry-run": "python ../scripts/lib/updater_config.py worker --target-os linux --out wrangler.generated.json && wrangler deploy --config wrangler.generated.json --dry-run --outdir .wrangler/dry-run"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.6",
+    "typescript": "5.9.3",
+    "wrangler": "4.125.0",
+    "yaml": "2.8.2"
+  }
+}

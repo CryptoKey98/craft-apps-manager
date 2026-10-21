@@ -1,0 +1,47 @@
+# Source builds use GitHub unless explicitly opted into service-updater.
+# This is build/publisher configuration, never an installed-user settings file.
+# Official releases explicitly select updater.production.toml through their workflow.
+# Private signing keys and account credentials belong in secrets, never here.
+
+schema_version = 1
+source = "github"
+repository = "CryptoKey98/craft-apps-manager"
+channel = "stable"
+public_key_file = "assets/update-public-key.hex"
+
+[service]
+catalog_url = "https://craft-apps-manager-updates.cryptokeyofficial.workers.dev/v2/catalog.json"
+mirror_url = ""
+check_url = ""
+
+[revisions]
+windows = 1
+linux = 1
+macos = 1
+
+[network]
+connect_timeout_seconds = 10
+metadata_timeout_seconds = 30
+download_timeout_seconds = 300
+
+[packages]
+windows = ["zip", "msi"]
+linux = ["zip", "tar.gz", "deb", "rpm", "arch"]
+macos = ["zip", "dmg"]
+
+[publishing]
+enabled = false
+asset_name_pattern = "{stem}-update{revision_suffix}{suffix}"
+retain_legacy_downloads = true
+profiles_file = ""
+next_catalog_file = ""
+mirror_tag = ""
+catalog_validity_days = 30
+renew_before_days = 7
+
+[worker]
+name = "craft-apps-manager-updates"
+dynamic_enabled = false
+rate_limit_requests = 120
+rate_limit_period_seconds = 60
+rate_limit_namespace = "168300900"

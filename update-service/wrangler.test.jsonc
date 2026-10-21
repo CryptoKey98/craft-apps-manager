@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "craft-apps-manager-updates-test",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-16",
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [],
+  "assets": {
+    "directory": "./.wrangler/test-public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/v2/check"],
+    "not_found_handling": "404-page",
+    "html_handling": "none"
+  },
+  "ratelimits": [{
+    "name": "UPDATES_RATE_LIMITER",
+    "namespace_id": "168300901",
+    "simple": {"limit": 120, "period": 60}
+  }],
+  "vars": {
+    "DYNAMIC_ENABLED": "true",
+    "UPDATE_PUBLIC_KEY": "ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c"
+  }
+}

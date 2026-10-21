@@ -14,18 +14,37 @@ env:
   # Raises GitHub's API limit for the release lookups made by tests and end-to-end checks.
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
+  updater-v2:
+    name: Signed updater routing and Worker tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --locked -p craft-updater-config -p craft-updater-service -- --test-threads=1
+      - run: python3 scripts/testing/test_updater_config.py
+      - run: python3 scripts/testing/test_updater_review.py
+      - run: python3 scripts/testing/test_script_entrypoints.py
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: update-service
+      - run: npm test && npm run typecheck && npm run dry-run
+        working-directory: update-service
+      - run: python3 scripts/testing/test_update_catalog.py
+      - run: python3 scripts/testing/test_immutable_assets.py
   release-metadata:
     name: Release metadata and validation tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/test_validate_release.py
+      - run: python3 scripts/testing/test_validate_release.py
       - run: python3 -m pip install 'cryptography==50.0.1'
-      - run: python3 scripts/test_revision_manifest.py
+      - run: python3 scripts/testing/test_revision_manifest.py
       - name: Validate current release notes
         run: |
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
-          python3 scripts/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
+          python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
   windows:
     runs-on: windows-latest
     strategy:
@@ -47,6 +66,14 @@ jobs:
         run: cargo clippy --locked --features release-tools --bin release-tool -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
+      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater --all-targets -- --test-threads=1
+      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater --all-targets -- -D warnings
+      - name: Verify updater build configuration modes
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        env:
+          CARGO_TARGET_DIR: target
+          CARGO_BUILD_TARGET: ${{ matrix.target }}
+        run: python scripts/testing/test_updater_build.py
       - run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Test Windows MSI upgrade and shortcuts
         shell: pwsh
@@ -61,10 +88,10 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add --global WixToolset.UI.wixext/5.0.2
           $out = "dist/windows-$arch"
-          ./scripts/package-windows-msi.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
+          ./scripts/packaging/package-windows-msi.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
           gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern "Craft-Apps-Manager-0.5.1-windows-$arch.msi" --dir baseline
           $candidate = (Get-ChildItem "$out/*.msi").FullName
-          ./scripts/smoke-windows-msi.ps1 -Architecture $arch -BaselineMsi "baseline/Craft-Apps-Manager-0.5.1-windows-$arch.msi" -CandidateMsi $candidate
+          ./scripts/testing/smoke-windows-msi.ps1 -Architecture $arch -BaselineMsi "baseline/Craft-Apps-Manager-0.5.1-windows-$arch.msi" -CandidateMsi $candidate
       - name: Install and remove real Craft apps
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
@@ -123,7 +150,17 @@ jobs:
         env:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
+      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater --all-targets -- --test-threads=1
+      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Verify Linux portable ZIP and tar.gz packaging
+        run: |
+          sh scripts/packaging/package-linux-zip.sh target/${{ matrix.target }}/release/craft-apps-manager
+          for archive in dist/linux/*.zip; do
+            [ -f "$archive" ] || continue
+            sh scripts/packaging/package-linux-tar.sh "$archive"
+          done
 
   archlinux:
     name: Arch Linux (x86_64)
@@ -146,11 +183,13 @@ jobs:
         run: |
           runuser -u builder -- cargo fmt --all -- --check
           runuser -u builder -- cargo test --locked --all-targets -- --test-threads=1
+          runuser -u builder -- cargo test --locked --features service-updater --all-targets -- --test-threads=1
           runuser -u builder -- cargo clippy --locked --all-targets -- -D warnings
+          runuser -u builder -- cargo clippy --locked --all-targets --features service-updater -- -D warnings
       - name: Build and package for Arch
         run: |
           runuser -u builder -- cargo build --release --locked --bin craft-apps-manager
-          runuser -u builder -- sh scripts/package-linux-arch.sh target/release/craft-apps-manager
+          runuser -u builder -- sh scripts/packaging/package-linux-arch.sh target/release/craft-apps-manager
       - name: Verify native package installation and removal
         run: |
           pacman -U --noconfirm dist/linux/*.pkg.tar.zst
@@ -173,15 +212,30 @@ jobs:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
       - run: cargo fmt --check
       - run: cargo test --locked --all-targets -- --test-threads=1
+      - run: cargo test --locked --features service-updater --all-targets -- --test-threads=1
       - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: ./scripts/package-macos.sh
+      - run: cargo clippy --locked --all-targets --features service-updater -- -D warnings
+      - run: ./scripts/packaging/package-macos.sh
         env:
           # Self-update from the releases of the repository being built.
           CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+      - name: Package the same verified bundle as DMG
+        env:
+          CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+        run: |
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
+          sh scripts/packaging/package-macos-dmg.sh 'dist/macos/Craft Apps Manager.app' "dist/macos/Craft-Apps-Manager-$version-macos-universal.dmg"
+      - name: Verify DMG drag-to-Applications layout
+        run: |
+          python3 -m venv "$RUNNER_TEMP/craft-dmg-layout"
+          "$RUNNER_TEMP/craft-dmg-layout/bin/python" -m pip install -r packaging/macos/dmg-requirements.txt
+          "$RUNNER_TEMP/craft-dmg-layout/bin/python" scripts/testing/test_macos_dmg.py
       - name: Install and remove real Craft apps
-        run: sh scripts/smoke-macos.sh
+        run: sh scripts/testing/smoke-macos.sh
       - uses: actions/upload-artifact@v4
         with:
           name: macos-universal
-          path: dist/macos/*.zip
+          path: |
+            dist/macos/*.zip
+            dist/macos/*.dmg
           if-no-files-found: error

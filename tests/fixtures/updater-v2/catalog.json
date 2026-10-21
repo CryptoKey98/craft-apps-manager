@@ -1,0 +1,12 @@
+{
+  "schema":2,"repository":"owner/manager","channel":"stable","sequence":1,"issued":1000,"expires":2593000,
+  "releases":[{"id":"b","version":"1.1.0","tag":"v1.1.0"},{"id":"c","version":"1.2.0","tag":"v1.2.0"}],
+  "packages":[
+    {"id":"b-linux","release":"b","revision":1,"platform":"linux","architecture":"x64","installation":"portable","handler":"archive.zip.v1","required_capabilities":["archive.zip.v1","layout.manager.v1"],"asset":"bridge.zip","size":12,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","url":"https://github.com/owner/manager/releases/download/v1.1.0/bridge.zip","layout":{"schema":1,"root":"Manager","entrypoint":"manager"}},
+    {"id":"c-linux","release":"c","revision":1,"platform":"linux","architecture":"x64","installation":"portable","handler":"archive.tar-gzip.v1","required_capabilities":["archive.tar-gzip.v1","layout.manager.v1"],"asset":"new-name.tar.gz","size":12,"sha256":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","url":"https://github.com/owner/manager/releases/download/v1.2.0/new-name.tar.gz","layout":{"schema":1,"root":"New/Manager","entrypoint":"manager"}}
+  ],
+  "routes":[
+    {"id":"to-b","min_source":{"version":"1.0.0","revision":1},"max_source":{"version":"1.0.0","revision":65535},"platform":"linux","architecture":"x64","installation":"portable","required_capabilities":["archive.zip.v1"],"target":"b-linux","bridge":true,"destination_capabilities":["archive.zip.v1","archive.tar-gzip.v1","layout.manager.v1"]},
+    {"id":"to-c","min_source":{"version":"1.0.0","revision":1},"platform":"linux","architecture":"x64","installation":"portable","required_capabilities":["archive.tar-gzip.v1"],"target":"c-linux","bridge":false,"destination_capabilities":["archive.zip.v1","archive.tar-gzip.v1","layout.manager.v1"]}
+  ],"withdrawn":[]
+}

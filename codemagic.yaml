@@ -11,10 +11,6 @@ workflows:
         CRAFT_BUILD_REVISION: "1"
         RUN_CHECKS: "true"
         TEST_SESSION_SECONDS: "5400"
-        # Fixture catalogs use a different key; do not wire them into this app.
-        CRAFT_UPDATE_CATALOG_URL: ""
-        CRAFT_UPDATE_CATALOG_MIRROR: ""
-        CRAFT_UPDATE_CHECK_URL: ""
 
     scripts:
       - name: Verify selected source and macOS environment
@@ -64,6 +60,8 @@ workflows:
             cargo fmt --all -- --check
             cargo test --locked --all-targets -- --test-threads=1 2>&1 |
               tee target/codemagic-test-results/tests.log
+            cargo test --locked --features service-updater --all-targets -- --test-threads=1 2>&1 |
+              tee target/codemagic-test-results/service-tests.log
             cargo clippy --locked --all-targets -- -D warnings 2>&1 |
               tee target/codemagic-test-results/clippy.log
           else
@@ -76,7 +74,9 @@ workflows:
           set -euo pipefail
           export PATH="$HOME/.cargo/bin:$PATH"
           cd "$CM_BUILD_DIR"
-          sh scripts/package-macos.sh 2>&1 |
+          # Keep fixture endpoints out of the repository baseline build.
+          unset CRAFT_UPDATE_CATALOG_URL CRAFT_UPDATE_CATALOG_MIRROR CRAFT_UPDATE_CHECK_URL
+          sh scripts/packaging/package-macos.sh 2>&1 |
             tee target/codemagic-test-results/package.log
           # New updater/DMG code stays local until transferred over SSH.
           # This bootstrap must work with the already-committed repository.
@@ -102,7 +102,7 @@ workflows:
           codesign --verify --deep --strict "$destination"
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
             "$destination/Contents/Info.plist"
-          python3 scripts/check-build-identity.py \
+          python3 scripts/testing/check-build-identity.py \
             --binary "$destination/Contents/MacOS/craft-apps-manager" \
             --version "$CRAFT_TEST_VERSION" --revision "$CRAFT_BUILD_REVISION"
           echo "CRAFT_MAC_TEST_HOME=$test_home" >> "$CM_ENV"

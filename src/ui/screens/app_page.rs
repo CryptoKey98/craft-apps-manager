@@ -1,0 +1,1730 @@
+//! One app's page: what it is and its main actions in the middle, its tools on the right.
+use crate::ui::screens::overview::release_format_label;
+use crate::ui::theme::{self, btn, Icon, Size};
+use crate::ui::App;
+use craft_apps_manager::{
+    apps, builder,
+    jobs::{Job, State},
+    model, platform,
+};
+use eframe::egui::{
+    self, pos2, vec2, Align, Color32, CornerRadius, FontId, Layout, Rect, Response, RichText,
+    Sense, Stroke, Ui, UiBuilder,
+};
+use std::{path::PathBuf, process::Command};
+
+fn location_label(installed: &model::Installed) -> &'static str {
+    if installed.install_kind == "installer" {
+        if cfg!(target_os = "linux") {
+            "Installed Linux package"
+        } else if cfg!(target_os = "macos") {
+            "Installed in Applications"
+        } else {
+            "Installed with Windows installer"
+        }
+    } else {
+        "Installed portable release"
+    }
+}
+
+fn short_date(rfc3339: &str) -> String {
+    chrono::DateTime::parse_from_rfc3339(rfc3339)
+        .map(|t| {
+            t.with_timezone(&chrono::Local)
+                .format("%b %-d, %Y %H:%M")
+                .to_string()
+        })
+        .unwrap_or_default()
+}
+
+/// The height of one line of IBM Plex at `size`: the browser's `line-height: normal`.
+fn line(size: f32) -> f32 {
+    size * 1.3
+}
+
+/// Space between the blocks of the main column, and between the tools column's sections.
+const MAIN_GAP: f32 = 24.0;
+/// The height of a row of the tools group.
+const TOOL_ROW: f32 = 63.75;
+/// The left edge of a tool row's text, and of what sits below it, inside the group.
+const TOOL_TEXT_X: f32 = 38.0;
+
+fn installation_menu_row(ui: &mut Ui, label: &str, path: Option<&str>, selected: bool) -> Response {
+    let p = theme::palette();
+    let (rect, response) = ui.allocate_exact_size(
+        vec2(
+            ui.available_width(),
+            if path.is_some() { 60.0 } else { 42.0 },
+        ),
+        Sense::click(),
+    );
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            ui.is_enabled(),
+            selected,
+            label,
+        )
+    });
+    if selected || response.hovered() {
+        ui.painter().rect_filled(
+            rect,
+            CornerRadius::same(8),
+            if selected {
+                p.accent_soft
+            } else {
+                p.button_hover
+            },
+        );
+    }
+    let left = rect.left() + if path.is_some() { 12.0 } else { 36.0 };
+    let width = (rect.right() - left - 34.0).max(1.0);
+    let text = |text: &str, size, color, y| {
+        let mut job =
+            egui::text::LayoutJob::simple(text.into(), FontId::proportional(size), color, width);
+        job.wrap.max_rows = 1;
+        job.wrap.break_anywhere = true;
+        let galley = ui.painter().layout_job(job);
+        ui.painter().galley(pos2(left, y), galley, color);
+    };
+    if let Some(path) = path {
+        text(label, 14.0, p.text, rect.top() + 10.0);
+        text(path, 12.0, p.muted, rect.top() + 33.0);
+    } else {
+        text(label, 14.0, p.text, rect.center().y - 9.0);
+        let center = pos2(rect.left() + 19.0, rect.center().y);
+        ui.painter().line_segment(
+            [center - vec2(5.0, 0.0), center + vec2(5.0, 0.0)],
+            Stroke::new(1.5_f32, p.text),
+        );
+        ui.painter().line_segment(
+            [center - vec2(0.0, 5.0), center + vec2(0.0, 5.0)],
+            Stroke::new(1.5_f32, p.text),
+        );
+    }
+    if selected {
+        theme::paint_icon(
+            ui.painter(),
+            Rect::from_center_size(pos2(rect.right() - 20.0, rect.center().y), vec2(16.0, 16.0)),
+            Icon::Check,
+            p.text,
+        );
+    }
+    response
+}
+impl App {
+    pub(in crate::ui) fn app_page(&mut self, ctx: &egui::Context, state: &State) {
+        egui::SidePanel::right("app-tools")
+            .resizable(false)
+            .exact_width(320.0)
+            .frame(
+                egui::Frame::new()
+                    .fill(theme::palette().panel)
+                    .inner_margin(egui::Margin {
+                        // The panel's 1-point border sits inside the mockup's 20-point padding.
+                        left: 21,
+                        right: 20,
+                        top: 20,
+                        bottom: 20,
+                    }),
+            )
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("app-tools-scroll")
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| self.tools_column(ui, state));
+            });
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(theme::palette().bg))
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("app-page-scroll")
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        egui::Frame::new()
+                            .inner_margin(egui::Margin::symmetric(40, 32))
+                            .show(ui, |ui| {
+                                ui.set_max_width(ui.available_width().min(720.0));
+                                self.app_main(ui, state);
+                            });
+                    });
+            });
+    }
+
+    fn app_main(&mut self, ui: &mut Ui, state: &State) {
+        let app = self.app.clone();
+        let title = model::title(&app);
+        let status = self.status(&app);
+        let format = self.app_preferences(&self.app).release_format.clone();
+        let mine = self
+            .job_target
+            .as_ref()
+            .filter(|(target, _)| *target == app)
+            .map(|(_, action)| action.clone());
+        ui.spacing_mut().item_spacing.y = 0.0;
+        // Header: artwork, name, then category · state · repository.
+        ui.horizontal_top(|ui| {
+            ui.spacing_mut().item_spacing.x = 20.0;
+            let icon = self.icons.get(&app).map(|texture| texture.id());
+            let (rect, _) = ui.allocate_exact_size(
+                vec2(if icon.is_some() { 72.0 } else { 0.0 }, 72.0),
+                Sense::hover(),
+            );
+            if let Some(texture) = icon {
+                egui::Image::new((texture, vec2(72.0, 72.0)))
+                    .corner_radius(CornerRadius::same(16))
+                    .paint_at(ui, rect);
+            }
+            ui.vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 0.0;
+                ui.spacing_mut().interact_size.y = 0.0;
+                // The name (line height 1.2) and the meta row, 4 points apart and
+                // centred on the artwork.
+                let name_line = 26.0 * 1.2;
+                let block = name_line + 4.0 + line(13.0);
+                let half_leading = (line(26.0) - name_line) / 2.0;
+                // egui sets 26-point Plex a point lower in its line than the browser.
+                ui.add_space((72.0 - block) / 2.0 - half_leading - 1.0);
+                theme::heading(ui, &title, 26.0);
+                ui.add_space(4.0 - half_leading + 0.5);
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = vec2(8.0, 4.0);
+                    let category = model::category(&app);
+                    if !category.is_empty() {
+                        theme::text(ui, category, 13.0, theme::palette().text_3);
+                        theme::text(ui, "·", 13.0, theme::palette().text_3);
+                    }
+                    match &status.installed {
+                        Some(installed) => {
+                            theme::text(
+                                ui,
+                                format!("Installed {}", installed.version),
+                                13.0,
+                                theme::palette().green,
+                            );
+                        }
+                        None if status.alternate.is_some() => {
+                            theme::text(
+                                ui,
+                                format!("No {format} copy"),
+                                13.0,
+                                theme::palette().text_3,
+                            );
+                        }
+                        None if !status.loaded => {
+                            theme::text(ui, "Checking…", 13.0, theme::palette().text_3);
+                        }
+                        None => {
+                            theme::text(ui, "Not installed", 13.0, theme::palette().text_3);
+                        }
+                    }
+                    theme::text(ui, "·", 13.0, theme::palette().text_3);
+                    let repository = model::repository(&app);
+                    theme::hyperlink(
+                        ui,
+                        format!("github.com/{repository}"),
+                        format!("https://github.com/{repository}"),
+                        13.0,
+                    )
+                    .on_hover_text("View repository");
+                });
+            });
+        });
+        ui.add_space(MAIN_GAP);
+
+        let description = model::description(&app);
+        if !description.is_empty() {
+            // CSS centres the 1.55 line height around the text; egui puts the extra
+            // space below it.
+            let line_height = 15.0 * 1.55;
+            let shift = (line_height - line(15.0)) / 2.0;
+            ui.add_space(shift);
+            ui.scope(|ui| {
+                // Capped at the design's measure, but never wider than the column.
+                ui.set_max_width(ui.available_width().min(620.0));
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(description)
+                            .size(15.0)
+                            .color(theme::palette().text_2)
+                            .line_height(Some(line_height)),
+                    )
+                    .wrap(),
+                );
+            });
+            ui.add_space(MAIN_GAP - shift);
+        }
+
+        if status.installed.is_some() {
+            self.installation_selector(ui, state);
+            ui.add_space(26.0);
+        }
+        let status = self.status(&app);
+
+        // A failed install, update, uninstall or source download for this app.
+        if !state.busy && state.stage == "Failed" && !self.failure_dismissed {
+            if let Some(action) = mine.clone() {
+                let verb = match action.as_str() {
+                    "uninstall-app" => "uninstall",
+                    "move-app" => "move",
+                    "source-app" => "download the source for",
+                    "restore" => "restore a backup of",
+                    "delete-backups" => "delete backups of",
+                    _ if status.installed.is_some() => "update",
+                    _ => "install",
+                };
+                egui::Frame::new()
+                    .fill(theme::palette().red_bg)
+                    .stroke(Stroke::new(1.0_f32, theme::palette().red_border))
+                    .corner_radius(CornerRadius::same(10))
+                    .inner_margin(egui::Margin::symmetric(14, 12))
+                    .show(ui, |ui| {
+                        ui.set_width(ui.available_width());
+                        ui.spacing_mut().interact_size.y = 0.0;
+                        ui.spacing_mut().item_spacing = vec2(12.0, 0.0);
+                        ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            if theme::icon_button(
+                                ui,
+                                Icon::Close,
+                                "Dismiss",
+                                theme::palette().red_text,
+                            )
+                            .clicked()
+                            {
+                                self.failure_dismissed = true;
+                            }
+                            let retry = match action.as_str() {
+                                "install-app" => Some("Try again"),
+                                "source-app" => Some("Try again"),
+                                _ => None,
+                            };
+                            if let Some(retry) = retry {
+                                if btn(retry).show(ui).clicked() {
+                                    if action == "install-app" {
+                                        self.confirm_install = Some(app.clone());
+                                    } else {
+                                        self.start(&action);
+                                    }
+                                }
+                            }
+                            ui.with_layout(Layout::left_to_right(Align::Min), |ui| {
+                                ui.vertical(|ui| {
+                                    ui.add_space(1.0);
+                                    let (rect, _) =
+                                        ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
+                                    theme::paint_icon(
+                                        ui.painter(),
+                                        rect,
+                                        Icon::Alert,
+                                        theme::palette().red,
+                                    );
+                                });
+                                ui.vertical(|ui| {
+                                    ui.spacing_mut().item_spacing.y = 2.0;
+                                    ui.label(
+                                        RichText::new(format!("Couldn't {verb} {title}"))
+                                            .font(theme::bold(14.0))
+                                            .color(theme::palette().red_text),
+                                    );
+                                    ui.add(
+                                        egui::Label::new(
+                                            RichText::new(&state.outcome)
+                                                .size(13.0)
+                                                .color(theme::palette().red_text),
+                                        )
+                                        .wrap(),
+                                    );
+                                });
+                            });
+                        });
+                    });
+                ui.add_space(MAIN_GAP);
+            }
+        }
+
+        // Progress for an operation running on this app, in place of the buttons.
+        let completed_opacity = if state.stage == "Complete" {
+            self.completed_progress_opacity(ui.ctx())
+        } else {
+            0.0
+        };
+        let show_progress = self.installation_selection.is_none()
+            && mine.is_some()
+            && (state.busy || completed_opacity > 0.0);
+        if show_progress {
+            let verb = match mine.as_deref() {
+                Some("uninstall-app") => "Uninstalling",
+                Some("move-app") => "Moving",
+                Some("source-app") => "Downloading source for",
+                Some("restore") => "Restoring",
+                Some("delete-backups") => "Deleting backups of",
+                _ if status.installed.is_some() => "Updating",
+                _ => "Installing",
+            };
+            // Match the installed/latest/package/location grid below this area.
+            let width = ui.available_width().min(720.0);
+            ui.scope(|ui| {
+                if !state.busy {
+                    ui.multiply_opacity(completed_opacity);
+                }
+                egui::Frame::new()
+                    .fill(theme::palette().progress_bg)
+                    .stroke(Stroke::new(1.0_f32, theme::palette().accent_border))
+                    .corner_radius(CornerRadius::same(10))
+                    .inner_margin(egui::Margin::symmetric(14, 12))
+                    .show(ui, |ui| {
+                        let inner = width - 30.0;
+                        ui.set_width(inner);
+                        // Title row, 8 points, then the bar; Cancel centred beside them.
+                        let height = line(14.0) + 8.0 + 6.0;
+                        let (rect, _) = ui.allocate_exact_size(vec2(inner, height), Sense::hover());
+                        let mut cancel = child(ui, rect, Layout::right_to_left(Align::Center));
+                        if state.busy {
+                            self.cancel_button(&mut cancel, &state.stage);
+                        } else {
+                            theme::text(&mut cancel, "Done", 13.0, theme::palette().text_3);
+                        }
+                        let right = cancel.min_rect().left() - 16.0;
+                        let column = Rect::from_min_max(rect.min, pos2(right, rect.max.y));
+                        let mut text = child(
+                            ui,
+                            Rect::from_min_size(column.min, vec2(column.width(), line(14.0))),
+                            Layout::left_to_right(Align::Min),
+                        );
+                        text.spacing_mut().item_spacing.x = 12.0;
+                        theme::text(
+                            &mut text,
+                            if state.busy {
+                                format!("{verb} {title}…")
+                            } else if mine.as_deref() == Some("install-app") {
+                                "Installed successfully".into()
+                            } else {
+                                format!("{title} · Complete")
+                            },
+                            14.0,
+                            theme::palette().text,
+                        );
+                        text.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(if state.detail.is_empty() {
+                                        state.stage.clone()
+                                    } else {
+                                        format!("{} · {}", state.stage, state.detail)
+                                    })
+                                    .size(14.0)
+                                    .color(theme::palette().text_3),
+                                )
+                                .truncate(),
+                            );
+                        });
+                        let mut bar = child(
+                            ui,
+                            Rect::from_min_size(
+                                pos2(column.left(), column.top() + line(14.0) + 8.0),
+                                vec2(column.width(), 6.0),
+                            ),
+                            Layout::top_down(Align::Min),
+                        );
+                        theme::progress(
+                            &mut bar,
+                            if state.busy {
+                                state.progress
+                            } else {
+                                Some(1.0)
+                            },
+                            6.0,
+                        );
+                    });
+            });
+        }
+        // Source downloads and backup deletion leave the installed copy alone,
+        // so its actions (Open in particular) stay available beside the progress.
+        let replaces_actions = (state.busy || show_progress)
+            && self.installation_selection.is_none()
+            && matches!(
+                mine.as_deref(),
+                Some("install-app" | "uninstall-app" | "restore" | "move-app")
+            );
+        // Keep the success banner in the action slot until its fade finishes,
+        // then bring the buttons back from transparent rather than popping in.
+        let action_opacity = ui.ctx().animate_value_with_time(
+            egui::Id::new(("app-actions-visibility", &app)),
+            if replaces_actions { 0.0 } else { 1.0 },
+            if replaces_actions { 0.0 } else { 0.2 },
+        );
+        if !replaces_actions {
+            if show_progress {
+                ui.add_space(10.0);
+            }
+            let switching = self.installation_selection.is_some();
+            let opacity = ui.ctx().animate_value_with_time(
+                egui::Id::new(("installation-actions-opacity", &app)),
+                if switching { 0.55 } else { 1.0 },
+                0.18,
+            );
+            ui.scope(|ui| {
+                ui.multiply_opacity(opacity * action_opacity);
+                ui.add_enabled_ui(!switching, |ui| {
+                    self.app_actions(ui, state, &status);
+                });
+            });
+        }
+        ui.add_space(MAIN_GAP);
+        self.facts(ui, &status);
+        if let Some(copy) = &status.alternate_architecture {
+            ui.add_space(12.0);
+            theme::text(
+                ui,
+                format!(
+                    "Installed: {} · Selected: {}",
+                    model::architecture_label(&copy.architecture),
+                    model::architecture_label(&self.app_preferences(&self.app).architecture)
+                ),
+                13.0,
+                theme::palette().text_3,
+            );
+        }
+        let mut other_copies: Vec<_> = self
+            .display_config
+            .as_ref()
+            .into_iter()
+            .flat_map(|config| config.installations.iter())
+            .chain(self.alternates.iter())
+            .filter(|copy| {
+                copy.name == app
+                    && !copy.path.is_empty()
+                    && status.installed.as_ref().is_none_or(|selected| {
+                        craft_apps_manager::installation_labels::path_identity(&copy.path)
+                            != craft_apps_manager::installation_labels::path_identity(
+                                &selected.path,
+                            )
+                    })
+                    && std::path::Path::new(&copy.path).exists()
+            })
+            .collect();
+        other_copies.sort_by_cached_key(|copy| {
+            craft_apps_manager::installation_labels::path_identity(&copy.path)
+        });
+        other_copies.dedup_by(|a, b| {
+            craft_apps_manager::installation_labels::path_identity(&a.path)
+                == craft_apps_manager::installation_labels::path_identity(&b.path)
+        });
+        if !other_copies.is_empty() {
+            ui.add_space(12.0);
+            ui.spacing_mut().item_spacing.y = 4.0;
+            theme::text(ui, "Other installations", 12.0, theme::palette().muted);
+            for copy in other_copies {
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(format!(
+                            "• {} — {}",
+                            craft_apps_manager::installation_labels::version_summary(copy),
+                            copy.path
+                        ))
+                        .size(12.0)
+                        .color(theme::palette().muted),
+                    )
+                    .wrap(),
+                );
+            }
+        }
+    }
+
+    pub(in crate::ui) fn choose_installation(
+        &mut self,
+        ctx: &egui::Context,
+        app: &str,
+        copy: model::Installed,
+    ) {
+        if self.installation_selection.is_some()
+            || self.release_pending()
+            || self.job.snapshot().busy
+        {
+            return;
+        }
+        if self.display_config.as_ref().is_some_and(|config| {
+            config
+                .apps
+                .iter()
+                .any(|selected| selected.name == app && selected.path == copy.path)
+        }) {
+            return;
+        }
+        ctx.animate_value_with_time(
+            egui::Id::new(("installation-actions-opacity", &app)),
+            0.55,
+            0.0,
+        );
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.installation_selection = Some(rx);
+        self.config_receiver = None;
+        let app = app.to_owned();
+        std::thread::spawn(move || {
+            let result = (|| -> anyhow::Result<crate::ui::InstallationSelection> {
+                let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+                let mut config = paths.config()?;
+                anyhow::ensure!(
+                    model::installed_executable(std::path::Path::new(&copy.path), &app).is_some(),
+                    "This installation is no longer available"
+                );
+                if !config
+                    .installations
+                    .iter()
+                    .any(|record| record.name == app && record.path == copy.path)
+                {
+                    config.installations.push(copy.clone());
+                }
+                let selected = config
+                    .apps
+                    .iter_mut()
+                    .find(|record| record.name == app)
+                    .ok_or_else(|| anyhow::anyhow!("App missing"))?;
+                *selected = copy.clone();
+                paths.save_config(&config)?;
+                let mut preferences = paths.read_preferences()?;
+                if let Some(options) =
+                    craft_apps_manager::install_options::InstallOptions::installed(&copy)
+                {
+                    preferences
+                        .app_install_options
+                        .insert(craft_apps_manager::install_options::identity(&app), options);
+                    craft_apps_manager::files::write_json(
+                        &paths.at("manager-settings.json"),
+                        &preferences,
+                    )?;
+                }
+                Ok(crate::ui::InstallationSelection {
+                    app,
+                    config,
+                    preferences,
+                })
+            })();
+            let _ = tx.send(result.map_err(|error| format!("{error:#}")));
+            ctx.request_repaint();
+        });
+    }
+
+    pub(in crate::ui) fn installation_copies(&self, app: &str) -> Vec<model::Installed> {
+        let Some(config) = self.display_config.as_ref() else {
+            return Vec::new();
+        };
+        let mut copies: Vec<_> = config
+            .installations
+            .iter()
+            .chain(&self.alternates)
+            .filter(|copy| {
+                copy.name == app
+                    && !copy.path.is_empty()
+                    && std::path::Path::new(&copy.path).exists()
+            })
+            .cloned()
+            .collect();
+        if let Some(selected) = config
+            .apps
+            .iter()
+            .find(|copy| copy.name == app && !copy.path.is_empty())
+        {
+            if !copies.iter().any(|copy| {
+                craft_apps_manager::installation_labels::path_identity(&copy.path)
+                    == craft_apps_manager::installation_labels::path_identity(&selected.path)
+            }) {
+                copies.push(selected.clone());
+            }
+        }
+        copies.sort_by_cached_key(|copy| {
+            craft_apps_manager::installation_labels::path_identity(&copy.path)
+        });
+        copies.dedup_by(|a, b| {
+            craft_apps_manager::installation_labels::path_identity(&a.path)
+                == craft_apps_manager::installation_labels::path_identity(&b.path)
+        });
+        copies
+    }
+
+    fn installation_selector(&mut self, ui: &mut Ui, state: &State) {
+        let app = self.app.clone();
+        let Some(config) = self.display_config.as_ref() else {
+            return;
+        };
+        let Some(selected) = config
+            .apps
+            .iter()
+            .find(|copy| copy.name == app && !copy.path.is_empty())
+            .cloned()
+        else {
+            return;
+        };
+        let copies = self.installation_copies(&app);
+        let label = craft_apps_manager::installation_labels::version_summary;
+        theme::text(ui, "Installation", 12.0, theme::palette().muted);
+        ui.add_space(6.0);
+        let mut selection = None;
+        let mut add = false;
+        ui.add_enabled_ui(!state.busy && !self.release_pending(), |ui| {
+            let popup_id = ui.make_persistent_id(("installation-copy", &app));
+            let (rect, response) = ui.allocate_exact_size(
+                vec2(290.0_f32.min(ui.available_width()), 40.0),
+                Sense::click(),
+            );
+            let p = theme::palette();
+            ui.painter().rect(
+                rect,
+                CornerRadius::same(8),
+                if response.hovered() {
+                    p.button_hover
+                } else {
+                    p.button
+                },
+                Stroke::new(1.0_f32, p.border_strong),
+                egui::StrokeKind::Inside,
+            );
+            let mut text = egui::text::LayoutJob::simple(
+                label(&selected),
+                FontId::proportional(14.0),
+                p.text,
+                (rect.width() - 52.0).max(1.0),
+            );
+            text.wrap.max_rows = 1;
+            let galley = ui.painter().layout_job(text);
+            ui.painter().galley(
+                pos2(rect.left() + 14.0, rect.center().y - galley.size().y / 2.0),
+                galley,
+                p.text,
+            );
+            theme::paint_icon(
+                ui.painter(),
+                Rect::from_center_size(
+                    pos2(rect.right() - 21.0, rect.center().y),
+                    vec2(16.0, 16.0),
+                ),
+                Icon::ChevronDown,
+                p.text,
+            );
+            response.widget_info(|| {
+                egui::WidgetInfo::labeled(
+                    egui::WidgetType::ComboBox,
+                    ui.is_enabled(),
+                    format!("Installation: {}", label(&selected)),
+                )
+            });
+            if response.clicked() {
+                ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+            }
+            let mut anchor = response.clone();
+            anchor.rect = anchor.rect.translate(vec2(0.0, 6.0));
+            ui.scope(|ui| {
+                ui.spacing_mut().menu_margin = egui::Margin::same(6);
+                ui.visuals_mut().menu_corner_radius = CornerRadius::same(10);
+                ui.visuals_mut().window_fill = p.panel;
+                ui.visuals_mut().window_stroke = Stroke::new(1.0_f32, p.border_strong);
+                egui::popup::popup_below_widget(
+                    ui,
+                    popup_id,
+                    &anchor,
+                    egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+                    |ui| {
+                        ui.set_width(338.0_f32.min(ui.ctx().screen_rect().width() - 32.0));
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        egui::ScrollArea::vertical()
+                            .id_salt(("installation-copies-scroll", &app))
+                            .max_height(
+                                280.0_f32.min((ui.ctx().screen_rect().height() - 100.0).max(60.0)),
+                            )
+                            .show(ui, |ui| {
+                                for copy in &copies {
+                                    if installation_menu_row(
+                                        ui,
+                                        &label(copy),
+                                        Some(&copy.path),
+                                        craft_apps_manager::installation_labels::path_identity(
+                                            &copy.path,
+                                        ) == craft_apps_manager::installation_labels::path_identity(
+                                            &selected.path,
+                                        ),
+                                    )
+                                    .on_hover_text(&copy.path)
+                                    .clicked()
+                                    {
+                                        selection = Some(copy.clone());
+                                        ui.memory_mut(|memory| memory.close_popup());
+                                    }
+                                }
+                            });
+                        ui.add_space(5.0);
+                        ui.separator();
+                        ui.add_space(5.0);
+                        if installation_menu_row(ui, "Add another installation…", None, false)
+                            .clicked()
+                        {
+                            add = true;
+                            ui.memory_mut(|memory| memory.close_popup());
+                        }
+                    },
+                );
+            });
+        });
+        if let Some(copy) = selection {
+            self.choose_installation(ui.ctx(), &app, copy);
+        }
+        if add {
+            self.additional_installation = true;
+            self.install_draft_app = None;
+            self.install_result = None;
+            self.confirm_install = Some(app);
+        }
+    }
+
+    fn version_split(
+        &mut self,
+        ui: &mut Ui,
+        button: theme::Btn<'_>,
+        status: &crate::ui::AppStatus,
+    ) -> bool {
+        let app = self.app.clone();
+        let popup_id = ui.make_persistent_id((
+            "app-version-menu",
+            &app,
+            &self.app_preferences(&self.app).release_format,
+            &self.app_preferences(&self.app).architecture,
+        ));
+        let (main, arrow) = button.split(ui, &format!("Choose {} version", model::title(&app)));
+        if arrow.clicked() {
+            let opening = !ui.memory(|memory| memory.is_popup_open(popup_id));
+            ui.memory_mut(|memory| memory.toggle_popup(popup_id));
+            if opening {
+                self.open_versions(ui.ctx());
+            }
+        }
+        let mut anchor = main.clone().union(arrow.clone());
+        anchor.rect = anchor.rect.translate(egui::vec2(0.0, 6.0));
+        egui::popup::popup_below_widget(
+            ui,
+            popup_id,
+            &anchor,
+            egui::popup::PopupCloseBehavior::CloseOnClickOutside,
+            |ui| {
+                ui.set_width(278.0);
+                ui.spacing_mut().item_spacing.y = 4.0;
+                theme::text(ui, "CHOOSE A VERSION", 12.0, theme::palette().muted);
+                ui.add_space(6.0);
+                if self.versions_app.as_deref() != Some(app.as_str())
+                    || self.versions_result.is_none()
+                {
+                    ui.horizontal(|ui| {
+                        ui.spinner();
+                        theme::text(ui, "Loading versions…", 13.0, theme::palette().text_2);
+                    });
+                } else {
+                    match self.versions_result.clone().unwrap() {
+                        Err(error) => {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(error).size(12.0).color(theme::palette().red),
+                                )
+                                .wrap(),
+                            );
+                            if btn("Retry").show(ui).clicked() {
+                                self.open_versions(ui.ctx());
+                            }
+                        }
+                        Ok(versions) => {
+                            if versions.is_empty() {
+                                ui.add(
+                                    egui::Label::new(
+                                        RichText::new(
+                                            "No compatible releases with published checksums.",
+                                        )
+                                        .size(13.0)
+                                        .color(theme::palette().muted),
+                                    )
+                                    .wrap(),
+                                );
+                            }
+                            egui::ScrollArea::vertical()
+                                .id_salt((&app, "version-menu-scroll"))
+                                .max_height(288.0)
+                                .show(ui, |ui| {
+                                    for (index, release) in versions.into_iter().enumerate() {
+                                        let version = craft_apps_manager::updates::release_version(
+                                            &release.tag_name,
+                                        )
+                                        .unwrap_or_default();
+                                        let current = status
+                                            .installed
+                                            .as_ref()
+                                            .is_some_and(|i| i.version == version);
+                                        let (rect, response) = ui.allocate_exact_size(
+                                            vec2(ui.available_width(), 40.0),
+                                            Sense::click(),
+                                        );
+                                        if response.hovered() && !current {
+                                            ui.painter().rect_filled(
+                                                rect,
+                                                CornerRadius::same(5),
+                                                theme::palette().button_hover,
+                                            );
+                                            ui.ctx()
+                                                .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                        }
+                                        response.widget_info(|| {
+                                            egui::WidgetInfo::labeled(
+                                                egui::WidgetType::Button,
+                                                !current,
+                                                format!(
+                                                    "Install {} {}",
+                                                    model::title(&app),
+                                                    version
+                                                ),
+                                            )
+                                        });
+                                        let color = if current {
+                                            theme::palette().muted
+                                        } else {
+                                            theme::palette().text
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.left() + 10.0, rect.center().y),
+                                            egui::Align2::LEFT_CENTER,
+                                            format!("Version {version}"),
+                                            FontId::proportional(14.0),
+                                            color,
+                                        );
+                                        let tag = if current {
+                                            "Installed"
+                                        } else if index == 0 {
+                                            "Latest"
+                                        } else {
+                                            ""
+                                        };
+                                        ui.painter().text(
+                                            pos2(rect.right() - 10.0, rect.center().y),
+                                            egui::Align2::RIGHT_CENTER,
+                                            tag,
+                                            FontId::proportional(12.0),
+                                            if current {
+                                                theme::palette().muted
+                                            } else {
+                                                theme::palette().link
+                                            },
+                                        );
+                                        if response.clicked() && !current {
+                                            ui.memory_mut(|memory| memory.close_popup());
+                                            self.review_version(
+                                                app.clone(),
+                                                release.tag_name,
+                                                ui.ctx(),
+                                            );
+                                        }
+                                    }
+                                });
+                        }
+                    }
+                }
+                ui.add_space(6.0);
+                crate::ui::dialogs::rule(ui);
+                ui.add_space(6.0);
+                theme::text(
+                    ui,
+                    format!(
+                        "{} · {} · {}",
+                        model::release_os(),
+                        release_format_label(&self.app_preferences(&self.app).release_format),
+                        model::architecture_label(&self.app_preferences(&self.app).architecture)
+                    ),
+                    12.0,
+                    theme::palette().muted,
+                );
+            },
+        );
+        main.clicked()
+    }
+    fn app_actions(&mut self, ui: &mut Ui, state: &State, status: &crate::ui::AppStatus) {
+        let app = self.app.clone();
+        let title = model::title(&app);
+        let install_available = self.install_available(&app);
+        let installed = status.installed.clone();
+        // Only an installed copy in the active format can be updated in place.
+        let matching_format = installed.as_ref().is_some_and(|i| {
+            (i.install_kind == "installer")
+                == (self.app_preferences(&self.app).release_format == "installer")
+        });
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
+            ui.spacing_mut().interact_size.y = 0.0;
+            match &installed {
+                None => {
+                    if self.version_split(
+                        ui,
+                        btn(&format!("Install {title}"))
+                            .primary()
+                            .size(Size::Card)
+                            .icon(Icon::Download)
+                            .enabled(!state.busy && !self.release_pending() && install_available),
+                        status,
+                    ) {
+                        self.confirm_install = Some(app.clone());
+                    }
+                }
+                Some(installed) => {
+                    let update = status.update.clone().filter(|_| matching_format);
+                    if update.is_some() {
+                        if self.version_split(
+                            ui,
+                            btn(&format!("Update {title}"))
+                                .primary()
+                                .size(Size::Card)
+                                .icon(Icon::Refresh)
+                                .enabled(
+                                    !state.busy && !status.checking && !self.release_pending(),
+                                ),
+                            status,
+                        ) {
+                            self.confirm_install = Some(app.clone());
+                        }
+                        if btn("Open")
+                            .enabled(self.installation_selection.is_none())
+                            .size(Size::Card)
+                            .icon(Icon::Play)
+                            .show(ui)
+                            .clicked()
+                        {
+                            self.result(apps::launch(&self.paths, &app));
+                        }
+                    } else {
+                        if btn(&format!("Open {title}"))
+                            .enabled(self.installation_selection.is_none())
+                            .primary()
+                            .size(Size::Card)
+                            .icon(Icon::Play)
+                            .show(ui)
+                            .clicked()
+                        {
+                            self.result(apps::launch(&self.paths, &app));
+                        }
+                        let label = if status.checking {
+                            "Checking…"
+                        } else if matching_format {
+                            "Check for updates"
+                        } else {
+                            "Install (latest release)"
+                        };
+                        if self.version_split(
+                            ui,
+                            btn(label).size(Size::Card).icon(Icon::Refresh).enabled(
+                                !state.busy && !status.checking && !self.release_pending(),
+                            ),
+                            status,
+                        ) {
+                            if matching_format {
+                                self.check_selected_app(ui.ctx(), installed.version.clone());
+                            } else {
+                                self.confirm_install = Some(app.clone());
+                            }
+                        }
+                    }
+                    if btn("Move…")
+                        .size(Size::Card)
+                        .icon(Icon::Folder)
+                        .enabled(!state.busy && !self.release_pending())
+                        .show(ui)
+                        .clicked()
+                    {
+                        self.confirm_move = Some(installed.clone());
+                        self.move_parent = PathBuf::from(&installed.path)
+                            .parent()
+                            .map(|p| p.display().to_string())
+                            .unwrap_or_default();
+                        self.move_running = None;
+                        self.move_probe = None;
+                        self.move_probe_at = std::time::Instant::now();
+                    }
+                    if btn("Uninstall…")
+                        .size(Size::Card)
+                        .icon_colored(Icon::Trash, theme::palette().red)
+                        .enabled(!state.busy)
+                        .show(ui)
+                        .on_disabled_hover_text("Wait for the current operation to finish.")
+                        .clicked()
+                    {
+                        self.confirm_uninstall = true;
+                        self.delete_profile = false;
+                    }
+                }
+            }
+        });
+        if installed.is_none() && !install_available {
+            ui.add_space(8.0);
+            theme::text(
+                ui,
+                self.unavailable_download_message(&app),
+                13.0,
+                theme::palette().muted,
+            );
+        }
+        if status.checking {
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                ui.spinner();
+                theme::text(ui, "Checking for updates…", 13.0, theme::palette().text_3);
+            });
+            ui.ctx()
+                .request_repaint_after(std::time::Duration::from_millis(33));
+        } else if let Some(check) = &status.check {
+            ui.add_space(8.0);
+            match check {
+                Ok(None) => {
+                    theme::text(
+                        ui,
+                        "You’re running the latest version.",
+                        13.0,
+                        theme::palette().text_3,
+                    );
+                }
+                Ok(Some(version)) => {
+                    theme::text(
+                        ui,
+                        format!("Version {version} is available."),
+                        13.0,
+                        theme::palette().link,
+                    );
+                }
+                Err(error) => {
+                    ui.add(
+                        egui::Label::new(
+                            RichText::new(error).size(13.0).color(theme::palette().red),
+                        )
+                        .wrap(),
+                    );
+                }
+            }
+        }
+        if cfg!(target_os = "windows")
+            && installed
+                .as_ref()
+                .is_some_and(|app| app.install_kind == "installer" && app.product_code.is_empty())
+        {
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                theme::text(
+                    ui,
+                    "Use Windows Installed apps to remove this installer version.",
+                    13.0,
+                    theme::palette().text_3,
+                );
+                if theme::link(ui, "Windows Installed apps").clicked() {
+                    self.result(
+                        Command::new("explorer.exe")
+                            .arg("ms-settings:appsfeatures")
+                            .spawn()
+                            .map(|_| ())
+                            .map_err(Into::into),
+                    );
+                }
+            });
+        }
+    }
+
+    /// Four facts about the app: installed copy, latest release, package and location.
+    fn facts(&mut self, ui: &mut Ui, status: &crate::ui::AppStatus) {
+        let fact_preferences = self.app_preferences(&self.app);
+        let app = self.app.clone();
+        let installed = status.installed.clone();
+        let package = installed
+            .as_ref()
+            .map(|record| {
+                let format = match record.install_kind.as_str() {
+                    "installer" | "portable" => {
+                        craft_apps_manager::installation_labels::package_label(record)
+                    }
+                    _ => "Unknown format",
+                };
+                let architecture = if record.architecture.is_empty() {
+                    "Unknown architecture"
+                } else {
+                    model::architecture_label(&record.architecture)
+                };
+                format!("{format} · {architecture}")
+            })
+            .unwrap_or_else(|| {
+                format!(
+                    "{} · {}",
+                    release_format_label(&fact_preferences.release_format),
+                    model::architecture_label(&fact_preferences.architecture)
+                )
+            });
+        let latest = match (&status.update, &status.check, &installed) {
+            (Some(version), _, _) => (version.clone(), "Newer than installed".to_owned()),
+            (None, Some(Ok(None)), Some(installed)) => {
+                (installed.version.clone(), "Up to date".to_owned())
+            }
+            (None, Some(Err(_)), _) => ("—".into(), "Check failed".into()),
+            (None, _, Some(_)) => ("—".into(), "Not checked yet".into()),
+            _ => ("—".into(), "At install".into()),
+        };
+        let location = installed
+            .as_ref()
+            .map(|i| {
+                let path = PathBuf::from(&i.path);
+                // The folder holding the executable or the macOS app bundle.
+                let bundle = path.extension().is_some_and(|e| e == "app");
+                let folder = if bundle || path.is_file() {
+                    path.parent().map(|p| p.to_path_buf()).unwrap_or(path)
+                } else {
+                    path
+                };
+                folder.display().to_string()
+            })
+            .unwrap_or_else(|| "—".into());
+        // Each cell is a label over one line, "value · detail" as in the design; a
+        // value it cannot show in full shows it on hover.
+        let joined = |value: &str, detail: &str| match (value, detail) {
+            (_, "") => value.to_owned(),
+            ("—", _) => detail.to_owned(),
+            _ => format!("{value} · {detail}"),
+        };
+        let cells = [
+            (
+                "Installed",
+                installed
+                    .as_ref()
+                    .map(|i| i.version.clone())
+                    .unwrap_or_else(|| "Not installed".into()),
+                installed.as_ref().map(|i| {
+                    format!(
+                        "{} · {}",
+                        location_label(i),
+                        model::architecture_label(&i.architecture)
+                    )
+                }),
+            ),
+            ("Latest release", joined(&latest.0, &latest.1), None),
+            ("Package", package, None),
+            (
+                "Location",
+                location.clone(),
+                installed.is_some().then(|| location.clone()),
+            ),
+        ];
+        // A 1-point grid of hairlines: the border colour shows between the cells.
+        // Four cells in a row, or two by two when the column is too narrow for them.
+        let width = ui.available_width().min(720.0);
+        let columns = if width >= 560.0 { 4 } else { 2 };
+        let rows = cells.len() / columns;
+        let row_height = 12.0 + line(12.0) + 4.0 + line(14.0) + 12.0;
+        let (rect, _) = ui.allocate_exact_size(
+            vec2(width, row_height * rows as f32 + (rows + 1) as f32),
+            Sense::hover(),
+        );
+        ui.painter()
+            .rect_filled(rect, CornerRadius::same(10), theme::palette().border);
+        let inner = rect.shrink(1.0);
+        let cell = (inner.width() - (columns - 1) as f32)
+            / if columns == 4 { 4.7 } else { columns as f32 };
+        for (index, (label, value, hover)) in cells.iter().enumerate() {
+            let (row, column) = (index / columns, index % columns);
+            let cell_rect = Rect::from_min_size(
+                pos2(
+                    inner.left() + column as f32 * (cell + 1.0),
+                    inner.top() + row as f32 * (row_height + 1.0),
+                ),
+                vec2(
+                    if columns == 4 && column == 3 {
+                        cell * 1.7
+                    } else {
+                        cell
+                    },
+                    row_height,
+                ),
+            );
+            // Only the grid's outer corners are rounded.
+            let corner = |at_row: bool, at_column: bool| if at_row && at_column { 9 } else { 0 };
+            let (first_row, last_row) = (row == 0, row == rows - 1);
+            let (first_column, last_column) = (column == 0, column == columns - 1);
+            let radius = CornerRadius {
+                nw: corner(first_row, first_column),
+                ne: corner(first_row, last_column),
+                sw: corner(last_row, first_column),
+                se: corner(last_row, last_column),
+            };
+            ui.painter()
+                .rect_filled(cell_rect, radius, theme::palette().panel);
+            let mut ui = child(
+                ui,
+                cell_rect.shrink2(vec2(14.0, 12.0)),
+                Layout::top_down(Align::Min),
+            );
+            ui.spacing_mut().item_spacing.y = 4.0;
+            theme::text(&mut ui, *label, 12.0, theme::palette().muted);
+            let openable = *label == "Location"
+                && installed.is_some()
+                && !location.is_empty()
+                && location != "—"
+                && PathBuf::from(&location).is_dir();
+            if openable {
+                let response = ui
+                    .horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 6.0;
+                        let (rect, icon_response) =
+                            ui.allocate_exact_size(vec2(16.0, line(14.0)), Sense::click());
+                        theme::paint_icon(
+                            ui.painter(),
+                            Rect::from_center_size(rect.center(), vec2(14.0, 14.0)),
+                            Icon::Folder,
+                            theme::palette().link,
+                        );
+                        // Paint the truncated label directly: Label::ui adds its
+                        // own tooltip, which overlaps our full-path tooltip.
+                        let (text_pos, galley, text_response) = egui::Label::new(
+                            RichText::new(value).size(14.0).color(theme::palette().link),
+                        )
+                        .truncate()
+                        .sense(Sense::click())
+                        .layout_in_ui(ui);
+                        ui.painter().galley(text_pos, galley, theme::palette().link);
+                        icon_response.union(text_response)
+                    })
+                    .inner
+                    .on_hover_cursor(egui::CursorIcon::PointingHand)
+                    .on_hover_text(format!("Open folder\n{location}"));
+                if response.clicked() {
+                    self.result(craft_apps_manager::platform::open(std::path::Path::new(
+                        &location,
+                    )));
+                }
+            } else {
+                let response = ui.add(
+                    egui::Label::new(RichText::new(value).size(14.0).color(theme::palette().text))
+                        .truncate(),
+                );
+                if let Some(hover) = hover {
+                    response.on_hover_text(hover);
+                }
+            }
+        }
+        ui.add_space(MAIN_GAP);
+        theme::hyperlink(
+            ui,
+            "Release notes",
+            format!(
+                "https://github.com/{}/releases/latest",
+                model::repository(&app)
+            ),
+            13.0,
+        );
+    }
+
+    fn tools_column(&mut self, ui: &mut Ui, state: &State) {
+        let app = self.app.clone();
+        let status = self.status(&app);
+        let installed = status.installed.clone();
+        let external_build = self
+            .operation_records
+            .iter()
+            .find(|operation| Job::builder_operation(operation, &app))
+            .cloned();
+        let build = self.observed_build_state(&app);
+        let building_here = self.build_app == app
+            || Job::latest_builder_operation(&self.operation_records, &app).is_some();
+        ui.spacing_mut().item_spacing.y = 0.0;
+        theme::section_label(ui, &format!("{} tools", model::title(&app)));
+        ui.add_space(12.0);
+        theme::group().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.spacing_mut().item_spacing.y = 0.0;
+            // Launch options
+            let launch = self.display_launch.get(&app).cloned().unwrap_or_default();
+            let summary = match (launch.executable.is_empty(), launch.arguments.len()) {
+                (true, 0) => "No extra arguments".to_owned(),
+                (true, 1) => "1 argument".to_owned(),
+                (true, n) => format!("{n} arguments"),
+                (false, 0) => launch.executable.clone(),
+                (false, n) => format!("{} · {n} argument(s)", launch.executable),
+            };
+            let edit = tool_row(
+                ui,
+                Row {
+                    icon: Icon::Sliders,
+                    title: "Launch options",
+                    detail: &summary,
+                    color: theme::palette().muted,
+                    gap: 0.0,
+                    progress: None,
+                },
+                btn("Edit…").enabled(installed.is_some()),
+            );
+            if edit
+                .on_disabled_hover_text("Install the app first.")
+                .clicked()
+            {
+                match apps::settings(&self.paths, &app) {
+                    Ok(settings) => {
+                        self.launch_arguments = settings.arguments.join("\n");
+                        self.launch_draft = settings;
+                        self.launch_build_options = false;
+                        self.launch_settings_open = true;
+                    }
+                    Err(error) => self.result(Err(error)),
+                }
+            }
+            theme::divider(ui);
+            // Backups
+            let backups = self.display_backups.get(&app).cloned().unwrap_or_default();
+            let summary = match backups.len() {
+                0 => "None yet".to_owned(),
+                1 => "1 backup".to_owned(),
+                n => format!("{n} backups"),
+            };
+            let manage = tool_row(
+                ui,
+                Row {
+                    icon: Icon::Archive,
+                    title: "Backups",
+                    detail: &summary,
+                    color: theme::palette().muted,
+                    gap: 0.0,
+                    progress: None,
+                },
+                btn("Manage…").enabled(!state.busy && !backups.is_empty()),
+            );
+            if manage
+                .on_disabled_hover_text(if state.busy {
+                    "Wait for the current operation to finish."
+                } else {
+                    "No backups are available for this app."
+                })
+                .clicked()
+            {
+                self.restore_backups = backups;
+                self.restore_selected = None;
+                self.confirm_restore = false;
+                self.backup_delete_mode = false;
+                self.backup_delete_selected.clear();
+                self.restore_app = Some(app.clone());
+            }
+            theme::divider(ui);
+            // Source
+            let source = self.display_sources.get(&app).cloned();
+            let summary = match &source {
+                Some(source) => format!(
+                    "{} · {} · {}",
+                    &source.sha[..7.min(source.sha.len())],
+                    source.branch,
+                    short_date(&source.downloaded_at)
+                ),
+                None => "Not downloaded".to_owned(),
+            };
+            let download = tool_row(
+                ui,
+                Row {
+                    icon: Icon::Code,
+                    title: "Source",
+                    detail: &summary,
+                    color: theme::palette().muted,
+                    gap: 0.0,
+                    progress: None,
+                },
+                btn(if source.is_some() {
+                    "Update"
+                } else {
+                    "Download"
+                })
+                .enabled(!state.busy),
+            );
+            if download
+                .on_hover_text("Downloads the latest source ZIP from GitHub")
+                .on_disabled_hover_text("Wait for the current operation to finish.")
+                .clicked()
+            {
+                self.start("source-app");
+            }
+            if source.is_some() {
+                egui::Frame::new()
+                    .inner_margin(egui::Margin {
+                        left: 14,
+                        right: 14,
+                        top: 0,
+                        bottom: 12,
+                    })
+                    .show(ui, |ui| {
+                        if theme::link_enabled(
+                            ui,
+                            "Remove downloaded source…",
+                            !state.busy && !build.busy,
+                        )
+                        .on_hover_text(
+                            "Remove this app’s downloaded source ZIP. Builds and backups are kept.",
+                        )
+                        .clicked()
+                        {
+                            self.remove_source_confirm = Some(app.clone());
+                        }
+                    });
+            }
+            theme::divider(ui);
+            // Build
+            let last = self.display_builds.get(&app).cloned();
+            let running = build.busy && building_here;
+            let failed = building_here && !build.busy && build.stage == "Failed";
+            let setup = Job::latest_builder_operation(&self.operation_records, &app)
+                .map_or(self.build_action == "setup", |operation| {
+                    operation.kind == "Set up tools"
+                });
+            let cleaning = self.cleaning();
+            let (summary, color) = if running {
+                (
+                    if build.detail.is_empty() {
+                        build.stage.clone()
+                    } else {
+                        format!("{} · {}", build.stage, build.detail)
+                    },
+                    theme::palette().link,
+                )
+            } else if failed {
+                (
+                    if setup {
+                        "Tool setup failed · see the log"
+                    } else {
+                        "Build failed · see the log"
+                    }
+                    .to_owned(),
+                    theme::palette().red,
+                )
+            } else if let Some((_, info)) = &last {
+                (
+                    info.as_ref()
+                        .map(|info| {
+                            format!(
+                                "Ready · {}",
+                                short_date(&info.built_at).split(", ").next().unwrap_or(""),
+                            )
+                        })
+                        .unwrap_or_else(|| "Built".into()),
+                    theme::palette().green,
+                )
+            } else {
+                ("Not built yet".to_owned(), theme::palette().muted)
+            };
+            egui::Frame::new()
+                .inner_margin(egui::Margin::same(14))
+                .show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.spacing_mut().item_spacing = vec2(8.0, 6.0);
+                    ui.horizontal_top(|ui| {
+                        ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
+                            ui.allocate_ui_with_layout(
+                                vec2(76.0, 0.0),
+                                Layout::top_down(Align::Min),
+                                |ui| {
+                                    let label = if running {
+                                        "Cancel"
+                                    } else if failed {
+                                        "Try again"
+                                    } else if last.is_some() {
+                                        "Rebuild"
+                                    } else {
+                                        "Build"
+                                    };
+                                    if btn(label)
+                                        .kind(theme::Kind::Tinted)
+                                        .min_width(72.0)
+                                        .enabled(!cleaning && (running || !build.busy))
+                                        .show(ui)
+                                        .clicked()
+                                    {
+                                        if running {
+                                            if self.build_app == app
+                                                && self.build_job.snapshot().busy
+                                            {
+                                                self.build_job.request_cancel();
+                                            } else if let Some(operation) = &external_build {
+                                                let _ = self
+                                                    .job
+                                                    .operations
+                                                    .request_cancel(&operation.id);
+                                            }
+                                        } else {
+                                            self.start_build(if failed && setup {
+                                                "setup"
+                                            } else {
+                                                "build"
+                                            });
+                                        }
+                                    }
+                                    if last.is_some() {
+                                        ui.add_space(6.0);
+                                        let launch = btn("Launch")
+                                            .kind(theme::Kind::Tinted)
+                                            .min_width(72.0)
+                                            .enabled(!cleaning)
+                                            .show(ui);
+                                        if !cleaning {
+                                            let pulse = ((ui.input(|i| i.time) * 2.5).sin() as f32
+                                                + 1.0)
+                                                * 0.5;
+                                            let blue = theme::palette().accent;
+                                            let alpha = if launch.hovered() {
+                                                255
+                                            } else {
+                                                (100.0 + pulse * 155.0) as u8
+                                            };
+                                            ui.painter().rect_stroke(
+                                                launch.rect,
+                                                CornerRadius::same(8),
+                                                Stroke::new(
+                                                    1.0_f32,
+                                                    Color32::from_rgba_unmultiplied(
+                                                        blue.r(),
+                                                        blue.g(),
+                                                        blue.b(),
+                                                        alpha,
+                                                    ),
+                                                ),
+                                                egui::StrokeKind::Inside,
+                                            );
+                                            ui.ctx().request_repaint_after(
+                                                std::time::Duration::from_millis(33),
+                                            );
+                                        }
+                                        if launch.clicked() {
+                                            self.result(builder::launch_local(&self.paths, &app));
+                                        }
+                                    }
+                                },
+                            );
+                            ui.allocate_ui_with_layout(
+                                vec2(ui.available_width(), 0.0),
+                                Layout::top_down(Align::Min),
+                                |ui| {
+                                    theme::text(ui, "Local build", 14.0, theme::palette().text);
+                                    ui.add(
+                                        egui::Label::new(
+                                            RichText::new(&summary).size(12.0).color(color),
+                                        )
+                                        .wrap(),
+                                    );
+                                    if let Some((_, Some(info))) = &last {
+                                        theme::text(
+                                            ui,
+                                            format!(
+                                                "Source {}",
+                                                &info.commit[..7.min(info.commit.len())]
+                                            ),
+                                            12.0,
+                                            theme::palette().muted,
+                                        );
+                                    }
+                                },
+                            );
+                        });
+                    });
+                    if running {
+                        theme::progress(ui, build.progress, 4.0);
+                    }
+                    ui.add_space(6.0);
+                    ui.horizontal(|ui| {
+                        if theme::link(ui, "Build options…").clicked() {
+                            self.open_build_options();
+                        }
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            let cleaning = self.cleaning();
+            let setup = theme::link_enabled(ui, "Set up build tools", !build.busy && !cleaning)
+                .on_hover_text(
+                    "Installs or checks the Rust toolchain and other build prerequisites",
+                )
+                .on_disabled_hover_text("Wait for the current build or cleanup to finish.");
+            if setup.clicked() {
+                self.start_build("setup");
+            }
+                        });
+                    });
+                });
+        });
+        let shared_log = self.operation_records.iter().any(|operation| {
+            operation.resource == app && self.shared_build_logs.contains_key(&operation.id)
+        });
+        if building_here || shared_log {
+            ui.add_space(16.0);
+            theme::section_label(ui, "Build log");
+            ui.add_space(8.0);
+            theme::log_view(
+                ui,
+                if build.log.is_empty() {
+                    "Waiting for build output…"
+                } else {
+                    &build.log
+                },
+                false,
+            );
+        }
+    }
+}
+
+/// A child Ui laid out in `rect`, leaving the parent's cursor where it is.
+fn child(ui: &mut Ui, rect: Rect, layout: Layout) -> Ui {
+    ui.new_child(UiBuilder::new().max_rect(rect).layout(layout))
+}
+
+/// What a row of the tools group shows left of its button.
+struct Row<'a> {
+    icon: Icon,
+    title: &'a str,
+    detail: &'a str,
+    color: Color32,
+    /// Space between the title and the detail.
+    gap: f32,
+    /// A build's progress, shown under the detail.
+    progress: Option<Option<f32>>,
+}
+
+/// A row of the tools group: icon, title over detail, and a button on the right,
+/// all centred on the row. Returns the button's response.
+fn tool_row(ui: &mut Ui, row: Row, button: theme::Btn) -> Response {
+    let width = ui.available_width();
+    let button_size = button.desired_size(ui);
+    let text_width = width - TOOL_TEXT_X - 10.0 - button_size.x - 12.0;
+    let detail = ui.fonts(|fonts| {
+        fonts.layout(
+            row.detail.to_owned(),
+            FontId::proportional(12.0),
+            row.color,
+            text_width,
+        )
+    });
+    let progress = if row.progress.is_some() { 8.0 } else { 0.0 };
+    let column = line(14.0) + row.gap + detail.size().y + progress;
+    let (rect, _) =
+        ui.allocate_exact_size(vec2(width, TOOL_ROW.max(column + 12.0)), Sense::hover());
+    let icon = Rect::from_center_size(pos2(rect.left() + 20.0, rect.center().y), vec2(16.0, 16.0));
+    theme::paint_icon(ui.painter(), icon, row.icon, theme::palette().muted);
+    let top = rect.center().y - column / 2.0;
+    let mut text = child(
+        ui,
+        Rect::from_min_size(
+            pos2(rect.left() + TOOL_TEXT_X, top),
+            vec2(text_width, column),
+        ),
+        Layout::top_down(Align::Min),
+    );
+    text.spacing_mut().item_spacing.y = row.gap;
+    theme::text(&mut text, row.title, 14.0, theme::palette().text);
+    text.add(egui::Label::new(RichText::new(row.detail).size(12.0).color(row.color)).wrap());
+    if let Some(value) = row.progress {
+        text.add_space(4.0 - row.gap);
+        theme::progress(&mut text, value, 4.0);
+    }
+    let mut action = child(
+        ui,
+        Rect::from_min_size(
+            pos2(
+                rect.right() - 12.0 - button_size.x,
+                rect.center().y - button_size.y / 2.0,
+            ),
+            button_size,
+        ),
+        Layout::left_to_right(Align::Min),
+    );
+    button.show(&mut action)
+}

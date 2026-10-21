@@ -4,7 +4,7 @@
 
 Install, update, launch, and build the Craft apps from Storytold in one place. Choose installation options for each app, keep multiple copies, and follow your downloads and builds in Activity.
 
-Version **0.9.0** includes improvements to custom GitHub app recognition, installation safety and macOS manager updates. See the [changelog](CHANGELOG.md) for all changes.
+Version **1.0.0** includes a configurable signed updater, compatibility updates with fewer prompts, and improved macOS packaging. See the [changelog](CHANGELOG.md) for all changes.
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
@@ -59,9 +59,9 @@ Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2�
 
 **Windows:** run the MSI, or open `CraftApps-Manager.exe` in the extracted ZIP. Keep the ZIP's bundled `workspace/tools/7zip` folder. Rust is needed only for building apps, not for running the manager.
 
-**Linux:** install the package matching your distribution, or extract the ZIP and run `craft-apps-manager`. Native package operations may ask for your administrator password. See [Linux setup](docs/linux.md) for commands and dependencies.
+**Linux:** install the package matching your distribution, or extract the ZIP and run `craft-apps-manager`. Native package operations may ask for your administrator password. See [Linux setup](docs/user-guide/linux.md) for commands and dependencies.
 
-**macOS:** keep the extracted portable folder together, including `portable.txt` beside the `.app` bundle. The manager is not Apple-notarized; if macOS blocks its first launch, use **System Settings → Privacy & Security → Open Anyway**. See [macOS setup](docs/macos.md) for the full instructions and the optional Terminal installer.
+**macOS:** keep the extracted portable folder together, including `portable.txt` beside the `.app` bundle. The manager is not Apple-notarized; if macOS blocks its first launch, use **System Settings → Privacy & Security → Open Anyway**. See [macOS setup](docs/user-guide/macos.md) for the full instructions and the optional Terminal installer.
 
 ## Everyday use
 
@@ -187,12 +187,12 @@ Published Linux ZIP, DEB, and RPM builds use Ubuntu 22.04 as their baseline; Arc
 
 For a problem report, include the manager version, operating system, affected app, installation type, and relevant **Activity details** or logs. For detection issues, include `settings.json` from the Data folder. Redact personal paths and never share tokens or passwords.
 
-- [Linux installation and builds](docs/linux.md)
-- [macOS installation and builds](docs/macos.md)
-- [Windows packaging](docs/windows-packaging.md)
-- [Per-app installation behavior](docs/per-app-installation.md)
-- [Operations and cancellation](docs/operations.md)
-- [Windows batch approval](docs/windows-batch-admin.md) · [Linux batch approval](docs/linux-batch-admin.md)
+- [Linux installation and builds](docs/user-guide/linux.md)
+- [macOS installation and builds](docs/user-guide/macos.md)
+- [Windows packaging](docs/development/windows-packaging.md)
+- [Per-app installation behavior](docs/architecture/per-app-installation.md)
+- [Operations and cancellation](docs/architecture/operations.md)
+- [Windows batch approval](docs/architecture/windows-batch-admin.md) · [Linux batch approval](docs/architecture/linux-batch-admin.md)
 
 <details>
 <summary>Upgrading from the old Craft Apps Updater</summary>
@@ -203,6 +203,8 @@ The app was renamed to Craft Apps Manager in 0.3.2. Very old versions may reject
 
 ## Build this manager
 
+Development work on the next signed updater is documented in [updater operations](docs/development/updater-operations.md). Its hosted service remains inactive until separately configured and approved.
+
 The source is shared across Windows, Linux, and macOS. Install stable Rust and your platform's native prerequisites; see the platform guides above.
 
 ```sh
@@ -211,9 +213,11 @@ cargo test --locked
 cargo clippy --locked --all-targets -- -D warnings
 ```
 
-On Windows, install Microsoft's **Desktop development with C++** workload. Platform-specific modules live in `src/platform`, `src/installers`, `src/scheduler`, and `src/tools`. Build output is excluded from the source repository. Some integration checks need local tools; see the test instructions in the platform docs.
+Source builds use the existing GitHub updater by default. The optional service updater is a Rust library compiled into the manager, not a separate download. To enable it, select `source = "service"` and a signed catalog URL in `updater.toml`, then build with `--features service-updater`. Enabling the feature alone keeps the GitHub updater. This is publisher configuration, not an extra setup step for people using packaged releases. See [updater configuration](docs/development/updater-operations.md#source-build-choice) for examples and signing requirements.
 
-For packaging and version preparation, see [Release preparation](docs/releases.md).
+On Windows, install Microsoft's **Desktop development with C++** workload. Platform integration lives in `src/platform`, native installers in `src/installations/packages/native`, scheduling in `src/scheduling`, and build tools in `src/builds/toolchains`. Build output is excluded from the source repository. Some integration checks need local tools; see the test instructions in the platform docs.
+
+For packaging and version preparation, see [Release preparation](docs/development/releases.md).
 
 ## License
 

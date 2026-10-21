@@ -1,0 +1,6 @@
+[
+ {"name":"fixture-a","tar":false,"version":"1.0.0","outcome":"bridge","immediate":"b-linux","final":"c-linux","routes":["to-b","to-c"]},
+ {"name":"production-full","tar":true,"version":"1.0.0","outcome":"direct","immediate":"c-linux","final":"c-linux","routes":["to-c"]},
+ {"name":"fixture-b","tar":true,"version":"1.1.0","outcome":"direct","immediate":"c-linux","final":"c-linux","routes":["to-c"]},
+ {"name":"current","tar":true,"version":"1.2.0","outcome":"current"}
+]

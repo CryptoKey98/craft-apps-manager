@@ -1,6 +1,6 @@
 [package]
 name = "craft-apps-manager"
-version = "0.9.0"
+version = "1.0.0"
 edition = "2021"
 license = "MIT"
 description = "Release and source manager for the Craft apps"
@@ -10,13 +10,32 @@ default-run = "craft-apps-manager"
 
 [features]
 release-tools = ["dep:toml_edit", "dep:semver"]
+updater-test-fixture = ["service-updater"]
+service-updater = ["dep:craft-updater-service"]
+updater-test-tar = ["updater-test-fixture"]
 
 [[bin]]
 name = "release-tool"
 path = "src/bin/release-tool.rs"
 required-features = ["release-tools"]
 
+[[bin]]
+name = "update-catalog-tool"
+path = "src/bin/update-catalog-tool.rs"
+required-features = ["release-tools", "service-updater"]
+
+[[bin]]
+name = "update-fixture"
+path = "src/bin/update-fixture.rs"
+required-features = ["updater-test-fixture"]
+
+[[bin]]
+name = "update-worker-fixture"
+path = "src/bin/update-worker-fixture.rs"
+required-features = ["updater-test-fixture"]
+
 [dependencies]
+craft-updater-service = { path = "crates/craft-updater-service", optional = true }
 ed25519-dalek = "2"
 raw-window-handle = "0.6"
 toml_edit = { version = "0.25", optional = true }
@@ -33,6 +52,8 @@ sha2 = "0.10"
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"
 zip = { version = "2.4", default-features = false, features = ["deflate"] }
+tar = "0.4"
+flate2 = "1"
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 tray-icon = { version = "0.26.1", default-features = false }
 
@@ -50,16 +71,23 @@ libc = "0.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 keyring = { version = "3.6.3", default-features = false, features = ["windows-native"] }
-windows = { version = "0.58", features = ["Data_Xml_Dom", "UI_Notifications", "Win32_Foundation", "Win32_System_Com", "Win32_System_Threading", "Win32_System_TaskScheduler", "Win32_System_JobObjects", "Win32_System_LibraryLoader", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Security", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_Security_Cryptography_Catalog", "Win32_Security_Cryptography_Sip", "Win32_System_Registry"] }
+windows = { version = "0.58", features = ["Data_Xml_Dom", "UI_Notifications", "Win32_Foundation", "Win32_System_Com", "Win32_System_Threading", "Win32_System_TaskScheduler", "Win32_System_JobObjects", "Win32_System_LibraryLoader", "Win32_Storage_FileSystem", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Security", "Win32_Security_Authorization", "Win32_Security_WinTrust", "Win32_Security_Cryptography", "Win32_Security_Cryptography_Catalog", "Win32_Security_Cryptography_Sip", "Win32_System_Registry"] }
 winreg = "0.55"
 
 [target.'cfg(target_os = "macos")'.dependencies]
+plist = "1"
 keyring = { version = "3.6.3", default-features = false, features = ["apple-native"] }
 
 [build-dependencies]
+craft-updater-config = { path = "crates/craft-updater-config" }
 winresource = "0.1"
 
 [profile.release]
 opt-level = "s"
 lto = "thin"
 strip = true
+
+[workspace]
+members = ["crates/craft-updater-config", "crates/craft-updater-service"]
+default-members = ["."]
+resolver = "2"

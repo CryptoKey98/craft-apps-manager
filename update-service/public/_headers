@@ -1,0 +1,4 @@
+/v2/catalog.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=60, must-revalidate
+  X-Content-Type-Options: nosniff
