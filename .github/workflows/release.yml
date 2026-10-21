@@ -5,22 +5,23 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to update
+        description: Release tag to create or update
         required: true
         default: v1.0.0
       revision:
-        description: Build revision (1 rebuilds a draft baseline)
+        description: Build revision (1 publishes a full release)
         required: true
-        default: '2'
+        default: '1'
       platform:
         description: Platform receiving the hotfix
         type: choice
         options: [all, windows, linux, macos]
+        default: all
         required: true
       publish_baseline:
-        description: Publish the baseline after rebuilding (leave off to keep it draft)
+        description: Publish the release automatically (turn off only for an intentional preview)
         type: boolean
-        default: false
+        default: true
       prepare_draft:
         description: Prepare baseline packages only; never publish or deploy catalog offers
         type: boolean
@@ -75,7 +76,13 @@ jobs:
           PREPARE_DRAFT: ${{ inputs.prepare_draft || false }}
         run: |
           if [ "$PREPARE_DRAFT" = true ]; then
-            test "$(gh release view "$CRAFT_RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+            # Absence is allowed: publish creates a draft after all builds pass.
+            # Fail closed on API/auth failures; never treat them as a missing release.
+            releases=$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+            if printf '%s' "$releases" | jq -e --arg tag "$CRAFT_RELEASE_TAG" 'any(.[][]; .tag_name == $tag and .draft == false)' >/dev/null; then
+              echo "Refusing to prepare an already-published release" >&2
+              exit 1
+            fi
             # Validate source/key/scope and supported current clients. Final release
             # routes/hashes cannot exist until this draft's packages have been built.
             # This path cannot publish the application or deploy catalog offers.
@@ -338,10 +345,10 @@ jobs:
       - name: Publish packages before revision metadata
         env:
           GH_TOKEN: ${{ github.token }}
-          PUBLISH_BASELINE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_baseline }}
+          PUBLISH_BASELINE: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_baseline }}
         run: |
-          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
-          existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[] | select(.tag_name == $tag)')
+          releases=$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+          existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[][] | select(.tag_name == $tag)')
           manifest="$RUNNER_TEMP/updates-v1.json"
           mv packages/updates-v1.json "$manifest"
           legacy_packages=()
@@ -371,10 +378,12 @@ jobs:
               gh release edit "$CRAFT_RELEASE_TAG" --draft=false
             fi
           else
-            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" --verify-tag --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md --draft
-            if [ "${{ github.event_name }}" = push ] || [ "$PUBLISH_BASELINE" = true ]; then
-              gh release edit "$CRAFT_RELEASE_TAG" --draft=false
-            fi
+            source_commit=$(git rev-parse HEAD)
+            tag_check=()
+            if [ "${{ github.event_name }}" = push ]; then tag_check=(--verify-tag); fi
+            visibility=()
+            if [ "${{ github.event_name }}" != push ] && [ "$PUBLISH_BASELINE" != true ]; then visibility=(--draft); fi
+            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" "${tag_check[@]}" --target "$source_commit" --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md "${visibility[@]}"
           fi
   update-catalog:
     needs: publish

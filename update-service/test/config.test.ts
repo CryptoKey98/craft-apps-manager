@@ -82,7 +82,18 @@ test('draft release preparation never publishes or deploys production offers',()
  const inputs=doc.jobs.validate.steps.find((s:{name?:string})=>s.name==='Validate revision publishing inputs');
  assert.ok(inputs.run.includes('PREPARE_DRAFT'));assert.ok(inputs.run.includes('PUBLISH_BASELINE'));
  const preflight=doc.jobs.validate.steps.find((s:{name?:string})=>s.name==='Preflight activated updater publication before building packages');
- assert.ok(preflight.run.includes('env -u CRAFT_RELEASE_TAG'));assert.ok(preflight.run.includes('isDraft'));
+ assert.ok(preflight.run.includes('env -u CRAFT_RELEASE_TAG'));assert.ok(preflight.run.includes('Refusing to prepare an already-published release'));
+ assert.ok(!preflight.run.includes('gh release view'));
+ const publish=doc.jobs.publish.steps.find((s:{name?:string})=>s.name==='Publish packages before revision metadata');
+ assert.ok(publish.run.includes('tag_check=()'));
+ assert.ok(publish.run.includes('tag_check=(--verify-tag)'));
+ assert.ok(publish.run.includes('--target "$source_commit"'));
+ assert.ok(publish.run.includes('visibility=(--draft)'));
+ assert.equal(publish.env.PUBLISH_BASELINE,"${{ github.event_name != 'workflow_dispatch' || inputs.publish_baseline }}");
+ assert.ok(publish.run.includes('gh api --paginate --slurp'));
+ assert.equal(doc.on.workflow_dispatch.inputs.publish_baseline.default,true);
+ assert.equal(doc.on.workflow_dispatch.inputs.revision.default,'1');
+ assert.equal(doc.on.workflow_dispatch.inputs.platform.default,'all');
  assert.ok(doc.jobs['update-catalog'].if.includes("inputs.revision != '1' || inputs.publish_baseline"));
 });
 
