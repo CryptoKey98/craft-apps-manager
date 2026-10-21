@@ -6,7 +6,7 @@ Install, update, launch, and build Storytold Craft apps in one place. Manage mul
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
-**[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
+**[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [Documentation](https://github.com/CryptoKey98/craft-apps-manager/wiki) · [Changelog](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
 
 Version **1.0.0** includes signed manager updates, compatibility updates with fewer prompts, and Linux TAR.GZ and macOS DMG downloads. See the [changelog](CHANGELOG.md) for the full release notes.
 
