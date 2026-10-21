@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {handle, type Env} from '../src/index.ts';
+import {readFileSync} from 'node:fs';
+import {createPrivateKey,sign} from 'node:crypto';
+const env:Env={ASSETS:{fetch:async()=>new Response('not found',{status:404})},UPDATES_RATE_LIMITER:{limit:async()=>({success:false})}};
+test('unknown_path_is_static_404',async()=>assert.equal((await handle(new Request('https://updates.example/nope'),env)).status,404));
+test('unsupported_method_405',async()=>assert.equal((await handle(new Request('https://updates.example/v2/check',{method:'POST'}),env)).status,405));
+test('retry_after_on_429',async()=>{const r=await handle(new Request('https://updates.example/v2/check'),env);assert.equal(r.status,429);assert.equal(r.headers.get('Retry-After'),'60');});
+test('HEAD_has_no_body',async()=>{const r=await handle(new Request('https://updates.example/v2/check',{method:'HEAD'}),env);assert.equal(await r.text(),'');});
+test('signed dynamic result uses only static assets and no credentials',async()=>{
+  const catalog=JSON.parse(readFileSync(new URL('../../tests/fixtures/updater-v2/catalog.json',import.meta.url),'utf8'));
+  catalog.issued=Math.floor(Date.now()/1000);catalog.expires=catalog.issued+86400;
+  const payload=JSON.stringify(catalog);
+  const key=createPrivateKey({format:'der',type:'pkcs8',key:Buffer.concat([Buffer.from('302e020100300506032b657004220420','hex'),Buffer.alloc(32,7)])});
+  const envelope={payload,signature:sign(null,Buffer.from(payload),key).toString('hex')};
+  let reads=0;
+  const configured:Env={DYNAMIC_ENABLED:'true',UPDATE_PUBLIC_KEY:readFileSync(new URL('../../tests/fixtures/updater-v2/test-public-key.bin',import.meta.url)).toString('hex'),UPDATES_RATE_LIMITER:{limit:async()=>({success:true})},ASSETS:{fetch:async(request)=>{reads++;assert.equal(new URL(request.url).pathname,'/v2/catalog.json');assert.equal(request.headers.get('Authorization'),null);return Response.json(envelope);}}};
+  const query=new URLSearchParams({repository:'owner/manager',channel:'stable',version:'1.0.0',revision:'1',platform:'linux',architecture:'x64',installation:'portable',capabilities:'archive.zip.v1,layout.manager.v1'});
+  const response=await handle(new Request('https://updates.example/v2/check?'+query),configured);
+  assert.equal(response.status,200);const body=await response.json() as any;
+  assert.equal(body.selection.outcome,'bridge');assert.deepEqual(body.envelope,envelope);assert.equal(reads,1);
+});

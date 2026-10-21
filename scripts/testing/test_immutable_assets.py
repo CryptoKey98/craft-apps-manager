@@ -1,0 +1,51 @@
+"""Immutable upload policy tests; no GitHub requests or uploads."""
+
+# Resolve sibling helpers from this file, never from the invoking directory.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+from lib.repository import project_root
+import hashlib
+import importlib.util
+from pathlib import Path
+import tempfile
+import unittest
+
+spec=importlib.util.spec_from_file_location('immutable_assets',(project_root() / "scripts/publishing/immutable-assets.py"))
+module=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+class ImmutableTests(unittest.TestCase):
+    def test_revision_two_collision_cannot_replace_previous_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'manager-update.zip'
+            path.write_bytes(b'revision two')
+            old={'name':path.name,'size':len(b'revision one'),'digest':'sha256:'+hashlib.sha256(b'revision one').hexdigest()}
+            uploads=[]
+            with self.assertRaises(ValueError):module.upload_immutable([path],[old],lambda _:self.fail('digest supplied'),uploads.append)
+            self.assertEqual(uploads,[])
+
+    def test_identical_existing_asset_is_never_reuploaded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'manager-update.zip';path.write_bytes(b'same')
+            old={'name':path.name,'size':4,'digest':'sha256:'+hashlib.sha256(b'same').hexdigest()}
+            uploads=[]
+            result=module.upload_immutable([path],[old],lambda _:self.fail('digest supplied'),uploads.append)
+            self.assertEqual(uploads,[])
+            self.assertEqual(result['unchanged'],[path.name])
+
+    def test_all_collisions_checked_before_any_upload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            a=Path(directory)/'a.zip';a.write_bytes(b'new')
+            b=Path(directory)/'b.zip';b.write_bytes(b'changed')
+            uploads=[]
+            with self.assertRaises(ValueError):module.upload_immutable([a,b],[{'name':b.name,'size':7,'digest':'sha256:'+'0'*64}],lambda _:self.fail('digest supplied'),uploads.append)
+            self.assertEqual(uploads,[])
+
+    def test_missing_asset_uploads_without_replacing_anything(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'new.zip';path.write_bytes(b'new')
+            uploads=[];result=module.upload_immutable([path],[],lambda _:self.fail('absent asset'),uploads.append)
+            self.assertEqual(uploads,[path]);self.assertEqual(result['uploaded'],[path.name])
+
+if __name__=='__main__':unittest.main()

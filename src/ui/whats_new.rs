@@ -138,28 +138,26 @@ pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
     );
 }
 
-fn feature(ui: &mut egui::Ui, icon: Option<theme::Icon>, title: &str, text: &str) {
+fn feature(ui: &mut egui::Ui, icon: theme::Icon, title: &str, text: &str) {
     ui.horizontal_top(|ui| {
         ui.spacing_mut().item_spacing.x = 14.0;
-        let (rect, _) = ui.allocate_exact_size(egui::vec2(20.0, 22.0), Sense::hover());
-        let rect = egui::Rect::from_center_size(rect.center(), egui::Vec2::splat(19.0));
-        if let Some(icon) = icon {
-            let weight = if icon == theme::Icon::RefreshCw {
-                1.5
-            } else {
-                2.0
-            };
-            theme::paint_icon_weight(ui.painter(), rect, icon, theme::palette().muted, weight);
-        } else {
-            github(ui, rect);
-        }
-        ui.vertical(|ui| {
-            ui.spacing_mut().item_spacing.y = 4.0;
-            theme::heading(ui, title, 14.0);
-            body_text(ui, text);
-        });
+        let (slot, _) = ui.allocate_exact_size(egui::Vec2::splat(19.0), Sense::hover());
+        let title_rect = ui
+            .vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 4.0;
+                let title = theme::heading(ui, title, 14.0);
+                body_text(ui, text);
+                title.rect
+            })
+            .inner;
+        let rect = egui::Rect::from_center_size(
+            egui::pos2(slot.center().x, title_rect.center().y),
+            egui::Vec2::splat(19.0),
+        );
+        theme::paint_icon_weight(ui.painter(), rect, icon, theme::palette().muted, 1.65);
     });
-    ui.add_space(20.0);
+    // Account for the parent layout's built-in gap so the visible gap is 20px.
+    ui.add_space((20.0 - ui.spacing().item_spacing.y).max(0.0));
 }
 
 impl App {
@@ -198,16 +196,36 @@ impl App {
                 egui::ScrollArea::vertical().id_salt("whats-new-content")
                     .max_height((ctx.screen_rect().height() - 260.0).clamp(160.0, 490.0))
                     .show(ui, |ui| {
-                        body_text(ui, "Better app compatibility. More confidence in every installation.");
+                        body_text(ui, "A smoother way to stay up to date.");
                         ui.add_space(22.0);
-                        feature(ui, Some(theme::Icon::ScanSearch), "Smarter app detection", "Verified app identities help the manager recognize the right program and remember your choice.");
-                        feature(ui, None, "More custom GitHub apps supported", "Better recognition when app names, installers and executables differ.");
-                        feature(ui, Some(theme::Icon::RefreshCw), "Stay up to date", "Periodic checks now include the manager alongside your installed apps.");
-                        feature(ui, Some(theme::Icon::Layers), "Multiple installations", "Keep multiple copies and choose which one to open, update or remove.");
-                        feature(ui, Some(theme::Icon::Search), "Discover new Craft apps", "Find Craft apps automatically. Only apps less than two weeks old are marked New, and viewing an app clears its badge.");
+                        feature(ui, theme::Icon::ShieldCheck, "Smarter manager updates", "Get compatible updates even when download names or supported formats change.");
+                        feature(ui, theme::Icon::Route, "Fewer update prompts", "Approve once and let the manager complete any required update steps.");
+                        feature(ui, theme::Icon::PackageOpen, "More download options", "New Linux tar.gz and macOS DMG downloads, with ZIP and installer options still available.");
+                        feature(ui, theme::Icon::Layers, "Multiple installations", "Keep multiple copies and choose which one to open, update or remove.");
+                        feature(ui, theme::Icon::Search, "Discover new Craft apps", "Find new Craft apps automatically. Recent additions get a New badge until you view them.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 0.9.0", 13.0);
+                                theme::heading(ui, "New in 1.0.0", 13.0);
+                                ui.add_space(10.0);
+                                for note in [
+                                    "Add an optional update service that keeps updates working when download names or supported package formats change. Every update is verified before installation.",
+                                    "Add Linux tar.gz and macOS DMG downloads alongside the existing ZIP packages.",
+                                    "Support Windows ZIP and MSI; Linux ZIP, tar.gz, DEB, RPM and Arch packages; and macOS ZIP and DMG in the new update service.",
+                                    "Approve updates that need an intermediate version once, then let the manager finish the remaining steps automatically. Supported installer updates can also reuse one administrator approval.",
+                                    "Set up macOS build tools without installing 7-Zip. It remains optional for compressed .7z backups.",
+                                    "Improve the macOS DMG with a clearer drag-to-Applications layout.",
+                                    "Fix Windows updates with intermediate steps failing when the installation folder contains spaces.",
+                                    "Prevent manager updates from interrupting builds running in either Manager or Builder.",
+                                    "Preserve macOS library locations when updating a manager installed in a shared Applications folder.",
+                                    "Correct revision numbers in Arch Linux installer packages.",
+                                    "Fix broken help links in portable Linux downloads.",
+                                    "Reorganize the codebase and separate large test sections to make future fixes and improvements easier to maintain, while preserving existing behavior.",
+                                ] {
+                                    body_text(ui, &format!("• {note}"));
+                                    ui.add_space(8.0);
+                                }
+                                ui.add_space(16.0);
+                                theme::heading(ui, "Also included from 0.9.0", 13.0);
                                 ui.add_space(10.0);
                                 for note in [
                                     "Periodic update checks now include the manager alongside installed apps, using your chosen interval. Downloads and installations still require your approval.",

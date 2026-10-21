@@ -1,4 +1,4 @@
-# scripts/package-linux-arch.sh sets pkgver and the payload checksum.
+# scripts/packaging/package-linux-arch.sh sets pkgver and the payload checksum.
 pkgname=craft-apps-manager
 pkgrel=${CRAFT_BUILD_REVISION:-1}
 pkgdesc='Manage Craft app releases, sources and builds'

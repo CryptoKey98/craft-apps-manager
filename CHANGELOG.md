@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.0
+
+- Add an optional update service that keeps updates working when download names or supported package formats change. Every update is verified before installation.
+- Add Linux tar.gz and macOS DMG downloads alongside the existing ZIP packages.
+- Support Windows ZIP and MSI; Linux ZIP, tar.gz, DEB, RPM and Arch packages; and macOS ZIP and DMG in the new update service.
+- Approve updates that need an intermediate version once, then let the manager finish the remaining steps automatically. Supported installer updates can also reuse one administrator approval.
+- Set up macOS build tools without installing 7-Zip. It remains optional for compressed `.7z` backups.
+- Improve the macOS DMG with a clearer drag-to-Applications layout.
+- Fix Windows updates with intermediate steps failing when the installation folder contains spaces.
+- Prevent manager updates from interrupting builds running in either Manager or Builder.
+- Preserve macOS library locations when updating a manager installed in a shared Applications folder.
+- Correct revision numbers in Arch Linux installer packages.
+- Fix broken help links in portable Linux downloads.
+- Reorganize the codebase and separate large test sections to make future fixes and improvements easier to maintain, while preserving existing behavior.
+
 ## 0.9.0
 
 - Include manager updates in periodic update checks while the manager is open, using the same interval as installed apps. Updates still require your approval.

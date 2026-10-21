@@ -1,0 +1,171 @@
+[
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x64",
+    "installation": "portable",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x86",
+    "installation": "portable",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "macos",
+    "architecture": "x64",
+    "installation": "bundle",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "macos",
+    "architecture": "arm64",
+    "installation": "bundle",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "windows",
+    "architecture": "x64",
+    "installation": "msi",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.msi.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "windows",
+    "architecture": "x64",
+    "installation": "portable",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "windows",
+    "architecture": "x86",
+    "installation": "msi",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.msi.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "windows",
+    "architecture": "x86",
+    "installation": "portable",
+    "capabilities": [
+      "layout.manager.v1",
+      "archive.zip.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x86",
+    "installation": "rpm",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.rpm.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x64",
+    "installation": "rpm",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.rpm.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x64",
+    "installation": "arch",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.arch.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x64",
+    "installation": "deb",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.deb.v1"
+    ]
+  },
+  {
+    "repository": "CryptoKey98/craft-apps-manager",
+    "channel": "stable",
+    "version": "1.0.0",
+    "revision": 1,
+    "platform": "linux",
+    "architecture": "x86",
+    "installation": "deb",
+    "capabilities": [
+      "layout.manager.v1",
+      "native.deb.v1"
+    ]
+  }
+]

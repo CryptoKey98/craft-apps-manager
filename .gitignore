@@ -17,7 +17,45 @@
 /verification/
 /manager-settings.json
 /diagnostics.json
+/portable.txt
+/portable-state.json
+/whats-new-seen.json
+/self-update-result.json
+/data/
 *.tmp
 __pycache__/
+*.pyc
+*.pyo
+*.tsbuildinfo
+
+# Local credentials; keep shareable configuration examples visible.
+/.env
+/.env.*
+!/.env.example
+!/.env.sample
+/.dev.vars
+/.dev.vars.*
+!/.dev.vars.example
+!/.dev.vars.sample
 
 /.release-secrets/
+/.wrangler/
+/update-service/node_modules/
+/update-service/.wrangler/
+/update-service/.dev.vars
+/update-service/.dev.vars.*
+!/update-service/.dev.vars.example
+!/update-service/.dev.vars.sample
+/update-service/.env
+/update-service/.env.*
+!/update-service/.env.example
+!/update-service/.env.sample
+/update-service/public/v2/catalog.json
+
+/update-service/wrangler.generated.json
+
+# Tool logs and operating-system metadata.
+npm-debug.log*
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini

@@ -1,14 +1,3 @@
 # Windows batch administrator approval
 
-Windows Settings → Updates → Batch updates includes **Approve administrator access once per batch**, enabled by default. Explicit `batchAdmin: false` values remain off; settings from older versions inherit the new enabled default.
-
-The GUI's approved update plan uses a temporary elevated worker when it contains two or more executable installer operations. It does not elevate the main window, portable updates, or release downloads. Packages are downloaded and verified first. The worker receives the exact serialized installer subset with a SHA-256 checksum passed in its command line, rejects changed requests, requires actual elevation and the same Windows account, and holds the verified installer files open without write/delete sharing while running them. It reuses the current update executor, per-app configurations, architecture checks, MSI/EXE handling, destinations, progress, and cancellation. No credential cache or persistent administrator service is created.
-
-Portable operations run afterwards in the normal process. Desktop shortcut ownership remains in that process too. Progress crosses back through bounded progress JSON; detailed installer logs remain in the unique `runtime/admin-batches` directory. Cancellation requests are forwarded to the existing installer cancellation logic, and the parent waits for rollback/completion instead of killing the helper during an MSI transaction. Installer errors remain visible and later portable operations can still run.
-
-Single installs and deliberate version downgrades retain their existing execution paths. Background checks still only check for updates, without launching the elevated worker. This document describes Windows approval. Linux has a separate PolicyKit worker; macOS retains its existing authorization behavior. Standard users entering credentials for a different administrator account are currently rejected to avoid silently installing per-user applications under that other profile. Some third-party installer behavior can still introduce its own wizard questions or additional elevation; this is not a bypass of Windows policies.
-
-Manual validation before publication: update at least two installer apps together; verify one manager elevation approval, unchanged per-app package/architecture/location, correct progress and final detection. Then test declining UAC, cancellation during MSI rollback, one installer failing, a mixed installer/portable batch, disabling the setting, and loading an existing 0.7.0 settings/library fixture. No actual elevated installer transactions were run automatically during development.
-
-
-Automated tests cover enabled defaults and saved opt-out, installer-only eligibility, single-operation/downgrade exclusions and changed-manifest rejection before elevation. See [Operations](operations.md) for current validation results. Actual UAC and native installer transactions remain manual validation requirements.
+This guide has moved to [windows batch admin](architecture/windows-batch-admin.md).

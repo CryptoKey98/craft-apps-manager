@@ -19,7 +19,7 @@ Each user keeps their settings and library in their own data directory.
 %setup -q -c
 
 %build
-# A native release binary is staged by scripts/package-linux-rpm.sh.
+# A native release binary is staged by scripts/packaging/package-linux-rpm.sh.
 
 %install
 mkdir -p %{buildroot}%{_bindir} %{buildroot}%{_datadir}/applications %{buildroot}%{_datadir}/pixmaps

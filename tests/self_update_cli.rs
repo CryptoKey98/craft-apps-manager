@@ -14,6 +14,7 @@ fn rejected_helper_plan_exits_nonzero_and_reports_outside_bundle() {
     files::write_json(
         &plan_path,
         &Plan {
+            expected_identity: None,
             layout: 0,
             msi: false,
             linux_package: false,

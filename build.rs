@@ -1,13 +1,103 @@
 fn main() {
-    println!("cargo:rerun-if-env-changed=CRAFT_BUILD_REVISION");
-    let revision = std::env::var("CRAFT_BUILD_REVISION").unwrap_or_else(|_| "1".into());
+    println!("cargo:rerun-if-env-changed=CRAFT_UPDATER_FIXTURE_VERSION");
+    let fixture_version =
+        std::env::var("CRAFT_UPDATER_FIXTURE_VERSION").unwrap_or_else(|_| "1.0.0".into());
     assert!(
-        revision
-            .parse::<u32>()
-            .is_ok_and(|revision| (1..=65535).contains(&revision)),
-        "CRAFT_BUILD_REVISION must be an integer from 1 to 65535"
+        fixture_version
+            .bytes()
+            .all(|b| b.is_ascii_digit() || b == b'.'),
+        "Invalid fixture version"
     );
-    println!("cargo:rustc-env=CRAFT_BUILD_REVISION={revision}");
+    println!("cargo:rustc-env=CRAFT_UPDATER_FIXTURE_VERSION={fixture_version}");
+    let variables = [
+        "CRAFT_UPDATER_CONFIG",
+        "CRAFT_UPDATE_SOURCE",
+        "CRAFT_MANAGER_REPOSITORY",
+        "CRAFT_UPDATE_CATALOG_URL",
+        "CRAFT_UPDATE_CATALOG_MIRROR",
+        "CRAFT_UPDATE_CHECK_URL",
+        "CRAFT_BUILD_REVISION",
+    ];
+    for name in variables {
+        println!("cargo:rerun-if-env-changed={name}");
+    }
+    let project =
+        std::path::PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").expect("project root"));
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").expect("target OS");
+    let config = craft_updater_config::resolve(
+        &project,
+        None,
+        &std::env::vars()
+            .filter(|(k, _)| variables.contains(&k.as_str()))
+            .collect(),
+        &target_os,
+        &Default::default(),
+    )
+    .unwrap_or_else(|e| panic!("Invalid updater configuration: {e:#}"));
+    config
+        .require_build_support(std::env::var_os("CARGO_FEATURE_SERVICE_UPDATER").is_some())
+        .unwrap_or_else(|e| panic!("{e:#}"));
+    let identity = config
+        .build_identity(
+            &std::env::var("CARGO_PKG_VERSION").expect("package version"),
+            &std::env::var("TARGET").expect("build target"),
+        )
+        .to_string()
+        .into_bytes();
+    // A dedicated referenced section lets packaging verify every Mach-O slice
+    // without executing code for the other CPU architecture.
+    let generated = format!(
+        "#[used]\n#[cfg_attr(target_os = \"macos\", link_section = \"__TEXT,__craft_update\")]\nstatic CRAFT_UPDATER_BUILD_IDENTITY: [u8; {}] = {:?};\n",
+        identity.len(), identity,
+    );
+    std::fs::write(
+        std::path::PathBuf::from(std::env::var_os("OUT_DIR").expect("build output"))
+            .join("updater-build-identity.rs"),
+        generated,
+    )
+    .expect("write embedded updater identity");
+    println!("cargo:rerun-if-changed={}", config.config_path.display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        config.public_key_path.display()
+    );
+    for (name, value) in [
+        ("CRAFT_UPDATE_SOURCE", config.config.source.clone()),
+        ("CRAFT_MANAGER_REPOSITORY", config.config.repository.clone()),
+        (
+            "CRAFT_UPDATE_CATALOG_URL",
+            config.config.service.catalog_url.clone(),
+        ),
+        (
+            "CRAFT_UPDATE_CATALOG_MIRROR",
+            config.config.service.mirror_url.clone(),
+        ),
+        (
+            "CRAFT_UPDATE_CHECK_URL",
+            config.config.service.check_url.clone(),
+        ),
+        ("CRAFT_BUILD_REVISION", config.revision.to_string()),
+        ("CRAFT_UPDATE_CHANNEL", config.config.channel.clone()),
+        ("CRAFT_UPDATE_PUBLIC_KEY_HEX", config.public_key_hex.clone()),
+        (
+            "CRAFT_UPDATE_PUBLIC_KEY_FINGERPRINT",
+            config.public_key_fingerprint.clone(),
+        ),
+        (
+            "CRAFT_UPDATE_CONNECT_TIMEOUT",
+            config.config.network.connect_timeout_seconds.to_string(),
+        ),
+        (
+            "CRAFT_UPDATE_METADATA_TIMEOUT",
+            config.config.network.metadata_timeout_seconds.to_string(),
+        ),
+        (
+            "CRAFT_UPDATE_DOWNLOAD_TIMEOUT",
+            config.config.network.download_timeout_seconds.to_string(),
+        ),
+    ] {
+        println!("cargo:rustc-env={name}={value}");
+    }
     if std::env::var("CARGO_CFG_TARGET_OS").is_ok_and(|os| os == "windows") {
         winresource::WindowsResource::new()
             .set_icon("assets/icon.ico")
@@ -28,24 +118,6 @@ fn main() {
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
-    // GitHub repository (owner/name) that manager self-updates come from.
-    // Forks can build against their own releases.
-    println!("cargo:rerun-if-env-changed=CRAFT_MANAGER_REPOSITORY");
-    let repository = std::env::var("CRAFT_MANAGER_REPOSITORY")
-        .ok()
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "CryptoKey98/craft-apps-manager".into());
-    let valid = |part: &str| {
-        !part.is_empty()
-            && part
-                .bytes()
-                .all(|c| c.is_ascii_alphanumeric() || b"-_.".contains(&c))
-    };
-    match repository.split_once('/') {
-        Some((owner, name)) if valid(owner) && valid(name) => {}
-        _ => panic!("CRAFT_MANAGER_REPOSITORY must be owner/name"),
-    }
-    println!("cargo:rustc-env=CRAFT_MANAGER_REPOSITORY={repository}");
     let timestamp = std::env::var("SOURCE_DATE_EPOCH")
         .ok()
         .and_then(|s| s.parse::<u64>().ok())

@@ -1,0 +1,147 @@
+name: Renew signed manager update catalog
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [renew, release]
+        default: renew
+        description: Renew the current policy or validate the configured next release policy
+      force_renew:
+        type: boolean
+        default: false
+        description: Renew the existing signed policy now without changing update offers
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        default: ''
+        description: Immutable source already validated by the release workflow
+      mode:
+        type: string
+        default: renew
+      force_renew:
+        type: boolean
+        default: false
+    secrets:
+      CRAFT_UPDATE_SIGNING_KEY:
+        required: false
+      CLOUDFLARE_API_TOKEN:
+        required: false
+  schedule:
+    - cron: '17 8 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: manager-update-catalog-publisher
+  cancel-in-progress: false
+env:
+  CRAFT_UPDATER_CONFIG: updater.production.toml
+  CRAFT_UPDATE_SOURCE: service
+  CRAFT_MANAGER_REPOSITORY: ${{ github.repository }}
+  CRAFT_RELEASE_CATALOG_URL: ${{ vars.CRAFT_UPDATE_CATALOG_URL }}
+  CRAFT_RELEASE_CATALOG_MIRROR: ${{ vars.CRAFT_UPDATE_CATALOG_MIRROR }}
+  CRAFT_RELEASE_CHECK_URL: ${{ vars.CRAFT_UPDATE_CHECK_URL }}
+jobs:
+  sign:
+    # Repository variables and production environments are activation prerequisites.
+    if: vars.CRAFT_UPDATE_CATALOG_RENEW_ENABLED == 'true' || vars.CRAFT_UPDATE_V2_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.policy.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update && sudo apt-get install -y pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev
+      - run: python3 -m pip install 'cryptography==50.0.1'
+      - name: Validate configuration and acquire authoritative previous policy
+        id: policy
+        env:
+          CATALOG_MODE: ${{ inputs.mode || 'renew' }}
+          FORCE_RENEW: ${{ inputs.force_renew || false }}
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, urllib.request, os, importlib.util, sys, time
+          sys.path.insert(0, 'scripts')
+          from lib.updater_config import publisher_config, renewal_due
+          config=publisher_config()
+          if not config['enabled']: raise SystemExit('v2 activation is incomplete')
+          spec=importlib.util.spec_from_file_location('catalog_tool','scripts/publishing/update-catalog.py')
+          tool=importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
+          envelope=tool.fetch_catalog(config['catalog_url'])
+          pathlib.Path('previous-catalog.json').write_bytes(envelope)
+          previous=tool.verified_previous(pathlib.Path('previous-catalog.json'), bytes.fromhex(config['public_key_hex']))
+          if (previous['repository'],previous['channel']) != (config['repository'],config['channel']): raise SystemExit('Previous scope mismatch')
+          due=os.environ['FORCE_RENEW']=='true' or os.environ['CATALOG_MODE']!='renew' or renewal_due(previous['expires'],int(time.time()),config['renew_before_days'])
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('changed='+str(due).lower()+'\n')
+          if not due: raise SystemExit(0)
+          if os.environ['CATALOG_MODE']=='renew':
+              pathlib.Path('catalog-input.json').write_text(json.dumps(previous))
+          else:
+              pathlib.Path('catalog-input.json').write_bytes(pathlib.Path(config['next_catalog']).read_bytes())
+          pathlib.Path('profiles-input.json').write_bytes(pathlib.Path(config['profiles']).read_bytes())
+          PY
+      - name: Verify packages and sign next sequence
+        if: steps.policy.outputs.changed == 'true'
+        env:
+          CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
+        run: |
+          python3 scripts/publishing/update-catalog.py verify-assets --config catalog-input.json --profiles profiles-input.json --out asset-receipt.json
+          sequence=$(python3 -c "import json; print(json.loads(json.load(open('previous-catalog.json'))['payload'])['sequence']+1)")
+          python3 scripts/publishing/update-catalog.py build --config catalog-input.json --profiles profiles-input.json --previous previous-catalog.json --sequence "$sequence" --verified-assets asset-receipt.json --out updates-v2.json
+      - uses: actions/upload-artifact@v4
+        if: steps.policy.outputs.changed == 'true'
+        with:
+          name: signed-manager-catalog
+          path: updates-v2.json
+          if-no-files-found: error
+  deploy:
+    needs: sign
+    if: vars.CRAFT_UPDATE_V2_DEPLOY_ENABLED == 'true' && needs.sign.outputs.changed == 'true'
+    environment: manager-update-production
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.ref }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed-manager-catalog
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: update-service
+      - name: Deploy identical signed bytes to Worker and GitHub mirror
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MIRROR_TAG=$(python3 scripts/lib/updater_config.py export --target-os linux --view publisher | python3 -c 'import json,sys; print(json.load(sys.stdin)["publishing"]["mirror_tag"])')
+          test -n "$MIRROR_TAG"
+          mkdir -p update-service/public/v2
+          cp updates-v2.json update-service/public/v2/catalog.json
+          python3 scripts/lib/updater_config.py worker --target-os linux --out update-service/wrangler.generated.json
+          (cd update-service && npx wrangler deploy --config wrangler.generated.json)
+          gh release upload "$MIRROR_TAG" updates-v2.json --clobber
+      - name: Verify public static response
+        run: |
+          python3 - <<'PY'
+          import importlib.util, pathlib, sys
+          sys.path.insert(0, 'scripts')
+          from lib.updater_config import publisher_config
+          config=publisher_config()
+          spec=importlib.util.spec_from_file_location('catalog_tool','scripts/publishing/update-catalog.py')
+          tool=importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
+          actual=tool.fetch_catalog(config['catalog_url'])
+          expected=pathlib.Path('updates-v2.json').read_bytes()
+          if actual != expected: raise SystemExit('Published catalog bytes differ')
+          mirror=tool.fetch_catalog(config['mirror_url'])
+          if mirror != expected: raise SystemExit('Published mirror bytes differ')
+          PY

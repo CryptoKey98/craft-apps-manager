@@ -15,96 +15,15 @@ use std::{
     time::{Duration, Instant},
 };
 
-mod app_page;
-mod builder_view;
 mod dialogs;
-mod operations_view;
-mod overview;
-mod settings;
-mod sidebar;
+mod resources;
+mod screens;
+mod widgets;
+use resources::{app_icon, fonts, icon_bytes, placeholder, texture};
+use widgets::operations_view;
 mod theme;
 mod tray;
 mod whats_new;
-
-fn app_icon(name: &str) -> Option<&'static [u8]> {
-    Some(match name {
-        "designcraft" => include_bytes!("../../assets/app-icons/designcraft.png"),
-        "effectcraft" => include_bytes!("../../assets/app-icons/effectcraft.png"),
-        "filmcraft" => include_bytes!("../../assets/app-icons/filmcraft.png"),
-        "lightcraft" => include_bytes!("../../assets/app-icons/lightcraft.png"),
-        "photocraft" => include_bytes!("../../assets/app-icons/photocraft.png"),
-        "vectorcraft" => include_bytes!("../../assets/app-icons/vectorcraft.png"),
-        "wordcraft" => include_bytes!("../../assets/app-icons/wordcraft.png"),
-        "gridcraft" => include_bytes!("../../assets/app-icons/gridcraft.png"),
-        "deckcraft" => include_bytes!("../../assets/app-icons/deckcraft.png"),
-        "cadcraft" => include_bytes!("../../assets/app-icons/cadcraft.png"),
-        "soundcraft" => include_bytes!("../../assets/app-icons/soundcraft.png"),
-        "printcraft" => include_bytes!("../../assets/app-icons/pdfcraft.png"),
-        _ => return None,
-    })
-}
-/// Icon for an app without a bundled one, downloaded once from its repository.
-fn icon_bytes(paths: &Paths, name: &str) -> Option<Vec<u8>> {
-    if let Some(bytes) = app_icon(name) {
-        return Some(bytes.to_vec());
-    }
-    let cached = paths.at(format!("runtime/icons/{name}.png"));
-    if let Ok(bytes) = std::fs::read(&cached) {
-        return Some(bytes);
-    }
-    catalog::get(name)?;
-    let url = format!(
-        "https://raw.githubusercontent.com/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
-        model::repository(name),
-        model::repository_name(name)
-    );
-    let bytes = reqwest::blocking::get(url)
-        .ok()?
-        .error_for_status()
-        .ok()?
-        .bytes()
-        .ok()?
-        .to_vec();
-    image::load_from_memory(&bytes).ok()?;
-    craft_apps_manager::files::write_bytes(&cached, &bytes).ok()?;
-    Some(bytes)
-}
-fn texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> Option<egui::TextureHandle> {
-    let image = image::load_from_memory(bytes).ok()?.into_rgba8();
-    let size = [image.width() as usize, image.height() as usize];
-    let pixels = egui::ColorImage::from_rgba_unmultiplied(size, image.as_raw());
-    Some(ctx.load_texture(name, pixels, egui::TextureOptions::LINEAR))
-}
-/// A neutral rounded tile for apps whose repository has no icon.
-fn placeholder(ctx: &egui::Context, name: &str) -> egui::TextureHandle {
-    const SIZE: usize = 64;
-    let hue = name
-        .bytes()
-        .fold(0u32, |h, b| h.wrapping_mul(31).wrapping_add(b.into()))
-        % 360;
-    let color = egui::ecolor::Hsva::new(hue as f32 / 360.0, 0.35, 0.62, 1.0);
-    let [r, g, b, _] = egui::Color32::from(color).to_array();
-    let mut pixels = vec![egui::Color32::TRANSPARENT; SIZE * SIZE];
-    let radius = 14.0f32;
-    for y in 0..SIZE {
-        for x in 0..SIZE {
-            let dx = (x as f32 + 0.5 - SIZE as f32 / 2.0).abs() - (SIZE as f32 / 2.0 - radius);
-            let dy = (y as f32 + 0.5 - SIZE as f32 / 2.0).abs() - (SIZE as f32 / 2.0 - radius);
-            let outside = (dx.max(0.0).powi(2) + dy.max(0.0).powi(2)).sqrt() - radius;
-            let alpha = (0.5 - outside).clamp(0.0, 1.0);
-            pixels[y * SIZE + x] =
-                egui::Color32::from_rgba_unmultiplied(r, g, b, (alpha * 255.0) as u8);
-        }
-    }
-    ctx.load_texture(
-        format!("placeholder-{name}"),
-        egui::ColorImage {
-            size: [SIZE, SIZE],
-            pixels,
-        },
-        egui::TextureOptions::LINEAR,
-    )
-}
 
 type ReleaseCheck = Result<Option<String>, String>;
 type CheckMessage = (u64, String, String, ReleaseCheck);
@@ -303,8 +222,11 @@ pub struct App {
     apps_startup_pending: bool,
     app_check_at: Instant,
     periodic_receiver: Option<std::sync::mpsc::Receiver<Result<hourly::Checks, String>>>,
-    manager_receiver:
-        Option<std::sync::mpsc::Receiver<Result<Option<self_update::Available>, String>>>,
+    manager_receiver: Option<
+        std::sync::mpsc::Receiver<
+            Result<craft_apps_manager::manager_updates::coordinator::ManagerCheck, String>,
+        >,
+    >,
     manager_available: Option<self_update::Available>,
     manager_message: String,
     manager_startup_pending: bool,
@@ -347,50 +269,6 @@ pub struct App {
     activity_history: bool,
     activity_anchor: Option<egui::Pos2>,
     activity_notifications: operations_view::ActivityNotifications,
-}
-
-/// IBM Plex, as in the approved designs, bundled so every platform renders the
-/// same. egui has no font weights, so each weight is its own family.
-fn fonts(ctx: &egui::Context) {
-    let mut fonts = egui::FontDefinitions::default();
-    let faces: [(&str, &'static [u8], egui::FontFamily); 4] = [
-        (
-            "IBM Plex Sans",
-            include_bytes!("../../assets/fonts/IBMPlexSans-Regular.ttf"),
-            egui::FontFamily::Proportional,
-        ),
-        (
-            "IBM Plex Sans Medium",
-            include_bytes!("../../assets/fonts/IBMPlexSans-Medium.ttf"),
-            theme::medium_family(),
-        ),
-        (
-            "IBM Plex Sans SemiBold",
-            include_bytes!("../../assets/fonts/IBMPlexSans-SemiBold.ttf"),
-            theme::bold_family(),
-        ),
-        (
-            "IBM Plex Mono",
-            include_bytes!("../../assets/fonts/IBMPlexMono-Regular.ttf"),
-            egui::FontFamily::Monospace,
-        ),
-    ];
-    // The bundled egui fonts stay as fallbacks for symbols Plex lacks.
-    let fallback = fonts.families[&egui::FontFamily::Proportional].clone();
-    for (name, bytes, family) in faces {
-        fonts.font_data.insert(
-            name.into(),
-            std::sync::Arc::new(egui::FontData::from_static(bytes)),
-        );
-        let list = fonts.families.entry(family).or_default();
-        list.insert(0, name.into());
-        for font in &fallback {
-            if !list.contains(font) {
-                list.push(font.clone());
-            }
-        }
-    }
-    ctx.set_fonts(fonts);
 }
 
 impl App {
@@ -455,7 +333,10 @@ impl App {
         }
         let build_job = Job::new(paths.at(format!("logs/{app}.log")), &build_preferences);
         let auto = scheduler::enabled(false);
-        let manager_startup_pending = !builder && preferences.check_manager_on_startup;
+        let manager_startup_pending = !builder
+            && (preferences.check_manager_on_startup
+                || craft_apps_manager::manager_updates::bridge::restart_requested()
+                || craft_apps_manager::manager_updates::coordinator::needs_bridge_check(&paths));
         let apps_startup_pending = !builder && preferences.check_installed_apps_on_startup;
         let (check_sender, check_receiver) = std::sync::mpsc::channel();
         let preview_backups = std::env::args().any(|a| a == "--preview-backups");
@@ -763,6 +644,56 @@ impl App {
         }
     }
     fn check_manager(&mut self, ctx: &egui::Context) {
+        self.check_manager_trigger(
+            ctx,
+            craft_apps_manager::manager_updates::check_state::CheckTrigger::Manual,
+        );
+    }
+    fn start_manager_update(
+        &mut self,
+        ctx: &egui::Context,
+        available: self_update::Available,
+        journey: Option<craft_apps_manager::manager_updates::bridge::Journey>,
+    ) {
+        if self.job.snapshot().busy
+            || self.build_job.snapshot().busy
+            || self.release_pending()
+            || self.manager_plan.is_some()
+            || craft_apps_manager::manager_updates::bridge::foreground_busy(
+                &self.operation_records,
+                None,
+            )
+        {
+            self.manager_message = "Manager update paused while another operation is running. Check again to continue.".into();
+            return;
+        }
+        let paths = self.paths.clone();
+        let ctx = ctx.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.manager_plan = Some(rx);
+        self.job = Job::interactive(self.paths.at("logs/updates.log"), &self.build_preferences);
+        self.job_target = None;
+        self.job_action.clear();
+        self.failure_dismissed = false;
+        self.job.describe("Manager update download", "Manager");
+        self.job.spawn(move |job| {
+            let result = match journey {
+                Some(journey) => {
+                    self_update::prepare_continuation(&paths, &available, journey, &job)
+                }
+                None => self_update::prepare(&paths, &available, &job),
+            };
+            let _ = tx.send(result_for_display(&result));
+            ctx.request_repaint();
+            result.map(|_| ())
+        });
+        self.manager_message = "Downloading and verifying manager…".into();
+    }
+    fn check_manager_trigger(
+        &mut self,
+        ctx: &egui::Context,
+        trigger: craft_apps_manager::manager_updates::check_state::CheckTrigger,
+    ) {
         if self.manager_receiver.is_some() || self.manager_plan.is_some() {
             return;
         }
@@ -772,7 +703,9 @@ impl App {
         let paths = self.paths.clone();
         let ctx = ctx.clone();
         std::thread::spawn(move || {
-            let result = self_update::check(&paths).map_err(|e| format!("{e:#}"));
+            let result =
+                craft_apps_manager::manager_updates::coordinator::check_status(&paths, trigger)
+                    .map_err(|e| format!("{e:#}"));
             let _ = tx.send(result);
             ctx.request_repaint();
         });
@@ -904,6 +837,9 @@ impl App {
     }
     /// Builds or sets up tools for the selected app, beside any release job.
     fn start_build(&mut self, action: &str) {
+        if self.manager_plan.is_some() {
+            return;
+        }
         if action == "build" && self.confirm_build.is_none() {
             self.build_parent = builder::output_root(&self.paths, &self.app)
                 .parent()
@@ -2009,7 +1945,12 @@ impl App {
         {
             let (tx, rx) = std::sync::mpsc::channel();
             self.periodic_receiver = Some(rx);
-            self.check_manager(ctx);
+            self.check_manager_trigger(
+                ctx,
+                craft_apps_manager::manager_updates::check_state::CheckTrigger::Periodic(
+                    self.preferences.app_check_interval_minutes,
+                ),
+            );
             let paths = self.paths.clone();
             let ctx = ctx.clone();
             std::thread::spawn(move || {
@@ -2026,21 +1967,31 @@ impl App {
         }
         if self.manager_startup_pending {
             self.manager_startup_pending = false;
-            self.check_manager(ctx);
+            let trigger = if craft_apps_manager::manager_updates::bridge::restart_requested()
+                || craft_apps_manager::manager_updates::coordinator::needs_bridge_check(&self.paths)
+            {
+                craft_apps_manager::manager_updates::check_state::CheckTrigger::BridgeRestart
+            } else {
+                craft_apps_manager::manager_updates::check_state::CheckTrigger::Startup
+            };
+            self.check_manager_trigger(ctx, trigger);
         }
         if let Some(receiver) = &self.manager_receiver {
             if let Some(result) = poll_worker_result(receiver, || {
                 "Manager update check stopped unexpectedly.".into()
             }) {
                 match result {
-                    Ok(Some(available)) => {
-                        self.manager_message =
-                            format!("Version {} is available.", available.display_version());
-                        self.manager_available = Some(available);
-                    }
-                    Ok(None) => {
-                        self.manager_available = None;
-                        self.manager_message = "You’re running the latest manager version.".into()
+                    Ok(result) => {
+                        self.manager_message = result.message;
+                        self.manager_available = result.available;
+                        if let Some(message) = result.continuation_paused {
+                            self.manager_message = message;
+                        }
+                        if let (Some(journey), Some(available)) =
+                            (result.continuation, self.manager_available.clone())
+                        {
+                            self.start_manager_update(ctx, available, Some(journey));
+                        }
                     }
                     Err(error) => {
                         self.manager_message = format!("Could not check for updates: {error}")
@@ -2058,6 +2009,35 @@ impl App {
             }) {
                 self.manager_plan = None;
                 match result {
+                    Ok(_)
+                        if self.build_job.snapshot().busy
+                            || self.release_pending()
+                            || craft_apps_manager::manager_updates::bridge::foreground_busy(
+                                &self.operation_records,
+                                self.job.operation_id().as_deref(),
+                            ) =>
+                    {
+                        self.manager_message = "Manager update paused while another operation is running. Check again to continue.".into();
+                        #[cfg(any(
+                            target_os = "windows",
+                            target_os = "linux",
+                            target_os = "macos"
+                        ))]
+                        craft_apps_manager::manager_updates::native_admin::cancel(
+                            self.paths.root.clone(),
+                        );
+                    }
+                    Ok(_) if self.job.check().is_err() => {
+                        #[cfg(any(
+                            target_os = "windows",
+                            target_os = "linux",
+                            target_os = "macos"
+                        ))]
+                        craft_apps_manager::manager_updates::native_admin::cancel(
+                            self.paths.root.clone(),
+                        );
+                        self.manager_message = "Manager update cancelled.".into();
+                    }
                     Ok(plan) => match self_update::launch(&plan) {
                         Ok(()) => {
                             self.closing = true;
