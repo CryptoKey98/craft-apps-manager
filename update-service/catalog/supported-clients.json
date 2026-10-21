@@ -9,7 +9,8 @@
     "installation": "portable",
     "capabilities": [
       "layout.manager.v1",
-      "archive.zip.v1"
+      "archive.zip.v1",
+      "archive.tar-gzip.v1"
     ]
   },
   {
@@ -22,7 +23,8 @@
     "installation": "portable",
     "capabilities": [
       "layout.manager.v1",
-      "archive.zip.v1"
+      "archive.zip.v1",
+      "archive.tar-gzip.v1"
     ]
   },
   {
@@ -35,7 +37,10 @@
     "installation": "bundle",
     "capabilities": [
       "layout.manager.v1",
-      "archive.zip.v1"
+      "archive.zip.v1",
+      "archive.tar-gzip.v1",
+      "disk-image.dmg.v1",
+      "admin.bundle-replace.v1"
     ]
   },
   {
@@ -48,7 +53,10 @@
     "installation": "bundle",
     "capabilities": [
       "layout.manager.v1",
-      "archive.zip.v1"
+      "archive.zip.v1",
+      "archive.tar-gzip.v1",
+      "disk-image.dmg.v1",
+      "admin.bundle-replace.v1"
     ]
   },
   {
