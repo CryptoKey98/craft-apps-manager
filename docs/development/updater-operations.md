@@ -1,6 +1,6 @@
 # Signed manager updater operations
 
-This describes the updater prepared for 1.0.0. It is not active in the published 0.9.0 manager. Production hosting still requires separate configuration and approval; these instructions do not authorize deployment or a release.
+This describes the updater prepared for 1.0.0. It is not active in the published 0.9.0 manager. Production hosting uses the separate publisher configuration described below; these instructions do not authorize a release.
 
 ## Client and hosting boundaries
 
@@ -10,7 +10,7 @@ The first server-aware build includes Windows ZIP, Linux ZIP/tar.gz, macOS ZIP/D
 
 The separate Worker configuration is in `update-service/`. The static `/v2/catalog.json` path serves the signed envelope without dynamic selection. Static 404 handling prevents unknown paths from falling through to Worker code. The optional `/v2/check` route applies a per-location IP limit of 120 requests per minute before selection; its result must agree with the signed policy. Rejected dynamic requests still consume an invocation. Neither this limiter nor the free plan guarantees protection against distributed quota exhaustion. See [Cloudflare static routing](https://developers.cloudflare.com/workers/static-assets/routing/static-site-generation/) and [rate limits](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
 
-No account secrets are shipped to clients. GitHub tokens are not attached to metadata requests. Downloads are restricted to the configured GitHub repository and approved HTTPS GitHub asset redirect hosts. Unknown formats/layouts remain ineligible; they do not turn a failed check into “latest version.”
+No account secrets are shipped to clients. GitHub tokens are not attached to metadata requests. A configured GitHub release metadata mirror can follow at most three redirects through the approved HTTPS GitHub asset hosts; other metadata origins cannot redirect. Downloads are restricted to the configured GitHub repository and approved HTTPS GitHub asset redirect hosts. Unknown formats/layouts remain ineligible; they do not turn a failed check into “latest version.”
 
 ## Local checks
 
@@ -152,7 +152,7 @@ node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.test.jsonc -
 node node_modules/wrangler/bin/wrangler.js deploy --config wrangler.test.jsonc
 ```
 
-Generated test assets/evidence stay under ignored `.wrangler/`. Test catalog renewal is manual; there is no production cron or deployment automation. The deterministic fixture seed is public test material and must never become a production signing key.
+Generated test assets/evidence stay under ignored `.wrangler/`. Test catalog renewal is manual; the production renewal schedule never renews the test Worker. The deterministic fixture seed is public test material and must never become a production signing key.
 
 The opt-in Rust test `isolated_worker_signed_catalog_smoke` uses the actual metadata transport, signature verifier, check coordinator and routing with separate temporary roots. Set `CRAFT_TEST_UPDATE_URL` to the test base URL ending in `/`, then run from the repository root:
 

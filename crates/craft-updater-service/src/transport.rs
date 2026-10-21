@@ -45,6 +45,26 @@ pub trait FetchMetadata {
         self.fetch(endpoint, etag)
     }
 }
+// Only a configured GitHub release mirror can redirect, and only through the
+// same bounded HTTPS asset hosts used for package downloads. Other metadata
+// origins must continue serving their signed envelope directly.
+fn metadata_redirect_allowed(previous: &[reqwest::Url], target: &reqwest::Url) -> bool {
+    let Some(origin) = previous.first() else {
+        return false;
+    };
+    let release_asset = origin.path_segments().is_some_and(|segments| {
+        let parts: Vec<_> = segments.collect();
+        matches!(parts.as_slice(), [owner, repo, "releases", "download", tag, asset]
+            if !owner.is_empty() && !repo.is_empty() && !tag.is_empty() && !asset.is_empty())
+    });
+    previous.len() <= 3
+        && origin.host_str() == Some("github.com")
+        && release_asset
+        && origin.query().is_none()
+        && previous.iter().all(asset_host_allowed)
+        && asset_host_allowed(target)
+}
+
 pub struct MetadataTransport {
     client: reqwest::blocking::Client,
 }
@@ -57,7 +77,13 @@ impl MetadataTransport {
             client: reqwest::blocking::Client::builder()
                 .connect_timeout(connect)
                 .timeout(metadata)
-                .redirect(reqwest::redirect::Policy::none())
+                .redirect(reqwest::redirect::Policy::custom(|attempt| {
+                    if metadata_redirect_allowed(attempt.previous(), attempt.url()) {
+                        attempt.follow()
+                    } else {
+                        attempt.stop()
+                    }
+                }))
                 .user_agent("CraftAppsManager-Updater/2")
                 .build()?,
         })
@@ -182,6 +208,44 @@ pub fn asset_host_allowed(url: &reqwest::Url) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn metadata_mirror_redirects_are_limited_to_github_release_assets() {
+        let url = |s: &str| reqwest::Url::parse(s).unwrap();
+        let github =
+            url("https://github.com/owner/manager/releases/download/v1.0.0/updates-v2.json");
+        let asset =
+            url("https://release-assets.githubusercontent.com/asset?signature=public-download");
+        assert!(metadata_redirect_allowed(
+            std::slice::from_ref(&github),
+            &asset
+        ));
+        assert!(metadata_redirect_allowed(
+            &[github.clone(), asset.clone()],
+            &asset
+        ));
+        for target in [
+            "https://evil.example/catalog.json",
+            "http://release-assets.githubusercontent.com/asset",
+            "https://user:secret@github.com/asset",
+            "https://github.com:444/asset",
+        ] {
+            assert!(!metadata_redirect_allowed(
+                std::slice::from_ref(&github),
+                &url(target)
+            ));
+        }
+        for origin in [
+            "https://updates.example/catalog.json",
+            "https://github.com/owner/manager",
+            "https://github.com/owner/manager/releases/latest",
+            "https://github.com/owner/manager/releases/download/v1.0.0/a/b",
+        ] {
+            assert!(!metadata_redirect_allowed(&[url(origin)], &asset));
+        }
+        assert!(!metadata_redirect_allowed(&[], &asset));
+        assert!(!metadata_redirect_allowed(&vec![github; 4], &asset));
+    }
+
     #[test]
     fn never_sends_github_authorization() {
         let transport = MetadataTransport::new().unwrap();
