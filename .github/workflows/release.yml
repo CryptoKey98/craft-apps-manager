@@ -5,20 +5,25 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to update
+        description: Release tag to create or update
         required: true
         default: v1.0.0
       revision:
-        description: Build revision (1 rebuilds a draft baseline)
+        description: Build revision (1 publishes a full release)
         required: true
-        default: '2'
+        default: '1'
       platform:
         description: Platform receiving the hotfix
         type: choice
         options: [all, windows, linux, macos]
+        default: all
         required: true
       publish_baseline:
-        description: Publish the baseline after rebuilding (leave off to keep it draft)
+        description: Publish the release automatically (turn off only for an intentional preview)
+        type: boolean
+        default: true
+      prepare_draft:
+        description: Prepare baseline packages only; never publish or deploy catalog offers
         type: boolean
         default: false
       source_ref:
@@ -67,15 +72,40 @@ jobs:
         if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
         env:
           CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
-        run: python3 scripts/publishing/update-catalog.py preflight
+          GH_TOKEN: ${{ github.token }}
+          PREPARE_DRAFT: ${{ inputs.prepare_draft || false }}
+        run: |
+          if [ "$PREPARE_DRAFT" = true ]; then
+            # Absence is allowed: publish creates a draft after all builds pass.
+            # Fail closed on API/auth failures; never treat them as a missing release.
+            releases=$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+            if printf '%s' "$releases" | jq -e --arg tag "$CRAFT_RELEASE_TAG" 'any(.[][]; .tag_name == $tag and .draft == false)' >/dev/null; then
+              echo "Refusing to prepare an already-published release" >&2
+              exit 1
+            fi
+            # Validate source/key/scope and supported current clients. Final release
+            # routes/hashes cannot exist until this draft's packages have been built.
+            # This path cannot publish the application or deploy catalog offers.
+            env -u CRAFT_RELEASE_TAG python3 scripts/publishing/update-catalog.py preflight
+          else
+            python3 scripts/publishing/update-catalog.py preflight
+          fi
       - name: Validate tag, version references and release notes
         run: python3 scripts/publishing/validate-release.py --tag "$CRAFT_RELEASE_TAG" --notes-file notes.md
       - name: Validate revision publishing inputs
         env:
           CRAFT_UPDATE_SIGNING_KEY: ${{ secrets.CRAFT_UPDATE_SIGNING_KEY }}
           REVISION_SOURCE_REF: ${{ inputs.source_ref }}
+          PREPARE_DRAFT: ${{ inputs.prepare_draft || false }}
+          PUBLISH_BASELINE: ${{ inputs.publish_baseline || false }}
         run: |
           test -n "$CRAFT_UPDATE_SIGNING_KEY" || { echo "Configure CRAFT_UPDATE_SIGNING_KEY before publishing" >&2; exit 1; }
+          if [ "$PREPARE_DRAFT" = true ]; then
+            test "${{ github.event_name }}" = workflow_dispatch
+            test "$CRAFT_BUILD_REVISION" = 1
+            test "${{ inputs.platform }}" = all
+            test "$PUBLISH_BASELINE" = false || { echo "Draft preparation cannot publish" >&2; exit 1; }
+          fi
           if [ "${{ github.event_name }}" = workflow_dispatch ]; then
             case "$REVISION_SOURCE_REF" in *[!0-9a-f]*|'') echo "Use an immutable commit SHA" >&2; exit 1;; esac
             test "${#REVISION_SOURCE_REF}" -eq 40
@@ -271,9 +301,6 @@ jobs:
         with:
           path: packages
           merge-multiple: true
-      - name: Snapshot immutable v2 assets before legacy renaming
-        if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
-        run: python3 scripts/publishing/stage-v2-assets.py --source packages --output immutable-assets --revision "$CRAFT_BUILD_REVISION"
       - name: Prepare signed revision metadata and legacy downloads
         env:
           GH_TOKEN: ${{ github.token }}
@@ -282,15 +309,21 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y rpm libarchive-tools
           python3 -m pip install 'cryptography==50.0.1'
+          immutable=()
+          if [ "${{ vars.CRAFT_UPDATE_V2_ENABLED }}" = true ]; then
+            immutable=(--immutable-packages)
+          fi
           previous=()
           if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
             gh release download "$CRAFT_RELEASE_TAG" --pattern updates-v1.json --dir "$RUNNER_TEMP/revision-previous"
             previous=(--previous "$RUNNER_TEMP/revision-previous/updates-v1.json")
           fi
-          python3 scripts/publishing/revision-manifest.py --packages packages --version "${CRAFT_RELEASE_TAG#v}" --repository "$GITHUB_REPOSITORY" --revision "$CRAFT_BUILD_REVISION" --platform "$REVISION_PLATFORM" "${previous[@]}"
-      - name: Include immutable v2 assets alongside legacy downloads
+          python3 scripts/publishing/revision-manifest.py --packages packages --version "${CRAFT_RELEASE_TAG#v}" --repository "$GITHUB_REPOSITORY" --revision "$CRAFT_BUILD_REVISION" --platform "$REVISION_PLATFORM" "${previous[@]}" "${immutable[@]}"
+      - name: Stage shared packages with immutable upload protection
         if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
-        run: cp -n immutable-assets/* packages/
+        run: |
+          mkdir immutable-assets
+          find packages -maxdepth 1 -type f ! -name updates-v1.json ! -name SHA256SUMS.txt -exec cp {} immutable-assets/ \;
       - name: Checksums
         env:
           REVISION_PLATFORM: ${{ inputs.platform || 'all' }}
@@ -312,10 +345,10 @@ jobs:
       - name: Publish packages before revision metadata
         env:
           GH_TOKEN: ${{ github.token }}
-          PUBLISH_BASELINE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_baseline }}
+          PUBLISH_BASELINE: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_baseline }}
         run: |
-          releases=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")
-          existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[] | select(.tag_name == $tag)')
+          releases=$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100")
+          existing=$(printf '%s' "$releases" | jq -c --arg tag "$CRAFT_RELEASE_TAG" '.[][] | select(.tag_name == $tag)')
           manifest="$RUNNER_TEMP/updates-v1.json"
           mv packages/updates-v1.json "$manifest"
           legacy_packages=()
@@ -345,14 +378,16 @@ jobs:
               gh release edit "$CRAFT_RELEASE_TAG" --draft=false
             fi
           else
-            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" --verify-tag --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md --draft
-            if [ "${{ github.event_name }}" = push ] || [ "$PUBLISH_BASELINE" = true ]; then
-              gh release edit "$CRAFT_RELEASE_TAG" --draft=false
-            fi
+            source_commit=$(git rev-parse HEAD)
+            tag_check=()
+            if [ "${{ github.event_name }}" = push ]; then tag_check=(--verify-tag); fi
+            visibility=()
+            if [ "${{ github.event_name }}" != push ] && [ "$PUBLISH_BASELINE" != true ]; then visibility=(--draft); fi
+            gh release create "$CRAFT_RELEASE_TAG" packages/* "$manifest" "${tag_check[@]}" --target "$source_commit" --title "Craft Apps Manager ${CRAFT_RELEASE_TAG#v}" --notes-file notes.md "${visibility[@]}"
           fi
   update-catalog:
     needs: publish
-    if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
+    if: vars.CRAFT_UPDATE_V2_ENABLED == 'true' && (github.event_name != 'workflow_dispatch' || inputs.revision != '1' || inputs.publish_baseline)
     uses: ./.github/workflows/renew-update-catalog.yml
     with:
       mode: release

@@ -65,6 +65,7 @@ def main():
     parser.add_argument("--version", required=True)
     parser.add_argument("--repository", required=True)
     parser.add_argument("--revision", type=int, required=True)
+    parser.add_argument("--immutable-packages", action="store_true", help="Keep baseline URLs unchanged; sign distinct revision filenames")
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--platform", choices=["windows", "linux", "macos", "all"], default="all")
     parser.add_argument("--updater-config", type=Path)
@@ -89,6 +90,19 @@ def main():
         packages = {(p["platform"], p["architecture"], p["format"]): p for p in previous["packages"]}
     elif args.revision != 1:
         raise ValueError("A hotfix needs the previous signed manifest")
+    # Extra formats are not part of v1 metadata, but their signed v2 URLs
+    # must be equally immutable across revisions.
+    if args.immutable_packages and args.revision > 1:
+        for extra in sorted(args.packages.iterdir()):
+            suffix = next((s for s in (".tar.gz", ".dmg") if extra.name.endswith(s)), None)
+            if suffix:
+                expected_platform = "macos" if suffix == ".dmg" else "linux"
+                if args.platform not in ("all", expected_platform):
+                    raise ValueError("Unexpected platform in hotfix upload")
+                destination = extra.with_name(extra.name[:-len(suffix)] + f"-Rev-{args.revision}" + suffix)
+                with extra.open("rb") as source, destination.open("xb") as target_file:
+                    shutil.copyfileobj(source, target_file)
+                extra.unlink()
     inputs = sorted(p for p in args.packages.iterdir() if p.suffix in (".zip", ".msi", ".deb", ".rpm", ".zst"))
     seen = set()
     for file in inputs:
@@ -102,7 +116,12 @@ def main():
         if old and args.revision <= old["revision"]:
             raise ValueError("Revision must advance for every affected target")
         legacy = args.packages / compatibility_name(args.version, *identity)
-        if identity[2] == "deb" and args.revision > 1:
+        if args.immutable_packages and args.revision > 1:
+            # Old manifest-aware clients use this signed filename directly.
+            # Pre-manifest clients retain the baseline, which can then self-update.
+            suffix = next(s for s in (".pkg.tar.zst", ".zip", ".msi", ".deb", ".rpm") if legacy.name.endswith(s))
+            legacy = legacy.with_name(legacy.name[:-len(suffix)] + f"-Rev-{args.revision}" + suffix)
+        if identity[2] == "deb" and args.revision > 1 and not args.immutable_packages:
             # Older managers require exact Version metadata; sign this same
             # compatible package for newer managers as well.
             work = args.packages / ("compat-deb-" + identity[1])

@@ -40,8 +40,10 @@ class RevisionManifestTests(unittest.TestCase):
         (self.root / "assets/update-public-key.hex").write_text(self.key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw).hex())
         self.env = dict(os.environ, CRAFT_UPDATER_CONFIG_TOOL=self.config_tool, CRAFT_UPDATE_SIGNING_KEY=(bytes([42]) * 32).hex())
 
-    def run_manifest(self, folder, revision, platform="all", previous=None):
+    def run_manifest(self, folder, revision, platform="all", previous=None, immutable=False):
         args = [sys.executable, str(self.script), "--packages", str(folder), "--version", "0.8.3", "--repository", "owner/manager", "--revision", str(revision), "--platform", platform]
+        if immutable:
+            args += ["--immutable-packages"]
         if previous:
             args += ["--previous", str(previous)]
         return subprocess.run(args, env=self.env, capture_output=True, text=True)
@@ -88,6 +90,39 @@ class RevisionManifestTests(unittest.TestCase):
         self.assertEqual(linux["asset"], "Craft-Apps-Manager-0.8.3-linux-x64.zip")
         self.assertEqual(len(list(folder.glob("*.zip"))), 1)
         self.assertEqual(linux["sha256"], hashlib.sha256(legacy.read_bytes()).hexdigest())
+
+    def test_service_hotfix_uses_distinct_signed_asset_without_overwriting_baseline(self):
+        baseline = self.baseline()
+        folder = self.root / "immutable-hotfix"
+        folder.mkdir()
+        source = folder / "Craft-Apps-Manager-0.8.3-linux-x64.zip"
+        source.write_bytes(b"revision two")
+        tar = folder / "Craft-Apps-Manager-0.8.3-linux-x64.tar.gz"
+        tar.write_bytes(b"tar revision two")
+        result = self.run_manifest(folder, 2, "linux", baseline / "updates-v1.json", immutable=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entry = next(p for p in self.read_manifest(folder)["packages"] if p["platform"] == "linux")
+        self.assertEqual(entry["asset"], "Craft-Apps-Manager-0.8.3-linux-x64-Rev-2.zip")
+        self.assertFalse(source.exists())
+        self.assertFalse(tar.exists())
+        self.assertEqual((folder / "Craft-Apps-Manager-0.8.3-linux-x64-Rev-2.tar.gz").read_bytes(), b"tar revision two")
+        self.assertEqual((folder / entry["asset"]).read_bytes(), b"revision two")
+        self.assertEqual(entry["sha256"], hashlib.sha256(b"revision two").hexdigest())
+        self.assertEqual(len(list(folder.glob("*.zip"))), 1)
+
+    def test_service_macos_hotfix_renames_dmg_and_zip_together(self):
+        baseline = self.baseline()
+        folder = self.root / "macos-hotfix"
+        folder.mkdir()
+        for suffix in ("zip", "dmg"):
+            (folder / f"Craft-Apps-Manager-0.8.3-macos-universal.{suffix}").write_bytes(b"mac revision two")
+        result = self.run_manifest(folder, 2, "macos", baseline / "updates-v1.json", immutable=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entry = next(p for p in self.read_manifest(folder)["packages"] if p["platform"] == "macos")
+        self.assertEqual(entry["asset"], "Craft-Apps-Manager-0.8.3-macos-universal-Rev-2.zip")
+        for suffix in ("zip", "dmg"):
+            self.assertEqual((folder / f"Craft-Apps-Manager-0.8.3-macos-universal-Rev-2.{suffix}").read_bytes(), b"mac revision two")
+            self.assertFalse((folder / f"Craft-Apps-Manager-0.8.3-macos-universal.{suffix}").exists())
 
     def test_baseline_has_no_duplicate_packages(self):
         folder = self.baseline()

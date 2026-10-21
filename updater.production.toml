@@ -14,7 +14,7 @@ check_url = ""
 [publishing]
 enabled = true
 profiles_file = "update-service/catalog/supported-clients.json"
-next_catalog_file = "update-service/catalog/standby.json"
+next_catalog_file = "update-service/catalog/release-1.0.0.json"
 mirror_tag = "v0.9.0"
 catalog_validity_days = 30
 renew_before_days = 7

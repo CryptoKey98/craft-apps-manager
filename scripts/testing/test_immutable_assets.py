@@ -10,12 +10,21 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+import json
+from unittest.mock import patch
 
 spec=importlib.util.spec_from_file_location('immutable_assets',(project_root() / "scripts/publishing/immutable-assets.py"))
 module=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 class ImmutableTests(unittest.TestCase):
+    def test_tagless_draft_assets_are_resolved_by_release_id(self):
+        results=[module.subprocess.CompletedProcess([],0,json.dumps({'databaseId':123,'tagName':'v1.0.0'})),module.subprocess.CompletedProcess([],0,json.dumps({'assets':[{'id':456,'name':'manager.zip','size':3}]}))]
+        with patch.object(module.subprocess,'run',side_effect=results) as run:
+            self.assertEqual(module.release_assets('owner/manager','v1.0.0'),[{'id':456,'name':'manager.zip','size':3}])
+            self.assertIn('databaseId,tagName',run.call_args_list[0].args[0])
+            self.assertIn('repos/owner/manager/releases/123',run.call_args_list[1].args[0])
+
     def test_revision_two_collision_cannot_replace_previous_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'manager-update.zip'
