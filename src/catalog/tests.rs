@@ -813,3 +813,101 @@ fn third_party_apps_are_only_added_explicitly() {
     assert!(merged.contains(&custom));
     assert_eq!(repository_name(&custom.repository), "customcraft");
 }
+
+#[test]
+fn custom_app_system_inspection_preserves_repository_and_network_errors() {
+    for message in [
+        "owner/app is archived; pick an active repository",
+        "GitHub API rate limit exceeded",
+        "owner/app has no releases yet",
+        "Unsupported version: nightly",
+    ] {
+        let mut attempts = 0;
+        let error = inspect_custom_app_options_with(["x64".into(), "x86".into()], |_, _| {
+            attempts += 1;
+            anyhow::bail!("{message}")
+        })
+        .unwrap_err();
+        assert_eq!(error.to_string(), message);
+        assert_eq!(
+            attempts, 1,
+            "A different format cannot fix a repository or network error"
+        );
+    }
+}
+
+#[test]
+fn custom_app_system_inspection_falls_back_only_for_incompatible_downloads() {
+    let expected = craft("examplecraft", "ExampleCraft", "", "");
+    let mut attempts = Vec::new();
+    let result =
+        inspect_custom_app_options_with(["x64".into(), "x86".into()], |format, architecture| {
+            attempts.push((format.to_string(), architecture.to_string()));
+            if format == "portable" && architecture == "x86" {
+                Ok(expected.clone())
+            } else {
+                Err(NoCompatibleCustomDownload.into())
+            }
+        })
+        .unwrap();
+    assert_eq!(result, (expected, "portable".into(), "x86".into()));
+    assert_eq!(attempts.len(), 4);
+    let error = inspect_custom_app_options_with(["x64".into()], |_, _| {
+        Err(NoCompatibleCustomDownload.into())
+    })
+    .unwrap_err();
+    assert_eq!(
+        error.to_string(),
+        "No compatible desktop release found for this system."
+    );
+}
+
+#[test]
+fn custom_app_system_inspection_preserves_ambiguous_download_choices() {
+    let expected = craft("examplecraft", "ExampleCraft", "", "");
+    let result = inspect_custom_app_options_with(["x64".into()], |_, _| {
+        Err(DownloadChoice {
+            entry: expected.clone(),
+            assets: Vec::new(),
+            version: "1.0.0".into(),
+            preferences: crate::model::Preferences::default(),
+        }
+        .into())
+    })
+    .unwrap();
+    assert_eq!(result, (expected, "installer".into(), "x64".into()));
+}
+
+#[test]
+fn custom_app_system_inspection_distinguishes_missing_packages_from_invalid_versions() {
+    let repository = Repository {
+        created_at: None,
+        topics: Vec::new(),
+        name: "exampleclock".into(),
+        description: None,
+        archived: false,
+        fork: false,
+        disabled: false,
+    };
+    let stable = release("v1.0.0", "ExampleClock", &[]);
+    let error = classify_custom(
+        "owner/exampleclock",
+        &repository,
+        &stable,
+        "installer",
+        "x64",
+    )
+    .unwrap_err();
+    assert!(error.downcast_ref::<NoCompatibleCustomDownload>().is_some());
+    let nightly = release("nightly", "ExampleClock", &[]);
+    let error = classify_custom(
+        "owner/exampleclock",
+        &repository,
+        &nightly,
+        "installer",
+        "x64",
+    )
+    .unwrap_err();
+    assert!(error.downcast_ref::<NoCompatibleCustomDownload>().is_none());
+    assert!(error.to_string().contains("tags its releases"));
+}

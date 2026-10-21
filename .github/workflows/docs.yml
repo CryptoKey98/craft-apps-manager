@@ -1,0 +1,40 @@
+name: Documentation validation
+on:
+  pull_request:
+    paths:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+      - THIRD-PARTY-NOTICES.txt
+      - docs/*.md
+      - docs/user-guide/**
+      - docs/development/**
+      - docs/architecture/**
+      - docs/images/**
+      - assets/icon.png
+      - update-service/catalog/README.md
+      - scripts/documentation/**
+      - scripts/testing/test_wiki_documentation.py
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wiki-preview:
+    name: Wiki preview (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Test local wiki generation and reconciliation
+        run: python scripts/testing/test_wiki_documentation.py
+      - name: Validate generated wiki preview
+        run: python scripts/documentation/wiki.py check --source-commit ${{ github.sha }}
