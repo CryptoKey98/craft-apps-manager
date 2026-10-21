@@ -56,6 +56,23 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: sudo apt-get update && sudo apt-get install -y pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev
       - run: python3 -m pip install 'cryptography==50.0.1'
+      - name: Diagnose public catalog connectivity
+        run: |
+          python3 - <<'PY'
+          import tomllib, urllib.request, urllib.error
+          from pathlib import Path
+          service=tomllib.loads(Path('updater.production.toml').read_text())['service']
+          for name,url,headers in [
+              ('primary-default',service['catalog_url'],{}),
+              ('primary-publisher',service['catalog_url'],{'User-Agent':'CraftUpdatePublisher/2','Accept':'application/json'}),
+              ('mirror-publisher',service['mirror_url'],{'User-Agent':'CraftUpdatePublisher/2','Accept':'application/json'})]:
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=30) as response:
+                      print(name,response.status,response.headers.get('Content-Type'))
+              except urllib.error.HTTPError as error:
+                  print(name,error.code,dict((k,error.headers.get(k)) for k in ['Server','CF-Ray','CF-Mitigated','Content-Type']))
+                  print(error.read(256).decode('utf-8',errors='replace'))
+          PY
       - name: Validate configuration and acquire authoritative previous policy
         id: policy
         env:
