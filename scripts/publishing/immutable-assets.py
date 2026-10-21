@@ -13,7 +13,6 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
-import urllib.parse
 
 def digest_file(path):
     digest=hashlib.sha256()
@@ -43,6 +42,20 @@ def upload_immutable(paths, existing, remote_digest, upload):
     for path in pending:upload(path)
     return {'uploaded':[p.name for p in pending],'unchanged':unchanged}
 
+def release_assets(repository, tag):
+    # A draft may have a tag name but no Git tag yet: /releases/tags/{tag}
+    # returns 404. Resolve the authenticated draft first, then use its exact ID.
+    release = json.loads(subprocess.run(
+        ['gh', 'release', 'view', tag, '--repo', repository, '--json', 'databaseId,tagName'],
+        capture_output=True, text=True, check=True).stdout)
+    release_id = release['databaseId']
+    if release.get('tagName') != tag or type(release_id) is not int or release_id <= 0:
+        raise ValueError('Unexpected release identity')
+    return json.loads(subprocess.run(
+        ['gh', 'api', f'repos/{repository}/releases/{release_id}'],
+        capture_output=True, text=True, check=True).stdout)['assets']
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--assets',type=Path,required=True)
@@ -50,8 +63,7 @@ def main():
     parser.add_argument('--tag',required=True)
     args=parser.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',args.repository):parser.error('Invalid repository')
-    endpoint='repos/'+args.repository+'/releases/tags/'+urllib.parse.quote(args.tag,safe='')
-    existing=json.loads(subprocess.run(['gh','api',endpoint],capture_output=True,text=True,check=True).stdout)['assets']
+    existing=release_assets(args.repository,args.tag)
     def remote_digest(asset):
         asset_id=asset['id']
         if type(asset_id) is not int or asset_id<=0:raise ValueError('Invalid GitHub asset ID')
