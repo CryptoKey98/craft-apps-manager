@@ -1,49 +1,57 @@
 # macOS
 
-The manager runs on macOS 11 or newer, on Apple silicon and Intel. It is experimental.
+The manager supports macOS 11 or newer on Intel and Apple silicon. Universal downloads contain both architectures. macOS support remains experimental.
 
-## Installing apps
+## Install the manager
 
-Each Craft app publishes one universal, notarized `*-macos-universal.dmg`. The manager uses it for both release formats:
+Choose a download from [Releases](https://github.com/CryptoKey98/craft-apps-manager/releases/latest):
 
-- **Installer** (default) copies the app into `/Applications`, or into `~/Applications` if `/Applications` is not writable. Apps you installed yourself are detected by their bundle name and `ai.storyteller.*` bundle identifier. Uninstall removes the app bundle.
-- **Portable app** copies the app into the library under `releases/<app>/`.
+- **DMG:** open it, drag **Craft Apps Manager** into **Applications**, then launch the copied app from Applications. Eject the mounted disk image afterward. Finder handles the copy and progress display.
+- **Portable ZIP:** extract the whole archive into a writable folder. Keep `portable.txt` beside `Craft Apps Manager.app`; launch the app from that folder.
 
-Before installing, the manager checks GitHub's SHA-256 digest for the DMG. It then verifies the copied app with `codesign --verify --deep --strict` and Gatekeeper (`spctl --assess`).
+A DMG is a disk image, not an installer wizard. Do not run the manager from the mounted DMG when testing updates.
 
-The library is stored in `~/Library/Application Support/Craft Apps Manager`. Hourly checks use launch agents in `~/Library/LaunchAgents/io.github.craft-apps-manager.*.plist`, and notifications appear through Notification Center.
+## First launch
+
+The manager has an ad-hoc signature and is not Apple-notarized. If macOS blocks the downloaded app, dismiss the warning, open **System Settings → Privacy & Security**, and use **Open Anyway** when available for that app. Follow macOS's confirmation prompts. Do not disable system-wide security checks.
+
+Rust and 7-Zip are not required to run the manager. Compilation prerequisites are in [Building and testing](../development/building.md#macos).
+
+## Apps and saved data
+
+For supported Craft app DMGs, the installation dialog offers:
+
+- **Installer:** copies the app into `/Applications`, or `~/Applications` when `/Applications` is not writable.
+- **Portable:** keeps that app in the manager's library.
+
+Download integrity and bundle verification still apply. Custom app support depends on the upstream download and bundle identity. Uninstall removes the selected app bundle; app profile deletion is not supported on macOS.
+
+Installed managers normally use `~/Library/Application Support/Craft Apps Manager`. Portable managers use portable storage, with new libraries in `data` beside the app. The Data path identifies your actual library. See [Storage and portability](using-the-manager.md#storage-and-portability).
+
+Hourly scheduled checks use launch agents in `~/Library/LaunchAgents/io.github.craft-apps-manager.*.plist`. Checks notify through Notification Center and do not automatically install updates.
 
 ## Manager updates
 
-Craft Apps Manager.app can update itself. The new ZIP is checked against GitHub's SHA-256 digest, extracted into a private `.craft-manager-update-<unique id>` folder beside the manager bundle and verified with `codesign`. Staging and rollback stay on the manager's filesystem even when the library is on another volume.
+The updater checks the offered package's identity and integrity before replacement. Service-enabled builds can use supported ZIP or DMG payloads; older GitHub-only builds use their compatible update path. A supported archive-format change does not itself require manually changing your installation.
 
-After the manager closes, the old app bundle is moved into that folder as `previous.app` before the replacement is published. Failed swaps restore the previous manager when possible; if restoration fails, the previous bundle stays at that recovery location. The helper checks whether macOS accepts the restart request; this does not confirm that the application finished starting.
+Close active work before updating. Keep the app in a normal installed or portable location, not on a mounted DMG. A development executable outside an app bundle cannot use the bundle self-update flow. Protected locations may require administrator approval.
 
-A failed update is reported on the next manager startup, with a recovery path, and recorded outside the signed bundle in `~/Library/Application Support/Craft Apps Manager/self-update-result.json` and in the staging folder's `result.json`. Older library-based plans are rejected; reopen the manager and download again. The app must be in a folder you can write to, such as Applications. Development builds run outside a bundle and cannot update themselves.
+Staging and rollback stay beside the installed bundle even if the library is on another volume. Failed replacement attempts recovery and records the result. macOS accepting a restart request does not prove the app finished starting.
 
-The previous manager runs the update, so a fix to the updater applies only from the next update onwards. Managers 0.8.1 to 0.8.3 cannot update themselves when another app in the same folder contains symbolic links, which includes Electron apps such as Visual Studio Code. The update fails with `Archive contains a linked path` and the previous manager is restored. Download the macOS ZIP from the [latest release](https://github.com/CryptoKey98/craft-apps-manager/releases/latest) and replace `Craft Apps Manager.app` manually; your library stays in place. Later updates work from within the manager. Once the new version starts, you can delete the `.craft-manager-update-*` recovery folders that failed attempts left beside the app.
+### Older updater failures
 
-Updates come from the GitHub repository set by `CRAFT_MANAGER_REPOSITORY` (owner/name) at build time. The default is `CryptoKey98/craft-apps-manager`. CI sets it to the repository being built, so a fork's packages update from the fork's releases.
+Managers 0.8.1–0.8.3 could fail when another app in the same directory contained symbolic links, with `Archive contains a linked path`. The saved failure could also reappear on launch. These issues were fixed in 0.9.0.
 
-## Not yet available on macOS
+If an affected updater still fails, manually download a current macOS package and replace the manager app, preserving your library and portable files. The saved error may appear once on the first fixed launch; dismiss it. Users already on 0.9.0 have the corrected updater.
 
-- Deleting app profile data on uninstall. The upstream profile paths have not been verified yet.
-- Shortcut files. App bundles open directly from Finder.
+Failures can leave a `.craft-manager-update-*` recovery folder beside the app. Check the error and retained `previous.app` before removing anything. Results may also be recorded in `~/Library/Application Support/Craft Apps Manager/self-update-result.json` and the staging folder's `result.json`. See [Updater recovery](../development/updater-operations.md#failure-recovery-and-retention) before deleting recovery data.
 
-## Building
+## Builds and backups
 
-Install Rust with rustup and the Xcode Command Line Tools. Then build:
+Manager and Builder are available in both ZIP and DMG packages. Building Craft apps requires Rust, Xcode Command Line Tools, and app-specific tools. Native source ZIP extraction is internal and keeps archive safety checks; 7-Zip is optional.
 
-```text
-rustup target add aarch64-apple-darwin x86_64-apple-darwin
-cargo test --locked -- --test-threads=1
-./scripts/packaging/package-macos.sh
-```
+7-Zip is needed for compressed `.7z` backups and restoring existing `.7z` backups. Without it, the original backup is retained. Install `sevenzip` through Homebrew if needed. ArtCraft X needs additional tools such as Node, CMake, and NASM; supported setup can use Homebrew for those tools. Local app builds produce executables rather than complete app bundles.
 
-The script writes a universal `Craft Apps Manager.app` and a ZIP to `dist/macos`. The bundle has only an ad-hoc signature and is not notarized. The first time a downloaded copy is opened, macOS blocks it. Click **Done**, then go to **System Settings → Privacy & Security** and click **Open Anyway**. Right-click → **Open** no longer skips this check on macOS 15 and newer.
+Shortcut files and app-profile deletion are not provided on macOS. Open app bundles directly in Finder.
 
-Source builds require Rust and Xcode Command Line Tools. Source ZIPs are extracted internally with archive safety checks; 7-Zip is not required. ArtCraft X also needs extra tools such as `node`, `cmake` and `nasm`, which setup can install through Homebrew. Builds produce a bare executable under `builds/`, not an app bundle.
-
-7-Zip is optional for compressed `.7z` backups and restoring existing `.7z` backups. Without it, the manager retains the original backup. Install `sevenzip` through Homebrew if you need those features.
-
-The manager's DMG uses a drag-to-Applications layout. Its packaging script installs pinned `dmgbuild` dependencies into a temporary Python environment, removed afterward; they are not app prerequisites. Packaging requires Python 3.9 or newer with `venv` and access to PyPI. Finder handles copying the app and any copy-progress display.
+[Using the manager](using-the-manager.md) · [Documentation index](../README.md)

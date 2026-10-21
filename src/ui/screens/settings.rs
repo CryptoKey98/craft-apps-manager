@@ -613,43 +613,8 @@ impl App {
         self.custom_failed = false;
         std::thread::spawn(move || {
             let result = (|| -> anyhow::Result<crate::ui::CustomAppAddition> {
-                let mut found = None;
-                for architecture in [
-                    craft_apps_manager::install_options::host_architecture(),
-                    "x86".into(),
-                    "x64".into(),
-                    "arm64".into(),
-                ] {
-                    if !craft_apps_manager::install_options::host_supports(&architecture) {
-                        continue;
-                    }
-                    for format in ["installer", "portable"] {
-                        match catalog::inspect_custom_app(&root, &slug, format, &architecture) {
-                            Ok(entry) => {
-                                found = Some((entry, format.to_string(), architecture.clone()));
-                                break;
-                            }
-                            Err(error) => {
-                                if let Some(choice) =
-                                    error.downcast_ref::<catalog::DownloadChoice>()
-                                {
-                                    found = Some((
-                                        choice.entry.clone(),
-                                        format.to_string(),
-                                        architecture.clone(),
-                                    ));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if found.is_some() {
-                        break;
-                    }
-                }
-                let (entry, release_format, architecture) = found.ok_or_else(|| {
-                    anyhow::anyhow!("No compatible desktop release found for this system.")
-                })?;
+                let (entry, release_format, architecture) =
+                    catalog::inspect_custom_app_for_system(&root, &slug)?;
                 let release: model::Release = craft_apps_manager::network::Network::new(&root)?
                     .json(&format!(
                         "https://api.github.com/repos/{slug}/releases/latest"

@@ -1,32 +1,38 @@
 # Production catalog inputs
 
-`standby.json` records the independently downloaded and SHA-256-verified packages from the already published v0.9.0 release. It intentionally has **no update routes**. It is bootstrap policy, not the 1.0.0 release catalog. `supported-clients.json` covers the first service-enabled clients on Windows x64/x86 (ZIP/MSI), Linux x64/x86 (ZIP/DEB/RPM, plus Arch x64), and macOS x64/arm64 bundles. Those 13 profiles all return Current against standby policy; no downgrade is offered.
+For maintainers editing update policy. Start with [Release preparation](../../docs/development/releases.md) for publication and recovery, or [Updater operations](../../docs/development/updater-operations.md) for protocol and trust rules.
 
-The signed envelope is generated into ignored output and deployed separately. Never place private keys here. Do not replace the referenced v0.9.0 package bytes. Native package layout descriptors are inert to native handlers; ZIP layouts were inspected in the actual archives.
+## Files and responsibilities
 
-`release-1.0.0.json` now contains the candidate policy generated from the verified 1.0.0 draft packages. `updater.production.toml` points to it for release publication; it is not the currently served policy. The draft is built from merged main commit `f72cddb3d1078db339b1889b647351f945b4578e`. Do not deploy this policy until its packages are public. Normal renewals continue copying the verified live standby policy, not this candidate. Before releasing, re-run preflight and remote verification. The release preflight rejects this standby policy for tag v1.0.0. Do not invent future hashes or use test-repository packages. Keep the v0.9.0 release containing the stable `updates-v2.json` metadata mirror available across future releases.
+| File | Purpose |
+| --- | --- |
+| `standby.json` | Bootstrap records for published 0.9.0 packages, with no routes; not the current production policy |
+| `release-1.0.0.json` | Candidate release policy: package identities, supported layouts, and update routes |
+| `supported-clients.json` | Client profiles checked with the actual Rust router before signing |
+| `../../updater.production.toml` | Official build, publication, hosting, mirror, and renewal configuration |
+
+The live signed catalog is authoritative. The candidate is an input template, not an envelope to deploy directly. Release-mode publication binds new entries to the actual published GitHub assets, independently downloads and hashes the files, and signs a higher sequence using the pinned key. Old draft hashes cannot substitute for the published build. Existing signed identities are not refreshed.
+
+Never place private keys, API tokens, or test-package references in these files. The public verification key is safe to distribute; signing material remains private.
+
+## Hosting and mirror
+
+The production Worker serves the signed catalog at `/v2/catalog.json`; dynamic `/v2/check` is disabled in the checked-in production configuration. Package downloads remain GitHub release assets.
+
+The stable mirror is `updates-v2.json` on the **v0.9.0 release**. It serves the same envelope as the Worker and is not copied onto every release. Keep that release available while clients reference it. Either endpoint must pass signature, scope, expiry, and sequence checks.
 
 ## Renewal
 
-The production configuration uses 30-day signed validity with renewal starting seven days before expiry. The daily workflow runs at 08:17 UTC (01:17 Arizona time). It authenticates the previous catalog, validates supported clients with the Rust router, downloads and hashes each package, then signs a higher sequence using the pinned key. The same envelope bytes are deployed to the Worker and GitHub mirror and read back for verification.
+Production defaults are 30 days of catalog validity and renewal when seven days or less remain. GitHub Actions checks daily at 08:17 UTC (01:17 Arizona time). Renewal copies the verified live policy, verifies package bodies, increments the sequence, signs, deploys identical bytes to both endpoints, and compares their public responses. Routine renewal needs no manual action while credentials and dependencies remain healthy.
 
-Repository variables: `CRAFT_UPDATE_CATALOG_URL`, `CRAFT_UPDATE_CATALOG_MIRROR`, `CLOUDFLARE_ACCOUNT_ID`, `CRAFT_UPDATE_CATALOG_RENEW_ENABLED=true`, and `CRAFT_UPDATE_V2_DEPLOY_ENABLED=true`. Keep `CRAFT_UPDATE_V2_ENABLED=false` until the official service release is intentionally activated. Scheduled renewal and client activation are separate gates.
+`CRAFT_UPDATE_CATALOG_RENEW_ENABLED` or `CRAFT_UPDATE_V2_ENABLED` enables signing; `CRAFT_UPDATE_V2_DEPLOY_ENABLED` enables deployment. The signing key is a repository secret. `CLOUDFLARE_API_TOKEN` belongs in the `manager-update-production` environment and needs scoped Workers Scripts Edit and Account Settings Read access for the deployment account. Never log either credential. Monitor workflow failures and token expiration.
 
-`CRAFT_UPDATE_SIGNING_KEY` is a repository secret. `CLOUDFLARE_API_TOKEN` is an environment secret in `manager-update-production`; it needs Workers Scripts Edit and Account Settings Read for the selected account. No zone access is needed for workers.dev. Do not log either secret. Rotate the Cloudflare token before any chosen expiration.
+## Shared packages and revisions
 
-The renewal workflow and all its configuration/library dependencies must reach the default branch before GitHub can run the schedule. To verify the deployment credential before merging, manually run the existing Check workflow on the implementation branch with `production_catalog_only=true`. It calls the same renewal workflow with `force_renew=true`, preserving the current signed policy and skipping application builds. This signs a higher sequence, redeploys the same standby offers, and verifies the Worker and mirror; it never creates an application release. A local successful renewal alone does not prove GitHub can use its stored Cloudflare credential.
+Revision 1 uses one package per platform/format for manual downloads and both signed updater protocols. There are no duplicate `update` copies. Later service-enabled revisions use distinct `-Rev-N` asset names, with signed metadata pointing to them. Baseline URLs remain unchanged.
 
+Keep compatible downloads for older managers and packages required by bridge routes. Previously signed URLs cannot be overwritten with different bytes. Native package versions are separate from the filename and displayed revision.
 
-## Preparing a draft
+## Recover publication
 
-Use the manual Release workflow from main with revision `1`, platform `all`, `publish_baseline=false` and `prepare_draft=true`. No draft or Git tag needs to be created manually; new drafts target the exact source commit built by the workflow. It accepts an existing draft or creates one automatically after successful builds and validates configuration, signing key, scope and current-client routing before building. This draft-only path omits the final release-tag policy check because package hashes do not exist yet; it cannot publish the application or deploy production catalog offers. The application source is the immutable `source_ref`, independently of the workflow definition's branch. Use a source commit containing any publisher-tool fixes needed for that run.
-
-Draft assets are authenticated through GitHub's release ID because a draft may have no public Git tag. Preserve immutable package upload checks; do not clobber signed assets. Verify uploaded package bytes and signatures before publishing. A locally signed candidate is verification evidence only: publication must fetch the current live catalog again, increment its latest sequence, re-verify packages and sign fresh, rather than reusing a potentially stale candidate envelope. The stable GitHub mirror remains on v0.9.0, not duplicated on every release.
-
-## Shared release packages
-
-Revision 1 uses the existing compatibility filenames for both signed protocols and manual downloads: no separate `update` copies. All service package uploads use hash/size collision checks and never clobber an existing package. Later service-enabled revisions use distinct `-Rev-N` package names in the signed v1 and v2 metadata; baseline URLs remain unchanged. Older manifest-aware managers follow the signed revision filename. Managers predating revision manifests can install the compatible baseline first, then update with the new updater. GitHub-only publishers retain the existing compatibility-refresh behavior. Keep any historical package required by a supported bridge route.
-
-Normal manual releases default to revision 1, all platforms, and automatic publication. The workflow creates the public release directly after successful builds; no pre-created draft or tag is required. Draft preparation is an explicit preview-only option and requires turning publication off.
-
-Release-mode publication binds new package entries to the authenticated published release inventory before verification: a rebuild cannot reuse old draft hashes. It then independently downloads and hashes every package before signing. Previously signed package identities are retained unchanged, and renewal mode continues copying the live policy. If package publication succeeds but catalog publication fails, run the catalog workflow in `release` mode from the corrected source; do not rebuild or overwrite published package files.
+If packages are already public and only catalog publication failed, fix and validate the publisher/policy, then run **Renew signed manager update catalog** from the corrected source with `mode=release`. Do not rebuild successful packages or replay an old signed envelope. See the [catalog-only recovery steps](../../docs/development/releases.md#recover-a-catalog-only-failure).

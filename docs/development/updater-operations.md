@@ -1,6 +1,15 @@
 # Signed manager updater operations
 
-This describes the updater prepared for 1.0.0. It is not active in the published 0.9.0 manager. Production hosting uses the separate publisher configuration described below; these instructions do not authorize a release.
+For maintainers configuring, testing, and operating signed manager updates. Official 1.0.0 builds use the service updater; ordinary source builds default to the GitHub-only updater. Build choices are compiled in, not an end-user setting.
+
+| Task | Start here |
+| --- | --- |
+| Build a local executable | [Building and testing](building.md#choose-the-updater) |
+| Configure a source build or fork | [Source build choice](#source-build-choice) |
+| Publish a release or recover its catalog | [Release preparation](releases.md) |
+| Understand signing and hosting | [Client and hosting boundaries](#client-and-hosting-boundaries) |
+| Operate renewal | [Publishing and renewal](#publishing-and-renewal) |
+| Diagnose a failure | [Failure, recovery and retention](#failure-recovery-and-retention) |
 
 ## Client and hosting boundaries
 
@@ -65,23 +74,9 @@ Before release activation, publish the real release packages, verify their remot
 
 This is for people compiling the manager. Packaged releases use their publisher's build choice; there is no additional user-facing settings control. With the checked-in `source = "github"` configuration and no source override, enabling `--features service-updater` alone keeps the existing GitHub updater. Endpoint values alone do not activate the service.
 
-To opt into the service on PowerShell (replace the example address with the publisher's real catalog address):
+The exact GitHub-only, production service, and identity-verification commands are in [Building and testing](building.md#choose-the-updater). The build helper selects the TOML and required Cargo feature together. No private signing key is needed to compile a client.
 
-```powershell
-$env:CRAFT_UPDATE_SOURCE = 'service'
-$env:CRAFT_UPDATE_CATALOG_URL = 'https://updates.example.com/v2/catalog.json'
-cargo build --release --locked --features service-updater --bin craft-apps-manager
-```
-
-On Linux/macOS:
-
-```sh
-CRAFT_UPDATE_SOURCE=service \
-CRAFT_UPDATE_CATALOG_URL=https://updates.example.com/v2/catalog.json \
-cargo build --release --locked --features service-updater --bin craft-apps-manager
-```
-
-To switch back, rebuild with `CRAFT_UPDATE_SOURCE=github`; endpoints do not need to be removed. This changes the newly compiled binary, not an already-running manager. No API token or private signing key is needed by the client. The catalog must match the binary's pinned public key, repository and channel. The isolated test Worker uses a different public test key and must not be used by ordinary production-key builds.
+For a fork, select your own TOML with `--config`; configure its repository, channel, pinned public key, and signed catalog URL. Supported environment overrides can also select these values at compile time. An empty endpoint override clears the file value. Do not point production-key clients at the isolated test Worker.
 
 The choice is compiled into each binary. Replacing a custom build with an official update adopts the official build's updater choice. To retain a custom choice across releases, rebuild subsequent versions with the same option, or publish matching packages in a fork with `CRAFT_MANAGER_REPOSITORY` set to that fork. GitHub-only packages still require the original compatible release assets; v2-only transport/name migrations apply to service-enabled builds.
 
@@ -107,19 +102,16 @@ unknown fields, invalid paths, unsupported formats and missing service settings
 fail. Public-key/profile/catalog paths are relative to the selected TOML and
 must stay within the project. Never put private keys or account tokens in TOML.
 Installing an official binary adopts that binary's embedded configuration.
-The future setup/key-generation script is not included in this change.
+Do not place private signing keys or account tokens in the configuration file.
 
-Keep `[publishing].enabled = false` until activation is approved. Activation
+For a new publisher, keep `[publishing].enabled = false` until activation is approved. Activation
 requires service endpoints, supported-client `profiles_file`, `next_catalog_file`,
 existing `mirror_tag` and matching repository/channel/public key. Exact release
 assets, hashes and bridge routes remain signed catalog data. Legacy downloads
 remain enabled by default. Linux tar.gz packaging currently reuses the verified
 ZIP output and requires ZIP in its configured package list.
 
-`asset_name_pattern` controls immutable service names independently of client
-selection. It must retain distinct revision identities and cannot overwrite
-signed bridge assets. Only handlers already compiled into the manager are usable;
-changing the package list cannot add Flatpak or other unimplemented formats.
+The release workflow shares revision-1 compatibility packages between both updater protocols. Service revisions receive distinct filenames; do not overwrite a URL referenced by signed policy. Only handlers compiled into a client are usable. Changing the configured package list cannot add Flatpak or another unimplemented format.
 
 Worker settings are generated from the same resolver, not a second editable
 Wrangler file. `npm run dry-run` refreshes ignored `wrangler.generated.json` and
@@ -128,7 +120,7 @@ The renewal workflow checks daily at 08:17 UTC and only signs near expiry (or
 for an explicitly requested release policy). Configuration does not authorize
 an upload, production activation or deployment.
 
-Set the protected repository variables `CRAFT_UPDATE_V2_ENABLED` and `CRAFT_UPDATE_V2_DEPLOY_ENABLED` only after approval. Configure the `manager-update-production` environment with required reviewers, scoped Cloudflare credentials, account ID and an existing `[publishing].mirror_tag` in updater.toml. Keep signing access separate from deployment. Retain an offline key backup. The Worker receives only the public key and signed catalog, never the private signing key.
+For a new deployment, configure `CRAFT_UPDATE_V2_ENABLED`, `CRAFT_UPDATE_CATALOG_RENEW_ENABLED`, and `CRAFT_UPDATE_V2_DEPLOY_ENABLED` deliberately. Store the scoped Cloudflare token in the `manager-update-production` environment; the account ID and endpoint choices are repository variables. Configure environment reviewers if required by the project and keep an existing `[publishing].mirror_tag` in the selected publisher TOML. Keep signing access separate from deployment. Retain an offline key backup. The Worker receives only the public key and signed catalog, never the private signing key.
 
 ## Isolated test Worker
 
@@ -141,6 +133,9 @@ With explicit owner approval, a separate test Worker was deployed on 2026-10-16:
 - Scope: repository `owner/manager`, channel `test`, public fixture signing key. Production managers reject that key. No production signing key is read or uploaded.
 
 The initial service hosted metadata/routing fixtures only. It now also serves isolated Windows fixture packages for the transaction checks below; these are **not application releases**. Do not point a normal manager build at this endpoint or weaken its production trust. It does not change public update metadata, GitHub releases or production activation variables.
+
+<details>
+<summary>Isolated fixture commands and their limits</summary>
 
 From `update-service/`, regenerate its seven-day test catalog and validate before a separately authorized redeployment:
 
@@ -190,15 +185,20 @@ Generated executables, packages, isolated installations and `evidence.json` stay
 
 This test executable uses shared production metadata transport, signature/routing/trust, archive staging, build-identity and commit-authorization functions plus the existing executable replacement helper. Its fixture-only adapter retrieves signed hash/size/asset identities from the same test Worker's `/artifacts/` path. Production URL validation/downloads remain restricted to GitHub. Consequently, successful fixture transactions do **not** prove the production GitHub download path, the production-v2 authorization wrapper dispatch, the full GUI startup, retained old managers, native installers, or Linux/macOS runtime behavior. Qualify these separately using actual manager packages and retained client builds. Production binaries never acquire the public fixture key or test endpoint.
 
+</details>
+
 ## Publishing and renewal
 
+Use [Release preparation](releases.md) for the workflow inputs and catalog-only recovery procedure. Normal Release runs publish directly; preview drafts are optional.
+
+
 1. Build/test artifacts; preserve current legacy filenames, v1 signatures and native compatibility versions during migration. First install the server-aware release through that old compatible path. Managers that have never installed it still only check GitHub latest.
-2. When v2 publishing is enabled, snapshot immutable v2 asset copies **before** the v1 renaming pass. Publish package bytes before advertising them. Do not clobber a v2 URL with a new revision or delete a required historical bridge. Native package version remains separate from filename/display version.
+2. Publish one shared baseline package per platform/format; both signed protocols reference the same asset. Service-enabled revisions use distinct filenames and immutable upload checks. Publish package bytes before advertising them. Do not clobber a signed URL or delete a required historical bridge. Native package version remains separate from filename/display version.
 3. Validate the explicit candidate catalog and every supported client profile through `update-catalog-tool`, which uses the actual Rust router. All supported profiles must reach the newest target. Unknown future capabilities must have retained compatible bridges.
-4. `update-catalog.py verify-assets` verifies remote sizes/digests and emits a short-lived receipt bound to candidate bytes. `build` requires that receipt, the authenticated previous catalog and a strictly higher sequence. First activation uses an explicit `--initial` instead of pretending a previous catalog exists. The signing key must match the application's pinned public key.
+4. Release mode binds new package entries to the authenticated published GitHub release inventory, so rebuilt packages do not reuse stale draft hashes. Existing signed identities are unchanged. `update-catalog.py verify-assets` independently downloads and verifies remote sizes/digests and emits a short-lived receipt bound to candidate bytes. `build` requires that receipt, the authenticated previous catalog and a strictly higher sequence. First activation uses an explicit `--initial` instead of pretending a previous catalog exists. The signing key must match the application's pinned public key.
 5. Deploy identical envelope bytes atomically with Worker assets and mirror them on GitHub. Verify the public response. The initial activation is an explicitly approved manual operation; the renewal workflow requires an existing authoritative catalog and cannot bootstrap itself.
 
-`renew-update-catalog.yml` is disabled unless the activation variable is true. Its sign job authenticates the previous catalog before inspecting its package instructions; the separate protected deploy job requires the deployment variable as well. The workflow checks daily and renews only when the configured expiry threshold is reached. Renewal advances sequence and extends validity to the configured duration (30 days by default), even without binary changes. Release publishing calls the same serialized workflow with next-release policy. Enable workflow-failure notifications for maintainers; a failed renewal must be investigated before expiry. There is no indefinite expired-catalog bypass.
+`renew-update-catalog.yml` runs signing only when `CRAFT_UPDATE_CATALOG_RENEW_ENABLED` or `CRAFT_UPDATE_V2_ENABLED` is true; deployment separately requires `CRAFT_UPDATE_V2_DEPLOY_ENABLED`. Its sign job authenticates the previous catalog before inspecting its package instructions; the separate protected deploy job requires the deployment variable as well. The workflow checks daily at 08:17 UTC (01:17 Arizona time). With the production defaults, each signature is valid for 30 days and renewal begins when seven days or less remain. Routine renewal requires no manual action while Actions, credentials, and package URLs remain healthy. It renews only when the threshold is reached unless forced or publishing a release. Renewal advances sequence and extends validity to the configured duration (30 days by default), even without binary changes. Release publishing calls the same serialized workflow with next-release policy. Enable workflow-failure notifications for maintainers; a failed renewal must be investigated before expiry. There is no indefinite expired-catalog bypass.
 
 ## Failure, recovery and retention
 
@@ -206,7 +206,7 @@ Transport failure can use static/mirror metadata; signature, scope, expiry or se
 
 Bridge restarts bypass the successful-result cache so they fetch current policy; failure/429 backoff remains in force. Immediately before replacement or handing control to a native installer, the updater rechecks expiry, signed selection and the highest accepted catalog sequence. A trust guard serializes that decision with metadata acceptance through the transaction. Once an external installer owns the operation, it may need to finish; a later policy change is not a promise of cancellation or rollback. Linux native success also requires the installed executable's actual version, revision and architecture to match the signed identity.
 
-Immutable asset uploads are preflighted as a group. Already-published identical bytes are left alone, different bytes stop the upload, and missing assets are uploaded without clobber. Mutable legacy downloads use a separate path. This protects existing signed catalogs even if a configured naming pattern accidentally reuses an older filename.
+Immutable asset uploads are preflighted as a group. Already-published identical bytes are left alone, different bytes stop the upload, and missing assets are uploaded without clobber. GitHub-only publishers retain a separate mutable legacy-download path; service-enabled baseline packages stay immutable. This protects existing signed catalogs even if a configured naming pattern accidentally reuses an older filename.
 
 Keep helper/staging failure records until ownership and recovery needs are established. A failed native installer is not assumed rollback-safe. A DMG detach failure retains its exact cleanup record; never sweep arbitrary mounted volumes. Cancellation before commit leaves the installed program untouched; installation already handed to a native package manager may need to finish before the manager can report a verified result.
 

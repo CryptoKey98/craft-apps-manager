@@ -695,11 +695,12 @@ fn classify_custom(
             .into_iter()
             .cloned()
             .collect();
-        anyhow::ensure!(
-            !choices.is_empty(),
-            "{slug} has no compatible {release_format} download for {} ({}). Try another architecture or release format.",
-            crate::model::release_os(), crate::model::architecture_label(architecture)
-        );
+        if choices.is_empty() {
+            return Err(anyhow::Error::new(NoCompatibleCustomDownload).context(format!(
+                "{slug} has no compatible {release_format} download for {} ({}). Try another architecture or release format.",
+                crate::model::release_os(), crate::model::architecture_label(architecture)
+            )));
+        }
         if choices.len() == 1 && !crate::downloads::needs_confirmation(&choices[0], &prefs) {
             download_rule = Some(crate::downloads::Rule::new(&choices[0], &version, &prefs));
         }
@@ -759,6 +760,54 @@ fn classify_custom(
     }
     Ok(entry)
 }
+/// A format/architecture miss is retryable; repository and network errors are not.
+#[derive(Debug)]
+struct NoCompatibleCustomDownload;
+impl std::fmt::Display for NoCompatibleCustomDownload {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("No compatible desktop release found for this system.")
+    }
+}
+impl std::error::Error for NoCompatibleCustomDownload {}
+
+/// Inspect the formats supported by this system without discarding inspection errors.
+pub fn inspect_custom_app_for_system(root: &Path, link: &str) -> Result<(Entry, String, String)> {
+    let mut architectures = vec![
+        crate::install_options::host_architecture(),
+        "x86".into(),
+        "x64".into(),
+        "arm64".into(),
+    ];
+    let mut seen = std::collections::HashSet::new();
+    architectures
+        .retain(|arch| crate::install_options::host_supports(arch) && seen.insert(arch.clone()));
+    inspect_custom_app_options_with(architectures, |format, architecture| {
+        inspect_custom_app(root, link, format, architecture)
+    })
+}
+
+fn inspect_custom_app_options_with(
+    architectures: impl IntoIterator<Item = String>,
+    mut inspect: impl FnMut(&str, &str) -> Result<Entry>,
+) -> Result<(Entry, String, String)> {
+    for architecture in architectures {
+        for format in ["installer", "portable"] {
+            match inspect(format, &architecture) {
+                Ok(entry) => return Ok((entry, format.into(), architecture)),
+                Err(error) => {
+                    if let Some(choice) = error.downcast_ref::<DownloadChoice>() {
+                        return Ok((choice.entry.clone(), format.into(), architecture));
+                    }
+                    if error.downcast_ref::<NoCompatibleCustomDownload>().is_none() {
+                        return Err(error);
+                    }
+                }
+            }
+        }
+    }
+    anyhow::bail!("No compatible desktop release found for this system.")
+}
+
 /// Adds a user-supplied GitHub repository to the catalog after verifying it.
 pub fn inspect_custom_app(
     root: &Path,
@@ -769,9 +818,15 @@ pub fn inspect_custom_app(
     let slug = parse_github_slug(link)?;
     let network = Network::new(root)?;
     let repository: Repository = network.json(&format!("https://api.github.com/repos/{slug}"))?;
-    if repository.archived || repository.fork || repository.disabled {
-        anyhow::bail!("{slug} is archived, disabled or a fork; pick the upstream repository");
-    }
+    anyhow::ensure!(
+        !repository.archived,
+        "{slug} is archived. Choose an active repository instead."
+    );
+    anyhow::ensure!(!repository.disabled, "{slug} is disabled on GitHub.");
+    anyhow::ensure!(
+        !repository.fork,
+        "{slug} is a fork. Choose the upstream repository instead."
+    );
     let release: Option<Release> = network.json_optional(&format!(
         "https://api.github.com/repos/{slug}/releases/latest"
     ))?;
