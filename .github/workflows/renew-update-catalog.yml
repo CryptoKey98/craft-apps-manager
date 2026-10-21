@@ -61,6 +61,7 @@ jobs:
         env:
           CATALOG_MODE: ${{ inputs.mode || 'renew' }}
           FORCE_RENEW: ${{ inputs.force_renew || false }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
           import json, pathlib, urllib.request, os, importlib.util, sys, time
@@ -80,7 +81,9 @@ jobs:
           if os.environ['CATALOG_MODE']=='renew':
               pathlib.Path('catalog-input.json').write_text(json.dumps(previous))
           else:
-              pathlib.Path('catalog-input.json').write_bytes(pathlib.Path(config['next_catalog']).read_bytes())
+              candidate=json.loads(pathlib.Path(config['next_catalog']).read_text())
+              candidate=tool.bind_release_assets(candidate, previous)
+              pathlib.Path('catalog-input.json').write_text(json.dumps(candidate))
           pathlib.Path('profiles-input.json').write_bytes(pathlib.Path(config['profiles']).read_bytes())
           PY
       - name: Verify packages and sign next sequence

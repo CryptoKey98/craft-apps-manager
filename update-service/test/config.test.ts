@@ -111,3 +111,14 @@ test('service publication shares baseline packages and protects their URLs on re
  const publish=steps.find((s:{name?:string})=>s.name==='Publish packages before revision metadata');
  assert.ok(publish.run.includes('if [ -f "immutable-assets/$(basename "$package")" ]; then continue; fi'));
 });
+
+
+test('release catalog binds rebuilt assets before verification; renew preserves live policy',()=>{
+ const doc=YAML.parse(readFileSync(new URL('../../.github/workflows/renew-update-catalog.yml',import.meta.url),'utf8'));
+ const policy=doc.jobs.sign.steps.find((s:{id?:string})=>s.id==='policy');
+ assert.equal(policy.env.GH_TOKEN,'${{ github.token }}');
+ assert.ok(policy.run.includes("if os.environ['CATALOG_MODE']=='renew':"));
+ assert.ok(policy.run.includes('candidate=tool.bind_release_assets(candidate, previous)'));
+ const sign=doc.jobs.sign.steps.find((s:{name?:string})=>s.name==='Verify packages and sign next sequence');
+ assert.ok(sign.run.indexOf('verify-assets')<sign.run.indexOf('update-catalog.py build'));
+});

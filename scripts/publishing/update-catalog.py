@@ -11,6 +11,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import time
@@ -42,6 +43,52 @@ def validate_shape(catalog):
     packages = {p["id"] for p in catalog["packages"]}
     if any(p["release"] not in releases for p in catalog["packages"]) or any(r["target"] not in packages for r in catalog["routes"]):
         raise ValueError("Missing catalog reference")
+
+def bind_release_assets(catalog, previous, fetch_release=None):
+    """Bind new policy entries to the actual published build, never old fixtures.
+
+    GitHub's authenticated release inventory provides expected size/digest. The
+    existing verify-assets stage independently downloads every body before signing.
+    Previously signed package identities are never refreshed or overwritten here.
+    """
+    result = copy.deepcopy(catalog)
+    repository = result["repository"]
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        raise ValueError("Invalid release repository")
+    if fetch_release is None:
+        def fetch_release(repo, tag):
+            endpoint = f"repos/{repo}/releases/tags/{urllib.parse.quote(tag, safe='')}"
+            return json.loads(subprocess.check_output(["gh", "api", endpoint]).decode("utf-8"))
+    known = {p["id"] for p in previous["packages"]}
+    releases = {r["id"]: r for r in result["releases"]}
+    inventories = {}
+    for package in result["packages"]:
+        if package["id"] in known:
+            continue
+        tag = releases[package["release"]]["tag"]
+        if tag not in inventories:
+            release = fetch_release(repository, tag)
+            if release.get("tag_name") != tag or release.get("draft") is not False:
+                raise ValueError("Release is not the expected published tag")
+            if result["channel"] == "stable" and release.get("prerelease") is not False:
+                raise ValueError("Stable catalog cannot bind a prerelease")
+            inventory = {}
+            for asset in release["assets"]:
+                if asset["name"] in inventory:
+                    raise ValueError("Ambiguous release asset name")
+                inventory[asset["name"]] = asset
+            inventories[tag] = inventory
+        asset = inventories[tag].get(package["asset"])
+        expected_url = f"https://github.com/{repository}/releases/download/{tag}/{package['asset']}"
+        if not asset or asset.get("state") != "uploaded" or asset.get("browser_download_url") != expected_url or package["url"] != expected_url:
+            raise ValueError("Package does not match its repository release asset")
+        digest = asset.get("digest") or ""
+        if type(asset.get("size")) is not int or asset["size"] <= 0 or not re.fullmatch(r"sha256:[a-fA-F0-9]{64}", digest):
+            raise ValueError("Missing release asset size/SHA-256 digest")
+        package["size"] = asset["size"]
+        package["sha256"] = digest[7:].lower()
+    return result
+
 
 def retain_bridges(catalog, previous):
     current = {p["id"]: p for p in catalog["packages"]}
