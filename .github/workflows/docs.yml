@@ -1,7 +1,7 @@
-name: Documentation validation
+name: Documentation
 on:
   pull_request:
-    paths:
+    paths: &documentation-paths
       - README.md
       - CHANGELOG.md
       - LICENSE
@@ -16,6 +16,9 @@ on:
       - scripts/documentation/**
       - scripts/testing/test_wiki_documentation.py
       - .github/workflows/docs.yml
+  push:
+    branches: [main]
+    paths: *documentation-paths
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,3 +41,29 @@ jobs:
         run: python scripts/testing/test_wiki_documentation.py
       - name: Validate generated wiki preview
         run: python scripts/documentation/wiki.py check --source-commit ${{ github.sha }}
+  wiki-publish:
+    name: Publish wiki
+    needs: wiki-preview
+    if: >-
+      github.repository == 'CryptoKey98/craft-apps-manager' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      vars.WIKI_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: wiki-publication
+    concurrency:
+      group: wiki-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Publish current source documentation
+        run: python scripts/documentation/wiki_publish.py
+        env:
+          WIKI_SYNC_ENABLED: ${{ vars.WIKI_SYNC_ENABLED }}
+          WIKI_SYNC_TOKEN: ${{ secrets.WIKI_SYNC_TOKEN }}
+          WIKI_BOOTSTRAP_HOME_SHA256: ${{ vars.WIKI_BOOTSTRAP_HOME_SHA256 }}

@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts/documentation'))
@@ -26,6 +27,9 @@ class WikiTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(dir=folder)
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        manifest_path = self.root / 'scripts/documentation/wiki-manifest.json'
+        manifest_path.parent.mkdir(parents=True)
+        manifest_path.write_text(json.dumps(self.manifest), encoding='utf-8')
         for item in self.manifest['pages'] + self.manifest['assets']:
             path = self.root / item['source']
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -264,7 +268,65 @@ class WikiTests(unittest.TestCase):
         expected.update({'_Sidebar.md', '_Footer.md', self.wiki.OWNERSHIP})
         self.assertEqual(set(files), expected)
 
-    def test_docs_workflow_is_validation_only(self):
+    def test_publication_requires_enabled_main_event(self):
+        import wiki_publish
+        valid = {'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': self.wiki.REPOSITORY,
+                 'GITHUB_REF': 'refs/heads/main', 'GITHUB_EVENT_NAME': 'push',
+                 'GITHUB_SHA': 'a' * 40, 'WIKI_SYNC_ENABLED': 'true', 'WIKI_SYNC_TOKEN': 'fixture-secret'}
+        self.assertEqual(wiki_publish.authorize(valid), 'a' * 40)
+        for key, value in [('GITHUB_ACTIONS', 'false'), ('GITHUB_REPOSITORY', 'other/repo'),
+                           ('GITHUB_REF', 'refs/heads/feature'), ('GITHUB_EVENT_NAME', 'pull_request'),
+                           ('GITHUB_SHA', 'bad'), ('WIKI_SYNC_ENABLED', 'false'), ('WIKI_SYNC_TOKEN', '')]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                wiki_publish.authorize(dict(valid, **{key: value}))
+
+    def test_publication_checks_freshness_before_writes_and_push(self):
+        import wiki_publish
+        checkout = self.root / 'publish'
+        checkout.mkdir()
+        calls, stages = [], []
+        def git(folder, *args):
+            calls.append(args)
+            return ''
+        def fresh():
+            stages.append('fresh')
+            if len(stages) == 2:
+                raise ValueError('Source advanced')
+        with self.assertRaisesRegex(ValueError, 'Source advanced'):
+            wiki_publish.sync_checkout(self.root, checkout, 'a' * 40, git, fresh)
+        self.assertFalse(any(call[0] == 'push' for call in calls))
+        stages.clear()
+        checkout = self.root / 'publish-success'
+        checkout.mkdir()
+        self.assertTrue(wiki_publish.sync_checkout(self.root, checkout, 'a' * 40, git, lambda: None))
+        self.assertTrue(any(call[0] == 'push' for call in calls))
+        calls.clear()
+        self.assertFalse(wiki_publish.sync_checkout(self.root, checkout, 'a' * 40, git, lambda: None))
+        self.assertEqual(calls, [])
+
+    def test_bootstrap_adopts_only_exact_home(self):
+        import wiki_publish
+        checkout = self.root / 'publish'
+        checkout.mkdir()
+        home = checkout / 'Home.md'
+        home.write_bytes(b'Documentation setup in progress.\n')
+        expected = hashlib.sha256(home.read_bytes()).hexdigest()
+        with self.assertRaises(ValueError):
+            wiki_publish.sync_checkout(self.root, checkout, 'a' * 40, lambda *args: '', lambda: None, 'b' * 64)
+        self.assertEqual(home.read_bytes(), b'Documentation setup in progress.\n')
+        self.assertTrue(wiki_publish.sync_checkout(self.root, checkout, 'a' * 40, lambda *args: '', lambda: None, expected))
+
+    def test_git_failure_does_not_report_credential_output(self):
+        import wiki_publish
+        result = subprocess.CompletedProcess(['git'], 1, 'fixture-secret', 'remote echoed fixture-secret')
+        with patch.object(wiki_publish.subprocess, 'run', return_value=result) as run:
+            with self.assertRaises(ValueError) as caught:
+                wiki_publish.git_runner({'WIKI_SYNC_TOKEN': 'fixture-secret'})(self.root, 'push', 'origin', 'HEAD')
+            self.assertNotIn('fixture-secret', str(caught.exception))
+            self.assertFalse(any('fixture-secret' in arg for arg in run.call_args.args[0]))
+            self.assertTrue(run.call_args.kwargs['capture_output'])
+
+    def test_docs_workflow_separates_validation_and_publication(self):
         text = (ROOT / '.github/workflows/docs.yml').read_text(encoding='utf-8')
         self.assertIn('contents: read', text)
         self.assertIn('persist-credentials: false', text)
@@ -276,8 +338,16 @@ class WikiTests(unittest.TestCase):
                               'docs/architecture/**', 'docs/images/**'):
             self.assertIn(source_family, text)
         self.assertIn('[ubuntu-latest, windows-latest]', text)
-        for forbidden in ('secrets.', 'contents: write', 'pull_request_target', 'git push', 'deploy-pages',
-                          'wrangler', 'release.yml', 'cargo ', 'WIKI_SYNC_TOKEN', 'environment:'):
+        validation = text.split('  wiki-publish:', 1)[0]
+        self.assertNotIn('secrets.', validation)
+        self.assertIn("github.ref == 'refs/heads/main'", text)
+        self.assertIn("vars.WIKI_SYNC_ENABLED == 'true'", text)
+        self.assertIn('environment: wiki-publication', text)
+        self.assertIn('cancel-in-progress: false', text)
+        self.assertIn('needs: wiki-preview', text)
+        self.assertIn('secrets.WIKI_SYNC_TOKEN', text)
+        for forbidden in ('contents: write', 'pull_request_target', 'deploy-pages',
+                          'wrangler', 'release.yml', 'cargo '):
             self.assertNotIn(forbidden, text)
 
     @unittest.skipUnless(os.name == 'nt', 'Windows junction contract')

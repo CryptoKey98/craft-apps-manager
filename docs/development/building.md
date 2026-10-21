@@ -163,7 +163,19 @@ The preview is written to `target/wiki-preview/`. Open `Home.md` or `_Sidebar.md
 
 `scripts/documentation/wiki-manifest.json` lists the public pages and images to include. Add a new guide there deliberately. Unlisted files, credentials, and test output are excluded. Existing source files remain unchanged by generation.
 
-The validation workflow and local Git tests cannot publish. Automatic public syncing and credentials are a separate activation step. Local reconciliation preserves unrelated pages and refuses to overwrite directly edited generated files; move any intended correction into the source docs before resolving a conflict.
+Local preview commands and Git tests cannot publish. The documentation workflow validates pull requests without publishing credentials. Enabled main-branch runs then sync the wiki; no app release is required. Syncing preserves unrelated pages and refuses to overwrite directly edited generated files. Move intended corrections into the source docs before resolving a conflict.
+
+### Wiki publication setup
+
+Repository maintainers configure this once:
+
+1. Create an initial `Home` page through GitHub's Wiki tab if the wiki has never been initialized.
+2. Create the `wiki-publication` Actions environment and restrict deployments to the `main` branch. Add a dedicated wiki-write credential as the environment secret `WIKI_SYNC_TOKEN`. A classic personal access token with `public_repo` scope works for this public repository. Track its expiration and replace the secret before it expires.
+3. Set the repository variable `WIKI_SYNC_ENABLED` to `true`. To pause publishing, set it to `false`.
+4. For the first sync only, inspect the existing Home page and set the repository variable `WIKI_BOOTSTRAP_HOME_SHA256` to the SHA-256 of its exact Git blob bytes. This approves replacement of that page alone. Remove the variable after successful publication. Other pre-existing page collisions require manual reconciliation.
+5. Run the **Documentation** workflow manually with branch `main`. Later documentation changes merged into main trigger it automatically.
+
+Only the publication job receives the credential, through its environment. It serializes wiki writes, checks that the source still matches main, and uses a normal Git push. Concurrent wiki edits or stale source commits stop publication rather than overwrite newer work. A failed sync does not affect app releases; resolve the reported conflict or credential problem and rerun the workflow from current main. Editing a generated wiki page directly can block later syncing, so keep corrections in the source guides.
 
 ## Next steps
 
