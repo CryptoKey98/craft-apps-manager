@@ -294,9 +294,6 @@ jobs:
         with:
           path: packages
           merge-multiple: true
-      - name: Snapshot immutable v2 assets before legacy renaming
-        if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
-        run: python3 scripts/publishing/stage-v2-assets.py --source packages --output immutable-assets --revision "$CRAFT_BUILD_REVISION"
       - name: Prepare signed revision metadata and legacy downloads
         env:
           GH_TOKEN: ${{ github.token }}
@@ -305,15 +302,21 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y rpm libarchive-tools
           python3 -m pip install 'cryptography==50.0.1'
+          immutable=()
+          if [ "${{ vars.CRAFT_UPDATE_V2_ENABLED }}" = true ]; then
+            immutable=(--immutable-packages)
+          fi
           previous=()
           if [ "$CRAFT_BUILD_REVISION" != 1 ]; then
             gh release download "$CRAFT_RELEASE_TAG" --pattern updates-v1.json --dir "$RUNNER_TEMP/revision-previous"
             previous=(--previous "$RUNNER_TEMP/revision-previous/updates-v1.json")
           fi
-          python3 scripts/publishing/revision-manifest.py --packages packages --version "${CRAFT_RELEASE_TAG#v}" --repository "$GITHUB_REPOSITORY" --revision "$CRAFT_BUILD_REVISION" --platform "$REVISION_PLATFORM" "${previous[@]}"
-      - name: Include immutable v2 assets alongside legacy downloads
+          python3 scripts/publishing/revision-manifest.py --packages packages --version "${CRAFT_RELEASE_TAG#v}" --repository "$GITHUB_REPOSITORY" --revision "$CRAFT_BUILD_REVISION" --platform "$REVISION_PLATFORM" "${previous[@]}" "${immutable[@]}"
+      - name: Stage shared packages with immutable upload protection
         if: vars.CRAFT_UPDATE_V2_ENABLED == 'true'
-        run: cp -n immutable-assets/* packages/
+        run: |
+          mkdir immutable-assets
+          find packages -maxdepth 1 -type f ! -name updates-v1.json ! -name SHA256SUMS.txt -exec cp {} immutable-assets/ \;
       - name: Checksums
         env:
           REVISION_PLATFORM: ${{ inputs.platform || 'all' }}

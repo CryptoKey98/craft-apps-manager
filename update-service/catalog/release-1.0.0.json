@@ -323,10 +323,10 @@
         "native.rpm.v1",
         "layout.manager.v1"
       ],
-      "asset": "craft-apps-manager-1.0.0-0.2.i686-update.rpm",
+      "asset": "craft-apps-manager-1.0.0-0.2.i686.rpm",
       "size": 15200071,
       "sha256": "bb9e4f6ed926bb85b9f842146579ec285f2bde36a75d588fd1ec6f38eec3cf06",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.i686-update.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.i686.rpm",
       "layout": {
         "schema": 1,
         "root": "usr/bin",
@@ -346,10 +346,10 @@
         "native.rpm.v1",
         "layout.manager.v1"
       ],
-      "asset": "craft-apps-manager-1.0.0-0.2.x86_64-update.rpm",
+      "asset": "craft-apps-manager-1.0.0-0.2.x86_64.rpm",
       "size": 14485213,
       "sha256": "e8eeb709007b054f1ff72aa0b45f64efdbdf54b1eb181b9e1408c40e3e9bb45c",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.x86_64-update.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.x86_64.rpm",
       "layout": {
         "schema": 1,
         "root": "usr/bin",
@@ -369,10 +369,10 @@
         "native.arch.v1",
         "layout.manager.v1"
       ],
-      "asset": "craft-apps-manager-1.0.0-1-x86_64-update.pkg.tar.zst",
+      "asset": "craft-apps-manager-1.0.0-1-x86_64.pkg.tar.zst",
       "size": 12694647,
       "sha256": "4b2644b0d33a6a5502849ed8451660920c00eefe34f00ec52f5330a455a53116",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-1-x86_64-update.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-1-x86_64.pkg.tar.zst",
       "layout": {
         "schema": 1,
         "root": "usr/bin",
@@ -392,10 +392,10 @@
         "archive.tar-gzip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-linux-x64-update.tar.gz",
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x64.tar.gz",
       "size": 14484592,
       "sha256": "b2fbd6ed8144407f8239d92eff5d62bd06fbce2dadb896c513ced0d6ac373c7a",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64-update.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64.tar.gz",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager Linux",
@@ -414,10 +414,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-linux-x64-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x64.zip",
       "size": 14549005,
       "sha256": "bee2f9b33cdd1bec7399e7e20ac2717694323670fa7493ee1c9ccd5381ce46ba",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager Linux",
@@ -436,10 +436,10 @@
         "archive.tar-gzip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-linux-x86-update.tar.gz",
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x86.tar.gz",
       "size": 15198747,
       "sha256": "3f8da6119db0786eadaedb48f4f3dd52bc41baa539adec8988d1d316125329e6",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86-update.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86.tar.gz",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager Linux",
@@ -458,10 +458,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-linux-x86-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x86.zip",
       "size": 15263768,
       "sha256": "1191dcbaf32536cc977abcb7121a58b6fae3f5f0ae0d2624d84a048cb7d401c2",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager Linux",
@@ -480,10 +480,10 @@
         "disk-image.dmg.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-macos-universal-update.dmg",
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.dmg",
       "size": 24372497,
       "sha256": "6e988e446f849bc9f5fdc14099b3043d61013b39e8d650ec3d77bd6bf8473cdd",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal-update.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.dmg",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager.app",
@@ -502,10 +502,10 @@
         "disk-image.dmg.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-macos-universal-update.dmg",
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.dmg",
       "size": 24372497,
       "sha256": "6e988e446f849bc9f5fdc14099b3043d61013b39e8d650ec3d77bd6bf8473cdd",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal-update.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.dmg",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager.app",
@@ -524,10 +524,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-macos-universal-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.zip",
       "size": 23301328,
       "sha256": "54b29029e2e58a1cfda05fa8bede2834188b0c45df08f5fe3f772491ed51c9c4",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager.app",
@@ -546,10 +546,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-macos-universal-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.zip",
       "size": 23301328,
       "sha256": "54b29029e2e58a1cfda05fa8bede2834188b0c45df08f5fe3f772491ed51c9c4",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager.app",
@@ -568,10 +568,10 @@
         "native.msi.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-windows-x64-update.msi",
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x64.msi",
       "size": 7254016,
       "sha256": "4e3489bab1917cdd9a37d70a20ed276dbc42782eeb189cb1715f8c33bd1dab27",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64-update.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64.msi",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager",
@@ -591,10 +591,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-windows-x64-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x64.zip",
       "size": 11303686,
       "sha256": "cbdd3d59d9bf16c04b07faf11ed77386ff6ddeac801811ffefd5aabf113cc9e8",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager",
@@ -613,10 +613,10 @@
         "native.msi.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-windows-x86-update.msi",
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x86.msi",
       "size": 6799360,
       "sha256": "a7aafc1ae51e0256d0b3cc766bf83a19d00fc9fb5b5d281c073721974ef308dd",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86-update.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86.msi",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager",
@@ -636,10 +636,10 @@
         "archive.zip.v1",
         "layout.manager.v1"
       ],
-      "asset": "Craft-Apps-Manager-1.0.0-windows-x86-update.zip",
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x86.zip",
       "size": 9234585,
       "sha256": "0b69921f8450439c6df075a5bf2cd4535e85a48a00e513557e140e026e2b6efa",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86-update.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86.zip",
       "layout": {
         "schema": 1,
         "root": "Craft Apps Manager",
@@ -658,10 +658,10 @@
         "native.deb.v1",
         "layout.manager.v1"
       ],
-      "asset": "craft-apps-manager_1.0.0_amd64-update.deb",
+      "asset": "craft-apps-manager_1.0.0_amd64.deb",
       "size": 7707956,
       "sha256": "3bfe317d8c89d806deef6bd57d7bef505535cbc783cd00e10793e9048d140cde",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_amd64-update.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_amd64.deb",
       "layout": {
         "schema": 1,
         "root": "usr/bin",
@@ -681,10 +681,10 @@
         "native.deb.v1",
         "layout.manager.v1"
       ],
-      "asset": "craft-apps-manager_1.0.0_i386-update.deb",
+      "asset": "craft-apps-manager_1.0.0_i386.deb",
       "size": 8220064,
       "sha256": "6d2f7687a269665d5932ec9d28068cf0bb950fbd4186edc133bc71e61728cfc3",
-      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_i386-update.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_i386.deb",
       "layout": {
         "schema": 1,
         "root": "usr/bin",

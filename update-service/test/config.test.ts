@@ -85,3 +85,18 @@ test('draft release preparation never publishes or deploys production offers',()
  assert.ok(preflight.run.includes('env -u CRAFT_RELEASE_TAG'));assert.ok(preflight.run.includes('isDraft'));
  assert.ok(doc.jobs['update-catalog'].if.includes("inputs.revision != '1' || inputs.publish_baseline"));
 });
+
+
+test('service publication shares baseline packages and protects their URLs on revisions',()=>{
+ const doc=YAML.parse(readFileSync(new URL('../../.github/workflows/release.yml',import.meta.url),'utf8'));
+ const steps=doc.jobs.publish.steps;
+ assert.ok(!steps.some((s:{run?:string})=>s.run?.includes('stage-v2-assets.py')));
+ const manifest=steps.find((s:{run?:string})=>s.run?.includes('revision-manifest.py'));
+ assert.ok(manifest.run.includes('--immutable-packages'));
+ const stage=steps.find((s:{name?:string})=>s.name==='Stage shared packages with immutable upload protection');
+ assert.equal(stage.if,"vars.CRAFT_UPDATE_V2_ENABLED == 'true'");
+ assert.ok(stage.run.includes('cp {} immutable-assets/'));
+ assert.ok(steps.indexOf(stage)>steps.indexOf(manifest));
+ const publish=steps.find((s:{name?:string})=>s.name==='Publish packages before revision metadata');
+ assert.ok(publish.run.includes('if [ -f "immutable-assets/$(basename "$package")" ]; then continue; fi'));
+});
