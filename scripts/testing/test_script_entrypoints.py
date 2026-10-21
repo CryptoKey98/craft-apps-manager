@@ -13,6 +13,18 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 
 class ScriptEntrypointsTests(unittest.TestCase):
+    def test_direct_shell_workflow_entrypoints_keep_executable_git_mode(self):
+        if not (ROOT / '.git').exists():
+            self.skipTest('Executable Git modes require a repository checkout')
+        paths=set()
+        for workflow in (ROOT / '.github/workflows').glob('*.yml'):
+            paths.update(re.findall(r"\./(scripts/[^\s'\"]+\.sh)",workflow.read_text(encoding='utf-8')))
+        self.assertTrue(paths, 'No direct shell entrypoints found')
+        for path in sorted(paths):
+            entry=subprocess.check_output(['git','ls-files','--stage','--',path],cwd=ROOT,text=True)
+            self.assertTrue(entry, f'Untracked workflow entrypoint: {path}')
+            self.assertEqual(entry.split()[0], '100755', f'Workflow directly executes non-executable script: {path}')
+
     def test_catalog_workflow_imports_resolve_without_running_publication(self):
         workflow = (ROOT / ".github/workflows/renew-update-catalog.yml").read_text(encoding="utf-8")
         imports = re.findall(r"(?m)^ +from (?:lib\.)?updater_config import [^\n]+", workflow)
