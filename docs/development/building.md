@@ -140,6 +140,31 @@ The first script compiles both architectures, combines them into a universal bun
 
 DMG packaging needs Python 3.9+ with `venv` and access to PyPI. Pinned `dmgbuild` dependencies are installed into a temporary environment and removed afterward. These are packaging requirements, not prerequisites for running the app. Bundles are not Apple-notarized; see [First launch](../user-guide/macos.md#first-launch).
 
+## Wiki documentation preview
+
+Wiki pages are generated from the existing Markdown; edit the source guides, not the generated pages. Python 3.10+ and Git are sufficient. No extra Python packages, Rust build, or wiki credentials are needed for local checks.
+
+From the repository root on PowerShell:
+
+```powershell
+$sourceCommit = git rev-parse HEAD
+python scripts/testing/test_wiki_documentation.py
+python scripts/documentation/wiki.py check --source-commit $sourceCommit
+```
+
+On Linux/macOS:
+
+```sh
+python3 scripts/testing/test_wiki_documentation.py
+python3 scripts/documentation/wiki.py check --source-commit "$(git rev-parse HEAD)"
+```
+
+The preview is written to `target/wiki-preview/`. Open `Home.md` or `_Sidebar.md` to review the content and navigation. These are generated Markdown files, not a local copy of GitHub's wiki renderer. Image and page URLs target their eventual wiki locations; those links will not serve the unpublished preview. Source links point to the selected commit, so uncommitted edits are only visible in the local preview until committed.
+
+`scripts/documentation/wiki-manifest.json` lists the public pages and images to include. Add a new guide there deliberately. Unlisted files, credentials, and test output are excluded. Existing source files remain unchanged by generation.
+
+The validation workflow and local Git tests cannot publish. Automatic public syncing and credentials are a separate activation step. Local reconciliation preserves unrelated pages and refuses to overwrite directly edited generated files; move any intended correction into the source docs before resolving a conflict.
+
 ## Next steps
 
 - [Release preparation](releases.md): validate version metadata and publish through GitHub Actions.

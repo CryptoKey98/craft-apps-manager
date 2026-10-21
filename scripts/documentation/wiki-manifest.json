@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "repository": "CryptoKey98/craft-apps-manager",
+  "pages": [
+    {"source":"docs/README.md","destination":"Home.md","title":"Home","group":"Start here"},
+    {"source":"README.md","destination":"Getting-started.md","title":"Getting started","group":"Start here"},
+    {"source":"docs/user-guide/using-the-manager.md","destination":"Using-the-manager.md","title":"Using the manager","group":"Install and use"},
+    {"source":"docs/user-guide/linux.md","destination":"Linux.md","title":"Linux","group":"Install and use"},
+    {"source":"docs/user-guide/macos.md","destination":"macOS.md","title":"macOS","group":"Install and use"},
+    {"source":"docs/development/building.md","destination":"Building-and-testing.md","title":"Building and testing","group":"Build and contribute"},
+    {"source":"docs/development/windows-packaging.md","destination":"Windows-packaging.md","title":"Windows packaging","group":"Build and contribute"},
+    {"source":"docs/development/releases.md","destination":"Releases.md","title":"Releases","group":"Publish and maintain"},
+    {"source":"docs/development/updater-operations.md","destination":"Updater-operations.md","title":"Updater operations","group":"Publish and maintain"},
+    {"source":"update-service/catalog/README.md","destination":"Production-catalog.md","title":"Production catalog","group":"Publish and maintain"},
+    {"source":"docs/architecture/per-app-installation.md","destination":"Architecture-installations.md","title":"Installations","group":"Architecture"},
+    {"source":"docs/architecture/operations.md","destination":"Architecture-operations.md","title":"Operations and Activity","group":"Architecture"},
+    {"source":"docs/architecture/windows-batch-admin.md","destination":"Windows-batch-approval.md","title":"Windows batch approval","group":"Architecture"},
+    {"source":"docs/architecture/linux-batch-admin.md","destination":"Linux-batch-approval.md","title":"Linux batch approval","group":"Architecture"},
+    {"source":"CHANGELOG.md","destination":"Changelog.md","title":"Changelog","group":"Release history"}
+  ],
+  "assets": [
+    {"source":"assets/icon.png","destination":"images/icon.png"},
+    {"source":"docs/images/activity.png","destination":"images/activity.png"},
+    {"source":"docs/images/app-selection.png","destination":"images/app-selection.png"},
+    {"source":"docs/images/builder.png","destination":"images/builder.png"},
+    {"source":"docs/images/install.png","destination":"images/install.png"},
+    {"source":"docs/images/main.png","destination":"images/main.png"},
+    {"source":"docs/images/overview.png","destination":"images/overview.png"},
+    {"source":"docs/images/settings.png","destination":"images/settings.png"}
+  ],
+  "aliases": {
+    "docs/linux.md":"docs/user-guide/linux.md",
+    "docs/macos.md":"docs/user-guide/macos.md",
+    "docs/releases.md":"docs/development/releases.md",
+    "docs/updater-operations.md":"docs/development/updater-operations.md",
+    "docs/windows-packaging.md":"docs/development/windows-packaging.md",
+    "docs/per-app-installation.md":"docs/architecture/per-app-installation.md",
+    "docs/operations.md":"docs/architecture/operations.md",
+    "docs/windows-batch-admin.md":"docs/architecture/windows-batch-admin.md",
+    "docs/linux-batch-admin.md":"docs/architecture/linux-batch-admin.md"
+  },
+  "source_links": ["LICENSE", "THIRD-PARTY-NOTICES.txt"]
+}
