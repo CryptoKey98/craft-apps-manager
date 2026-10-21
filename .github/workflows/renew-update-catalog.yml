@@ -56,23 +56,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: sudo apt-get update && sudo apt-get install -y pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev
       - run: python3 -m pip install 'cryptography==50.0.1'
-      - name: Diagnose public catalog connectivity
-        run: |
-          python3 - <<'PY'
-          import tomllib, urllib.request, urllib.error
-          from pathlib import Path
-          service=tomllib.loads(Path('updater.production.toml').read_text())['service']
-          for name,url,headers in [
-              ('primary-default',service['catalog_url'],{}),
-              ('primary-publisher',service['catalog_url'],{'User-Agent':'CraftUpdatePublisher/2','Accept':'application/json'}),
-              ('mirror-publisher',service['mirror_url'],{'User-Agent':'CraftUpdatePublisher/2','Accept':'application/json'})]:
-              try:
-                  with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=30) as response:
-                      print(name,response.status,response.headers.get('Content-Type'))
-              except urllib.error.HTTPError as error:
-                  print(name,error.code,dict((k,error.headers.get(k)) for k in ['Server','CF-Ray','CF-Mitigated','Content-Type']))
-                  print(error.read(256).decode('utf-8',errors='replace'))
-          PY
       - name: Validate configuration and acquire authoritative previous policy
         id: policy
         env:
@@ -85,12 +68,10 @@ jobs:
           from lib.updater_config import publisher_config, renewal_due
           config=publisher_config()
           if not config['enabled']: raise SystemExit('v2 activation is incomplete')
-          with urllib.request.urlopen(config['catalog_url'], timeout=30) as response:
-              envelope=response.read(2*1024*1024+1)
-          if len(envelope)>2*1024*1024: raise SystemExit('Oversized previous catalog')
-          pathlib.Path('previous-catalog.json').write_bytes(envelope)
           spec=importlib.util.spec_from_file_location('catalog_tool','scripts/publishing/update-catalog.py')
           tool=importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
+          envelope=tool.fetch_catalog(config['catalog_url'])
+          pathlib.Path('previous-catalog.json').write_bytes(envelope)
           previous=tool.verified_previous(pathlib.Path('previous-catalog.json'), bytes.fromhex(config['public_key_hex']))
           if (previous['repository'],previous['channel']) != (config['repository'],config['channel']): raise SystemExit('Previous scope mismatch')
           due=os.environ['FORCE_RENEW']=='true' or os.environ['CATALOG_MODE']!='renew' or renewal_due(previous['expires'],int(time.time()),config['renew_before_days'])
@@ -152,15 +133,15 @@ jobs:
       - name: Verify public static response
         run: |
           python3 - <<'PY'
-          import json, urllib.request, pathlib, sys
+          import importlib.util, pathlib, sys
           sys.path.insert(0, 'scripts')
           from lib.updater_config import publisher_config
           config=publisher_config()
-          with urllib.request.urlopen(config['catalog_url'],timeout=30) as response:
-              actual=response.read(2*1024*1024+1)
+          spec=importlib.util.spec_from_file_location('catalog_tool','scripts/publishing/update-catalog.py')
+          tool=importlib.util.module_from_spec(spec); spec.loader.exec_module(tool)
+          actual=tool.fetch_catalog(config['catalog_url'])
           expected=pathlib.Path('updates-v2.json').read_bytes()
           if actual != expected: raise SystemExit('Published catalog bytes differ')
-          with urllib.request.urlopen(config['mirror_url'],timeout=30) as response:
-              mirror=response.read(2*1024*1024+1)
+          mirror=tool.fetch_catalog(config['mirror_url'])
           if mirror != expected: raise SystemExit('Published mirror bytes differ')
           PY

@@ -20,6 +20,17 @@ import urllib.request
 ROOT = project_root()
 MAX_SEQUENCE = 9007199254740991
 
+
+def fetch_catalog(url):
+    """Bounded public metadata request; no account or repository credentials."""
+    request = urllib.request.Request(url, headers={
+        "User-Agent": "CraftUpdatePublisher/2", "Accept": "application/json"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        envelope = response.read(2 * 1024 * 1024 + 1)
+    if len(envelope) > 2 * 1024 * 1024:
+        raise ValueError("Oversized catalog envelope")
+    return envelope
+
 def validate_shape(catalog):
     if catalog.get("schema") != 2 or type(catalog.get("sequence")) is not int or not 1 <= catalog["sequence"] <= MAX_SEQUENCE:
         raise ValueError("Invalid catalog schema/sequence")

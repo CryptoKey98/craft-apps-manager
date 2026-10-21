@@ -22,6 +22,22 @@ class CatalogTests(unittest.TestCase):
     def setUp(self):
         self.catalog = json.loads((ROOT / "tests/fixtures/updater-v2/catalog.json").read_text())
 
+    def test_catalog_fetch_identifies_publisher_and_bounds_body(self):
+        response=mock.MagicMock()
+        response.__enter__.return_value=response
+        response.read.return_value=b'{"payload":"signed"}'
+        with mock.patch.object(module.urllib.request,'urlopen',return_value=response) as request:
+            self.assertEqual(module.fetch_catalog('https://updates.example/v2/catalog.json'),response.read.return_value)
+            outgoing=request.call_args.args[0]
+            self.assertEqual(outgoing.get_header('User-agent'),'CraftUpdatePublisher/2')
+            self.assertEqual(outgoing.get_header('Accept'),'application/json')
+            self.assertEqual(request.call_args.kwargs['timeout'],30)
+            response.read.assert_called_once_with(2*1024*1024+1)
+        response.read.return_value=b'x'*(2*1024*1024+1)
+        with mock.patch.object(module.urllib.request,'urlopen',return_value=response):
+            with self.assertRaisesRegex(ValueError,'Oversized'):
+                module.fetch_catalog('https://updates.example/v2/catalog.json')
+
     def test_release_preflight_rejects_stale_standby_policy(self):
         with tempfile.TemporaryDirectory(dir=ROOT / 'target') as folder:
             folder=Path(folder)
