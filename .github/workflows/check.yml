@@ -36,7 +36,7 @@ jobs:
         run: python3 scripts/testing/ci_policy.py plan
 
   documentation:
-    name: Documentation (${{ matrix.os }})
+    name: Documentation checks / ${{ matrix.os }}
     needs: changes
     if: needs.changes.outputs.catalog != 'true'
     runs-on: ${{ matrix.os }}
@@ -55,7 +55,7 @@ jobs:
       - run: python scripts/documentation/wiki.py check --source-commit ${{ github.sha }}
 
   format:
-    name: Formatting
+    name: Core checks / Formatting
     needs: changes
     if: needs.changes.outputs.core == 'true'
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
   updater-v2:
     needs: changes
     if: needs.changes.outputs.core == 'true'
-    name: Signed updater routing and Worker tests
+    name: Core checks / Signed updater and Worker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
   release-metadata:
     needs: changes
     if: needs.changes.outputs.metadata == 'true'
-    name: Release metadata and validation tests
+    name: Release validation / Metadata
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
           python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
   windows:
-    name: Tests Windows (${{ matrix.arch }})
+    name: Core checks / Windows (${{ matrix.arch }})
     needs: changes
     if: needs.changes.outputs.core == 'true'
     runs-on: windows-latest
@@ -147,7 +147,7 @@ jobs:
           retention-days: 3
 
   windows-packages:
-    name: Packages Windows (${{ matrix.arch }})
+    name: Windows package checks / ${{ matrix.arch }}
     needs: [changes, windows]
     if: needs.changes.outputs.packages == 'true'
     runs-on: windows-latest
@@ -226,7 +226,7 @@ jobs:
   linux:
     needs: changes
     if: needs.changes.outputs.core == 'true'
-    name: Tests Ubuntu 22.04 (${{ matrix.arch }})
+    name: Core checks / Ubuntu 22.04 (${{ matrix.arch }})
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -270,7 +270,7 @@ jobs:
           retention-days: 3
 
   linux-packages:
-    name: Packages Linux (${{ matrix.arch }})
+    name: Linux package checks / Build (${{ matrix.arch }})
     needs: [changes, linux]
     if: needs.changes.outputs.packages == 'true'
     runs-on: ubuntu-22.04
@@ -320,7 +320,7 @@ jobs:
           retention-days: 3
 
   ubuntu-deb:
-    name: Ubuntu 22.04 (x64 DEB)
+    name: Linux package checks / Ubuntu 22.04 (x64 DEB)
     needs: [changes, linux-packages]
     if: needs.changes.outputs.packages == 'true'
     runs-on: ubuntu-22.04
@@ -349,7 +349,7 @@ jobs:
           test ! -e /usr/share/applications/craft-apps-builder.desktop
 
   debian:
-    name: Debian 12 (x64 DEB)
+    name: Linux package checks / Debian 12 (x64 DEB)
     needs: [changes, linux-packages]
     if: needs.changes.outputs.packages == 'true'
     runs-on: ubuntu-latest
@@ -385,7 +385,7 @@ jobs:
 
   fedora:
     if: needs.changes.outputs.packages == 'true'
-    name: Fedora 44 (x64 RPM)
+    name: Linux package checks / Fedora 44 (x64 RPM)
     needs: [changes, linux-packages]
     runs-on: ubuntu-latest
     container: fedora:44
@@ -419,7 +419,7 @@ jobs:
   archlinux:
     needs: changes
     if: needs.changes.outputs.packages == 'true'
-    name: Arch Linux (x86_64)
+    name: Linux package checks / Arch (x64)
     runs-on: ubuntu-latest
     container: archlinux:base
     defaults:
@@ -464,7 +464,7 @@ jobs:
           if-no-files-found: error
 
   macos:
-    name: Tests macOS
+    name: Core checks / macOS
     needs: changes
     if: needs.changes.outputs.core == 'true'
     runs-on: macos-latest
@@ -480,7 +480,7 @@ jobs:
       - run: cargo clippy --locked --all-targets --features service-updater -- -D warnings
 
   macos-packages:
-    name: Packages macOS
+    name: macOS package checks
     needs: [changes, macos]
     if: needs.changes.outputs.packages == 'true'
     runs-on: macos-latest

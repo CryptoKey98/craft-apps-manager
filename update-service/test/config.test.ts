@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,mkdirSync,mkdtempSync,writeFileSync,rmSync,realpathSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {relative,isAbsolute} from 'node:path';
 import YAML from 'yaml';
 import {productionConfig} from './config-fixture.ts';
 test('workflow YAML parses and deployment remains gated',()=>{
@@ -41,13 +44,15 @@ test('CI covers configured updater modes and canonical script entrypoints',()=>{
 test('CI packages the new Linux tar and macOS DMG formats',()=>{
   for(const name of ['check.yml','release.yml']) {
     const doc=YAML.parse(readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8'));
-    assert.ok(doc.jobs.linux.steps.some((step:{run?:string})=>step.run?.includes('scripts/packaging/package-linux-tar.sh')),name+' must create tar.gz');
-    assert.ok(doc.jobs.macos.steps.some((step:{run?:string})=>step.run?.includes('scripts/packaging/package-macos-dmg.sh')),name+' must create a DMG');
-    const artifact=doc.jobs.macos.steps.find((step:{uses?:string})=>step.uses==='actions/upload-artifact@v4');
+    const linux=doc.jobs[name==='check.yml'?'linux-packages':'linux'];
+    const macos=doc.jobs[name==='check.yml'?'macos-packages':'macos'];
+    assert.ok(linux.steps.some((step:{run?:string})=>step.run?.includes('scripts/packaging/package-linux-tar.sh')),name+' must create tar.gz');
+    assert.ok(macos.steps.some((step:{run?:string})=>step.run?.includes('scripts/packaging/package-macos-dmg.sh')),name+' must create a DMG');
+    const artifact=macos.steps.find((step:{uses?:string})=>step.uses==='actions/upload-artifact@v4');
     assert.ok(artifact.with.path.includes('*.zip')&&artifact.with.path.includes('*.dmg'),name+' must retain both Mac formats');
   }
   const check=YAML.parse(readFileSync(new URL('../../.github/workflows/check.yml',import.meta.url),'utf8'));
-  assert.ok(check.jobs.macos.steps.some((step:{run?:string})=>step.run?.includes('scripts/testing/test_macos_dmg.py')&&step.run.includes('packaging/macos/dmg-requirements.txt')),'DMG layout regression must execute with its pinned dependencies');
+  assert.ok(check.jobs['macos-packages'].steps.some((step:{run?:string})=>step.run?.includes('scripts/testing/test_macos_dmg.py')&&step.run.includes('packaging/macos/dmg-requirements.txt')),'DMG layout regression must execute with its pinned dependencies');
 });
 
 
@@ -70,7 +75,32 @@ test('manual production renewal test is isolated from application builds and pub
  assert.equal(job.with.mode,'renew');assert.equal(job.with.force_renew,true);
  assert.equal(job.with.source_ref,'${{ github.sha }}');
  assert.equal(job.permissions.contents,'write');
- for(const name of ['updater-v2','release-metadata','windows','linux','archlinux','macos']) assert.ok(check.jobs[name].if.includes('production_catalog_only'));
+ assert.ok(job.if.includes('production_catalog_only == true'));
+ for(const name of ['format','updater-v2','windows','linux','macos']) {
+   assert.equal(check.jobs[name].if,"needs.changes.outputs.core == 'true'");
+ }
+ for(const name of ['windows-packages','linux-packages','ubuntu-deb','debian','fedora','archlinux','macos-packages']) {
+   assert.equal(check.jobs[name].if,"needs.changes.outputs.packages == 'true'");
+ }
+ assert.equal(check.jobs['release-metadata'].if,"needs.changes.outputs.metadata == 'true'");
+ assert.equal(check.jobs.documentation.if,"needs.changes.outputs.catalog != 'true'");
+ const target=fileURLToPath(new URL('../../target/',import.meta.url));
+ mkdirSync(target,{recursive:true});
+ const directory=mkdtempSync(target+'catalog-only-policy-');
+ try {
+   const event=directory+'/event.json', output=directory+'/output.txt';
+   writeFileSync(event,JSON.stringify({inputs:{production_catalog_only:'true'}}));
+   const result=spawnSync(process.platform==='win32'?'python':'python3',
+     [fileURLToPath(new URL('../../scripts/testing/ci_policy.py',import.meta.url)),'plan'],
+     {encoding:'utf8',env:{...process.env,GITHUB_EVENT_NAME:'workflow_dispatch',GITHUB_EVENT_PATH:event,GITHUB_OUTPUT:output}});
+   assert.equal(result.status,0,result.stderr);
+   const flags=Object.fromEntries(readFileSync(output,'utf8').trim().split(/\r?\n/).map(line=>line.split('=')));
+   assert.deepEqual(flags,{core:'false',packages:'false',metadata:'false',catalog:'true'});
+ } finally {
+   const resolved=realpathSync(directory), within=relative(realpathSync(target),resolved);
+   assert.ok(within && !within.startsWith('..') && !isAbsolute(within));
+   rmSync(resolved,{recursive:true,force:true});
+ }
  assert.equal(renew.on.workflow_call.inputs.force_renew.default,false);
  assert.ok(renew.jobs.sign.steps.find((s:{id?:string})=>s.id==='policy').env.FORCE_RENEW.includes('inputs.force_renew'));
 });
