@@ -130,21 +130,24 @@ jobs:
 
   linux:
     if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    name: Ubuntu 22.04 (${{ matrix.arch }})
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
+            arch: x64
             pkgconfig: /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig
           - target: i686-unknown-linux-gnu
+            arch: x86
             pkgconfig: /usr/lib/i386-linux-gnu/pkgconfig:/usr/share/pkgconfig
     env:
       PKG_CONFIG_ALLOW_CROSS: "1"
       PKG_CONFIG_LIBDIR: ${{ matrix.pkgconfig }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev p7zip-full libarchive-tools
+      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev p7zip-full libarchive-tools rpm
       - if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
           sudo dpkg --add-architecture i386
@@ -170,6 +173,50 @@ jobs:
             [ -f "$archive" ] || continue
             sh scripts/packaging/package-linux-tar.sh "$archive"
           done
+
+      - name: Package RPM for Fedora compatibility check
+        if: matrix.arch == 'x64'
+        run: sh scripts/packaging/package-linux-rpm.sh target/${{ matrix.target }}/release/craft-apps-manager
+      - uses: actions/upload-artifact@v4
+        if: matrix.arch == 'x64'
+        with:
+          name: fedora-rpm-x64
+          path: dist/linux/*.rpm
+          if-no-files-found: error
+          retention-days: 3
+
+  fedora:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    name: Fedora 44 (x64 RPM)
+    needs: linux
+    runs-on: ubuntu-latest
+    container: fedora:44
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: fedora-rpm-x64
+          path: packages
+      - name: Install and verify Ubuntu-built RPM
+        run: |
+          dnf install -y ./packages/*.rpm
+          rpm -q craft-apps-manager
+          rpm -V craft-apps-manager
+          test -f /usr/share/applications/craft-apps-manager.desktop
+          test -f /usr/share/applications/craft-apps-builder.desktop
+          craft-apps-manager --build-identity
+      - name: Remove RPM and verify cleanup
+        run: |
+          dnf remove -y craft-apps-manager
+          if rpm -q craft-apps-manager; then
+            echo "Manager package is still installed" >&2
+            exit 1
+          fi
+          test ! -e /usr/bin/craft-apps-manager
+          test ! -e /usr/share/applications/craft-apps-manager.desktop
+          test ! -e /usr/share/applications/craft-apps-builder.desktop
 
   archlinux:
     if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
