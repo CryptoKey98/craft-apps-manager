@@ -734,12 +734,16 @@ impl Job {
         Ok(())
     }
     pub fn spawn(&self, work: impl FnOnce(Job) -> Result<()> + Send + 'static) {
-        let Some(handle) = self.begin() else {
-            return;
-        };
+        let _ = self.spawn_worker(work);
+    }
+    fn spawn_worker(
+        &self,
+        work: impl FnOnce(Job) -> Result<()> + Send + 'static,
+    ) -> Option<std::thread::JoinHandle<()>> {
+        let handle = self.begin()?;
         let mut job = self.clone();
         job.active = Arc::new(Mutex::new(Some(handle.clone())));
-        std::thread::spawn(move || {
+        Some(std::thread::spawn(move || {
             *job.executing_thread.lock().unwrap() = Some(std::thread::current().id());
             let result =
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(job.clone())));
@@ -761,7 +765,7 @@ impl Job {
                 ));
             }
             job.complete(&handle, &result);
-        });
+        }))
     }
     pub fn history(&self, path: &Path) {
         if let Ok(bytes) = fs::read(path) {

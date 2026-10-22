@@ -38,4 +38,4 @@ Older links directly under `docs/` remain as short redirects to these guides.
 
 ## Editing and wiki previews
 
-These files are the maintained source for the planned GitHub Wiki mirror. Make corrections here so the repository and wiki do not become two separate sets of instructions. See [Wiki documentation preview](development/building.md#wiki-documentation-preview) to generate and test the local preview. Public syncing is not enabled yet.
+These files are the maintained source for the GitHub Wiki mirror. Make corrections here so the repository and wiki do not become two separate sets of instructions. See [Wiki documentation preview](development/building.md#wiki-documentation-preview) to generate and test changes locally. The documentation workflow publishes approved changes from main when wiki syncing is enabled.

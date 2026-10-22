@@ -251,6 +251,9 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     container: archlinux:base-devel
+    env:
+      # Keep the compiler stack consistent with the Arch CI build.
+      RUST_MIN_STACK: "33554432"
     steps:
       - run: pacman -Syu --needed --noconfirm git rust python pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils
       - uses: actions/checkout@v4

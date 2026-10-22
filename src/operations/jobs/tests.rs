@@ -344,13 +344,10 @@ fn finish(work: impl FnOnce(Job) -> Result<()> + Send + 'static) -> State {
         root.join("job.log"),
         &crate::model::BuilderPreferences::default(),
     );
-    job.spawn(work);
-    for _ in 0..100 {
-        if !job.state.lock().unwrap().busy {
-            break;
-        }
-        std::thread::sleep(Duration::from_millis(10));
-    }
+    job.spawn_worker(work)
+        .expect("worker should start")
+        .join()
+        .expect("worker finalization should not panic");
     let state = job
         .state
         .lock()
@@ -359,6 +356,14 @@ fn finish(work: impl FnOnce(Job) -> Result<()> + Send + 'static) -> State {
     assert!(!state.busy);
     let _ = fs::remove_dir_all(root);
     state
+}
+#[test]
+fn worker_completion_is_not_limited_to_one_second() {
+    let state = finish(|_| {
+        std::thread::sleep(Duration::from_millis(1100));
+        Ok(())
+    });
+    assert_eq!(state.stage, "Complete");
 }
 #[test]
 fn cancellation_during_transfer_removes_partial_and_preserves_typed_marker() {
