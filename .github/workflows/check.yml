@@ -238,13 +238,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare unprivileged build workspace
         run: chown -R builder:builder "$GITHUB_WORKSPACE"
-      - name: Formatting, tests and lint
-        run: |
-          runuser -u builder -- cargo fmt --all -- --check
-          runuser -u builder -- cargo test --locked --all-targets -- --test-threads=1
-          runuser -u builder -- cargo test --locked --features service-updater --all-targets -- --test-threads=1
-          runuser -u builder -- cargo clippy --locked --all-targets -- -D warnings
-          runuser -u builder -- cargo clippy --locked --all-targets --features service-updater -- -D warnings
+      - name: Check formatting
+        run: runuser -u builder -- cargo fmt --all -- --check
+      - name: Test default updater
+        run: runuser -u builder -- cargo test --locked --all-targets -- --test-threads=1
+      - name: Test service updater
+        run: runuser -u builder -- cargo test --locked --features service-updater --all-targets -- --test-threads=1
+      - name: Clippy default updater
+        run: runuser -u builder -- cargo clippy --locked --all-targets -- -D warnings
+      - name: Clippy service updater
+        run: runuser -u builder -- cargo clippy --locked --all-targets --features service-updater -- -D warnings
       - name: Build and package for Arch
         run: |
           runuser -u builder -- cargo build --release --locked --bin craft-apps-manager
