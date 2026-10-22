@@ -181,6 +181,8 @@ jobs:
         shell: bash
     env:
       CRAFT_TEST_TOOLS: /tmp/craft-test-tools
+      # Arch rustc recommends this stack size for ICU's release-mode const evaluation.
+      RUST_MIN_STACK: "33554432"
     steps:
       - name: Install Arch build and runtime dependencies
         run: |
