@@ -2,11 +2,7 @@ name: Check
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - codemagic.yaml
   pull_request:
-    paths-ignore:
-      - codemagic.yaml
   workflow_dispatch:
     inputs:
       production_catalog_only:
@@ -15,12 +11,64 @@ on:
         default: false
 permissions:
   contents: read
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   # Raises GitHub's API limit for the release lookups made by tests and end-to-end checks.
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
+  changes:
+    name: Select checks
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.plan.outputs.core }}
+      packages: ${{ steps.plan.outputs.packages }}
+      metadata: ${{ steps.plan.outputs.metadata }}
+      catalog: ${{ steps.plan.outputs.catalog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: python3 scripts/testing/test_ci_policy.py
+      - id: plan
+        run: python3 scripts/testing/ci_policy.py plan
+
+  documentation:
+    name: Documentation (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.catalog != 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python scripts/testing/test_wiki_documentation.py
+      - run: python scripts/documentation/wiki.py check --source-commit ${{ github.sha }}
+
+  format:
+    name: Formatting
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
   updater-v2:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
     name: Signed updater routing and Worker tests
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +88,8 @@ jobs:
       - run: python3 scripts/testing/test_update_catalog.py
       - run: python3 scripts/testing/test_immutable_assets.py
   release-metadata:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    needs: changes
+    if: needs.changes.outputs.metadata == 'true'
     name: Release metadata and validation tests
     runs-on: ubuntu-latest
     steps:
@@ -53,19 +102,24 @@ jobs:
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
           python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
   windows:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    name: Tests Windows (${{ matrix.arch }})
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
+        include:
+          - target: x86_64-pc-windows-msvc
+            arch: x64
+          - target: i686-pc-windows-msvc
+            arch: x86
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
           targets: ${{ matrix.target }}
-      - run: cargo fmt --check
       - if: matrix.target == 'x86_64-pc-windows-msvc'
         run: cargo test --locked --features release-tools --bin release-tool
       - if: matrix.target == 'x86_64-pc-windows-msvc'
@@ -83,6 +137,34 @@ jobs:
           CARGO_BUILD_TARGET: ${{ matrix.target }}
         run: python scripts/testing/test_updater_build.py
       - run: cargo build --release --locked --target ${{ matrix.target }}
+        if: needs.changes.outputs.packages == 'true'
+      - uses: actions/upload-artifact@v4
+        if: needs.changes.outputs.packages == 'true'
+        with:
+          name: windows-build-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/craft-apps-manager.exe
+          if-no-files-found: error
+          retention-days: 3
+
+  windows-packages:
+    name: Packages Windows (${{ matrix.arch }})
+    needs: [changes, windows]
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            arch: x64
+          - target: i686-pc-windows-msvc
+            arch: x86
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-build-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release
       - name: Test Windows MSI upgrade and shortcuts
         shell: pwsh
         env:
@@ -96,6 +178,11 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add --global WixToolset.UI.wixext/5.0.2
           $out = "dist/windows-$arch"
+          ./scripts/packaging/package-windows.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
+          $portableZip = (Get-ChildItem "$out/*.zip").FullName
+          Expand-Archive -LiteralPath $portableZip -DestinationPath portable-check
+          if (!(Test-Path 'portable-check/Craft Apps Manager/portable.txt')) { throw 'Portable marker missing' }
+          if (!(Test-Path 'portable-check/Craft Apps Manager/CraftApps-Manager.exe')) { throw 'Portable executable missing' }
           ./scripts/packaging/package-windows-msi.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
           gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern "Craft-Apps-Manager-0.5.1-windows-$arch.msi" --dir baseline
           $candidate = (Get-ChildItem "$out/*.msi").FullName
@@ -127,10 +214,19 @@ jobs:
             Invoke-Manager @('--uninstall-app', $app)
             if (Test-Path (Join-Path $library "releases/$app")) { throw "$app was not removed" }
           }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages-${{ matrix.target }}
+          path: |
+            dist/windows-*/*.msi
+            dist/windows-*/*.zip
+          if-no-files-found: error
+          retention-days: 3
 
   linux:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
-    name: Ubuntu 22.04 (${{ matrix.arch }})
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
+    name: Tests Ubuntu 22.04 (${{ matrix.arch }})
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -147,7 +243,7 @@ jobs:
       PKG_CONFIG_LIBDIR: ${{ matrix.pkgconfig }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev p7zip-full libarchive-tools rpm
+      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev p7zip-full libarchive-tools
       - if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
           sudo dpkg --add-architecture i386
@@ -157,7 +253,6 @@ jobs:
         with:
           components: rustfmt, clippy
           targets: ${{ matrix.target }}
-      - run: cargo fmt --check
       - run: cargo test --locked --target ${{ matrix.target }} --all-targets -- --test-threads=1
         env:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
@@ -165,7 +260,41 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} --features service-updater --all-targets -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
+        if: needs.changes.outputs.packages == 'true'
+      - uses: actions/upload-artifact@v4
+        if: needs.changes.outputs.packages == 'true'
+        with:
+          name: linux-build-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release/craft-apps-manager
+          if-no-files-found: error
+          retention-days: 3
 
+  linux-packages:
+    name: Packages Linux (${{ matrix.arch }})
+    needs: [changes, linux]
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            arch: x64
+          - target: i686-unknown-linux-gnu
+            arch: x86
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y dpkg-dev rpm zip libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev
+      - if: matrix.arch == 'x86'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev:i386 libxi-dev:i386 libxrandr-dev:i386 libxcursor-dev:i386 libxkbcommon-dev:i386 libwayland-dev:i386 libgl1-mesa-dev:i386 libegl1-mesa-dev:i386
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-build-${{ matrix.arch }}
+          path: target/${{ matrix.target }}/release
+      - run: chmod +x target/${{ matrix.target }}/release/craft-apps-manager
       - name: Verify Linux portable ZIP and tar.gz packaging
         run: |
           sh scripts/packaging/package-linux-zip.sh target/${{ matrix.target }}/release/craft-apps-manager
@@ -174,21 +303,90 @@ jobs:
             sh scripts/packaging/package-linux-tar.sh "$archive"
           done
 
-      - name: Package RPM for Fedora compatibility check
-        if: matrix.arch == 'x64'
-        run: sh scripts/packaging/package-linux-rpm.sh target/${{ matrix.target }}/release/craft-apps-manager
+      - name: Package native DEB and RPM
+        run: |
+          binary="$GITHUB_WORKSPACE/target/${{ matrix.target }}/release/craft-apps-manager"
+          sh scripts/packaging/package-linux-deb.sh "$binary"
+          sh scripts/packaging/package-linux-rpm.sh "$binary"
       - uses: actions/upload-artifact@v4
-        if: matrix.arch == 'x64'
         with:
-          name: fedora-rpm-x64
-          path: dist/linux/*.rpm
+          name: linux-packages-${{ matrix.arch }}
+          path: |
+            dist/linux/*.zip
+            dist/linux/*.tar.gz
+            dist/linux/*.deb
+            dist/linux/*.rpm
           if-no-files-found: error
           retention-days: 3
 
+  ubuntu-deb:
+    name: Ubuntu 22.04 (x64 DEB)
+    needs: [changes, linux-packages]
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-packages-x64
+          path: packages
+      - name: Install and verify DEB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./packages/*.deb
+          dpkg --verify craft-apps-manager
+          test -f /usr/share/applications/craft-apps-manager.desktop
+          test -f /usr/share/applications/craft-apps-builder.desktop
+          craft-apps-manager --build-identity
+      - name: Remove DEB and verify cleanup
+        run: |
+          sudo apt-get remove -y craft-apps-manager
+          if dpkg-query -W -f='${db:Status-Status}' craft-apps-manager 2>/dev/null | grep -qx installed; then
+            echo "Manager package is still installed" >&2
+            exit 1
+          fi
+          test ! -e /usr/bin/craft-apps-manager
+          test ! -e /usr/share/applications/craft-apps-manager.desktop
+          test ! -e /usr/share/applications/craft-apps-builder.desktop
+
+  debian:
+    name: Debian 12 (x64 DEB)
+    needs: [changes, linux-packages]
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: ubuntu-latest
+    container: debian:12-slim
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-packages-x64
+          path: packages
+      - name: Install and verify Ubuntu-built DEB
+        run: |
+          apt-get update
+          apt-get install -y ./packages/*.deb
+          dpkg --verify craft-apps-manager
+          test -f /usr/share/applications/craft-apps-manager.desktop
+          test -f /usr/share/applications/craft-apps-builder.desktop
+          craft-apps-manager --build-identity
+      - name: Remove DEB and verify cleanup
+        run: |
+          apt-get remove -y craft-apps-manager
+          if dpkg-query -W -f='${db:Status-Status}' craft-apps-manager 2>/dev/null | grep -qx installed; then
+            echo "Manager package is still installed" >&2
+            exit 1
+          fi
+          test ! -e /usr/bin/craft-apps-manager
+          test ! -e /usr/share/applications/craft-apps-manager.desktop
+          test ! -e /usr/share/applications/craft-apps-builder.desktop
+
   fedora:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    if: needs.changes.outputs.packages == 'true'
     name: Fedora 44 (x64 RPM)
-    needs: linux
+    needs: [changes, linux-packages]
     runs-on: ubuntu-latest
     container: fedora:44
     defaults:
@@ -197,7 +395,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: fedora-rpm-x64
+          name: linux-packages-x64
           path: packages
       - name: Install and verify Ubuntu-built RPM
         run: |
@@ -219,7 +417,8 @@ jobs:
           test ! -e /usr/share/applications/craft-apps-builder.desktop
 
   archlinux:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    needs: changes
+    if: needs.changes.outputs.packages == 'true'
     name: Arch Linux (x86_64)
     runs-on: ubuntu-latest
     container: archlinux:base
@@ -265,7 +464,9 @@ jobs:
           if-no-files-found: error
 
   macos:
-    if: github.event_name != 'workflow_dispatch' || inputs.production_catalog_only != true
+    name: Tests macOS
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -273,11 +474,21 @@ jobs:
         with:
           components: rustfmt, clippy
           targets: aarch64-apple-darwin, x86_64-apple-darwin
-      - run: cargo fmt --check
       - run: cargo test --locked --all-targets -- --test-threads=1
       - run: cargo test --locked --features service-updater --all-targets -- --test-threads=1
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo clippy --locked --all-targets --features service-updater -- -D warnings
+
+  macos-packages:
+    name: Packages macOS
+    needs: [changes, macos]
+    if: needs.changes.outputs.packages == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
       - run: ./scripts/packaging/package-macos.sh
         env:
           # Self-update from the releases of the repository being built.
@@ -313,3 +524,17 @@ jobs:
       mode: renew
       force_renew: true
     secrets: inherit
+
+  gate:
+    name: CI
+    if: always()
+    needs: [changes, documentation, format, updater-v2, release-metadata, windows, linux, macos, windows-packages, linux-packages, ubuntu-deb, debian, fedora, archlinux, macos-packages, production-catalog]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require all selected checks to succeed
+        run: python3 scripts/testing/ci_policy.py gate
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}

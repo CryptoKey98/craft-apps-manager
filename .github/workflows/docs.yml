@@ -1,7 +1,8 @@
 name: Documentation
 on:
-  pull_request:
-    paths: &documentation-paths
+  push:
+    branches: [main]
+    paths:
       - README.md
       - CHANGELOG.md
       - LICENSE
@@ -16,9 +17,6 @@ on:
       - scripts/documentation/**
       - scripts/testing/test_wiki_documentation.py
       - .github/workflows/docs.yml
-  push:
-    branches: [main]
-    paths: *documentation-paths
   workflow_dispatch:
 permissions:
   contents: read

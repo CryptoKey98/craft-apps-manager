@@ -140,6 +140,23 @@ The first script compiles both architectures, combines them into a universal bun
 
 DMG packaging needs Python 3.9+ with `venv` and access to PyPI. Pinned `dmgbuild` dependencies are installed into a temporary environment and removed afterward. These are packaging requirements, not prerequisites for running the app. Bundles are not Apple-notarized; see [First launch](../user-guide/macos.md#first-launch).
 
+## Continuous integration
+
+GitHub's **Check** workflow selects work from the complete change set. Its required **CI** result passes only when every selected job succeeds, including jobs that would otherwise be skipped after an upstream failure.
+
+| Change | Checks |
+| --- | --- |
+| Documentation only | CI routing tests and documentation validation; changelog edits also validate release metadata |
+| UI, catalog, or scheduling code | Formatting, Windows x64/x86, Ubuntu x64/x86, macOS, and updater/release-tool tests |
+| Installers, downloads, storage, builds, dependencies, workflows, or unrecognized files | Core checks plus package creation and installation checks |
+| Manual Check run | Full checks, unless the separate catalog-only option is explicitly selected |
+
+Platform tests cover both the default GitHub updater and the service updater. Package jobs reuse the Windows and Ubuntu release executables. The Ubuntu-built DEB is checked on Ubuntu 22.04 and Debian 12; its RPM counterpart is checked on Fedora 44. Arch uses a native build and package transaction. macOS validates its universal ZIP, DMG layout, and existing installation smoke tests. Containers verify command-line and packaging behavior, not tray icons or a complete desktop session.
+
+New PR commits cancel superseded Check runs. Skipped optional jobs do not block documentation-only changes, but a missing or skipped selected check fails the final gate. Run the routing tests locally with `python scripts/testing/test_ci_policy.py`.
+
+The **Documentation** workflow publishes the wiki from enabled main-branch pushes or manual runs; it does not publish from PRs. The **Release** workflow remains separate and runs only for a release tag or an explicit manual invocation. Ordinary CI package artifacts are not published app releases.
+
 ## Wiki documentation preview
 
 Wiki pages are generated from the existing Markdown; edit the source guides, not the generated pages. Python 3.10+ and Git are sufficient. No extra Python packages, Rust build, or wiki credentials are needed for local checks.
@@ -163,7 +180,7 @@ The preview is written to `target/wiki-preview/`. Open `Home.md` or `_Sidebar.md
 
 `scripts/documentation/wiki-manifest.json` lists the public pages and images to include. Add a new guide there deliberately. Unlisted files, credentials, and test output are excluded. Existing source files remain unchanged by generation.
 
-Local preview commands and Git tests cannot publish. The documentation workflow validates pull requests without publishing credentials. Enabled main-branch runs then sync the wiki; no app release is required. Syncing preserves unrelated pages and refuses to overwrite directly edited generated files. Move intended corrections into the source docs before resolving a conflict.
+Local preview commands and Git tests cannot publish. The Check workflow validates pull requests without wiki publishing credentials. Enabled main-branch Documentation runs sync the wiki; no app release is required. Syncing preserves unrelated pages and refuses to overwrite directly edited generated files. Move intended corrections into the source docs before resolving a conflict.
 
 ### Wiki publication setup
 
