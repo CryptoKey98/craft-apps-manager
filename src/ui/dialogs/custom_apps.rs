@@ -44,6 +44,14 @@ impl App {
         let Some(mut setup) = self.custom_setup.take() else {
             return;
         };
+        if !self.settings
+            || self.settings_save.is_some()
+            || !self.settings_edit.as_ref().is_some_and(|session| {
+                self.custom_settings_session == Some(session.id()) && session.drafts().is_some()
+            })
+        {
+            return;
+        }
         let mut add = false;
         let mut cancel = false;
         let response = modal(ctx, "Set up custom app", 600.0, |ui| {
@@ -330,11 +338,11 @@ impl App {
                         );
                     });
                     footer(ui, |ui| {
-                        if action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                        if action(ui, "Confirm", Kind::Primary, true).clicked() {
+                            self.remove_custom_app(&key);
                             self.remove_custom_confirm = None;
                         }
-                        if action(ui, "OK", Kind::Primary, true).clicked() {
-                            self.remove_custom_app(&key);
+                        if action(ui, "Cancel", Kind::Secondary, true).clicked() {
                             self.remove_custom_confirm = None;
                         }
                     });

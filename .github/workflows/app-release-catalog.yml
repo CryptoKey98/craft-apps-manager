@@ -1,0 +1,186 @@
+name: App release catalog
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish verified metadata to the dedicated catalog branch
+        type: boolean
+        default: false
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: app-release-catalog-publisher
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.event_name == 'workflow_dispatch' || vars.CRAFT_APP_CATALOG_ENABLED == 'true'
+    name: Collect metadata and inspect changed packages
+    runs-on: windows-2022
+    timeout-minutes: 40
+    outputs:
+      tool_hash: ${{ steps.tool.outputs.sha256 }}
+      previous_commit: ${{ steps.previous.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/release
+          key: app-catalog-windows-${{ hashFiles('Cargo.lock') }}-${{ hashFiles('src/**', 'crates/**') }}
+          restore-keys: app-catalog-windows-${{ hashFiles('Cargo.lock') }}-
+      - name: Build and test the publisher from this source revision
+        id: tool
+        shell: pwsh
+        run: |
+          cargo build --release --locked --features app-catalog-tools --bin app-release-catalog-tool
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $hash = (Get-FileHash target/release/app-release-catalog-tool.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "sha256=$hash" >> $env:GITHUB_OUTPUT
+          python -m pip install 'cryptography==50.0.1'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/testing/test_app_release_catalog_publishing.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Read the previous published checkpoint
+        id: previous
+        shell: pwsh
+        run: |
+          $config = python scripts/publishing/app_release_catalog.py configuration | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($config.repository -cne $env:GITHUB_REPOSITORY) { throw 'Catalog repository does not match this workflow' }
+          $url = "https://github.com/$($config.repository).git"
+          git ls-remote --exit-code $url "refs/heads/$($config.branch)" > $null
+          $code = $LASTEXITCODE
+          if ($code -eq 2) {
+            New-Item -ItemType Directory -Force target/catalog-previous | Out-Null
+            'commit=absent' >> $env:GITHUB_OUTPUT
+          } elseif ($code -eq 0) {
+            git clone --depth 1 --single-branch --branch $config.branch $url target/catalog-previous
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $commit = git -C target/catalog-previous rev-parse HEAD
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            "commit=$commit" >> $env:GITHUB_OUTPUT
+          } else { throw 'Could not read the previous catalog branch' }
+      - name: Collect without access to the signing secret
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          python scripts/publishing/app_release_catalog.py collect --tool target/release/app-release-catalog-tool.exe --feed target/catalog-previous --candidate target/catalog-candidate --inspections 8
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-catalog-candidate
+          path: |
+            target/catalog-candidate/*.json
+            target/release/app-release-catalog-tool.exe
+          if-no-files-found: error
+          retention-days: 1
+  publish:
+    name: Sign and publish verified catalog
+    needs: collect
+    if: vars.CRAFT_APP_CATALOG_ENABLED == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.publish)
+    environment: app-release-catalog-production
+    runs-on: windows-2022
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-catalog-candidate
+          path: target/sign-input
+      - name: Install signature verification dependency
+        run: python -m pip install 'cryptography==50.0.1'
+      - name: Verify publisher and acquire publication ownership
+        env:
+          EXPECTED_TOOL_HASH: ${{ needs.collect.outputs.tool_hash }}
+          EXPECTED_PREVIOUS_COMMIT: ${{ needs.collect.outputs.previous_commit }}
+        shell: pwsh
+        run: |
+          $actual = (Get-FileHash target/sign-input/release/app-release-catalog-tool.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -cne $env:EXPECTED_TOOL_HASH) { throw 'Publisher artifact checksum mismatch' }
+          $config = python scripts/publishing/app_release_catalog.py configuration | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($config.repository -cne $env:GITHUB_REPOSITORY) { throw 'Catalog repository does not match this workflow' }
+          $url = "https://github.com/$($config.repository).git"
+          git ls-remote --exit-code $url "refs/heads/$($config.branch)" > $null
+          $code = $LASTEXITCODE
+          if ($code -eq 2 -and $env:EXPECTED_PREVIOUS_COMMIT -eq 'absent') {
+            git init target/catalog-feed
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            git -C target/catalog-feed remote add origin $url
+          } elseif ($code -eq 0 -and $env:EXPECTED_PREVIOUS_COMMIT -ne 'absent') {
+            git clone --depth 1 --single-branch --branch $config.branch $url target/catalog-feed
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $actual = git -C target/catalog-feed rev-parse HEAD
+            if ($actual -cne $env:EXPECTED_PREVIOUS_COMMIT) { throw 'Catalog changed after collection; refusing stale publication' }
+          } else { throw 'Catalog branch ownership changed or could not be verified' }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Sign and verify against the configured public key
+        env:
+          APP_RELEASE_CATALOG_SIGNING_KEY: ${{ secrets.APP_RELEASE_CATALOG_SIGNING_KEY }}
+          CRAFT_APP_CATALOG_KEY_ID: ${{ vars.CRAFT_APP_CATALOG_KEY_ID }}
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:APP_RELEASE_CATALOG_SIGNING_KEY)) { throw 'Missing dedicated app catalog signing secret' }
+          $source = Get-Content assets/app-release-catalog/source.json -Raw | ConvertFrom-Json
+          $keyIds = @($source.keys.PSObject.Properties.Name)
+          $keyId = $env:CRAFT_APP_CATALOG_KEY_ID
+          if ([string]::IsNullOrWhiteSpace($keyId) -and $keyIds.Count -eq 1) { $keyId = $keyIds[0] }
+          if ($keyId -cnotin $keyIds) { throw 'Select a trusted app catalog signing key ID' }
+          $keyFile = Join-Path $env:RUNNER_TEMP "app-catalog-$([guid]::NewGuid()).hex"
+          try {
+            [IO.File]::WriteAllText($keyFile, $env:APP_RELEASE_CATALOG_SIGNING_KEY.Trim(), [Text.Encoding]::ASCII)
+            Remove-Item Env:APP_RELEASE_CATALOG_SIGNING_KEY
+            & target/sign-input/release/app-release-catalog-tool.exe sign --input target/sign-input/catalog-candidate/bundle.json --key-file $keyFile --key-id $keyId --out target/signed-catalog
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            & target/sign-input/release/app-release-catalog-tool.exe verify --source assets/app-release-catalog/source.json --index target/signed-catalog/index.json --objects target/signed-catalog/apps
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally { if (Test-Path -LiteralPath $keyFile) { Remove-Item -LiteralPath $keyFile -Force } }
+      - name: Publish objects before authority and retain previous files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $config = python scripts/publishing/app_release_catalog.py configuration | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gh auth setup-git
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git -C target/catalog-feed config user.name 'github-actions[bot]'
+          git -C target/catalog-feed config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          function Publish-Phase([string[]]$Paths, [string]$Message) {
+            git -C target/catalog-feed add -- @Paths
+            if ($LASTEXITCODE -ne 0) { throw 'Could not stage catalog data' }
+            git -C target/catalog-feed diff --cached --quiet
+            if ($LASTEXITCODE -eq 0) { return }
+            if ($LASTEXITCODE -ne 1) { throw 'Could not inspect staged catalog data' }
+            git -C target/catalog-feed commit -m $Message
+            if ($LASTEXITCODE -ne 0) { throw 'Could not commit catalog data' }
+            git -C target/catalog-feed push origin "HEAD:refs/heads/$($config.branch)"
+            if ($LASTEXITCODE -ne 0) { throw 'Catalog changed during publication; refusing to overwrite it' }
+          }
+          $common = @('--tool','target/sign-input/release/app-release-catalog-tool.exe','--feed','target/catalog-feed','--published','target/signed-catalog','--candidate','target/sign-input/catalog-candidate')
+          python scripts/publishing/app_release_catalog.py stage-objects @common
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Publish-Phase @('v1/apps','publisher/retention.json') 'Stage verified app catalog objects'
+          python scripts/publishing/app_release_catalog.py stage-root @common
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Publish-Phase @('v1','publisher','app-catalog') 'Refresh signed app release catalog'

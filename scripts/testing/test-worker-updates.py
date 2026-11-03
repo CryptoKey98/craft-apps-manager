@@ -132,7 +132,7 @@ def run_case(name, source, versions, wait):
     (external / "project.txt").write_text("External installation must remain untouched")
     records = [dict(name="fixture-app", version="0.1.0", path=str(path.parent), architecture="x64", install_kind="portable", installation_label=label)
         for path, label in [(app, "A"), (external_app, "B")]]
-    (data / "settings.json").write_text(json.dumps(dict(appsRoot=str(data / "apps"), apps=records[:1], installations=records)))
+    (data / "installations.json").write_text(json.dumps(dict(appsRoot=str(data / "apps"), apps=records[:1], installations=records)))
     (data / "manager-settings.json").write_text(json.dumps(dict(theme="light", checkInstalledAppsPeriodically=True, appCheckIntervalMinutes=20)))
     (data / "portable.txt").write_text("Preserve portable marker")
     subprocess.run([str(target), "--root", str(data)], check=True, timeout=30)
@@ -174,9 +174,9 @@ def run_case(name, source, versions, wait):
         assert identity["version"] == version
         assert_preserved(data, before)
         assert_preserved(external, outside)
-        config = json.loads((data / "settings.json").read_text())
+        config = json.loads((data / "installations.json").read_text())
         assert config["apps"] == records[:1] and config["installations"] == records
-        assert json.loads((data / "manager-settings.json").read_text())["theme"] == "light"
+        assert restarted.get("preferences", {}).get("theme") == "light", "Migrated fixture preference changed"
         hops.append(dict(version=version, executable_sha256=hashlib.sha256(target.read_bytes()).hexdigest(), restarted_pid=restarted["pid"], preserved_files=len(before) + len(outside)))
     return dict(case=name, folder=str(case), source=source, hops=hops, result="passed", settings_and_apps="byte-for-byte preserved", approval_refusal="passed", tamper_refusals=refusals)
 

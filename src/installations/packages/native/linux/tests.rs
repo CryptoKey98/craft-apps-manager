@@ -1,4 +1,16 @@
 use super::*;
+
+#[test]
+fn reverse_dns_package_names_are_bound_to_the_selected_builtin_app() {
+    assert!(owned_package("filmcraft", "ai.storyteller.filmcraft"));
+    assert!(owned_package("filmcraft", "filmcraft"));
+    assert!(!owned_package("filmcraft", "ai.storyteller.designcraft"));
+    assert!(!owned_package("filmcraft", "untrusted.filmcraft"));
+    assert!(!owned_package(
+        "filmcraft",
+        "ai.storyteller.filmcraft.extra"
+    ));
+}
 #[cfg(target_os = "linux")]
 struct PackageFixture(PathBuf);
 #[cfg(target_os = "linux")]

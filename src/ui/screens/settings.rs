@@ -1,17 +1,26 @@
 //! Settings: one scrolling page with a jump list, saved together with one Save.
 use crate::ui::dialogs;
 use crate::ui::theme::{self, btn, Kind};
-use crate::ui::{modal, App, Locations};
-use craft_apps_manager::{catalog, model, platform, scheduler, self_update};
+use crate::ui::{modal, App};
+use craft_apps_manager::{catalog, model, platform, self_update};
 use eframe::egui::{self, CornerRadius, FontId, RichText, Sense};
 use std::{path::PathBuf, time::Duration};
 
-const MANAGER_SECTIONS: [&str; 7] = [
-    "General", "Updates", "Apps", "Backups", "Builds", "Folders", "About",
-];
+const MANAGER_SECTIONS: [&str; 6] = ["General", "Updates", "Apps", "Builds", "Folders", "About"];
 const BUILDER_SECTIONS: [&str; 3] = ["Builds", "Folders", "About"];
+const BUILDER_TOKEN_SECTIONS: [&str; 4] = ["Updates", "Builds", "Folders", "About"];
 /// Width of the section list, its right hairline included.
 const NAV_WIDTH: f32 = 176.0;
+
+pub(in crate::ui) mod cache_cleanup;
+pub(in crate::ui) mod edit_session;
+mod lifecycle;
+pub(in crate::ui) mod save;
+pub(in crate::ui) use lifecycle::Loaded;
+mod token_draft;
+use edit_session::{CloseRoute, SelectionOrigin};
+pub(in crate::ui) use token_draft::verification_allows_close;
+pub(in crate::ui) use token_draft::TokenDraft;
 
 /// A titled group of rows inside a section: 13pt semibold title, 10pt gap, card.
 fn group(ui: &mut egui::Ui, title: &str, content: impl FnOnce(&mut egui::Ui)) {
@@ -197,15 +206,47 @@ fn path_field(ui: &mut egui::Ui, text: &mut String) -> bool {
 
 impl App {
     pub(in crate::ui) fn settings_ui(&mut self, ctx: &egui::Context) {
+        self.poll_api_cache_cleanup(ctx);
         if !self.settings {
             return;
         }
-        let sections: &[&str] = if self.builder {
+        if self.settings_load.is_some() {
+            let response = modal(ctx, "Settings", 480.0, |ui| {
+                dialogs::title_bar(ui, "Settings", |ui| {
+                    if dialogs::close_button(ui).clicked() {
+                        self.discard_settings(CloseRoute::TitleBar);
+                    }
+                });
+                ui.horizontal(|ui| {
+                    ui.spinner();
+                    ui.label("Loading settings…");
+                });
+            });
+            if response.should_close() {
+                self.discard_settings(if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+                    CloseRoute::Escape
+                } else {
+                    CloseRoute::Outside
+                });
+            }
+            ctx.request_repaint_after(Duration::from_millis(50));
+            return;
+        }
+        let sections: &[&str] = if self.builder && self.settings_token_entry {
+            &BUILDER_TOKEN_SECTIONS
+        } else if self.builder {
             &BUILDER_SECTIONS
         } else {
             &MANAGER_SECTIONS
         };
-        let busy = self.release_pending() || self.job.snapshot().busy;
+        let saving_token = self.settings_save.is_some();
+        let busy = self.release_pending()
+            || self.job.snapshot().busy
+            || saving_token
+            || self
+                .rollback_dialog
+                .as_ref()
+                .is_some_and(dialogs::rollback::RollbackDialog::save_pending);
         let active_id = egui::Id::new("settings-active-section");
         let active = ctx.data(|d| d.get_temp::<usize>(active_id)).unwrap_or(0);
         let modal = modal(
@@ -218,129 +259,148 @@ impl App {
             760.0,
             |ui| {
                 dialogs::title_bar(ui, "Settings", |ui| {
-                    if dialogs::close_button(ui).clicked() {
-                        self.settings = false;
+                    if ui
+                        .add_enabled_ui(!saving_token, dialogs::close_button)
+                        .inner
+                        .clicked()
+                    {
+                        self.discard_settings(CloseRoute::TitleBar);
                     }
                 });
                 // The dialog is 600pt tall: title bar, scrolling body, footer.
                 let total = (ctx.screen_rect().height() - 48.0).min(600.0);
                 let height = (total - 2.0 - 2.0 * dialogs::BAR_HEIGHT).max(220.0);
-                ui.horizontal_top(|ui| {
-                    // Scroll areas allow a paint margin for widget shadows.
-                    // Bound the entire body so that margin cannot bleed into
-                    // the header or footer when settings are scrolled.
-                    let body_rect = egui::Rect::from_min_size(
-                        ui.cursor().min,
-                        egui::vec2(ui.available_width(), height),
-                    );
-                    ui.set_clip_rect(ui.clip_rect().intersect(body_rect));
-                    ui.spacing_mut().item_spacing.x = 0.0;
-                    ui.allocate_ui_with_layout(
-                        egui::vec2(NAV_WIDTH - 1.0, height),
-                        egui::Layout::top_down(egui::Align::Min),
-                        |ui| {
-                            ui.set_min_size(egui::vec2(NAV_WIDTH - 1.0, height));
-                            dialogs::band(ui, egui::Margin::symmetric(8, 12), 0.0, |ui| {
-                                ui.spacing_mut().item_spacing.y = 2.0;
-                                for (index, section) in sections.iter().enumerate() {
-                                    let selected = index == active;
-                                    let (rect, response) = ui.allocate_exact_size(
-                                        egui::vec2(ui.available_width(), 36.0),
-                                        Sense::click(),
-                                    );
-                                    response.widget_info(|| {
-                                        egui::WidgetInfo::selected(
-                                            egui::WidgetType::SelectableLabel,
-                                            true,
-                                            selected,
-                                            *section,
-                                        )
-                                    });
-                                    if selected || response.hovered() {
-                                        ui.painter().rect_filled(
-                                            rect,
-                                            CornerRadius::same(8),
+                ui.add_enabled_ui(!saving_token, |ui| {
+                    ui.horizontal_top(|ui| {
+                        // Scroll areas allow a paint margin for widget shadows.
+                        // Bound the entire body so that margin cannot bleed into
+                        // the header or footer when settings are scrolled.
+                        let body_rect = egui::Rect::from_min_size(
+                            ui.cursor().min,
+                            egui::vec2(ui.available_width(), height),
+                        );
+                        ui.set_clip_rect(ui.clip_rect().intersect(body_rect));
+                        ui.spacing_mut().item_spacing.x = 0.0;
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(NAV_WIDTH - 1.0, height),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                ui.set_min_size(egui::vec2(NAV_WIDTH - 1.0, height));
+                                dialogs::band(ui, egui::Margin::symmetric(8, 12), 0.0, |ui| {
+                                    ui.spacing_mut().item_spacing.y = 2.0;
+                                    for (index, section) in sections.iter().enumerate() {
+                                        let selected = index == active;
+                                        let (rect, response) = ui.allocate_exact_size(
+                                            egui::vec2(ui.available_width(), 36.0),
+                                            Sense::click(),
+                                        );
+                                        response.widget_info(|| {
+                                            egui::WidgetInfo::selected(
+                                                egui::WidgetType::SelectableLabel,
+                                                true,
+                                                selected,
+                                                *section,
+                                            )
+                                        });
+                                        if selected || response.hovered() {
+                                            ui.painter().rect_filled(
+                                                rect,
+                                                CornerRadius::same(8),
+                                                if selected {
+                                                    theme::palette().selected
+                                                } else {
+                                                    theme::palette().hover
+                                                },
+                                            );
+                                        }
+                                        theme::painter_text(
+                                            ui.painter(),
+                                            egui::pos2(rect.left() + 12.0, rect.center().y),
+                                            egui::Align2::LEFT_CENTER,
+                                            section,
+                                            14.0,
                                             if selected {
-                                                theme::palette().selected
+                                                theme::palette().text
                                             } else {
-                                                theme::palette().hover
+                                                theme::palette().text_3
                                             },
                                         );
-                                    }
-                                    theme::painter_text(
-                                        ui.painter(),
-                                        egui::pos2(rect.left() + 12.0, rect.center().y),
-                                        egui::Align2::LEFT_CENTER,
-                                        section,
-                                        14.0,
-                                        if selected {
-                                            theme::palette().text
-                                        } else {
-                                            theme::palette().text_3
-                                        },
-                                    );
-                                    if response.clicked() {
-                                        self.settings_jump = Some(index);
-                                    }
-                                }
-                            });
-                        },
-                    );
-                    let (rect, _) = ui.allocate_exact_size(egui::vec2(1.0, height), Sense::hover());
-                    ui.painter().rect_filled(rect, 0.0, theme::palette().border);
-                    egui::ScrollArea::vertical()
-                        .id_salt("settings-scroll")
-                        .auto_shrink([false, false])
-                        .max_height(height)
-                        .min_scrolled_height(height)
-                        .show(ui, |ui| {
-                            ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
-                                let viewport_top = ui.clip_rect().top();
-                                egui::Frame::new()
-                                    .inner_margin(egui::Margin {
-                                        left: 24,
-                                        right: 24,
-                                        top: 20,
-                                        bottom: 40,
-                                    })
-                                    .show(ui, |ui| {
-                                        ui.spacing_mut().item_spacing.y = 0.0;
-                                        let mut current = 0;
-                                        for (index, section) in sections.iter().enumerate() {
-                                            let top = ui.cursor().top();
-                                            if top <= viewport_top + 48.0 {
-                                                current = index;
-                                            }
-                                            if index > 0 {
-                                                ui.add_space(36.0);
-                                            }
-                                            let heading = theme::heading(ui, *section, 18.0);
-                                            ui.add_space(16.0);
-                                            if self.settings_jump == Some(index) {
-                                                heading.scroll_to_me(Some(egui::Align::TOP));
-                                                self.settings_jump = None;
-                                            }
-                                            match *section {
-                                                "General" => self.settings_general(ui),
-                                                "Apps" => self.settings_apps(ui),
-                                                "Updates" => self.settings_updates(ui, ctx, busy),
-                                                "Backups" => self.settings_backups(ui, busy),
-                                                "Builds" => self.settings_builds(ui, busy),
-                                                "About" => self.settings_about(ui),
-                                                _ => self.settings_folders(ui),
-                                            }
+                                        if response.clicked() {
+                                            self.settings_jump = Some(index);
                                         }
-                                        // Let the last section scroll to the top of the view.
-                                        ui.add_space((height - 300.0).max(0.0));
-                                        ctx.data_mut(|d| d.insert_temp(active_id, current));
-                                    });
+                                    }
+                                });
+                            },
+                        );
+                        let (rect, _) =
+                            ui.allocate_exact_size(egui::vec2(1.0, height), Sense::hover());
+                        ui.painter().rect_filled(rect, 0.0, theme::palette().border);
+                        egui::ScrollArea::vertical()
+                            .id_salt("settings-scroll")
+                            .auto_shrink([false, false])
+                            .max_height(height)
+                            .min_scrolled_height(height)
+                            .show(ui, |ui| {
+                                if saving_token {
+                                    ui.disable();
+                                }
+                                ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                                    let viewport_top = ui.clip_rect().top();
+                                    egui::Frame::new()
+                                        .inner_margin(egui::Margin {
+                                            left: 24,
+                                            right: 24,
+                                            top: 20,
+                                            bottom: 40,
+                                        })
+                                        .show(ui, |ui| {
+                                            ui.spacing_mut().item_spacing.y = 0.0;
+                                            let mut current = 0;
+                                            for (index, section) in sections.iter().enumerate() {
+                                                let top = ui.cursor().top();
+                                                if top <= viewport_top + 48.0 {
+                                                    current = index;
+                                                }
+                                                if index > 0 {
+                                                    ui.add_space(36.0);
+                                                }
+                                                let heading = theme::heading(ui, *section, 18.0);
+                                                ui.add_space(16.0);
+                                                if self.settings_jump == Some(index) {
+                                                    heading.scroll_to_me(Some(egui::Align::TOP));
+                                                    self.settings_jump = None;
+                                                }
+                                                match *section {
+                                                    "General" => self.settings_general(ui),
+                                                    "Apps" => self.settings_apps(ui),
+                                                    "Updates" => {
+                                                        if self.builder {
+                                                            self.github_token_settings(ui);
+                                                        } else {
+                                                            self.settings_updates(ui, ctx, busy);
+                                                        }
+                                                    }
+                                                    "Builds" => self.settings_builds(ui, busy),
+                                                    "About" => self.settings_about(ui),
+                                                    _ => self.settings_folders(ui),
+                                                }
+                                            }
+                                            // Let the last section scroll to the top of the view.
+                                            ui.add_space((height - 300.0).max(0.0));
+                                            ctx.data_mut(|d| d.insert_temp(active_id, current));
+                                        });
+                                });
                             });
-                        });
+                    });
                 });
                 dialogs::footer(ui, |ui| {
+                    if saving_token {
+                        ui.spinner();
+                        ctx.request_repaint_after(Duration::from_millis(50));
+                    }
                     if dialogs::action(
                         ui,
-                        "Save",
+                        if saving_token { "Saving…" } else { "Save" },
                         Kind::Primary,
                         !busy
                             && self.custom_receiver.is_none()
@@ -350,18 +410,10 @@ impl App {
                     .on_disabled_hover_text("Wait for the current operation to finish.")
                     .clicked()
                     {
-                        self.save_settings();
+                        self.save_settings(ctx);
                     }
-                    if dialogs::action(
-                        ui,
-                        "Cancel",
-                        Kind::Secondary,
-                        self.custom_receiver.is_none(),
-                    )
-                    .clicked()
-                    {
-                        self.settings = false;
-                        self.custom_apps_draft.clear();
+                    if dialogs::action(ui, "Cancel", Kind::Secondary, !saving_token).clicked() {
+                        self.discard_settings(CloseRoute::Cancel);
                     }
                 });
             },
@@ -392,19 +444,25 @@ impl App {
                 self.visibility_open = false;
             }
         }
-        if !self.visibility_open
+        let api_cache_dialog_open = self.api_cache_cleanup.confirm;
+        self.api_cache_cleanup_dialog(ctx);
+        if !api_cache_dialog_open
+            && !self.visibility_open
             && !self.selection
-            && !self.confirm_clear
             && !self.confirm_clean
             && !self.confirm_self_update
             && self.error.is_none()
             && self.selection_notice.is_none()
             && self.custom_download_choice.is_none()
             && self.custom_setup.is_none()
-            && self.custom_receiver.is_none()
+            && !saving_token
             && modal.should_close()
         {
-            self.settings = false;
+            self.discard_settings(if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
+                CloseRoute::Escape
+            } else {
+                CloseRoute::Outside
+            });
         }
     }
 
@@ -427,12 +485,14 @@ impl App {
             {
                 let result = (|| -> anyhow::Result<()> {
                     let mut preferences = self.paths.read_preferences()?;
+                    let base = preferences.clone();
                     let first_hide = !self.hide_notice_seen;
                     if !preferences.hidden_apps.iter().any(|app| app == name) {
                         preferences.hidden_apps.push(name.to_owned());
                     }
-                    craft_apps_manager::files::write_json(
-                        &self.paths.at("manager-settings.json"),
+                    let preferences = craft_apps_manager::settings::save_preferences_patch(
+                        &self.paths,
+                        &base,
                         &preferences,
                     )?;
                     if first_hide {
@@ -587,6 +647,10 @@ impl App {
     }
 
     fn add_custom_app(&mut self, ctx: &egui::Context) {
+        let Some(session) = &self.settings_edit else {
+            return;
+        };
+        self.custom_settings_session = Some(session.id());
         let link = self.custom_link.trim().to_string();
         let slug = match catalog::parse_github_slug(&link) {
             Ok(slug) => slug,
@@ -650,8 +714,18 @@ impl App {
     }
 
     pub(in crate::ui) fn custom_app_added(&mut self, entry: &catalog::Entry) {
+        let Some(session) = &mut self.settings_edit else {
+            return;
+        };
+        let Some(id) = self.custom_settings_session else {
+            return;
+        };
+        if session.id() != id || self.settings_save.is_some() {
+            return;
+        }
         match catalog::merge_custom_registration(&mut self.custom_apps_draft, entry.clone()) {
             Ok(()) => {
+                session.accept_custom_result(id, self.custom_apps_draft.clone());
                 self.custom_message = format!(
                     "{} added for {}. Save Settings to keep this change.",
                     entry.title,
@@ -760,83 +834,48 @@ impl App {
         }
     }
 
-    fn save_settings(&mut self) {
-        let resolved = (|| -> anyhow::Result<_> {
-            Ok((
-                craft_apps_manager::portable_mode::resolve_folder(
-                    &self.home,
-                    &PathBuf::from(self.root_text.trim()),
-                )?,
-                craft_apps_manager::portable_mode::resolve_folder(
-                    &self.home,
-                    &PathBuf::from(self.tools_text.trim()),
-                )?,
-            ))
-        })();
-        let (root, tools) = match resolved {
-            Ok(paths) => paths,
-            Err(error) => {
-                self.error = Some(format!("{error:#}"));
-                return;
-            }
-        };
-        let locations = Locations {
-            root: Some(root.clone()),
-            tools: Some(tools.clone()),
-        };
-        let result = craft_apps_manager::settings::save_with_custom_apps(
-            &self.paths,
-            &self.home.join("data-root.json"),
-            &locations,
-            &root,
-            &tools,
-            if self.builder {
-                None
-            } else {
-                Some(&self.settings_draft)
-            },
-            Some(&self.build_draft),
-            if self.builder {
-                None
-            } else {
-                Some(&self.custom_apps_draft)
-            },
-        );
-        if result.is_ok() {
-            catalog::load(&self.paths.root);
-            self.build_preferences = self.build_draft.clone();
-            if !self.builder {
-                self.settings_draft.validate().expect("validated settings");
-                let changed =
-                    self.preferences.app_install_options != self.settings_draft.app_install_options;
-                self.preferences = self.settings_draft.clone();
-                if changed {
-                    self.check_generation += 1;
-                    self.checking_apps.clear();
-                    self.release_checks.clear();
-                }
-                // Appearance/selection saves must not temporarily empty the app lists.
-                if changed || root != self.paths.root {
-                    self.display_config = None;
-                    self.config_receiver = None;
-                }
-                self.config_refresh_at = std::time::Instant::now();
-            }
-            if !self.builder && self.auto_draft != self.auto {
-                if let Err(error) = scheduler::set(&self.paths, false, self.auto_draft) {
-                    self.auto = scheduler::enabled(false);
-                    self.auto_draft = self.auto;
-                    self.result(Err(error.context(
-                        "Preferences saved, but the background scheduler could not be changed",
-                    )));
-                    return;
-                }
-                self.auto = self.auto_draft;
-            }
-            self.settings = false;
-            self.catalog_changed();
+    fn save_settings(&mut self, ctx: &egui::Context) {
+        if self.settings_save.is_some()
+            || self.settings_load.is_some()
+            || self
+                .rollback_dialog
+                .as_ref()
+                .is_some_and(dialogs::rollback::RollbackDialog::save_pending)
+        {
+            return;
         }
-        self.result(result);
+        let Some(session) = &mut self.settings_edit else {
+            return;
+        };
+        let Some(draft) = session.drafts_mut() else {
+            return;
+        };
+        if !self.builder {
+            draft.manager = self.settings_draft.clone();
+            draft.custom_apps = self.custom_apps_draft.clone();
+            draft.scheduler_enabled = self.auto_draft;
+        }
+        draft.token = std::mem::take(&mut self.token_draft);
+        draft.builder = self.build_draft.clone();
+        draft.locations = edit_session::Locations {
+            root: PathBuf::from(self.root_text.trim()),
+            tools: PathBuf::from(self.tools_text.trim()),
+        };
+        match session.freeze_for_save() {
+            Ok(edit) => {
+                self.token_reveal = false;
+                self.settings_save = Some(save::spawn(
+                    save::SaveRequest {
+                        paths: self.paths.clone(),
+                        home: self.home.clone(),
+                        edit,
+                    },
+                    save::SystemBackend,
+                    ctx.clone(),
+                ));
+            }
+            Err(error) => self.error = Some(format!("{error:#}")),
+        }
     }
 
     fn settings_about(&self, ui: &mut egui::Ui) {
@@ -898,7 +937,7 @@ impl App {
                 ui.add_space(20.0);
                 dialogs::rule(ui);
                 ui.add_space(16.0);
-                ui.add(egui::Label::new("Install and launch Craft apps, check for new releases, manage backups and launch settings, or download source code and build apps yourself.").wrap());
+                ui.add(egui::Label::new("Install and launch Craft apps, check for new releases, manage rollback versions and launch settings, or download source code and build apps yourself.").wrap());
                 ui.add_space(16.0);
                 theme::hyperlink(ui, "Visit project on GitHub", self_update::REPOSITORY, 13.0);
                 ui.add_space(16.0);
@@ -974,11 +1013,12 @@ impl App {
         });
     }
 
-    fn github_token_settings(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+    fn github_token_settings(&mut self, ui: &mut egui::Ui) {
         use craft_apps_manager::network;
-        let pending = self.token_action_receiver.is_some() || self.token_receiver.is_some();
+        let pending = self.settings_save.is_some() || self.token_receiver.is_some();
         let mut add = false;
         let mut remove = false;
+        let token_top = ui.cursor().top();
         group(ui, "GitHub token", |ui| {
             dialogs::band(ui, egui::Margin::symmetric(14, 12), 0.0, |ui| {
                 ui.allocate_ui_with_layout(
@@ -990,7 +1030,7 @@ impl App {
                         } else {
                             "Add"
                         })
-                        .enabled(!pending && !self.token_draft.trim().is_empty())
+                        .enabled(!pending && !self.token_draft.input.trim().is_empty())
                         .show(ui)
                         .clicked();
                         if theme::icon_button(
@@ -1012,25 +1052,59 @@ impl App {
                             self.token_reveal = !self.token_reveal;
                         }
                         dialogs::field_style(ui);
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.token_draft)
+                        let token_input_id = ui.make_persistent_id("github-token-input");
+                        token_draft::prepare_token_paste(ui.ctx(), token_input_id);
+                        let input = ui.add(
+                            egui::TextEdit::singleline(&mut self.token_draft.input)
+                                .id(token_input_id)
                                 .password(!self.token_reveal)
                                 .hint_text("Paste your GitHub token")
                                 .margin(egui::Margin::symmetric(10, 8))
                                 .min_size(egui::vec2(0.0, 34.0))
                                 .desired_width(ui.available_width()),
                         );
+                        if self.settings_token_focus && !pending && !ui.is_sizing_pass() {
+                            input.request_focus();
+                        }
                     },
                 );
                 ui.add_space(10.0);
                 ui.add(
                     egui::Label::new(
-                        RichText::new("Optional. Raises the GitHub API request limit.")
+                        RichText::new("Optional. Raises the GitHub API request limit. Changes apply with Save.")
                             .size(12.0)
                             .color(theme::palette().muted),
                     )
                     .wrap(),
                 );
+                ui.add_space(8.0);
+                ui.hyperlink_to(
+                    RichText::new("Create a classic token ↗").size(12.0),
+                    crate::ui::widgets::github_activity::CLASSIC_TOKEN_URL,
+                );
+                let guide =
+                    egui::CollapsingHeader::new(RichText::new("How to create one").size(12.0))
+                        .id_salt("github-token-help")
+                        .open(Some(self.token_help_open))
+                        .show(ui, |ui| {
+                            for (index, step) in crate::ui::widgets::github_activity::TOKEN_STEPS
+                                .iter()
+                                .enumerate()
+                            {
+                                ui.add(
+                                    egui::Label::new(
+                                        RichText::new(format!("{}. {step}", index + 1))
+                                            .size(12.0)
+                                            .color(theme::palette().muted),
+                                    )
+                                    .wrap(),
+                                );
+                                ui.add_space(5.0);
+                            }
+                        });
+                if guide.header_response.clicked() {
+                    self.token_help_open = !self.token_help_open;
+                }
                 if network::token_source().is_some_and(|source| source != "System credential store")
                 {
                     ui.add_space(6.0);
@@ -1048,38 +1122,51 @@ impl App {
                     );
                 }
             });
-            if network::saved_token_present() {
+            if let Some((title, detail)) = self.token_draft.row(network::saved_token_present()) {
                 dialogs::rule(ui);
-                remove = row(
-                    ui,
-                    "Saved token",
-                    Some("System credential store"),
-                    56.0,
-                    |ui| btn("Remove").enabled(!pending).show(ui).clicked(),
-                );
+                remove = row(ui, title, Some(detail), 56.0, |ui| {
+                    btn(self.token_draft.row_action_label())
+                        .enabled(!pending)
+                        .show(ui)
+                        .clicked()
+                });
             }
         });
+        if self.settings_token_focus && !pending && !ui.is_sizing_pass() {
+            // Measure the complete group, including help and the saved-token row,
+            // after the modal's invisible sizing pass has established its viewport.
+            ui.scroll_to_rect(
+                egui::Rect::from_min_max(
+                    egui::pos2(ui.max_rect().left(), token_top),
+                    egui::pos2(ui.max_rect().right(), ui.cursor().top()),
+                ),
+                Some(egui::Align::Center),
+            );
+            self.settings_token_focus = false;
+        }
         if add || remove {
-            let value = std::mem::take(&mut self.token_draft);
             self.token_reveal = false;
-            self.token_message = "Applying token…".into();
-            self.token_status = network::TokenStatus::NotVerified;
-            self.token_receiver = None;
-            self.token_check_started = true;
-            let (tx, rx) = std::sync::mpsc::channel();
-            self.token_action_receiver = Some(rx);
-            let ctx = ctx.clone();
-            std::thread::spawn(move || {
-                let result = if remove {
-                    network::remove_saved_token()
+            if remove {
+                if self.token_draft.cancel_pending_set() {
+                    self.token_message = if network::saved_token_present() {
+                        "Replacement cancelled. Your saved token is unchanged."
+                    } else {
+                        "Token addition cancelled."
+                    }
+                    .into();
+                } else if self.token_draft.undo_removal() {
+                    self.token_message = "Token removal cancelled.".into();
+                } else if network::saved_token_present() {
+                    self.token_draft.remove();
+                    self.token_message = "Token removal pending. Click Save to apply.".into();
                 } else {
-                    network::save_token(&value)
+                    self.token_draft.discard();
+                    self.token_message = "Pending token discarded.".into();
                 }
-                .map(|_| network::verify_token())
-                .map_err(|error| error.to_string());
-                let _ = tx.send(result);
-                ctx.request_repaint();
-            });
+            } else {
+                self.token_draft.stage();
+                self.token_message = "Token change pending. Click Save to apply.".into();
+            }
         }
     }
 
@@ -1245,6 +1332,10 @@ impl App {
                 btn("Choose…").show(ui).clicked()
             }) {
                 self.source_selection = false;
+                self.selection_origin = self
+                    .settings_edit
+                    .as_ref()
+                    .map(|s| SelectionOrigin::Settings(s.id()));
                 self.selection_draft = self.settings_draft.selected_apps.clone();
                 self.selection = true;
             }
@@ -1255,7 +1346,7 @@ impl App {
                 "Look for new Craft apps on startup",
                 None,
             )
-            .on_hover_text("Uses the saved app list for six hours between automatic checks. Discovery never downloads or installs apps.");
+            .on_hover_text("Reuses recent discovery results for up to a minute. Discovery never downloads or installs apps.");
             dialogs::rule(ui);
             check_row(
                 ui,
@@ -1263,7 +1354,7 @@ impl App {
                 "Look for new Craft apps during automatic update checks",
                 None,
             )
-            .on_hover_text("Uses periodic or background update checks. Shares the six-hour discovery cache with startup checks. Refresh below checks immediately.");
+            .on_hover_text("Uses periodic or background update checks at your configured interval. Recent simultaneous checks share their result.");
             dialogs::rule(ui);
             let known = catalog::all().len();
             let status = if self.catalog_message.is_empty() {
@@ -1359,66 +1450,23 @@ impl App {
             });
         }
         ui.add_space(16.0);
-        self.github_token_settings(ui, ctx);
-    }
-
-    fn settings_backups(&mut self, ui: &mut egui::Ui, busy: bool) {
-        group(ui, "Backups", |ui| {
-            check_row(
+        group(ui, "Rollback", |ui| {
+            let mut enabled = self.settings_draft.rollback_enabled();
+            if check_row(
                 ui,
-                &mut self.settings_draft.keep_app_backups,
-                "Back up portable apps",
-                Some("Before each update. Portable releases only."),
-            );
-            dialogs::rule(ui);
-            check_row_with(
-                ui,
-                &mut self.settings_draft.compress_backups,
-                "Compress portable app backups",
-                Some("7-Zip Ultra / LZMA2"),
-                true,
-            );
-            dialogs::rule(ui);
-            check_row(
-                ui,
-                &mut self.settings_draft.keep_source_backups,
-                "Back up sources",
-                Some("Before each source update"),
-            );
-            dialogs::rule(ui);
-            check_row_with(
-                ui,
-                &mut self.settings_draft.compress_source_backups,
-                "Recompress source backups",
-                Some("7-Zip Ultra / LZMA2"),
-                true,
-            );
-            dialogs::rule(ui);
-            row(
-                ui,
-                "Previous versions to keep",
-                Some("Per app and per source"),
-                52.0,
-                |ui| {
-                    number(
-                        ui,
-                        egui::DragValue::new(&mut self.settings_draft.backup_versions)
-                            .range(1..=10),
-                    );
-                },
-            );
+                &mut enabled,
+                "Keep the previous version for rollback",
+                Some("Keeps one previous version for rollback."),
+            )
+            .changed()
+            {
+                self.settings_draft.rollback_enabled = Some(enabled);
+            }
         });
-        ui.add_space(10.0);
-        if btn("Delete all backups…")
-            .kind(Kind::DangerOutline)
-            .height(34.0)
-            .enabled(!busy)
-            .show(ui)
-            .on_disabled_hover_text("Wait for the current operation to finish.")
-            .clicked()
-        {
-            self.confirm_clear = true;
-        }
+        ui.add_space(16.0);
+        self.github_token_settings(ui);
+        ui.add_space(16.0);
+        self.api_cache_cleanup_row(ui);
     }
 
     fn settings_builds(&mut self, ui: &mut egui::Ui, busy: bool) {
@@ -1513,7 +1561,7 @@ impl App {
                 ui.spacing_mut().item_spacing.y = 8.0;
                 theme::text(
                     ui,
-                    "Library (releases, sources, builds, logs, backups)",
+                    "Library (releases, sources, builds, logs, rollback versions)",
                     14.0,
                     theme::palette().text,
                 );

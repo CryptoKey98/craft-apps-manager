@@ -62,42 +62,32 @@ pub fn save_with_custom_apps<T: Serialize>(
         }
     }
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-    let mut writes = Vec::new();
+    let _config_lock = crate::storage::config::write_lock()?;
+    let store = crate::storage::config::ConfigStore::new(paths.root.clone());
+    let snapshot = store.load_or_migrate_locked()?;
+    let mut document = snapshot.document.clone();
     if let Some(prefs) = preferences {
-        let mut config = paths.config()?;
-        for app in &config.apps {
-            let installer = app.install_kind == "installer";
-            config.installations.retain(|a| {
-                !(a.name == app.name
-                    && (a.install_kind == "installer") == installer
-                    && a.path == app.path)
-            });
-            if !app.path.is_empty() {
-                config.installations.push(app.clone());
-            }
-        }
-        crate::installation_labels::assign(&mut config)?;
-        writes.push((
-            paths.at("settings.json"),
-            files::json_bytes(&paths.at("settings.json"), &config)?,
-        ));
-        writes.push((
-            paths.at("manager-settings.json"),
-            serde_json::to_vec_pretty(&prefs)?,
-        ));
+        let base = snapshot.manager()?;
+        // Reuse typed field merging, then read the complete unknown-preserving tree.
+        crate::storage::config::adapters::merge_typed_into(
+            &mut document,
+            "manager",
+            &base,
+            &prefs,
+        )?;
     }
     if let Some(prefs) = builder {
-        writes.push((
-            paths.at("builder-settings.json"),
-            serde_json::to_vec_pretty(prefs)?,
-        ));
+        crate::storage::config::adapters::merge_typed_into(
+            &mut document,
+            "builder",
+            &snapshot.builder()?,
+            prefs,
+        )?;
     }
     if let Some(apps) = custom_apps {
-        writes.push((
-            paths.at("runtime/custom-apps.json"),
-            serde_json::to_vec_pretty(apps)?,
-        ));
+        document["custom_apps"] = serde_json::to_value(apps)?;
     }
+    let mut writes = vec![(store.path(), store.document_bytes(&document)?)];
     writes.push((
         locations_path.to_owned(),
         files::json_bytes(locations_path, locations)?,
@@ -108,17 +98,20 @@ pub fn save_with_custom_apps<T: Serialize>(
 /// Save only the bulk release selection, keeping other preferences and inventory intact.
 pub fn select_release_apps(paths: &Paths, selected: &[String]) -> Result<Preferences> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    let _config_lock = crate::storage::config::write_lock()?;
     let choices = crate::model::apps();
     if selected.iter().any(|app| !choices.contains(app)) {
         bail!("Unknown release app in selection");
     }
-    let mut preferences = paths.read_preferences()?;
+    let mut preferences = crate::storage::config::ConfigStore::new(paths.root.clone())
+        .load_or_migrate_locked()?
+        .manager()?;
     preferences.selected_apps = selected.to_vec();
     preferences.validate()?;
     commit(
         &[(
-            paths.at("manager-settings.json"),
-            serde_json::to_vec_pretty(&preferences)?,
+            paths.at("config.yaml"),
+            preferences_bytes_locked(paths, &preferences)?,
         )],
         atomic_bytes,
     )?;
@@ -126,7 +119,10 @@ pub fn select_release_apps(paths: &Paths, selected: &[String]) -> Result<Prefere
 }
 pub fn reorder(paths: &Paths, dragged: &str, target: &str, before: bool) -> Result<Preferences> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-    let mut preferences = paths.read_preferences()?;
+    let _config_lock = crate::storage::config::write_lock()?;
+    let mut preferences = crate::storage::config::ConfigStore::new(paths.root.clone())
+        .load_or_migrate_locked()?
+        .manager()?;
     crate::model::valid_app(dragged)?;
     crate::model::valid_app(target)?;
     preferences.app_order.retain(|name| name != dragged);
@@ -141,8 +137,8 @@ pub fn reorder(paths: &Paths, dragged: &str, target: &str, before: bool) -> Resu
     preferences.validate()?;
     commit(
         &[(
-            paths.at("manager-settings.json"),
-            serde_json::to_vec_pretty(&preferences)?,
+            paths.at("config.yaml"),
+            preferences_bytes_locked(paths, &preferences)?,
         )],
         atomic_bytes,
     )?;
@@ -155,7 +151,10 @@ pub fn reorder_home(
     before: bool,
 ) -> Result<Preferences> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-    let mut preferences = paths.read_preferences()?;
+    let _config_lock = crate::storage::config::write_lock()?;
+    let mut preferences = crate::storage::config::ConfigStore::new(paths.root.clone())
+        .load_or_migrate_locked()?
+        .manager()?;
     crate::model::valid_app(dragged)?;
     crate::model::valid_app(target)?;
     preferences.home_app_order.retain(|name| name != dragged);
@@ -170,12 +169,50 @@ pub fn reorder_home(
     preferences.validate()?;
     commit(
         &[(
-            paths.at("manager-settings.json"),
-            serde_json::to_vec_pretty(&preferences)?,
+            paths.at("config.yaml"),
+            preferences_bytes_locked(paths, &preferences)?,
         )],
         atomic_bytes,
     )?;
     Ok(preferences)
+}
+
+pub fn save_preferences_patch(
+    paths: &Paths,
+    base: &Preferences,
+    edited: &Preferences,
+) -> Result<Preferences> {
+    crate::storage::config::ConfigStore::new(paths.root.clone())
+        .patch_section_typed("manager", base, edited)?
+        .manager()
+}
+
+pub fn save_theme(paths: &Paths, theme: crate::model::Theme) -> Result<Preferences> {
+    crate::storage::config::ConfigStore::new(paths.root.clone())
+        .set_theme(theme)?
+        .manager()
+}
+/// Caller owns Local\\CraftAppsManager. Available to the separately compiled UI binary.
+pub fn save_preferences_patch_locked(
+    paths: &Paths,
+    base: &Preferences,
+    edited: &Preferences,
+) -> Result<Preferences> {
+    crate::storage::config::ConfigStore::new(paths.root.clone())
+        .patch_section_typed_locked("manager", base, edited)?
+        .manager()
+}
+fn preferences_bytes_locked(paths: &Paths, edited: &Preferences) -> Result<Vec<u8>> {
+    let store = crate::storage::config::ConfigStore::new(paths.root.clone());
+    let snapshot = store.load_or_migrate_locked()?;
+    let mut document = snapshot.document.clone();
+    crate::storage::config::adapters::merge_typed_into(
+        &mut document,
+        "manager",
+        &snapshot.manager()?,
+        edited,
+    )?;
+    store.document_bytes(&document)
 }
 fn atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
     fs::create_dir_all(path.parent().context("Missing settings parent")?)?;
@@ -280,9 +317,9 @@ mod tests {
             fs::read(paths.at("settings.json")).unwrap(),
             b"inventory must remain untouched"
         );
-        let bytes = fs::read(paths.at("manager-settings.json")).unwrap();
+        let bytes = fs::read(paths.at("config.yaml")).unwrap();
         assert!(select_release_apps(&paths, &["unknown".into()]).is_err());
-        assert_eq!(fs::read(paths.at("manager-settings.json")).unwrap(), bytes);
+        assert_eq!(fs::read(paths.at("config.yaml")).unwrap(), bytes);
         assert!(select_release_apps(&paths, &[])
             .unwrap()
             .selected_apps

@@ -68,18 +68,38 @@ pub fn apply(base: &Preferences, options: &InstallOptions) -> Preferences {
     prefs.architecture = options.architecture.clone();
     prefs
 }
+/// Detect this manager copy once, outside repeated option rendering. Saved
+/// per-app intent and verified installed facts remain separate authorities.
+fn manager_default_format() -> &'static str {
+    static FORMAT: std::sync::OnceLock<&'static str> = std::sync::OnceLock::new();
+    FORMAT.get_or_init(|| {
+        if crate::self_update::installed_with_msi()
+            || crate::self_update::installed_with_linux_package()
+        {
+            return "installer";
+        }
+        let executable = std::env::current_exe().ok();
+        #[cfg(target_os = "linux")]
+        let executable = std::env::var_os("APPIMAGE")
+            .map(std::path::PathBuf::from)
+            .or(executable);
+        let portable = executable
+            .and_then(|path| crate::portable_mode::executable_folder(&path).ok())
+            .is_some_and(|folder| crate::portable_mode::local_storage(&folder));
+        if portable || cfg!(target_os = "linux") {
+            "portable"
+        } else {
+            "installer"
+        }
+    })
+}
 pub fn preferred(base: &Preferences, app: &str) -> Preferences {
     match base.app_install_options.get(&identity(app)) {
         Some(options) => apply(base, options),
         None => {
             let mut prefs = base.clone();
             prefs.architecture = host_architecture();
-            prefs.release_format = if cfg!(target_os = "linux") {
-                "portable"
-            } else {
-                "installer"
-            }
-            .into();
+            prefs.release_format = manager_default_format().into();
             prefs
         }
     }
@@ -172,6 +192,86 @@ pub fn executable_architecture(path: &std::path::Path) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(target_os = "windows")]
+    #[test]
+    #[ignore = "run by manager_installation_controls_only_unsaved_app_defaults"]
+    fn manager_install_defaults_child() {
+        let expected = std::env::var("CRAFT_TEST_EXPECTED_INSTALL_FORMAT").unwrap();
+        // An obsolete global setting must not override this manager's default.
+        let mut preferences = Preferences {
+            release_format: if expected == "portable" {
+                "installer"
+            } else {
+                "portable"
+            }
+            .into(),
+            ..Default::default()
+        };
+        assert_eq!(
+            preferred(&preferences, "filmcraft").release_format,
+            expected
+        );
+        let saved = InstallOptions {
+            release_format: preferences.release_format.clone(),
+            architecture: "x86".into(),
+        };
+        preferences
+            .app_install_options
+            .insert(identity("filmcraft"), saved.clone());
+        let effective = preferred(&preferences, "filmcraft");
+        assert_eq!(effective.release_format, saved.release_format);
+        assert_eq!(effective.architecture, saved.architecture);
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn manager_installation_controls_only_unsaved_app_defaults() {
+        let root =
+            std::env::temp_dir().join(format!("craft-install-default-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let executable = root.join("fixture.exe");
+        std::fs::copy(std::env::current_exe().unwrap(), &executable).unwrap();
+        let mut results = Vec::new();
+        for (portable, installed, expected) in [
+            (true, false, "portable"),
+            (false, true, "installer"),
+            (true, true, "installer"),
+            (false, false, "installer"),
+        ] {
+            for (name, present) in [
+                ("portable.txt", portable),
+                ("installation-msi.json", installed),
+            ] {
+                let path = root.join(name);
+                if present {
+                    std::fs::write(path, b"isolated fixture").unwrap();
+                } else if path.exists() {
+                    std::fs::remove_file(path).unwrap();
+                }
+            }
+            results.push(
+                std::process::Command::new(&executable)
+                    .args([
+                        "--exact",
+                        "installations::options::tests::manager_install_defaults_child",
+                        "--ignored",
+                        "--nocapture",
+                    ])
+                    .env("CRAFT_TEST_EXPECTED_INSTALL_FORMAT", expected)
+                    .output()
+                    .unwrap(),
+            );
+        }
+        std::fs::remove_dir_all(root).unwrap();
+        for result in results {
+            assert!(
+                result.status.success(),
+                "{}\n{}",
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
+            );
+        }
+    }
     #[cfg(target_os = "linux")]
     #[test]
     fn linux_builtin_and_custom_options_follow_assets_and_host() {

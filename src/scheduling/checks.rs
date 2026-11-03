@@ -79,7 +79,14 @@ fn run_automatic_owned(paths: &Paths, job: &Job, periodic: bool) -> Result<()> {
         }
     }
     if before.check_catalog_with_app_updates {
-        match crate::catalog::refresh_if_older(&paths.root, crate::catalog::REFRESH_INTERVAL) {
+        match crate::catalog::refresh_for(
+            &paths.root,
+            if periodic {
+                crate::catalog::DiscoveryTrigger::Periodic
+            } else {
+                crate::catalog::DiscoveryTrigger::Startup
+            },
+        ) {
             Ok(entries) => {
                 for entry in entries
                     .iter()

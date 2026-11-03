@@ -1,5 +1,5 @@
 //! Bundled icons/fonts and existing resource-loading helpers.
-use super::{catalog, model, theme, Paths};
+use super::{catalog, theme, Paths};
 use eframe::egui;
 
 pub(super) fn app_icon(name: &str) -> Option<&'static [u8]> {
@@ -66,11 +66,7 @@ pub(super) fn icon_bytes(paths: &Paths, name: &str) -> Option<Vec<u8>> {
         return Some(bytes);
     }
     catalog::get(name)?;
-    let url = format!(
-        "https://raw.githubusercontent.com/{}/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
-        model::repository(name),
-        model::repository_name(name)
-    );
+    let url = catalog::metadata::icon_url(name);
     let bytes = reqwest::blocking::get(url)
         .ok()?
         .error_for_status()

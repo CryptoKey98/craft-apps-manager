@@ -56,6 +56,105 @@ fn remove_download(
     Ok("Downloaded installer removed.".into())
 }
 
+/// Legacy downloads are eligible only when cached GitHub metadata proves their
+/// exact name, repository, size and SHA-256. Unknown files remain untouched.
+fn cached_package_assets(paths: &Paths, app: &str) -> Vec<crate::model::Asset> {
+    let repository = crate::model::repository(app);
+    let base = format!("https://api.github.com/repos/{repository}/releases");
+    let mut releases = crate::network::Network::cached_json::<Vec<crate::model::Release>>(
+        &paths.root,
+        &format!("{base}?per_page=100"),
+    )
+    .unwrap_or_default();
+    if let Some(latest) = crate::network::Network::cached_json::<crate::model::Release>(
+        &paths.root,
+        &format!("{base}/latest"),
+    ) {
+        releases.push(latest);
+    }
+    releases
+        .into_iter()
+        .filter(|release| !release.draft && !release.prerelease)
+        .flat_map(|release| release.assets)
+        .filter(|asset| {
+            crate::updates::expected_asset_url(&asset.browser_download_url, &repository)
+        })
+        .collect()
+}
+
+fn prune_verified_downloads(
+    paths: &Paths,
+    installed: &Installed,
+    assets: &[crate::model::Asset],
+    mut retention: impl FnMut(&Path) -> Result<Option<String>>,
+) -> Result<()> {
+    for asset in assets {
+        let name = Path::new(&asset.name);
+        if name.components().count() != 1 || files::safe_relative(&asset.name).is_err() {
+            continue;
+        }
+        let Ok(candidates) = crate::updates::installer_cache_paths(paths, &installed.name, asset)
+        else {
+            continue;
+        };
+        for package in candidates {
+            if !package.exists() {
+                continue;
+            }
+            files::inside(
+                &package,
+                &paths.at(format!("releases/installers/{}", installed.name)),
+            )?;
+            if !package.is_file() || crate::network::verify_asset(&package, asset).is_err() {
+                continue;
+            }
+            remove_download(paths, installed, &package, || retention(&package))?;
+        }
+    }
+    Ok(())
+}
+
+fn prune_cached_downloads(paths: &Paths, installed: &Installed) -> Result<()> {
+    let assets = cached_package_assets(paths, &installed.name);
+    prune_verified_downloads(paths, installed, &assets, |package| {
+        #[cfg(target_os = "windows")]
+        {
+            // A historical EXE might maintain another native copy. Only the exact
+            // successful EXE is handled by finish's existing registration check.
+            if !package
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("msi"))
+            {
+                return Ok(Some(
+                    "Historical installer maintenance requirements are unknown.".into(),
+                ));
+            }
+            crate::installers::download_retention_reason(package, installed)
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let _ = package;
+            Ok(None)
+        }
+    })
+}
+
+/// Called only after native uninstall and the updated inventory have both succeeded,
+/// under the existing installation operation lock.
+pub(crate) fn after_uninstall(
+    paths: &Paths,
+    removed: &Installed,
+    config: &crate::model::Config,
+) -> Result<()> {
+    if config.apps.iter().chain(&config.installations).any(|copy| {
+        copy.name == removed.name && copy.install_kind == "installer" && !copy.path.is_empty()
+    }) || crate::installers::detect(&removed.name)?.is_some()
+    {
+        return Ok(());
+    }
+    prune_cached_downloads(paths, removed)
+}
+
 /// A cleanup warning must not turn a verified, persisted installation into a failure.
 pub(crate) fn finish(paths: &Paths, installed: &Installed, package: &Path, job: &Job) {
     finish_with_retention(paths, installed, package, job, || {
@@ -68,6 +167,9 @@ pub(crate) fn finish(paths: &Paths, installed: &Installed, package: &Path, job: 
             Ok(None)
         }
     });
+    if let Err(error) = prune_cached_downloads(paths, installed) {
+        job.log(&format!("Older setup-file cleanup warning: {error:#}"));
+    }
 }
 
 fn finish_with_retention(
@@ -203,6 +305,57 @@ mod tests {
             std::fs::remove_dir_all(root).unwrap();
         }
     }
+    #[test]
+    fn stale_download_cleanup_requires_exact_published_content_and_preserves_unknown_files() {
+        use sha2::{Digest, Sha256};
+        let (root, paths, app, _) = fixture();
+        let cache = paths.at("releases/installers/filmcraft");
+        let package = cache.join("old.msi");
+        std::fs::write(&package, b"owned").unwrap();
+        let unknown = cache.join("personal.msi");
+        std::fs::write(&unknown, b"personal").unwrap();
+        let asset = crate::model::Asset {
+            name: "old.msi".into(),
+            size: 5,
+            browser_download_url: "https://github.com/owner/repo/releases/download/1.0.0/old.msi"
+                .into(),
+            digest: Some(format!("sha256:{:x}", Sha256::digest(b"owned"))),
+        };
+        let mut changed = asset.clone();
+        changed.digest = Some(format!("sha256:{}", "0".repeat(64)));
+        prune_verified_downloads(&paths, &app, &[changed], |_| Ok(None)).unwrap();
+        assert!(package.exists());
+        let escaped = crate::model::Asset {
+            name: "../old.msi".into(),
+            ..asset.clone()
+        };
+        prune_verified_downloads(&paths, &app, &[escaped], |_| Ok(None)).unwrap();
+        assert!(package.exists());
+        prune_verified_downloads(&paths, &app, std::slice::from_ref(&asset), |_| {
+            Ok(Some("Required for repair".into()))
+        })
+        .unwrap();
+        assert!(package.exists());
+        prune_verified_downloads(&paths, &app, &[asset], |_| Ok(None)).unwrap();
+        assert!(!package.exists());
+        assert!(unknown.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn uninstall_cleanup_preserves_downloads_when_another_native_copy_remains() {
+        let (root, paths, app, package) = fixture();
+        let config = crate::model::Config {
+            apps_root: root.display().to_string(),
+            apps: Vec::new(),
+            installations: vec![app.clone()],
+            portable_label_counters: Default::default(),
+        };
+        after_uninstall(&paths, &app, &config).unwrap();
+        assert!(package.exists());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn failed_or_cancelled_install_never_enters_cleanup() {
         for cancelled in [false, true] {

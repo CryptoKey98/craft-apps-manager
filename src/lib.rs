@@ -19,7 +19,6 @@ pub use builds as builder;
 pub use builds::profiles;
 pub use builds::toolchains as tools;
 pub use catalog::discovery;
-pub use installations::backups;
 pub(crate) use installations::cleanup as installer_cleanup;
 pub use installations::packages::native as installers;
 pub use installations::packages::selection as downloads;

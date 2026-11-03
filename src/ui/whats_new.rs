@@ -37,6 +37,18 @@ fn remember(root: &Path, version: &str, revision: u32) -> anyhow::Result<()> {
     files::write_json(&root.join(SEEN_FILE), &seen)
 }
 
+/// The changelog is also the source of the current in-app patch notes.
+fn release_notes(version: &str) -> Vec<&'static str> {
+    let heading = format!("## {version}");
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/CHANGELOG.md"))
+        .lines()
+        .skip_while(|line| line.trim() != heading)
+        .skip(1)
+        .take_while(|line| !line.starts_with("## "))
+        .filter_map(|line| line.strip_prefix("- "))
+        .collect()
+}
+
 fn body_text(ui: &mut egui::Ui, text: &str) {
     ui.add(egui::Label::new(RichText::new(text).size(13.0).color(theme::palette().muted)).wrap());
 }
@@ -71,71 +83,6 @@ fn patch_notes_underline(ui: &egui::Ui, header: egui::Rect, color: Color32, elap
     ui.painter().add(egui::Shape::mesh(mesh));
     ui.ctx()
         .request_repaint_after(std::time::Duration::from_millis(33));
-}
-
-fn github_mask(size: u32) -> egui::ColorImage {
-    // GitHub's official 16px Octicon, rendered directly at common UI/DPI sizes.
-    // These PNGs have transparent backgrounds; their alpha is the coverage mask.
-    let bytes: &[u8] = match size {
-        13 => include_bytes!("../../assets/github-mark-ui-13.png"),
-        19 => include_bytes!("../../assets/github-mark-ui-19.png"),
-        26 => include_bytes!("../../assets/github-mark-ui-26.png"),
-        38 => include_bytes!("../../assets/github-mark-ui-38.png"),
-        _ => include_bytes!("../../assets/github-mark-ui-64.png"),
-    };
-    let image = image::load_from_memory(bytes)
-        .expect("bundled GitHub UI icon")
-        .into_rgba8();
-    let image = if image.width() == size {
-        image
-    } else {
-        image::imageops::resize(&image, size, size, image::imageops::FilterType::Lanczos3)
-    };
-    egui::ColorImage {
-        size: [size as usize, size as usize],
-        pixels: image
-            .pixels()
-            .map(|pixel| Color32::from_white_alpha(pixel[3]))
-            .collect(),
-    }
-}
-
-pub(super) fn github(ui: &mut egui::Ui, rect: egui::Rect) {
-    let pixels_per_point = ui.ctx().pixels_per_point();
-    let size = (rect.width().min(rect.height()) * pixels_per_point)
-        .round()
-        .clamp(1.0, 256.0) as u32;
-    let side = size as f32 / pixels_per_point;
-    let origin = rect.center() - egui::Vec2::splat(side * 0.5);
-    let origin = egui::pos2(
-        (origin.x * pixels_per_point).round() / pixels_per_point,
-        (origin.y * pixels_per_point).round() / pixels_per_point,
-    );
-    let rect = egui::Rect::from_min_size(origin, egui::Vec2::splat(side));
-    let id = egui::Id::new(("github-octicon-small", size));
-    let cached = ui
-        .ctx()
-        .data(|data| data.get_temp::<egui::TextureHandle>(id));
-    let texture = cached.unwrap_or_else(|| {
-        let texture = ui.ctx().load_texture(
-            format!("github-mark-{size}"),
-            github_mask(size),
-            egui::TextureOptions::LINEAR,
-        );
-        ui.ctx()
-            .data_mut(|data| data.insert_temp(id, texture.clone()));
-        texture
-    });
-    ui.painter().image(
-        texture.id(),
-        rect,
-        egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
-        if ui.visuals().dark_mode {
-            Color32::WHITE
-        } else {
-            Color32::BLACK
-        },
-    );
 }
 
 fn feature(ui: &mut egui::Ui, icon: theme::Icon, title: &str, text: &str) {
@@ -196,23 +143,30 @@ impl App {
                 egui::ScrollArea::vertical().id_salt("whats-new-content")
                     .max_height((ctx.screen_rect().height() - 260.0).clamp(160.0, 490.0))
                     .show(ui, |ui| {
-                        body_text(ui, "A smoother way to stay up to date.");
+                        body_text(ui, "Safer rollbacks, quicker installs, and clearer settings.");
                         ui.add_space(22.0);
-                        feature(ui, theme::Icon::ShieldCheck, "Smarter manager updates", "Get compatible updates even when download names or supported formats change.");
-                        feature(ui, theme::Icon::Route, "Fewer update prompts", "Approve once and let the manager complete any required update steps.");
-                        feature(ui, theme::Icon::PackageOpen, "More download options", "New Linux tar.gz and macOS DMG downloads, with ZIP and installer options still available.");
-                        feature(ui, theme::Icon::Layers, "Multiple installations", "Keep multiple copies and choose which one to open, update or remove.");
-                        feature(ui, theme::Icon::Search, "Discover new Craft apps", "Find new Craft apps automatically. Recent additions get a New badge until you view them.");
+                        feature(ui, theme::Icon::Rollback, "Roll back with confidence", "Review and restore a verified previous version when you need it.");
+                        feature(ui, theme::Icon::Layers, "Meet SolidCraft", "Parametric 3D CAD, now available alongside your Craft apps.");
+                        feature(ui, theme::Icon::Gear, "Settings that save together", "Review your changes, then apply them with Save. Your existing preferences move over safely.");
+                        feature(ui, theme::Icon::Activity, "Clearer GitHub activity", "See connection and token status, with help when GitHub limits requests.");
+                        feature(ui, theme::Icon::Trash, "Less clutter, more space", "Unused cache clears automatically, with better cleanup after installs and removals.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 1.0.0", 13.0);
+                                theme::heading(ui, "New in 1.1.0", 13.0);
+                                ui.add_space(10.0);
+                                for note in release_notes(env!("CARGO_PKG_VERSION")) {
+                                    body_text(ui, &format!("• {note}"));
+                                    ui.add_space(8.0);
+                                }
+                                ui.add_space(16.0);
+                                theme::heading(ui, "Also included from 1.0.0", 13.0);
                                 ui.add_space(10.0);
                                 for note in [
                                     "Add an optional update service that keeps updates working when download names or supported package formats change. Every update is verified before installation.",
                                     "Add Linux tar.gz and macOS DMG downloads alongside the existing ZIP packages.",
                                     "Support Windows ZIP and MSI; Linux ZIP, tar.gz, DEB, RPM and Arch packages; and macOS ZIP and DMG in the new update service.",
                                     "Approve updates that need an intermediate version once, then let the manager finish the remaining steps automatically. Supported installer updates can also reuse one administrator approval.",
-                                    "Set up macOS build tools without installing 7-Zip. It remains optional for compressed .7z backups.",
+                                    "Set up macOS build tools without installing 7-Zip.",
                                     "Improve the macOS DMG with a clearer drag-to-Applications layout.",
                                     "Fix Windows updates with intermediate steps failing when the installation folder contains spaces.",
                                     "Prevent manager updates from interrupting builds running in either Manager or Builder.",
@@ -229,7 +183,7 @@ impl App {
                                 ui.add_space(10.0);
                                 for note in [
                                     "Periodic update checks now include the manager alongside installed apps, using your chosen interval. Downloads and installations still require your approval.",
-                                    "New badges expire 14 days after a Craft app's repository was created, including on fresh manager installs. Viewing the app clears its badge sooner; app updates do not reset the timer.",
+                                    "Introduce time-limited New badges for Craft app discovery.",
                                     "Recognize custom GitHub apps using verified installer, package, and bundle identities, even when their names differ from the repository.",
                                     "Remember the selected executable for portable copies and packages with multiple applications. Keep portable choices working after moving their installation folder.",
                                     "Target the selected installation when verifying installs and uninstalling, and preserve existing copies when identity cannot be confirmed.",
@@ -363,25 +317,26 @@ impl App {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn small_github_mark_uses_the_icon_area_instead_of_source_padding() {
-        for size in [16, 19, 24, 38] {
-            let mask = super::github_mask(size);
-            let width = size as usize;
-            let occupied_columns = (0..width)
-                .filter(|&x| (0..width).any(|y| mask.pixels[y * width + x].a() > 128))
-                .count();
-            assert!(
-                occupied_columns >= width - 2,
-                "source padding shrank the {size}px logo"
-            );
-            assert!(mask
-                .pixels
-                .iter()
-                .any(|pixel| (1..255).contains(&pixel.a())));
-        }
-    }
     use super::*;
+    #[test]
+    fn current_patch_notes_include_the_full_release_without_older_sections() {
+        let current = release_notes("1.1.0");
+        assert!(current.iter().any(|note| note.contains("SolidCraft")));
+        assert!(current
+            .iter()
+            .any(|note| note.contains("older cache entries")));
+        assert!(current
+            .iter()
+            .any(|note| note.contains("chosen sidebar and Home order")));
+        assert!(!current
+            .iter()
+            .any(|note| note.contains("Add Linux tar.gz and macOS DMG downloads")));
+        assert!(release_notes("1.0.0")
+            .iter()
+            .any(|note| note.contains("Add Linux tar.gz and macOS DMG downloads")));
+        assert!(release_notes("unknown-version").is_empty());
+    }
+
     #[test]
     fn highlights_show_on_first_launch_and_version_change_only() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());

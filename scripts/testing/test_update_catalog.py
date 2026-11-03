@@ -8,6 +8,7 @@ from lib.repository import project_root
 import copy
 import importlib.util
 import json
+import re
 from pathlib import Path
 import unittest
 import tempfile
@@ -21,6 +22,35 @@ spec.loader.exec_module(module)
 class CatalogTests(unittest.TestCase):
     def setUp(self):
         self.catalog = json.loads((ROOT / "tests/fixtures/updater-v2/catalog.json").read_text())
+
+    def test_production_next_policy_matches_the_manager_version(self):
+        version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / 'Cargo.toml').read_text(), re.M)[1]
+        path = re.search(r'^next_catalog_file\s*=\s*"([^"]+)"', (ROOT / 'updater.production.toml').read_text(), re.M)[1]
+        policy = json.loads((ROOT / path).read_text())
+        release = next((r for r in policy['releases'] if r['version'] == version), None)
+        self.assertIsNotNone(release, 'The next Manager update policy still targets an older release')
+        self.assertEqual(release['tag'], 'v' + version)
+        packages = [p for p in policy['packages'] if p['release'] == release['id']]
+        self.assertTrue(packages)
+        self.assertTrue(all('/v' + version + '/' in p['url'] for p in packages))
+
+    def test_next_manager_release_binds_new_assets_and_preserves_signed_history(self):
+        version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / 'Cargo.toml').read_text(), re.M)[1]
+        path = re.search(r'^next_catalog_file\s*=\s*"([^"]+)"', (ROOT / 'updater.production.toml').read_text(), re.M)[1]
+        policy = json.loads((ROOT / path).read_text())
+        release = next((r for r in policy['releases'] if r['version'] == version), None)
+        self.assertIsNotNone(release, 'The next release policy must exist before binding its packages')
+        previous = copy.deepcopy(policy)
+        previous['packages'] = [p for p in previous['packages'] if p['release'] != release['id']]
+        fresh = [p for p in policy['packages'] if p['release'] == release['id']]
+        assets = {p['asset']:dict(name=p['asset'], state='uploaded', browser_download_url=p['url'], size=4096, digest='sha256:' + 'ab' * 32) for p in fresh}
+        fetch = mock.Mock(return_value=dict(tag_name=release['tag'], draft=False, prerelease=False, assets=list(assets.values())))
+        bound = module.bind_release_assets(policy, previous, fetch_release=fetch)
+        fetch.assert_called_once_with(policy['repository'], release['tag'])
+        self.assertEqual([p for p in bound['packages'] if p['release'] != release['id']], previous['packages'])
+        for package in [p for p in bound['packages'] if p['release'] == release['id']]:
+            self.assertEqual((package['size'], package['sha256']), (4096, 'ab' * 32))
+        module.retain_bridges(bound, previous)
 
     def test_catalog_fetch_identifies_publisher_and_bounds_body(self):
         response=mock.MagicMock()

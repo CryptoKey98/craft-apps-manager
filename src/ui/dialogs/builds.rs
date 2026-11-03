@@ -519,7 +519,7 @@ impl App {
                 band(ui, BODY, 0.0, |ui| {
                     header(ui, Art::Icon(Icon::Trash, theme::palette().red_bg, theme::palette().red, 40.0),
                         &format!("Remove {} source?", model::title(&app)),
-                        "Deletes this app’s downloaded source ZIP. Compiled builds, extracted workspaces, installed apps, and backups are kept.", |_| {});
+                        "Deletes this app’s downloaded source ZIP. Compiled builds, extracted workspaces, installed apps, and retained rollback versions are kept.", |_| {});
                 });
                 footer(ui, |ui| {
                     if action(ui, "No", Kind::Secondary, true).clicked() {

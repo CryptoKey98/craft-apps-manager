@@ -414,24 +414,29 @@ impl<'a> Btn<'a> {
             let depth = button_press_depth(ui, &response);
             let paint_rect = pressed_button_rect(rect, depth);
             let fill = if hovered { hover_fill } else { fill };
-            let light_disabled = !self.enabled && !ui.visuals().dark_mode;
-            let fill = if light_disabled {
-                Color32::from_rgb(233, 233, 233)
-            } else if !self.enabled
+            let p = palette();
+            let fill = if !self.enabled
                 && matches!(
                     self.kind,
                     Kind::Primary | Kind::Danger | Kind::Soft | Kind::Tinted
-                )
-            {
+                ) {
                 fill.gamma_multiply(0.45)
             } else {
                 fill
             };
-            let fill = fill.gamma_multiply(1.0 - 0.12 * depth);
-            let stroke = if light_disabled {
-                Stroke::new(stroke.width, Color32::from_rgb(218, 218, 218))
+            let fill = if self.enabled {
+                fill
             } else {
+                blend_color(fill, Color32::from_rgb(233, 233, 233), p.lightness)
+            };
+            let fill = fill.gamma_multiply(1.0 - 0.12 * depth);
+            let stroke = if self.enabled {
                 stroke
+            } else {
+                Stroke::new(
+                    stroke.width,
+                    blend_color(stroke.color, Color32::from_rgb(218, 218, 218), p.lightness),
+                )
             };
             let painter = ui.painter();
             painter.rect(
@@ -449,7 +454,17 @@ impl<'a> Btn<'a> {
                     StrokeKind::Outside,
                 );
             }
-            let alpha = if self.enabled { 1.0 } else { 0.4 };
+            let ink = |color: Color32| {
+                if self.enabled {
+                    color
+                } else {
+                    blend_color(
+                        color.gamma_multiply(0.4),
+                        Color32::from_rgb(153, 153, 153),
+                        p.lightness,
+                    )
+                }
+            };
             let mut x = paint_rect.center().x - (icon_space + galley.size().x) / 2.0;
             if let Some((icon, color)) = self.icon {
                 let icon_rect = Rect::from_center_size(
@@ -460,11 +475,7 @@ impl<'a> Btn<'a> {
                     painter,
                     icon_rect,
                     icon,
-                    if light_disabled {
-                        Color32::from_rgb(153, 153, 153)
-                    } else {
-                        color.unwrap_or(text_color).gamma_multiply(alpha)
-                    },
+                    ink(color.unwrap_or(text_color)),
                     self.icon_weight,
                 );
                 x += icon_space;
@@ -472,11 +483,7 @@ impl<'a> Btn<'a> {
             painter.galley(
                 egui::pos2(x, paint_rect.center().y - galley.size().y / 2.0),
                 galley,
-                if light_disabled {
-                    Color32::from_rgb(153, 153, 153)
-                } else {
-                    text_color.gamma_multiply(alpha)
-                },
+                ink(text_color),
             );
         }
         if self.enabled && response.hovered() {
@@ -509,6 +516,12 @@ fn button_press_depth(ui: &Ui, response: &Response) -> f32 {
 fn pressed_button_rect(rect: Rect, depth: f32) -> Rect {
     rect.shrink2(egui::vec2(0.7, 0.7) * depth)
         .translate(egui::vec2(0.0, 0.6 * depth))
+}
+
+/// Apply the standard press feedback to custom-painted buttons without moving
+/// their layout or clickable area.
+pub fn animated_button_rect(ui: &Ui, response: &Response, rect: Rect) -> Rect {
+    pressed_button_rect(rect, button_press_depth(ui, response))
 }
 
 pub fn icon_button(ui: &mut Ui, icon: Icon, label: &str, color: Color32) -> Response {
@@ -713,88 +726,6 @@ pub fn badge(ui: &mut Ui, text: &str, fill: Color32, color: Color32) -> Response
     response
 }
 
-/// Two-option segmented control: `height` segments with `pad` side padding in a
-/// 3pt-padded field. Keeps the option order in right-to-left layouts too.
-/// Returns true when the value changed.
-pub fn segmented<T: PartialEq + Clone>(
-    ui: &mut egui::Ui,
-    height: f32,
-    pad: f32,
-    value: &mut T,
-    options: &[(T, &str)],
-) -> bool {
-    let galleys: Vec<_> = options
-        .iter()
-        .map(|(_, label)| {
-            ui.painter().layout_no_wrap(
-                (*label).to_owned(),
-                FontId::proportional(13.0),
-                Color32::PLACEHOLDER,
-            )
-        })
-        .collect();
-    let width: f32 = galleys.iter().map(|g| g.size().x + pad * 2.0).sum::<f32>() + 8.0;
-    let mut changed = false;
-    ui.allocate_ui_with_layout(
-        egui::vec2(width, height + 8.0),
-        egui::Layout::left_to_right(egui::Align::Center),
-        |ui| {
-            egui::Frame::new()
-                .fill(palette().field)
-                .stroke(Stroke::new(1.0_f32, palette().border_strong))
-                .corner_radius(CornerRadius::same(8))
-                .inner_margin(egui::Margin::same(3))
-                .show(ui, |ui| {
-                    ui.spacing_mut().item_spacing.x = 0.0;
-                    for ((option, label), galley) in options.iter().zip(galleys) {
-                        let selected = value == option;
-                        let (rect, response) = ui.allocate_exact_size(
-                            egui::vec2(galley.size().x + pad * 2.0, height),
-                            Sense::click(),
-                        );
-                        response.widget_info(|| {
-                            egui::WidgetInfo::selected(
-                                egui::WidgetType::SelectableLabel,
-                                true,
-                                selected,
-                                *label,
-                            )
-                        });
-                        if selected || response.hovered() {
-                            ui.painter().rect_filled(
-                                rect,
-                                CornerRadius::same(6),
-                                if selected {
-                                    palette().button_hover
-                                } else {
-                                    palette().hover
-                                },
-                            );
-                        }
-                        if response.has_focus() {
-                            ui.painter().rect_stroke(
-                                rect,
-                                CornerRadius::same(6),
-                                Stroke::new(1.5_f32, palette().link),
-                                StrokeKind::Inside,
-                            );
-                        }
-                        ui.painter().galley(
-                            rect.center() - galley.size() / 2.0,
-                            galley,
-                            palette().text,
-                        );
-                        if response.clicked() && !selected {
-                            *value = option.clone();
-                            changed = true;
-                        }
-                    }
-                });
-        },
-    );
-    changed
-}
-
 /// Neutral Spectrum surface and border, or accent fill with a white tick.
 pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, enabled: bool) {
     let alpha = if enabled { 1.0 } else { 0.5 };
@@ -814,23 +745,6 @@ pub fn paint_check(ui: &egui::Ui, rect: egui::Rect, on: bool, accent: Color32, e
             palette().button.gamma_multiply(alpha),
             Stroke::new(1.0_f32, palette().border_strong.gamma_multiply(alpha)),
             StrokeKind::Inside,
-        );
-    }
-}
-
-/// Paints a radio button the way the mockups render a native one.
-pub fn paint_radio(ui: &egui::Ui, center: egui::Pos2, on: bool) {
-    let painter = ui.painter();
-    if on {
-        painter.circle_filled(center, 8.0, palette().accent);
-        painter.circle_filled(center, 6.5, Color32::WHITE);
-        painter.circle_filled(center, 4.5, palette().accent);
-    } else {
-        painter.circle(
-            center,
-            7.5,
-            Color32::WHITE,
-            Stroke::new(1.0_f32, palette().control_border),
         );
     }
 }

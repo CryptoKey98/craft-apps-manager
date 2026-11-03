@@ -192,15 +192,12 @@ impl App {
     }
 
     fn home_tiles(&mut self, ui: &mut Ui, state: &State, order: &[String], installed: bool) {
-        let mut names: Vec<_> = order
+        let names: Vec<_> = order
             .iter()
             .filter(|name| self.status(name).installed.is_some() == installed)
             .filter(|name| !self.preferences.hidden_apps.contains(name))
             .cloned()
             .collect();
-        if !installed {
-            names.sort_by_cached_key(|name| self.new_app_rank(name));
-        }
         ui.label(
             RichText::new(format!(
                 "{} · {}",
@@ -389,7 +386,7 @@ impl App {
         floating: bool,
     ) {
         let status = self.status(name);
-        let install_available = self.install_available(name);
+        let install_available = self.install_available(name, ui.ctx());
         let unavailable_message = self.unavailable_download_message(name);
         let palette = theme::palette();
         let actions_enabled = !state.busy && self.installation_selection.is_none();

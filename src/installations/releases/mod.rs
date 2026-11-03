@@ -1,6 +1,5 @@
-use crate::installations::backups::backup_path;
 use crate::{
-    backups, files,
+    files,
     jobs::Job,
     model::{Asset, Paths, Preferences, Release},
     network::Network,
@@ -17,7 +16,10 @@ pub use crate::builds::sources::{remove_source, sources};
 mod execution;
 mod planning;
 mod recovery;
+mod scope;
+pub use scope::{check_installer_scope_preview, downgrade_scope_decision, downgrade_scope_error};
 mod selection;
+mod validation;
 pub use execution::*;
 pub use planning::*;
 pub use recovery::*;

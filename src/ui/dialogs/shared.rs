@@ -1,5 +1,119 @@
 use super::*;
 
+#[derive(Clone)]
+struct ViewSize {
+    view: bool,
+    height: f32,
+    from: f32,
+    target: f32,
+    started: Option<f64>,
+}
+
+pub(super) fn animated_dialog_body(
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    view: bool,
+    content: impl FnOnce(&mut egui::Ui),
+) {
+    animated_body(ui, id, view, false, content);
+}
+
+pub(in crate::ui) fn animated_version_list(
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    ready: bool,
+    content: impl FnOnce(&mut egui::Ui),
+) {
+    animated_body(ui, id, ready, true, content);
+}
+
+pub(in crate::ui) fn begin_version_list_transition(ctx: &egui::Context, id: egui::Id, ready: bool) {
+    let now = ctx.input(|input| input.time);
+    ctx.data_mut(|data| {
+        data.insert_temp(
+            id,
+            ViewSize {
+                view: ready,
+                height: 0.0,
+                from: 0.0,
+                target: 0.0,
+                started: Some(now),
+            },
+        )
+    });
+}
+
+fn animated_body(
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    view: bool,
+    fade: bool,
+    content: impl FnOnce(&mut egui::Ui),
+) {
+    let now = ui.input(|input| input.time);
+    let animations = ui.style().animation_time > 0.0;
+    let mut state = ui.ctx().data(|data| data.get_temp::<ViewSize>(id));
+    if let Some(state) = &mut state {
+        if state.view != view {
+            state.view = view;
+            state.from = state.height;
+            state.started = Some(now);
+        }
+        if let Some(started) = state.started.filter(|_| animations) {
+            let progress = ((now - started) / 0.22).clamp(0.0, 1.0) as f32;
+            let eased = progress * progress * (3.0 - 2.0 * progress);
+            state.height = state.from + (state.target - state.from) * eased;
+        }
+    }
+    // Give the content a stable viewport; the inner scroll area must not feed
+    // the temporarily clipped modal height back into its natural measurement.
+    let mut bounds = ui.available_rect_before_wrap();
+    bounds.max.y = bounds.min.y + ui.ctx().screen_rect().height();
+    let mut child = ui.new_child(egui::UiBuilder::new().id_salt(id).max_rect(bounds));
+    if let Some(state) = state
+        .as_ref()
+        .filter(|state| animations && state.started.is_some())
+    {
+        let mut clip = child.clip_rect();
+        clip.max.y = clip.max.y.min(child.cursor().top() + state.height);
+        child.set_clip_rect(clip);
+        if state.started.is_some_and(|started| now - started < 0.22) {
+            child.disable();
+        }
+        if fade && state.view {
+            let progress = ((now - state.started.unwrap()) / 0.22).clamp(0.0, 1.0) as f32;
+            child.multiply_opacity(progress * progress * (3.0 - 2.0 * progress));
+        }
+    }
+    content(&mut child);
+    let natural = child.min_rect().height();
+    let mut state = state.unwrap_or(ViewSize {
+        view,
+        height: natural,
+        from: natural,
+        target: natural,
+        started: None,
+    });
+    state.target = natural;
+    if let Some(started) = state.started.filter(|_| animations) {
+        let progress = ((now - started) / 0.22).clamp(0.0, 1.0) as f32;
+        let eased = progress * progress * (3.0 - 2.0 * progress);
+        state.height = state.from + (state.target - state.from) * eased;
+        if progress < 1.0 {
+            ui.ctx().request_repaint();
+        } else {
+            state.started = None;
+        }
+    } else {
+        // Normal font/layout settling and checking/ready updates stay stable;
+        // only a change of view starts a resize.
+        state.height = natural;
+        state.started = None;
+    }
+    ui.allocate_space(egui::vec2(child.min_rect().width(), state.height));
+    ui.ctx().data_mut(|data| data.insert_temp(id, state));
+}
+
 /// Accent of the destructive checkboxes (`accent-color: #d9534f` in the mockups).
 pub(in crate::ui) const CHECK_RED: Color32 = Color32::from_rgb(0xd9, 0x53, 0x4f);
 

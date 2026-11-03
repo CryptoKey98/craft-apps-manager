@@ -7,7 +7,7 @@ Choose a guide for what you want to do. Downloaded releases do not require a Rus
 | Guide | What you will find |
 | --- | --- |
 | [Quick start](../README.md#get-started) | Downloads, package choices, and first launch |
-| [Using the manager](user-guide/using-the-manager.md) | Installations, updates, Activity, custom apps, builds, backups, and storage |
+| [Using the manager](user-guide/using-the-manager.md) | Installations, updates, Activity, custom apps, builds, rollback, and storage |
 | [Linux](user-guide/linux.md) | Native packages, portable archives, tray behavior, and required tools |
 | [macOS](user-guide/macos.md) | DMG and ZIP setup, first-launch approval, updates, and recovery |
 | [Changelog](../CHANGELOG.md) | Changes in each release |
@@ -24,6 +24,7 @@ Choose a guide for what you want to do. Downloaded releases do not require a Rus
 | Guide | What you will find |
 | --- | --- |
 | [Release preparation](development/releases.md) | Version preparation, CI, publication, revisions, and catalog-only recovery |
+| [App-release catalog](development/app-release-catalog.md) | Supported-app release metadata, automatic enrollment, and discovery dates |
 | [Updater operations](development/updater-operations.md) | Configuration, signing, hosting, renewal, and recovery rules |
 | [Production catalog inputs](../update-service/catalog/README.md) | Checked-in policy files and production configuration |
 

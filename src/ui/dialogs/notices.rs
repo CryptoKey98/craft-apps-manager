@@ -1,6 +1,63 @@
 use super::*;
 
 impl App {
+    pub(in crate::ui) fn open_compatibility_info(
+        &mut self,
+        app: &str,
+        tag: &str,
+        reason: &str,
+        ctx: &egui::Context,
+    ) {
+        self.compatibility_info = Some(CompatibilityInfo {
+            app: model::title(app),
+            version: tag.into(),
+            reason: reason.into(),
+            opened: ctx.input(|input| input.time),
+        });
+        ctx.memory_mut(|memory| memory.close_popup());
+    }
+    pub(super) fn render_compatibility_info(&mut self, ctx: &egui::Context) {
+        let Some(info) = self.compatibility_info.clone() else {
+            return;
+        };
+        let progress = if ctx.style().animation_time > 0.0 {
+            ((ctx.input(|input| input.time) - info.opened) / 0.18).clamp(0.0, 1.0) as f32
+        } else {
+            1.0
+        };
+        let opacity = progress * progress * (3.0 - 2.0 * progress);
+        if progress < 1.0 {
+            ctx.request_repaint();
+        }
+        let response = modal_faded(ctx, "Incompatible version", 400.0, opacity, |ui| {
+            band(ui, BODY, 0.0, |ui| {
+                header(
+                    ui,
+                    Art::Icon(
+                        Icon::Info,
+                        theme::palette().accent_soft,
+                        theme::palette().accent_text,
+                        40.0,
+                    ),
+                    "Incompatible version",
+                    "",
+                    |ui| {
+                        note(ui, format!("{} · {}", info.app, info.version));
+                        ui.add_space(8.0);
+                        paragraph(ui, &info.reason);
+                    },
+                );
+            });
+            footer(ui, |ui| {
+                if action(ui, "OK", Kind::Primary, true).clicked() {
+                    self.compatibility_info = None;
+                }
+            });
+        });
+        if response.should_close() {
+            self.compatibility_info = None;
+        }
+    }
     pub(super) fn render_notices(&mut self, ctx: &egui::Context) {
         if self.hide_notice_open {
             let notice = modal(ctx, "App hidden", 400.0, |ui| {

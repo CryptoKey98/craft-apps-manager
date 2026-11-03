@@ -329,6 +329,7 @@ fn approved(
 }
 
 /// Starts an exact, signed native session before any native transaction runs.
+/// Caller holds the bridge execution gate, including the settings mutation lock.
 pub(crate) fn prepare(
     paths: &Paths,
     selection: &SignedSelection,
@@ -362,7 +363,7 @@ pub(crate) fn prepare(
     {
         return Ok(());
     }
-    let retain = paths.preferences()?.batch_admin;
+    let retain = paths.preferences_locked()?.batch_admin;
     if !retain {
         revoke(&paths.root);
         if !mac {

@@ -57,6 +57,8 @@ pub fn cleanup_empty_installation_parent(paths: &Paths, app: &str, target: &Path
 #[derive(Serialize, Deserialize)]
 pub(super) struct Ownership {
     pub(super) app: String,
+    #[serde(default)]
+    pub(super) installation_id: Option<String>,
     pub(super) library: PathBuf,
     #[serde(default)]
     pub(super) shortcut: Option<(PathBuf, String)>,
@@ -100,20 +102,19 @@ pub fn additional_destination(paths: &Paths, parent: &Path, app: &str) -> Result
     bail!("No unused installation folder is available")
 }
 
-fn numbered_library_copy(paths: &Paths, app: &str, target: &Path) -> bool {
-    target.parent() == Some(paths.at("releases").as_path())
-        && target
-            .file_name()
-            .and_then(|name| name.to_str())
-            .and_then(|name| name.strip_prefix(&format!("{app}-")))
-            .is_some_and(|number| {
-                number
-                    .parse::<u32>()
-                    .is_ok_and(|value| value >= 2 && number == value.to_string())
-            })
+fn numbered_copy(app: &str, target: &Path) -> bool {
+    target
+        .file_name()
+        .and_then(|name| name.to_str())
+        .and_then(|name| name.strip_prefix(&format!("{app}-")))
+        .is_some_and(|number| {
+            number
+                .parse::<u32>()
+                .is_ok_and(|value| value >= 2 && number == value.to_string())
+        })
 }
 
-fn validate_path(target: &Path) -> Result<()> {
+pub(super) fn validate_path(target: &Path) -> Result<()> {
     let parent = target.parent().context("Missing app parent folder")?;
     files::inside(target, parent)?;
     let mut cursor = parent;
@@ -165,7 +166,7 @@ pub fn validate(paths: &Paths, app: &str, target: &Path) -> Result<()> {
         return files::inside(target, &paths.at("releases"));
     }
     validate_path(target)?;
-    if target.file_name() != Some(std::ffi::OsStr::new(app)) {
+    if target.file_name() != Some(std::ffi::OsStr::new(app)) && !numbered_copy(app, target) {
         bail!("Portable apps must use a separate app folder");
     }
     let marker = target.join(MARKER);
@@ -182,14 +183,14 @@ pub fn validate(paths: &Paths, app: &str, target: &Path) -> Result<()> {
 
 pub fn validate_install(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     let parent = target.parent().context("Missing app parent folder")?;
-    if numbered_library_copy(paths, app, target) {
+    if numbered_copy(app, target) {
         validate_path(target)?;
     }
     if target.starts_with(&paths.root) && !target.starts_with(paths.at("releases")) {
         bail!("Choose a folder outside the manager's sources, builds and runtime folders");
     }
     if (!target.starts_with(paths.at("releases")) || !target.exists())
-        && !numbered_library_copy(paths, app, target)
+        && !numbered_copy(app, target)
     {
         anyhow::ensure!(destination(parent, app)? == target, "Invalid app folder");
     }
@@ -227,6 +228,7 @@ fn mark_copy(paths: &Paths, app: &str, stage: &Path, additional: bool) -> Result
         &marker,
         &Ownership {
             app: app.into(),
+            installation_id: Some(uuid::Uuid::new_v4().to_string()),
             library: std::path::absolute(&paths.root)?,
             shortcut: if additional { None } else { shortcut },
         },

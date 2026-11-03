@@ -80,7 +80,10 @@ pub(crate) fn run() -> Result<()> {
         && !craft_apps_manager::portable_mode::local_storage(&portable_folder)
     {
         let legacy_root = arg("--root").or_else(|| {
-            (home == portable_folder && home.join("settings.json").is_file()).then(|| home.clone())
+            (home == portable_folder
+                && (home.join("installations.json").is_file()
+                    || home.join("settings.json").is_file()))
+            .then(|| home.clone())
         });
         if let Some(root) = legacy_root.filter(|root| root.is_dir()) {
             craft_apps_manager::portable_mode::adopt_updated_portable(
@@ -117,12 +120,18 @@ pub(crate) fn run() -> Result<()> {
     if portable
         && home != previous_home
         && !home.join("data-root.json").exists()
+        && !home.join("config.yaml").exists()
+        && !home.join("data/config.yaml").exists()
+        && !home.join("data/installations.json").exists()
+        && !home.join("installations.json").exists()
         && !home.join("data/settings.json").exists()
         && !home.join("settings.json").exists()
     {
         let legacy: ui::Locations = files::read_or_default(&previous_home.join("data-root.json"))?;
         let legacy_root = legacy.root.unwrap_or(previous_home);
-        if legacy_root.join("settings.json").is_file() {
+        if legacy_root.join("installations.json").is_file()
+            || legacy_root.join("settings.json").is_file()
+        {
             saved.root = Some(legacy_root);
             saved.tools = legacy.tools;
             files::write_json(&home.join("data-root.json"), &saved)?;
@@ -155,11 +164,35 @@ pub(crate) fn run() -> Result<()> {
         .map(resolve)
         .transpose()?;
     let paths = Paths::new(root, tools);
+    // Hand duplicate GUI launches back before migrations or settings locks.
+    // CLI jobs and updater/admin helpers must remain independent of the window.
+    let instance = if super::instance::is_gui_launch(&args) {
+        let Some(owner) = super::instance::Instance::claim(
+            &paths.root,
+            args.iter().any(|arg| arg == "--builder"),
+        )?
+        else {
+            return Ok(());
+        };
+        Some(owner)
+    } else {
+        None
+    };
     #[cfg(target_os = "windows")]
     if let Some(plan) = arg("--restore-relocation-files") {
         return craft_apps_manager::relocation::restore_elevated(&paths, &plan);
     }
     // The app list saved by the last discovery; the window refreshes it in the background.
+    if paths.at("config.yaml").exists()
+        || craft_apps_manager::storage::config::migration::has_legacy_sources(&paths.root)?
+    {
+        let migration = craft_apps_manager::storage::config::migration::ensure_migrated(
+            &craft_apps_manager::storage::config::ConfigStore::new(paths.root.clone()),
+        )?;
+        for warning in migration.warnings {
+            eprintln!("Settings migration: {warning}");
+        }
+    }
     craft_apps_manager::catalog::load(&paths.root);
     #[cfg(target_os = "linux")]
     craft_apps_manager::apps::repair_linux_shortcuts(&paths)?;
@@ -233,6 +266,7 @@ pub(crate) fn run() -> Result<()> {
         )?;
         craft_apps_manager::model::valid_app(&app)?;
         let mut preferences = paths.read_preferences()?;
+        let base_preferences = preferences.clone();
         let current = craft_apps_manager::install_options::preferred(&preferences, &app);
         let options = craft_apps_manager::install_options::InstallOptions {
             release_format: text("--release-format").unwrap_or(current.release_format),
@@ -242,7 +276,11 @@ pub(crate) fn run() -> Result<()> {
         preferences
             .app_install_options
             .insert(craft_apps_manager::install_options::identity(&app), options);
-        files::write_json(&paths.at("manager-settings.json"), &preferences)?;
+        craft_apps_manager::storage::settings::save_preferences_patch(
+            &paths,
+            &base_preferences,
+            &preferences,
+        )?;
     }
     if let Some(app) = text("--install-app") {
         let job = Job::new(paths.at("logs/updates.log"), &paths.builder_preferences()?);
@@ -284,6 +322,7 @@ pub(crate) fn run() -> Result<()> {
         return Ok(());
     }
     let builder = args.iter().any(|s| s == "--builder");
+    let instance = instance.context("Missing GUI window ownership")?;
     let icon = image::load_from_memory(include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/assets/icon.png"
@@ -347,7 +386,11 @@ pub(crate) fn run() -> Result<()> {
             "Craft Apps Manager"
         },
         options,
-        Box::new(move |cc| Ok(Box::new(ui::App::new(cc, paths, home, builder)?))),
+        Box::new(move |cc| {
+            let mut app = ui::App::new(cc, paths, home, builder)?;
+            app.attach_instance(instance, cc);
+            Ok(Box::new(app))
+        }),
     )
     .map_err(|e| anyhow::anyhow!(e.to_string()))?;
     Ok(())

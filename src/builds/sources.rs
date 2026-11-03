@@ -1,7 +1,7 @@
-//! Source archive downloads and removal; shares release transaction/backup logic.
-use crate::installations::{backups::backup_path, releases::replace_transaction};
+//! Source archive downloads and removal with temporary transaction recovery only.
+use crate::installations::releases::replace_transaction;
 use crate::{
-    backups, files,
+    files,
     jobs::Job,
     model::{Paths, Source},
     network::Network,
@@ -61,7 +61,7 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
         "\nSource updates — {}",
         chrono::Utc::now().to_rfc3339()
     ));
-    let prefs = paths.preferences()?;
+    paths.preferences_locked()?;
     let network = Network::new(&paths.root)?;
     let mut index: BTreeMap<String, Source> =
         files::read_or_default(&paths.at("sources/source-index.json"))?;
@@ -81,8 +81,10 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
         let child = job.prepare_child(name, "Source download", "source", "source");
         let result = child.tracked("Source download", name, |job| {
             let repository = crate::model::repository(name);
-            let repo: serde_json::Value =
-                network.json(&format!("https://api.github.com/repos/{repository}"))?;
+            let repo: serde_json::Value = network.json_with_policy(
+                &format!("https://api.github.com/repos/{repository}"),
+                crate::network::CachePolicy::Update,
+            )?;
             let branch = repo["default_branch"]
                 .as_str()
                 .context("No default branch")?;
@@ -94,7 +96,8 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
                 .map_err(|_| anyhow::anyhow!("Invalid API endpoint"))?
                 .pop_if_empty()
                 .push(branch);
-            let commit: serde_json::Value = network.json(endpoint.as_str())?;
+            let commit: serde_json::Value =
+                network.json_with_policy(endpoint.as_str(), crate::network::CachePolicy::Update)?;
             let sha = commit["sha"].as_str().context("No commit")?;
             if sha.len() != 40 || !sha.bytes().all(|b| b.is_ascii_hexdigit()) {
                 bail!("Invalid source commit")
@@ -133,10 +136,12 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
             )?;
             files::verify_source(&archive, name, sha)?;
             let hash = files::hash(&archive)?;
-            let backup = old
-                .as_ref()
-                .filter(|_| destination.exists())
-                .map(|o| backup_path(paths, name, &o.sha, true));
+            let backup = old.as_ref().filter(|_| destination.exists()).map(|_| {
+                paths
+                    .at("runtime/source-transactions")
+                    .join(uuid::Uuid::new_v4().to_string())
+                    .join("previous.zip")
+            });
             index.insert(
                 name.clone(),
                 Source {
@@ -157,8 +162,16 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
                 }
                 return Err(e);
             }
-            if let Err(e) = backups::finish(paths, &prefs, backup.as_deref(), name, true, job) {
-                job.log(&format!("Source backup warning: {e}"))
+            // Source archives no longer form a backup history. Retain the old ZIP
+            // only until the replacement and source index have both committed.
+            if let Some(previous) = backup.as_deref() {
+                if let Err(error) =
+                    files::remove_managed(previous, &paths.at("runtime/source-transactions"))
+                {
+                    job.log(&format!("Source recovery-file cleanup warning: {error:#}"));
+                } else if let Some(parent) = previous.parent() {
+                    let _ = fs::remove_dir(parent);
+                }
             }
             job.report("Source location", destination.display().to_string());
             job.report("Commit", sha);
@@ -197,6 +210,16 @@ fn sources_owned(paths: &Paths, names: &[String], job: &Job) -> Result<()> {
 #[cfg(test)]
 mod source_removal_tests {
     use super::*;
+    #[test]
+    fn source_operation_does_not_reacquire_the_settings_lock() {
+        let root = std::env::temp_dir().join(format!("craft-source-lock-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let job = Job::new(paths.at("logs/test.log"), &Default::default());
+        // An empty request exercises operation setup without fetching anything.
+        sources_owned(&paths, &[], &job).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn removes_only_selected_managed_source_and_rejects_unmanaged_files() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());

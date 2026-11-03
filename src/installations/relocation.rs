@@ -40,8 +40,16 @@ pub fn destination(paths: &Paths, app: &Installed, parent: &Path) -> Result<Path
         supported(app),
         "This system-managed installation has a fixed location. Portable apps can be moved."
     );
-    let target = portable::destination(parent, &app.name)?;
     let current = Path::new(&app.path);
+    let target = if app.install_kind == "installer" {
+        portable::destination(parent, &app.name)?
+    } else {
+        // Moving an extra copy must retain its existing folder identity.
+        portable::destination(parent, &app.name)?;
+        let target = parent.join(current.file_name().context("Missing app folder name")?);
+        portable::validate_path(&target)?;
+        target
+    };
     anyhow::ensure!(
         target != current && !target.starts_with(current) && !current.starts_with(&target),
         "Choose a different folder outside the current installation"
@@ -160,6 +168,8 @@ fn move_portable(paths: &Paths, current: &Installed, target: &Path, job: &Job) -
 
 #[cfg(target_os = "windows")]
 fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) -> Result<()> {
+    let scoped_current = installers::snapshot_msi_scope(current)?;
+    let current = &scoped_current;
     use crate::{installers, model::Release, network::Network, updates};
     let network = Network::new(&paths.root)?;
     let mut prefs = paths.read_preferences()?;
@@ -170,7 +180,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
         None,
         "Finding the installed version's verified installer.",
     );
-    let releases: Vec<Release> = network.json(&format!(
+    let releases: Vec<Release> = network.release_json(&format!(
         "https://api.github.com/repos/{}/releases?per_page=100",
         crate::model::repository(&current.name)
     ))?;
@@ -200,6 +210,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
         installers::package_location_supported(&installer),
         "This MSI does not expose a supported install location"
     );
+    installers::validate_msi_replacement_scope(&installer, current)?;
     job.check()?;
     anyhow::ensure!(
         !platform::running_app(&current.name)?,
@@ -219,8 +230,7 @@ fn move_installer(paths: &Paths, current: &Installed, target: &Path, job: &Job) 
     let attempt = (|| -> Result<Installed> {
         job.check()?;
         installers::uninstall(current)?;
-        let installed =
-            installers::run_with_destination(&installer, &current.name, Some(job), Some(target))?;
+        let installed = installers::run_relocation(&installer, current, Some(job), target)?;
         anyhow::ensure!(
             installed.version == current.version,
             "Installer version did not match the installed app"
@@ -453,7 +463,7 @@ mod tests {
             installations: vec![app.clone()],
             apps_root: paths.root.display().to_string(),
         };
-        files::write_json(&paths.at("settings.json"), &config).unwrap();
+        files::write_json(&paths.at("installations.json"), &config).unwrap();
         let prefs = crate::model::Preferences {
             release_format: "portable".into(),
             ..Default::default()
@@ -566,6 +576,59 @@ mod tests {
         assert!(other_folder.exists());
         std::fs::remove_dir_all(paths.root).unwrap();
     }
+    #[test]
+    fn numbered_portable_copy_moves_out_and_back_without_losing_its_folder() {
+        let (paths, mut app, job) = fixture();
+        let original = paths.at("releases/photocraft-2");
+        std::fs::rename(&app.path, &original).unwrap();
+        let old = app.path.clone();
+        app.path = original.display().to_string();
+        app.installation_label = "2".into();
+        save_location(&paths, &app, &old).unwrap();
+        // Keep the first copy in place while moving the actual second copy.
+        std::fs::create_dir_all(&old).unwrap();
+        std::fs::write(Path::new(&old).join("keep.txt"), b"first copy").unwrap();
+        let mut first = app.clone();
+        first.path = old.clone();
+        first.installation_label = "1".into();
+        let mut config = paths.config().unwrap();
+        config.installations.push(first);
+        paths.save_config(&config).unwrap();
+        let app = apps::installed(&paths, &app.name).unwrap();
+        let label = app.installation_label.clone();
+        let parent = paths
+            .root
+            .parent()
+            .unwrap()
+            .join(format!("craft-numbered-move-{}", uuid::Uuid::new_v4()));
+        move_app(&paths, &app, &parent, &job).unwrap();
+        let moved = apps::installed(&paths, &app.name).unwrap();
+        assert_eq!(Path::new(&moved.path), parent.join("photocraft-2"));
+        assert_eq!(moved.installation_label, label);
+        assert_eq!(label, "2");
+        assert_eq!(
+            std::fs::read(Path::new(&old).join("keep.txt")).unwrap(),
+            b"first copy"
+        );
+        assert!(!original.exists());
+        // An occupied destination must never be replaced.
+        std::fs::create_dir_all(&original).unwrap();
+        assert!(destination(&paths, &moved, &paths.at("releases")).is_err());
+        std::fs::remove_dir(&original).unwrap();
+        move_app(&paths, &moved, &paths.at("releases"), &job).unwrap();
+        assert!(original
+            .join(crate::model::executable_name("photocraft"))
+            .exists());
+        assert_eq!(
+            apps::installed(&paths, &app.name)
+                .unwrap()
+                .installation_label,
+            label
+        );
+        std::fs::remove_dir_all(parent).unwrap();
+        std::fs::remove_dir_all(paths.root).unwrap();
+    }
+
     #[test]
     fn cancellation_and_invalid_destination_leave_source_intact() {
         let (paths, app, job) = fixture();

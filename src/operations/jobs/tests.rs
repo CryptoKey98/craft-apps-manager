@@ -1,5 +1,78 @@
 use super::*;
 #[test]
+fn cancellation_before_background_registration_is_not_reset() {
+    let root = std::env::temp_dir().join(format!("craft-reserved-cancel-{}", uuid::Uuid::new_v4()));
+    let job = Job::new(root.join("logs/test.log"), &Default::default());
+    assert!(job.reserve());
+    assert!(job.request_cancel());
+    let handle = job.begin_reserved().unwrap();
+    job.run_worker(handle, |job| job.check());
+    assert_eq!(job.snapshot().stage, "Cancelled");
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+#[ignore = "isolated operation-start timing benchmark"]
+fn benchmark_foreground_and_background_operation_start() {
+    let root = std::env::temp_dir().join(format!("craft-start-timing-{}", uuid::Uuid::new_v4()));
+    let manager = crate::operations::Manager::new(&root);
+    let seed = manager.register("Install / update", "fixture", None);
+    seed.finish(crate::operations::Lifecycle::Completed, "Success".into());
+    let mut record = seed.snapshot();
+    for _ in 0..26 {
+        record.id = uuid::Uuid::new_v4().to_string();
+        crate::files::write_json(
+            &root.join(format!("runtime/operations/{}.json", record.id)),
+            &record,
+        )
+        .unwrap();
+    }
+    let mut foreground = Vec::new();
+    let mut background = Vec::new();
+    for _ in 0..5 {
+        let job = Job::new(root.join("logs/test.log"), &Default::default());
+        let start = std::time::Instant::now();
+        let worker = job.spawn_worker(|_| Ok(())).unwrap();
+        foreground.push(start.elapsed().as_secs_f64() * 1000.0);
+        worker.join().unwrap();
+        let job = Job::new(root.join("logs/test.log"), &Default::default());
+        let start = std::time::Instant::now();
+        let worker = job.spawn_background_worker(|_| Ok(())).unwrap();
+        background.push(start.elapsed().as_secs_f64() * 1000.0);
+        worker.join().unwrap();
+    }
+    println!("foreground startup ms: {foreground:?}; background dispatch ms: {background:?}");
+    fs::remove_dir_all(root).unwrap();
+}
+#[test]
+fn background_start_reserves_once_and_preserves_cancellation() {
+    let root = std::env::temp_dir().join(format!("craft-async-start-{}", uuid::Uuid::new_v4()));
+    let job = Job::new(root.join("logs/test.log"), &Default::default());
+    let (entered_tx, entered_rx) = std::sync::mpsc::channel();
+    let (release_tx, release_rx) = std::sync::mpsc::channel();
+    let worker = job
+        .spawn_background_worker(move |job| {
+            entered_tx.send(std::thread::current().id()).unwrap();
+            release_rx.recv().unwrap();
+            job.check()
+        })
+        .unwrap();
+    assert!(job.snapshot().busy);
+    assert!(job
+        .spawn_background_worker(|_| panic!("duplicate worker"))
+        .is_none());
+    assert_ne!(
+        entered_rx.recv_timeout(Duration::from_secs(5)).unwrap(),
+        std::thread::current().id()
+    );
+    assert!(job.request_cancel());
+    release_tx.send(()).unwrap();
+    worker.join().unwrap();
+    assert!(!job.snapshot().busy);
+    assert_eq!(job.snapshot().stage, "Cancelled");
+    fs::remove_dir_all(root).unwrap();
+}
+#[test]
 fn restarted_manager_recovers_builder_progress_log_and_cancellation() {
     let root = std::env::temp_dir().join(format!("craft-build-restart-{}", uuid::Uuid::new_v4()));
     let producer = crate::operations::Manager::new(&root);

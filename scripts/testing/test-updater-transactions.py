@@ -65,7 +65,7 @@ def run_case(base, binaries):
         (directory / '.craft-updater-fixture').write_text(MARKER)
     target = install / ('fixture-manager.exe' if os.name == 'nt' else 'fixture-manager')
     shutil.copy2(binaries['1.0.0'], target)
-    preserved = {'settings.json': b'{"theme":"light","app":"keep","external":"untouched"}', 'library.marker': b'preserve library', 'portable.txt': b'portable settings marker'}
+    preserved = {"installations.json": b'{"appsRoot":"library","apps":[]}', 'settings.json': b'{"theme":"light","app":"keep","external":"untouched"}', 'library.marker': b'preserve library', 'portable.txt': b'portable settings marker'}
     for name, content in preserved.items(): (data / name).write_bytes(content)
     catalog = json.loads((ROOT / 'tests/fixtures/updater-v2/catalog.json').read_text())
     now = int(time.time())

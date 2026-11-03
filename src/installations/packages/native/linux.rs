@@ -78,6 +78,72 @@ pub fn installer_extension() -> Result<&'static str> {
         PackageKind::Arch => ".pkg.tar.zst",
     })
 }
+pub(crate) fn rollback_package_identity(
+    file: &Path,
+    installed_architecture: &str,
+) -> Result<crate::installations::rollbacks::native::PackageIdentity> {
+    let kind = package_kind()?;
+    anyhow::ensure!(
+        file.to_string_lossy().ends_with(installer_extension()?),
+        "Rollback package format does not match this distribution"
+    );
+    let (package, version, architecture) = match kind {
+        PackageKind::Arch => arch_metadata(file)?,
+        PackageKind::Debian => {
+            let field = |name: &str| -> Result<String> {
+                let output = Command::new("dpkg-deb")
+                    .arg("-f")
+                    .arg(file)
+                    .arg(name)
+                    .output()?;
+                anyhow::ensure!(
+                    output.status.success(),
+                    "Could not inspect Debian rollback package"
+                );
+                Ok(String::from_utf8(output.stdout)?.trim().to_string())
+            };
+            (field("Package")?, field("Version")?, field("Architecture")?)
+        }
+        PackageKind::Rpm => {
+            let output = Command::new("rpm")
+                .args([
+                    "-qp",
+                    "--queryformat",
+                    "%{NAME}\n%{VERSION}-%{RELEASE}\n%{ARCH}\n",
+                ])
+                .arg(file)
+                .output()?;
+            anyhow::ensure!(
+                output.status.success(),
+                "Could not inspect RPM rollback package"
+            );
+            let text = String::from_utf8(output.stdout)?;
+            let fields: Vec<_> = text.lines().collect();
+            anyhow::ensure!(fields.len() == 3, "Ambiguous RPM rollback package");
+            (fields[0].into(), fields[1].into(), fields[2].into())
+        }
+    };
+    anyhow::ensure!(safe_package(&package), "Invalid native package identity");
+    let architecture = match architecture.as_str() {
+        "amd64" | "x86_64" => "x64",
+        "i386" | "i686" => "x86",
+        "arm64" | "aarch64" => "arm64",
+        "all" | "noarch" | "any" => installed_architecture,
+        _ => bail!("Unsupported rollback package architecture"),
+    };
+    Ok(crate::installations::rollbacks::native::PackageIdentity {
+        format: match kind {
+            PackageKind::Debian => "deb",
+            PackageKind::Rpm => "rpm",
+            PackageKind::Arch => "arch",
+        }
+        .into(),
+        identity: package.clone(),
+        product: package,
+        version,
+        architecture: architecture.into(),
+    })
+}
 pub fn installer_label() -> &'static str {
     match package_kind() {
         Ok(PackageKind::Debian) => "Debian",
@@ -108,10 +174,7 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
         }
     }
     // Newest package names first, like the repository name the app now uses.
-    let mut names: Vec<String> = crate::catalog::names(app)
-        .iter()
-        .map(|n| n.to_lowercase())
-        .collect();
+    let mut names = native_package_names(app);
     names.reverse();
     names.dedup();
     for package in &names {
@@ -121,6 +184,18 @@ pub fn detect(app: &str) -> Result<Option<Installed>> {
     }
     Ok(None)
 }
+fn native_package_names(app: &str) -> Vec<String> {
+    let mut names: Vec<String> = crate::catalog::names(app)
+        .iter()
+        .map(|name| name.to_ascii_lowercase())
+        .collect();
+    // Built-in Linux packages can use their registered reverse-DNS desktop ID.
+    // Custom apps still require an inspected and remembered package identity.
+    if !custom_app(app) {
+        names.extend(crate::catalog::bundle_ids(app));
+    }
+    names
+}
 /// Whether a package name belongs to the app under any of its names.
 fn owned_package(app: &str, package: &str) -> bool {
     safe_package(package)
@@ -128,7 +203,7 @@ fn owned_package(app: &str, package: &str) -> bool {
             identity.platform == "linux"
                 && identity.package == package
                 && safe_linux_path(&identity.executable)
-        }) || (crate::catalog::names(app)
+        }) || (native_package_names(app)
             .iter()
             .any(|name| name.eq_ignore_ascii_case(package))))
 }
@@ -266,6 +341,7 @@ fn detect_package_with_identity(
     Ok(Some(Installed {
         installation_label: Default::default(),
         package_type: Default::default(),
+        windows_msi_scope: None,
         name: app.into(),
         version,
         path: executable
@@ -744,8 +820,8 @@ fn package_status(
         .status()?)
 }
 /// Called only by the approved root helper, with its private verified package copy.
-pub(crate) fn approved_package_command(kind: PackageKind, file: &Path) -> Command {
-    let args = installation_arguments(kind, false);
+pub(crate) fn approved_package_command(kind: PackageKind, file: &Path, downgrade: bool) -> Command {
+    let args = installation_arguments(kind, downgrade);
     let mut command = Command::new(format!("/usr/bin/{}", args[0]));
     command
         .args(&args[1..])
@@ -759,6 +835,31 @@ pub(crate) fn approved_package_command(kind: PackageKind, file: &Path) -> Comman
         .stdin(std::process::Stdio::null());
     command
 }
+/// Recovery is explicitly approved for this immutable package, in either
+/// replacement direction. An absent RPM must be installed, not downgraded.
+pub(crate) fn approved_recovery_command(kind: PackageKind, file: &Path) -> Result<Command> {
+    let downgrade = match kind {
+        PackageKind::Debian => true,
+        PackageKind::Arch => false,
+        PackageKind::Rpm => {
+            let package = package_name(file, kind)?;
+            let current = Command::new("/usr/bin/rpm")
+                .args(["-q", "--queryformat", "%{VERSION}", "--"])
+                .arg(&package)
+                .output()?;
+            if current.status.success() {
+                let current = String::from_utf8(current.stdout)?;
+                let target = rollback_package_identity(file, crate::model::MANAGER_ARCH)?;
+                crate::updates::version(current.trim())?
+                    > crate::updates::version(upstream_version(&target.version))?
+            } else {
+                false
+            }
+        }
+    };
+    Ok(approved_package_command(kind, file, downgrade))
+}
+
 pub fn uninstall(app: &Installed) -> Result<()> {
     crate::model::valid_app(&app.name)?;
     if !owned_package(&app.name, &app.product_code) {

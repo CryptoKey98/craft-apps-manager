@@ -1,12 +1,16 @@
 use anyhow::{bail, Result};
+#[path = "common/api_cache.rs"]
+mod api_cache;
 #[cfg(target_os = "windows")]
 use craft_apps_manager::model::Release;
 use craft_apps_manager::{
-    backups, builder, files,
+    builder, files,
     jobs::Job,
     model::{self, Asset, BuilderPreferences, Paths, Preferences, Source},
     network::{verify_asset, Network},
-    platform, updates,
+    platform,
+    storage::{config::ConfigStore, settings},
+    updates,
 };
 use std::{
     collections::BTreeMap,
@@ -18,71 +22,6 @@ use std::{
     sync::atomic::Ordering,
 };
 
-#[cfg(target_os = "windows")]
-#[test]
-fn portable_backup_restore_ignores_obsolete_global_format_and_recovers_architecture() {
-    let f = Fixture::new();
-    let paths = f.paths();
-    files::write_json(
-        &paths.at("manager-settings.json"),
-        &Preferences {
-            release_format: "installer".into(),
-            ..Default::default()
-        },
-    )
-    .unwrap();
-    let folder = paths.at("releases/designcraft");
-    fs::create_dir_all(&folder).unwrap();
-    fs::write(folder.join("designcraft.exe"), b"old fixture").unwrap();
-    paths
-        .save_config(&model::Config {
-            portable_label_counters: Default::default(),
-            apps_root: paths.root.display().to_string(),
-            apps: vec![model::Installed {
-                name: "designcraft".into(),
-                version: "0.8.0".into(),
-                path: folder.display().to_string(),
-                install_kind: "portable".into(),
-                architecture: "x64".into(),
-                ..Default::default()
-            }],
-            installations: vec![],
-        })
-        .unwrap();
-    let backup = paths.at(format!(
-        "backups/releases/designcraft-0.7.1-{}",
-        uuid::Uuid::new_v4().simple()
-    ));
-    fs::create_dir_all(&backup).unwrap();
-    let mut bytes = vec![0u8; 256];
-    bytes[..2].copy_from_slice(b"MZ");
-    bytes[60..64].copy_from_slice(&128u32.to_le_bytes());
-    bytes[128..132].copy_from_slice(b"PE\0\0");
-    bytes[132..134].copy_from_slice(&0x14cu16.to_le_bytes());
-    bytes[148..150].copy_from_slice(&70u16.to_le_bytes());
-    bytes[152..154].copy_from_slice(&0x10bu16.to_le_bytes());
-    fs::write(backup.join("designcraft.exe"), &bytes).unwrap();
-    backups::restore(
-        &paths,
-        "designcraft",
-        &backups::Backup {
-            path: backup,
-            source: false,
-        },
-        &job(&f.0),
-    )
-    .unwrap();
-    let config: model::Config = files::read_json(&paths.at("settings.json")).unwrap();
-    let restored = config
-        .apps
-        .iter()
-        .find(|a| a.name == "designcraft")
-        .unwrap();
-    assert_eq!(restored.version, "0.7.1");
-    assert_eq!(restored.architecture, "x86");
-    assert_eq!(restored.install_kind, "portable");
-    assert_eq!(fs::read(folder.join("designcraft.exe")).unwrap(), bytes);
-}
 #[cfg(target_os = "windows")]
 #[test]
 fn renamed_pdfcraft_assets_and_executable_keep_legacy_library_identity() {
@@ -199,8 +138,17 @@ fn manager_settings_migrate_existing_startup_preferences() {
     assert!(preferences.check_manager_on_startup);
     assert!(preferences.selected_apps.is_empty());
     assert_eq!(&preferences.app_order[..2], &["filmcraft", "photocraft"]);
-    assert!(paths.at("manager-settings.json").is_file());
+    assert!(paths.at("config.yaml").is_file());
+    // Verified legacy preferences are removed; YAML is authoritative.
     assert!(!paths.at("updater-settings.json").exists());
+    assert!(
+        ConfigStore::new(paths.root.clone())
+            .load()
+            .unwrap()
+            .manager()
+            .unwrap()
+            .check_manager_on_startup
+    );
     assert!(paths.preferences().unwrap().check_manager_on_startup);
 }
 #[test]
@@ -227,7 +175,10 @@ fn sidebar_order_migrates_and_preserves_custom_order() {
 }
 impl Fixture {
     fn new() -> Self {
-        let path = std::env::temp_dir().join(format!("craft-rust-test-{}", uuid::Uuid::new_v4()));
+        let path = std::env::temp_dir()
+            .canonicalize()
+            .unwrap()
+            .join(format!("craft-rust-test-{}", uuid::Uuid::new_v4()));
         fs::create_dir_all(&path).unwrap();
         Self(path)
     }
@@ -369,59 +320,6 @@ fn portable_photo_profile_survives_uninstall_and_reinstall() {
     assert!(!preserved.1.exists());
 }
 #[test]
-fn app_backup_delete_and_restore_are_scoped() {
-    let f = Fixture::new();
-    let paths = f.paths();
-    let prefs = Preferences {
-        release_format: "portable".into(),
-        ..portable_test_preferences()
-    };
-    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
-    let film = paths.at("backups/releases/filmcraft-0.1.0-11111111111111111111111111111111");
-    let other = paths.at("backups/releases/designcraft-0.1.0-22222222222222222222222222222222");
-    fs::create_dir_all(&film).unwrap();
-    fs::create_dir_all(&other).unwrap();
-    write_release_fixture(&film, "filmcraft", "backup executable");
-    let target = paths.at("releases/filmcraft");
-    fs::create_dir_all(&target).unwrap();
-    write_release_fixture(&target, "filmcraft", "current executable");
-    let choices = backups::list(&paths, "filmcraft").unwrap();
-    assert_eq!(choices.len(), 1);
-    backups::restore(&paths, "filmcraft", &choices[0], &job(&f.0)).unwrap();
-    assert_eq!(
-        fs::read_to_string(fixture_payload(&target, "filmcraft")).unwrap(),
-        "backup executable"
-    );
-    assert_eq!(
-        paths
-            .config()
-            .unwrap()
-            .apps
-            .iter()
-            .find(|a| a.name == "filmcraft")
-            .unwrap()
-            .version,
-        "0.1.0"
-    );
-    assert!(film.exists());
-    assert!(backups::delete_selected(
-        &paths,
-        "filmcraft",
-        &[backups::Backup {
-            path: other.clone(),
-            source: false
-        }]
-    )
-    .is_err());
-    assert!(other.exists());
-    backups::delete_selected(&paths, "filmcraft", &choices).unwrap();
-    assert!(!film.exists());
-    backups::clear_app(&paths, "filmcraft").unwrap();
-    assert!(!film.exists());
-    assert!(other.exists());
-    assert!(target.exists());
-}
-#[test]
 fn obsolete_global_format_preserves_portable_and_discards_missing_native_installation() {
     let f = Fixture::new();
     let paths = f.paths();
@@ -510,14 +408,17 @@ fn release_and_source_selections_are_independent() {
     let p = paths.preferences().unwrap();
     assert_eq!(p.selected_apps, ["filmcraft"]);
     assert_eq!(p.selected_sources, ["artcraftx"]);
-    files::write_json(
-        &paths.at("manager-settings.json"),
-        &serde_json::json!({"selectedApps":["filmcraft"],"selectedSources":[]}),
-    )
-    .unwrap();
+    let mut edited = p.clone();
+    edited.selected_sources.clear();
+    settings::save_preferences_patch(&paths, &p, &edited).unwrap();
     let p = paths.preferences().unwrap();
+    assert_eq!(p.selected_apps, ["filmcraft"]);
+    assert!(p.selected_sources.is_empty());
     updates::sources(&paths, &p.selected_sources, &job(&f.0)).unwrap();
     assert!(!paths.at("runtime/api-cache").exists());
+    // A separate legacy library omitting selectedSources receives its default.
+    let legacy = Fixture::new();
+    let paths = legacy.paths();
     files::write_json(
         &paths.at("manager-settings.json"),
         &serde_json::json!({"selectedApps":[]}),
@@ -530,47 +431,82 @@ fn release_and_source_selections_are_independent() {
 }
 #[test]
 fn individual_check_detects_newer_release_without_downloading() {
-    use sha2::{Digest, Sha256};
     let f = Fixture::new();
     let paths = f.paths();
-    let mut config = paths.config().unwrap();
-    let app = config
-        .apps
-        .iter_mut()
-        .find(|a| a.name == "filmcraft")
+    // This case tests the API/cache path, independently of the live signed feed.
+    let key = "fixtureapp";
+    let mut entry = craft_apps_manager::catalog::builtin()
+        .into_iter()
+        .find(|entry| entry.key == "filmcraft")
         .unwrap();
-    app.path = paths.at("releases/filmcraft").display().to_string();
+    entry.key = key.into();
+    entry.repository = "fixture/fixtureapp".into();
+    entry.title = "FixtureApp".into();
+    entry.asset_prefix = key.into();
+    // The synthetic app must own its fixture bundle, not FilmCraft's identifiers.
+    entry.bundle_ids = vec![format!("ai.storyteller.{key}")];
+    entry.aliases.clear();
+    entry.registered_formats = vec!["portable".into()];
+    ConfigStore::new(paths.root.clone())
+        .patch_section_typed(
+            "custom_apps",
+            &Vec::<craft_apps_manager::catalog::Entry>::new(),
+            &vec![entry],
+        )
+        .unwrap();
+    craft_apps_manager::catalog::load(&paths.root);
+    let mut prefs = portable_test_preferences();
+    prefs.app_install_options.insert(
+        craft_apps_manager::install_options::identity(key),
+        craft_apps_manager::install_options::InstallOptions {
+            release_format: "portable".into(),
+            architecture: model::MANAGER_ARCH.into(),
+        },
+    );
+    settings::save_preferences_patch(&paths, &Preferences::default(), &prefs).unwrap();
+    let mut config = paths.config().unwrap();
+    let app = config.apps.iter_mut().find(|a| a.name == key).unwrap();
+    app.path = paths.at(format!("releases/{key}")).display().to_string();
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
     app.architecture = craft_apps_manager::model::MANAGER_ARCH.into();
     fs::create_dir_all(&app.path).unwrap();
-    write_release_fixture(Path::new(&app.path), "filmcraft", "fixture");
-    files::write_json(
-        &paths.at("manager-settings.json"),
-        &Preferences {
-            release_format: "portable".into(),
-            ..portable_test_preferences()
-        },
-    )
-    .unwrap();
-    files::write_json(&paths.at("settings.json"), &config).unwrap();
-    let endpoint = "https://api.github.com/repos/storytold/filmcraft/releases/latest";
-    let cache = paths.at(format!(
-        "runtime/api-cache/{:x}.json",
-        Sha256::digest(endpoint.as_bytes())
-    ));
+    write_release_fixture(Path::new(&app.path), key, "fixture");
+    paths.save_config(&config).unwrap();
+    let endpoint = "https://api.github.com/repos/fixture/fixtureapp/releases/latest";
     for (version, expected) in [("1.0.0", None), ("1.1.0", Some("1.1.0".to_string()))] {
-        files::write_json(&cache, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
+        api_cache::write(&paths.root, endpoint, &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{
             "tag_name":format!("v{version}"), "draft":false,"prerelease":false,
-            "assets":[{"name":format!("filmcraft-{version}-{}-{}{}", craft_apps_manager::model::release_os(),craft_apps_manager::model::release_arch(craft_apps_manager::model::MANAGER_ARCH),if cfg!(target_os = "windows") {"-portable.zip"} else if cfg!(target_os = "macos") {".dmg"} else {".AppImage"}),"size":1,"browser_download_url":"https://github.com/storytold/filmcraft/releases/download/test.zip"}]
+            "assets":[{"name":format!("{key}-{version}-{}-{}{}", craft_apps_manager::model::release_os(),craft_apps_manager::model::release_arch(craft_apps_manager::model::MANAGER_ARCH),if cfg!(target_os = "windows") {"-portable.zip"} else if cfg!(target_os = "macos") {".dmg"} else {".AppImage"}),"size":1,"browser_download_url":"https://github.com/fixture/fixtureapp/releases/download/test.zip"}]
         }})).unwrap();
-        assert_eq!(updates::check_app(&paths, "filmcraft").unwrap(), expected);
+        assert_eq!(updates::check_app(&paths, key).unwrap(), expected);
     }
+    let mut config = paths.config().unwrap();
+    let captured = config
+        .apps
+        .iter()
+        .find(|copy| copy.name == key)
+        .unwrap()
+        .clone();
+    config
+        .apps
+        .iter_mut()
+        .find(|copy| copy.name == key)
+        .unwrap()
+        .version = "9.0.0".into();
+    paths.save_config(&config).unwrap();
+    assert_eq!(updates::check_app(&paths, key).unwrap(), None);
+    assert_eq!(
+        updates::check_installation(&paths, &captured, &prefs).unwrap(),
+        Some("1.1.0".into())
+    );
     assert!(!paths.at("runtime/downloads").exists());
     assert!(paths
-        .at("releases/filmcraft")
-        .join(craft_apps_manager::model::executable_name("filmcraft"))
+        .at(format!("releases/{key}"))
+        .join(craft_apps_manager::model::executable_name(key))
         .exists());
+    assert!(!paths.at("runtime/app-release-catalog").exists());
+    craft_apps_manager::catalog::load(&paths.at("empty-catalog"));
 }
 #[test]
 fn app_management_preserves_other_data_and_launch_settings() {
@@ -598,7 +534,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     app.path = folder.display().to_string();
     app.version = "1.0.0".into();
     app.install_kind = "portable".into();
-    files::write_json(&paths.at("settings.json"), &config).unwrap();
+    paths.save_config(&config).unwrap();
     let value = craft_apps_manager::apps::LaunchSettings {
         executable: craft_apps_manager::model::executable_name("filmcraft"),
         arguments: vec!["file with spaces.mov".into(), "--test".into()],
@@ -617,8 +553,7 @@ fn app_management_preserves_other_data_and_launch_settings() {
     craft_apps_manager::apps::uninstall(&paths, "filmcraft").unwrap();
     assert!(!folder.exists());
     assert!(paths.at("sources/filmcraft-source.zip").exists());
-    let saved: craft_apps_manager::model::Config =
-        files::read_json(&paths.at("settings.json")).unwrap();
+    let saved = paths.read_inventory().unwrap().unwrap();
     assert!(saved
         .apps
         .iter()
@@ -627,7 +562,14 @@ fn app_management_preserves_other_data_and_launch_settings() {
     // A remaining native copy may become selected. The removed portable copy's
     // launch options must remain attached to its own location, not that other copy.
     let launch_settings: BTreeMap<String, craft_apps_manager::apps::LaunchSettings> =
-        files::read_json(&paths.at("runtime/launch-settings.json")).unwrap();
+        serde_json::from_value(
+            ConfigStore::new(paths.root.clone())
+                .load()
+                .unwrap()
+                .document["launch"]
+                .clone(),
+        )
+        .unwrap();
     assert_eq!(
         launch_settings[&format!("filmcraft|{}", folder.display())].arguments,
         value.arguments
@@ -689,11 +631,11 @@ fn settings_compatible_with_powershell_and_empty_selection() {
     assert!(p.selected_apps.is_empty());
     assert!(!p.keep_app_backups);
     assert_eq!(p.architecture, "x86");
-    let mut p = p;
-    p.selected_apps = vec!["filmcraft".into(), "unknown-app".into(), "filmcraft".into()];
-    p.validate().unwrap();
-    assert_eq!(p.selected_apps, ["filmcraft"]);
-    files::write_json(&paths.at("manager-settings.json"), &p).unwrap();
+    let mut edited = p.clone();
+    edited.selected_apps = vec!["filmcraft".into(), "unknown-app".into(), "filmcraft".into()];
+    edited.validate().unwrap();
+    assert_eq!(edited.selected_apps, ["filmcraft"]);
+    settings::save_preferences_patch(&paths, &p, &edited).unwrap();
     assert_eq!(paths.preferences().unwrap().selected_apps, ["filmcraft"]);
 }
 #[test]
@@ -795,29 +737,6 @@ fn atomic_metadata_and_rollback() {
     assert_eq!(fs::read_to_string(backup.join("app.exe")).unwrap(), "old");
 }
 #[test]
-fn backups_retention_and_disabled() {
-    let f = Fixture::new();
-    let paths = f.paths();
-    let root = paths.at("backups/releases");
-    fs::create_dir_all(&root).unwrap();
-    let mut p = Preferences {
-        keep_app_backups: true,
-        compress_backups: false,
-        backup_versions: 1,
-        ..Default::default()
-    };
-    let old = root.join(format!("filmcraft-1.0.0-{}", uuid::Uuid::new_v4().simple()));
-    let current = root.join(format!("filmcraft-1.1.0-{}", uuid::Uuid::new_v4().simple()));
-    fs::create_dir_all(&old).unwrap();
-    fs::create_dir_all(&current).unwrap();
-    backups::finish(&paths, &p, Some(&current), "filmcraft", false, &job(&f.0)).unwrap();
-    assert!(!old.exists());
-    assert!(current.exists());
-    p.keep_app_backups = false;
-    backups::finish(&paths, &p, Some(&current), "filmcraft", false, &job(&f.0)).unwrap();
-    assert!(!current.exists());
-}
-#[test]
 fn logs_are_plain_unicode_and_rotate() {
     let f = Fixture::new();
     let mut j = job(&f.0);
@@ -887,6 +806,8 @@ fn empty_selection_does_not_contact_github() {
     p.selected_apps.clear();
     files::write_json(&paths.at("manager-settings.json"), &p).unwrap();
     updates::releases(&paths, &job(&f.0), false).unwrap();
+    assert!(paths.at("config.yaml").is_file());
+    assert!(paths.read_preferences().unwrap().selected_apps.is_empty());
     assert!(!paths.at("runtime/api-cache").exists());
 }
 #[test]
@@ -922,52 +843,6 @@ fn child_process_capture_and_cancellation() {
     assert!(j.run(&mut wait, false).is_err());
     t.join().unwrap();
     assert!(start.elapsed().as_secs() < 10);
-}
-#[test]
-fn source_backup_7zip_roundtrip() {
-    let Ok(tools) = std::env::var("CRAFT_TEST_TOOLS") else {
-        return;
-    };
-    let f = Fixture::new();
-    let paths = Paths::new(f.0.clone(), Some(tools.into()));
-    let root = paths.at("backups/sources");
-    fs::create_dir_all(&root).unwrap();
-    let source = root.join(format!(
-        "filmcraft-source-aaaaaaa-{}.zip",
-        uuid::Uuid::new_v4().simple()
-    ));
-    let sha = "a".repeat(40);
-    zip(
-        &source,
-        &[
-            (
-                &format!("filmcraft-{sha}/Cargo.toml"),
-                "[package]\nname='filmcraft'\nversion='0.1.0'\n",
-            ),
-            (
-                &format!("filmcraft-{sha}/src/main.rs"),
-                &"fn main() {}\n".repeat(10000),
-            ),
-        ],
-    );
-    let p = Preferences {
-        keep_source_backups: true,
-        ..Preferences::default()
-    };
-    backups::finish(&paths, &p, Some(&source), "filmcraft", true, &job(&f.0)).unwrap();
-    assert!(!source.exists());
-    assert!(PathBuf::from(format!("{}.7z", source.display())).exists());
-    let backups = backups::list(&paths, "filmcraft").unwrap();
-    backups::restore(&paths, "filmcraft", &backups[0], &job(&f.0)).unwrap();
-    let restored = paths.at("sources/filmcraft-source.zip");
-    files::verify_source(&restored, "filmcraft", &sha).unwrap();
-    let index: BTreeMap<String, Source> =
-        files::read_json(&paths.at("sources/source-index.json")).unwrap();
-    assert_eq!(index["filmcraft"].sha, sha);
-    assert_eq!(
-        index["filmcraft"].archive_sha256,
-        files::hash(&restored).unwrap()
-    );
 }
 #[test]
 fn real_rust_fixture_build() -> Result<()> {
@@ -1033,6 +908,7 @@ fn stale_installation_records_do_not_mark_apps_installed() {
     )
     .unwrap();
     let record = Installed {
+        windows_msi_scope: None,
         installation_label: Default::default(),
         package_type: Default::default(),
         name: "craft-test-missing-app".into(),
@@ -1126,9 +1002,9 @@ fn newly_published_apps_are_remembered_without_changing_update_selection() {
     // ArtCraft is published as releases only.
     assert!(!p.selected_sources.iter().any(|a| a == "artcraft"));
     // The user deselects the new app; it stays deselected.
-    let mut p = p;
-    p.selected_apps.retain(|a| a != "artcraft");
-    files::write_json(&paths.at("manager-settings.json"), &p).unwrap();
+    let mut edited = p.clone();
+    edited.selected_apps.retain(|a| a != "artcraft");
+    settings::save_preferences_patch(&paths, &p, &edited).unwrap();
     assert!(!paths
         .preferences()
         .unwrap()
@@ -1136,6 +1012,8 @@ fn newly_published_apps_are_remembered_without_changing_update_selection() {
         .iter()
         .any(|a| a == "artcraft"));
     // Obsolete discovery selection is ignored without changing saved choices.
+    let legacy = Fixture::new();
+    let paths = legacy.paths();
     files::write_json(
         &paths.at("manager-settings.json"),
         &serde_json::json!({"selectedApps":[],"selectedSources":[],"selectNewApps":true}),

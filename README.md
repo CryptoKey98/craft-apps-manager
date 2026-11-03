@@ -6,38 +6,38 @@ Install, update, launch, and build Storytold Craft apps in one place. Manage mul
 
 Available for **Windows, Linux, and macOS**. This is an independent community project, not an official Storytold or Adobe application.
 
-**[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [Documentation](https://github.com/CryptoKey98/craft-apps-manager/wiki) · [Changelog](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
+**[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** Â· [Documentation](https://github.com/CryptoKey98/craft-apps-manager/wiki) Â· [Changelog](CHANGELOG.md) Â· [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
 
-Version **1.0.0** includes signed manager updates, compatibility updates with fewer prompts, and Linux TAR.GZ and macOS DMG downloads. See the [changelog](CHANGELOG.md) for the full release notes.
+Version **1.1.0** includes app rollback, consistent settings saves, safer migration, clearer GitHub activity, and faster installation choices. It also introduces an optional signed app-release catalog and SolidCraft discovery. See the [changelog](CHANGELOG.md) for the full release notes.
 
 ![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.8.0)
 
 <details>
 <summary>More screenshots</summary>
 
-Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2× resolution. Some controls have changed since then; the images do not show every current feature.
+Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2Ã— resolution. Some controls have changed since then; the images do not show every current feature.
 
-**Home** — launch installed apps and review updates.
+**Home** â€” launch installed apps and review updates.
 
 ![Home page](docs/images/overview.png?v=0.8.0)
 
-**Install** — choose options for an individual app.
+**Install** â€” choose options for an individual app.
 
 ![Install confirmation](docs/images/install.png?v=0.8.0)
 
-**Settings** — manage apps, checks, backups, builds, and folders.
+**Settings** â€” manage apps, checks, rollback retention, builds, and folders.
 
 ![Settings](docs/images/settings.png?v=0.8.0)
 
-**Update All selection** — choose which installed apps to update.
+**Update All selection** â€” choose which installed apps to update.
 
 ![Choose apps for Update all](docs/images/app-selection.png?v=0.8.0)
 
-**Activity** — see progress and recent results.
+**Activity** â€” see progress and recent results.
 
 ![Activity panel](docs/images/activity.png?v=0.8.0)
 
-**Builder** — build apps in a separate window.
+**Builder** â€” build apps in a separate window.
 
 ![Craft Apps Builder](docs/images/builder.png?v=0.8.0)
 
@@ -57,11 +57,11 @@ Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2�
 | Arch Linux 64-bit (experimental) | x86_64 `.pkg.tar.zst` | x64 ZIP or TAR.GZ |
 | macOS 11+, Intel or Apple silicon | Universal DMG | Universal ZIP |
 
-**Windows:** run the MSI, or open `CraftApps-Manager.exe` from the extracted ZIP. Keep its bundled `workspace/tools/7zip` folder. Rust is not required to run the manager.
+**Windows:** run the MSI, or open `CraftApps-Manager.exe` from the extracted ZIP. Rust is not required to run the manager.
 
 **Linux:** install the package matching your distribution, or extract the portable archive and run `craft-apps-manager`. See [Linux setup](docs/user-guide/linux.md) for commands and desktop requirements.
 
-**macOS:** open the DMG and drag the app into Applications, or keep the extracted ZIP folder together with `portable.txt` beside the app. The manager is not notarized; macOS may require **System Settings → Privacy & Security → Open Anyway**. See [macOS setup](docs/user-guide/macos.md).
+**macOS:** open the DMG and drag the app into Applications, or keep the extracted ZIP folder together with `portable.txt` beside the app. The manager is not notarized; macOS may require **System Settings â†’ Privacy & Security â†’ Open Anyway**. See [macOS setup](docs/user-guide/macos.md).
 
 ## What you can do
 
@@ -70,7 +70,7 @@ Screenshots show the Windows 0.8.0 interface with a demo library, captured at 2�
 - **Review updates:** Update All works on selected installed apps. Automatic checks notify you; they do not automatically install updates.
 - **Follow progress:** Manager and Builder share operation records, logs, and cancellation status in Activity.
 - **Build from source:** set up tools, build supported Craft apps, and choose a completed build to launch.
-- **Add GitHub apps:** review compatible downloads in **Settings → Apps → Custom apps**. Support is experimental and varies by package.
+- **Add GitHub apps:** review compatible downloads in **Settings â†’ Apps â†’ Custom apps**. Support is experimental and varies by package.
 
 New Craft apps can appear after an app-list refresh without updating the manager. Adding or discovering an app does not install it.
 

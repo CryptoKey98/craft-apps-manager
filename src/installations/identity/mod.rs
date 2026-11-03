@@ -94,9 +94,13 @@ pub fn running_executables(app: &str) -> Vec<String> {
         .collect();
     let root = CURRENT.read().unwrap().root.clone();
     if let Some(root) = root {
-        if let Ok(config) =
-            crate::files::read_json::<serde_json::Value>(&root.join("settings.json"))
-        {
+        if let Ok(config) = crate::files::read_json::<serde_json::Value>(&root.join(
+            if root.join("installations.json").exists() {
+                "installations.json"
+            } else {
+                "settings.json"
+            },
+        )) {
             for record in ["apps", "installations"]
                 .into_iter()
                 .filter_map(|key| config.get(key).and_then(|value| value.as_array()))

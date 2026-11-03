@@ -71,12 +71,10 @@ fn worker_url(value: &str) -> Result<reqwest::Url> {
 }
 fn startup(data: &Path) -> Result<()> {
     owned(data)?;
-    let config: Config = files::read_json(&data.join("settings.json"))?;
+    let config: Config = files::read_json(&data.join("installations.json"))?;
+    let preferences = Paths::new(data.into(), Some(data.join("tools"))).read_preferences()?;
     ensure!(
-        Paths::new(data.into(), Some(data.join("tools")))
-            .read_preferences()?
-            .theme
-            == Theme::Light,
+        preferences.theme == Theme::Light,
         "Fixture preference interpretation changed"
     );
     ensure!(
@@ -99,7 +97,7 @@ fn startup(data: &Path) -> Result<()> {
     }
     files::write_json(
         &data.join("worker-fixture-receipt.json"),
-        &serde_json::json!({"version":VERSION,"pid":std::process::id()}),
+        &serde_json::json!({"version":VERSION,"pid":std::process::id(),"preferences":{"theme":preferences.theme}}),
     )
 }
 
@@ -387,13 +385,22 @@ mod tests {
         fs::write(data.join(".craft-updater-fixture"), MARKER).unwrap();
         let app = data.join("app.exe");
         fs::write(&app, b"preserved app").unwrap();
-        files::write_json(&data.join("settings.json"), &serde_json::json!({"appsRoot":data,"apps":[{"name":"fixture-app","version":"1.0.0","path":data}],"installations":[]})).unwrap();
+        files::write_json(&data.join("installations.json"), &serde_json::json!({"appsRoot":data,"apps":[{"name":"fixture-app","version":"1.0.0","path":data}],"installations":[]})).unwrap();
         files::write_json(
             &data.join("manager-settings.json"),
             &serde_json::json!({"theme":"light"}),
         )
         .unwrap();
         let result = startup(&data);
+        if result.is_ok() {
+            assert!(!data.join("manager-settings.json").exists());
+            assert!(data.join("config.yaml").is_file());
+            let receipt: serde_json::Value =
+                files::read_json(&data.join("worker-fixture-receipt.json")).unwrap();
+            assert_eq!(receipt["preferences"]["theme"], "light");
+            // The next launch reads authoritative YAML without legacy JSON.
+            startup(&data).unwrap();
+        }
         fs::remove_dir_all(&data).unwrap();
         result.expect("Fixture must interpret the real manager's settings filenames");
     }

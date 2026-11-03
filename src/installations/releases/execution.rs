@@ -39,6 +39,7 @@ pub fn execute_plan(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> 
 }
 
 pub(super) fn execute_plan_owned(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
+    super::validation::revalidate_plan(paths, plan, job)?;
     for entry in &plan.entries {
         job.prepare_child(
             &entry.app,
@@ -92,7 +93,10 @@ pub(super) fn execute_validated(
     execute: impl FnOnce(&mut crate::model::Config) -> Result<()>,
 ) -> Result<()> {
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
-    let prefs = paths.read_preferences()?;
+    if plan.native_rollback.is_some() {
+        crate::installations::rollbacks::native::validate_plan(paths, plan)?;
+    }
+    let prefs = paths.read_preferences_locked()?;
     let mut config = paths.config()?;
     if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
         bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
@@ -170,6 +174,7 @@ pub(super) fn execute_entries(
     mut release_packages: Option<&mut dyn FnMut(&str)>,
 ) -> Result<()> {
     let network = Network::new(&paths.root)?;
+    crate::installations::rollbacks::cleanup_empty(paths, job);
     execute_with(plan, job, |entry, job| {
         let prefs = &entry.preferences;
         let i = config
@@ -184,7 +189,7 @@ pub(super) fn execute_entries(
                 if platform::running_app(&app.name)? {
                     bail!("Close {} before installing", app.name);
                 }
-                let dest = paths.at(format!("releases/installers/{}/{}", app.name, asset.name));
+                let dest = planned_installer_path(paths, plan, &app.name, asset)?;
                 if dest.exists() {
                     job.stage(
                         "Verifying checksum",
@@ -196,7 +201,60 @@ pub(super) fn execute_entries(
                     network.asset(asset, &dest, job)?;
                 }
                 #[cfg(target_os = "windows")]
+                if let Err(error) = crate::installations::release_catalog::inspection::observe(
+                    &paths.root,
+                    &crate::model::repository(&app.name),
+                    asset,
+                    &prefs.architecture,
+                    &dest,
+                ) {
+                    job.log(&format!(
+                        "Installer compatibility metadata unavailable: {error:#}"
+                    ));
+                }
+                #[cfg(target_os = "windows")]
+                let app = crate::installers::snapshot_msi_scope(&app)?;
+                #[cfg(target_os = "windows")]
+                if app.install_kind == "installer"
+                    && !app.path.is_empty()
+                    && dest
+                        .extension()
+                        .is_some_and(|ext| ext.eq_ignore_ascii_case("msi"))
+                {
+                    crate::installers::validate_msi_replacement_scope(&dest, &app)?;
+                }
+                #[cfg(target_os = "windows")]
                 crate::installers::prepare_custom_identity(&paths.root, &dest, &app.name, job)?;
+                let native_retention = app.install_kind == "installer"
+                    && !app.path.is_empty()
+                    && !app.version.is_empty()
+                    && crate::installations::rollbacks::native::supported(&app).is_ok()
+                    && (plan.native_rollback.is_some()
+                        || crate::installations::rollbacks::native::enabled(paths, &app)?);
+                let previous_installer = if native_retention {
+                    match crate::installations::rollbacks::native::prepare_current(
+                        paths,
+                        &app,
+                        job,
+                        _approved_recovery,
+                    ) {
+                        Ok(package) => Some(package),
+                        Err(error)
+                            if plan.native_rollback.is_some()
+                                || crate::jobs::is_cancelled(&error) =>
+                        {
+                            return Err(error)
+                        }
+                        Err(error) => {
+                            job.log(&format!(
+                                "Previous installer could not be retained: {error:#}"
+                            ));
+                            None
+                        }
+                    }
+                } else {
+                    None
+                };
                 job.stage(
                     "Installing",
                     None,
@@ -207,84 +265,94 @@ pub(super) fn execute_entries(
                     },
                 );
                 #[cfg(target_os = "windows")]
-                let mut installed = if plan.requested_tag.is_some()
-                    && app.install_kind == "installer"
-                    && !app.path.is_empty()
-                    && version(&entry.version)? < version(&app.version)?
-                {
-                    anyhow::ensure!(
-                        dest.extension()
-                            .is_some_and(|e| e.eq_ignore_ascii_case("msi")),
-                        "This installer does not support a safe downgrade"
-                    );
-                    anyhow::ensure!(
-                        crate::model::release_arch(&app.architecture)
-                            == crate::model::release_arch(&prefs.architecture),
-                        "Keep the installed architecture selected when downgrading"
-                    );
-                    let recovery = downgrade_recovery_path(paths, &app, job, _approved_recovery)?;
-                    job.check()?;
-                    let remove_step = job.prepare_child(
-                        &format!("{} · Current version", app.name),
-                        "Uninstall",
-                        "installer",
-                        &prefs.architecture,
-                    );
-                    let install_step = job.prepare_child(
-                        &format!("{} · Older version", app.name),
-                        "Install",
-                        "installer",
-                        &prefs.architecture,
-                    );
-                    replace_installer_transaction(
-                        || {
-                            job.stage(
-                                "Downgrading",
-                                None,
-                                "Removing the current installation; user data is kept",
-                            );
-                            remove_step.tracked("Uninstall", &app.name, |step| {
-                                step.stage(
-                                    "Uninstalling",
-                                    None,
-                                    "Removing the current version; user data is kept",
-                                );
-                                crate::installers::uninstall(&app)
-                            })
-                        },
-                        || {
-                            install_step.tracked("Install", &app.name, |step| {
-                                step.check()?;
+                let mut recovery_download = None;
+                let installation_result = (|| -> Result<crate::model::Installed> {
+                    #[cfg(target_os = "windows")]
+                    let installed = if plan.requested_tag.is_some()
+                        && app.install_kind == "installer"
+                        && !app.path.is_empty()
+                        && version(&entry.version)? < version(&app.version)?
+                    {
+                        anyhow::ensure!(
+                            dest.extension()
+                                .is_some_and(|e| e.eq_ignore_ascii_case("msi")),
+                            "This installer does not support a safe downgrade"
+                        );
+                        anyhow::ensure!(crate::installers::package_location_supported(&dest), "Cannot safely downgrade: this installer cannot preserve the selected installation folder");
+                        anyhow::ensure!(
+                            crate::model::release_arch(&app.architecture)
+                                == crate::model::release_arch(&prefs.architecture),
+                            "Keep the installed architecture selected when downgrading"
+                        );
+                        crate::installers::validate_msi_replacement_scope(&dest, &app)?;
+                        let recovery =
+                            downgrade_recovery_path(paths, &app, job, _approved_recovery)?;
+                        recovery_download = Some(recovery.clone());
+                        job.check()?;
+                        let remove_step = job.prepare_child(
+                            &format!("{} · Current version", app.name),
+                            "Uninstall",
+                            "installer",
+                            &prefs.architecture,
+                        );
+                        let install_step = job.prepare_child(
+                            &format!("{} · Older version", app.name),
+                            "Install",
+                            "installer",
+                            &prefs.architecture,
+                        );
+                        replace_installer_transaction(
+                            || {
                                 job.stage(
-                                    "Installing older version",
+                                    "Downgrading",
                                     None,
-                                    "Running the selected older installer",
+                                    "Removing the current installation; user data is kept",
                                 );
-                                step.stage(
-                                    "Installing",
-                                    None,
-                                    "Running the selected older installer",
+                                remove_step.tracked("Uninstall", &app.name, |step| {
+                                    step.stage(
+                                        "Uninstalling",
+                                        None,
+                                        "Removing the current version; user data is kept",
+                                    );
+                                    crate::installers::uninstall(&app)
+                                })
+                            },
+                            || {
+                                install_step.tracked("Install", &app.name, |step| {
+                                    step.check()?;
+                                    job.stage(
+                                        "Installing older version",
+                                        None,
+                                        "Running the selected older installer",
+                                    );
+                                    step.stage(
+                                        "Installing",
+                                        None,
+                                        "Running the selected older installer",
+                                    );
+                                    let installed = crate::installers::run_replacement(
+                                        &dest,
+                                        &app,
+                                        Some(step),
+                                    )?;
+                                    anyhow::ensure!(
+                                        version(&installed.version)? == version(&entry.version)?,
+                                        "Installer did not install the selected version"
+                                    );
+                                    Ok(installed)
+                                })
+                            },
+                            || {
+                                let restore_step = job.prepare_child(
+                                    &format!("{} · Recovery", app.name),
+                                    "Restore installation",
+                                    "installer",
+                                    &prefs.architecture,
                                 );
-                                let installed =
-                                    crate::installers::run_replacement(&dest, &app, Some(step))?;
-                                anyhow::ensure!(
-                                    version(&installed.version)? == version(&entry.version)?,
-                                    "Installer did not install the selected version"
-                                );
-                                Ok(installed)
-                            })
-                        },
-                        || {
-                            let restore_step = job.prepare_child(
-                                &format!("{} · Recovery", app.name),
-                                "Restore installation",
-                                "installer",
-                                &prefs.architecture,
-                            );
-                            restore_step.tracked("Restore installation", &app.name, |step| {
+                                restore_step.tracked("Restore installation", &app.name, |step| {
                             step.stage("Restoring previous version", None, "Restoring the verified previous installer");
                             job.stage("Restoring previous version", None, "The downgrade did not complete; restoring the verified previous installer");
-                            if let Some(partial) = crate::installers::detect(&app.name)? {
+                            if let Some(partial) = crate::installers::detect_rollback_copy(&app)? {
                                 if version(&partial.version)? == version(&app.version)? {
                                     return Ok(());
                                 }
@@ -298,40 +366,89 @@ pub(super) fn execute_entries(
                             );
                             Ok(())
                             })
-                        },
-                    )?
-                } else {
-                    crate::installers::run_for_version(
+                            },
+                        )?
+                    } else {
+                        crate::installers::run_for_version(
+                            &dest,
+                            &app.name,
+                            Some(job),
+                            plan.installer_destination.as_deref(),
+                            &entry.version,
+                            &app,
+                        )?
+                    };
+                    #[cfg(target_os = "macos")]
+                    let installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
+                    #[cfg(target_os = "linux")]
+                    let installed = crate::installers::run_selected_with_job(
                         &dest,
                         &app.name,
                         Some(job),
-                        plan.installer_destination.as_deref(),
-                        &entry.version,
-                        &app,
-                    )?
+                        plan.requested_tag.is_some()
+                            && !app.version.is_empty()
+                            && version(&entry.version)? < version(&app.version)?,
+                    )?;
+                    anyhow::ensure!(crate::model::installed_architecture_matches(&installed,prefs), "Installer registered a different architecture than the selected package. Check Windows Installed apps; another copy was not selected.");
+                    if let Some(id) = &plan.native_rollback {
+                        crate::installations::rollbacks::native::validate_replacement(
+                            paths, &app, id, &installed,
+                        )?;
+                    }
+                    Ok(installed)
+                })();
+                let mut installed = match installation_result {
+                    Ok(installed) => installed,
+                    Err(error) => {
+                        if let Some(recovery) = &previous_installer {
+                            return match crate::installations::rollbacks::native::recover(paths, &app, recovery, job) {
+                                Ok(()) => Err(error.context("Previous installation restored")),
+                                Err(recovery) => Err(anyhow::anyhow!("Installation failed: {error:#}. Recovery also failed: {recovery:#}")),
+                            };
+                        }
+                        return Err(error);
+                    }
                 };
-                #[cfg(target_os = "macos")]
-                let mut installed = crate::installers::run_with_job(&dest, &app.name, Some(job))?;
-                #[cfg(target_os = "linux")]
-                let mut installed = crate::installers::run_selected_with_job(
-                    &dest,
-                    &app.name,
-                    Some(job),
-                    plan.requested_tag.is_some()
-                        && !app.version.is_empty()
-                        && version(&entry.version)? < version(&app.version)?,
-                )?;
-                #[cfg(target_os = "windows")]
-                anyhow::ensure!(crate::model::installed_architecture_matches(&installed,prefs), "Installer registered a different architecture than the selected package. Check Windows Installed apps; another copy was not selected.");
                 installed.architecture = if cfg!(target_os = "macos") {
                     "universal".into()
                 } else {
                     prefs.architecture.clone()
                 };
                 config.apps[i] = installed;
-                paths.save_config(config)?;
+                if let Err(error) = paths.save_config(config) {
+                    config.apps[i] = app.clone();
+                    if let Some(recovery) = &previous_installer {
+                        return match crate::installations::rollbacks::native::recover(paths, &app, recovery, job) {
+                            Ok(()) => Err(error.context("Installation record could not be saved; previous installation restored")),
+                            Err(recovery) => Err(anyhow::anyhow!("Installation record failed: {error:#}. Recovery also failed: {recovery:#}")),
+                        };
+                    }
+                    return Err(error);
+                }
                 if let Some(release) = release_packages.as_mut() {
                     release(&entry.app);
+                }
+                if let Some(id) = &plan.native_rollback {
+                    if let Err(error) =
+                        crate::installations::rollbacks::native::consume(paths, &app, id)
+                    {
+                        job.log(&format!(
+                            "Used installer rollback cleanup warning: {error:#}"
+                        ));
+                    }
+                } else if let Some(previous) = &previous_installer {
+                    if let Err(error) = crate::installations::rollbacks::native::retain(
+                        paths,
+                        &app,
+                        &config.apps[i],
+                        previous,
+                        &dest,
+                        job,
+                    ) {
+                        job.log(&format!(
+                            "Previous installer registration warning: {error:#}"
+                        ));
+                    }
                 }
                 if let Err(error) =
                     crate::hourly::refresh_after_install(paths, &config.apps[i], prefs)
@@ -368,7 +485,21 @@ pub(super) fn execute_entries(
                 }
                 platform::refresh_file_associations();
                 job.log(&format!("{}: installer completed", app.name));
-                crate::installer_cleanup::finish(paths, &config.apps[i], &dest, job);
+                if plan.native_rollback.is_none() {
+                    crate::installer_cleanup::finish(paths, &config.apps[i], &dest, job);
+                }
+                if let Some(previous) = &previous_installer {
+                    crate::installer_cleanup::finish(
+                        paths,
+                        &config.apps[i],
+                        &previous.package,
+                        job,
+                    );
+                }
+                #[cfg(target_os = "windows")]
+                if let Some(recovery) = recovery_download.filter(|recovery| recovery != &dest) {
+                    crate::installer_cleanup::finish(paths, &config.apps[i], &recovery, job);
+                }
                 return Ok(true);
             }
             let v = entry.version.as_str();
@@ -484,7 +615,7 @@ pub(super) fn execute_entries(
                 }
                 let backup = if target.exists() {
                     version(&app.version)?;
-                    Some(backup_path(paths, &app.name, &app.version, false))
+                    Some(crate::installations::rollbacks::staging_path(paths))
                 } else {
                     None
                 };
@@ -515,6 +646,7 @@ pub(super) fn execute_entries(
                 } else {
                     crate::portable::mark(paths, &app.name, staged_folder)?;
                 }
+                crate::installations::rollbacks::prepare_update(paths, &app, staged_folder)?;
                 let old = config.apps[i].clone();
                 config.apps[i].path = target.to_string_lossy().into_owned();
                 config.apps[i].version = v.into();
@@ -540,10 +672,16 @@ pub(super) fn execute_entries(
                     config.apps[i] = old;
                     return Err(e);
                 }
-                if let Err(e) =
-                    backups::finish(paths, prefs, backup.as_deref(), &app.name, false, job)
-                {
-                    job.log(&format!("Backup cleanup warning: {e:#}"))
+                if let Some(previous_folder) = backup.as_deref() {
+                    if let Err(error) = crate::installations::rollbacks::record_update(
+                        paths,
+                        &old,
+                        &config.apps[i],
+                        previous_folder,
+                        job,
+                    ) {
+                        job.log(&format!("Previous version retained for recovery; rollback registration could not finish: {error:#}"));
+                    }
                 }
                 if let Err(error) = crate::profiles::restore_portable(paths, &app.name, &target) {
                     job.log(&format!(
@@ -601,7 +739,8 @@ pub(super) fn execute_entries(
 }
 
 pub(super) fn include_new_install(paths: &Paths, app: &str) -> Result<()> {
-    let mut preferences = paths.read_preferences()?;
+    let mut preferences = paths.read_preferences_locked()?;
+    let base_preferences = preferences.clone();
     if let Some(installed) = paths
         .config()?
         .apps
@@ -618,7 +757,11 @@ pub(super) fn include_new_install(paths: &Paths, app: &str) -> Result<()> {
     if !preferences.selected_apps.iter().any(|name| name == app) {
         preferences.selected_apps.push(app.into());
     }
-    crate::files::write_json(&paths.at("manager-settings.json"), &preferences)?;
+    crate::storage::settings::save_preferences_patch_locked(
+        paths,
+        &base_preferences,
+        &preferences,
+    )?;
     Ok(())
 }
 
@@ -744,12 +887,19 @@ pub(super) fn execute_with(
 pub(super) fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> Result<()> {
     // CLI retains its deliberate install/update scope; GUI uses plan + confirmation.
     let _lock = platform::Lock::take("Local\\CraftAppsManager")?;
+    // Migration must use the operation ownership we already hold. A normal
+    // preference read can otherwise reacquire a non-reentrant Unix flock.
+    let preferences = paths.read_preferences_locked()?;
+    let inventory = paths.config()?;
     let network = Network::new(&paths.root)?;
-    let plan = plan_with(paths, job, selected, |name| {
-        network.json(&format!(
-            "https://api.github.com/repos/{}/releases/latest",
-            crate::model::repository(name)
-        ))
+    let plan = plan_from_config(paths, job, selected, preferences, inventory, |name| {
+        network.release_json_with_policy(
+            &format!(
+                "https://api.github.com/repos/{}/releases/latest",
+                crate::model::repository(name)
+            ),
+            crate::network::CachePolicy::Update,
+        )
     })?;
     let errors: Vec<_> = plan
         .entries

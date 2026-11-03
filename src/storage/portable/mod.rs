@@ -355,13 +355,18 @@ fn metadata_name(name: &str) -> bool {
                 | "workspace"
                 | "sources"
                 | "backups"
+                | "rollbacks"
+                | "rollback-transactions"
+                | "source-transactions"
         )
     }) {
         return false;
     }
     name == "data-root.json"
+        || name == "config.yaml"
+        || name == "installations.json"
         || name == "settings.json"
-        || name.ends_with("/settings.json")
+        || (name.ends_with("/settings.json") || name.ends_with("/installations.json"))
             && !name.contains("runtime/")
             && !name.contains("releases/")
             && !name.contains("builds/")
@@ -389,11 +394,32 @@ fn transform(relative: &Path, value: &mut Value, storage: &Storage, encode: bool
         return Ok(());
     }
     match name.as_str() {
+        _ if name == "config.yaml" || name.ends_with("/config.yaml") => {
+            if let Some(launch) = value.get_mut("launch") {
+                transform(
+                    Path::new("runtime/launch-settings.json"),
+                    launch,
+                    storage,
+                    encode,
+                )?;
+            }
+            if let Some(build) = value.get_mut("build_launch") {
+                transform(
+                    Path::new("runtime/build-launch-settings.json"),
+                    build,
+                    storage,
+                    encode,
+                )?;
+            }
+        }
         "data-root.json" => {
             field(value, "root", storage, encode)?;
             field(value, "tools", storage, encode)?;
         }
-        "settings.json" | "data/settings.json" => {
+        "installations.json"
+        | "data/installations.json"
+        | "settings.json"
+        | "data/settings.json" => {
             field(value, "appsRoot", storage, encode)?;
             for key in ["apps", "installations"] {
                 if let Some(apps) = value.get_mut(key).and_then(Value::as_array_mut) {
@@ -483,7 +509,7 @@ fn transform(relative: &Path, value: &mut Value, storage: &Storage, encode: bool
             field(value, "log", storage, encode)?
         }
         // Libraries can have a user-chosen folder name within the portable package.
-        _ if name.ends_with("/settings.json")
+        _ if (name.ends_with("/settings.json") || name.ends_with("/installations.json"))
             && !name.contains("runtime/")
             && value.get("appsRoot").is_some() =>
         {
@@ -653,6 +679,7 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
         return Ok(());
     }
     let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
+    let _config_lock = crate::storage::config::write_lock()?;
     let mut writes = Vec::new();
     // Skip application files, tool caches, source trees, backups and approved helpers.
     for entry in walkdir::WalkDir::new(&base)
@@ -696,6 +723,9 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
                     "sources"
                         | "workspace"
                         | "backups"
+                        | "rollbacks"
+                        | "rollback-transactions"
+                        | "source-transactions"
                         | "target"
                         | ".git"
                         | "portable-migration"
@@ -712,7 +742,12 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
             "Too many files to migrate safely; no metadata was changed."
         );
         let entry = entry?;
-        if !entry.file_type().is_file() || entry.path().extension().is_none_or(|e| e != "json") {
+        if !entry.file_type().is_file()
+            || entry
+                .path()
+                .extension()
+                .is_none_or(|e| e != "json" && e != "yaml")
+        {
             continue;
         }
         anyhow::ensure!(
@@ -731,9 +766,16 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
             entry.path().display()
         );
         let old = fs::read(entry.path())?;
-        let mut value: Value =
+        let yaml = entry
+            .path()
+            .file_name()
+            .is_some_and(|name| name == "config.yaml");
+        let mut value: Value = if yaml {
+            crate::storage::config::document::parse(&old)?
+        } else {
             serde_json::from_slice(old.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(&old))
-                .with_context(|| format!("Cannot migrate {}", entry.path().display()))?;
+                .with_context(|| format!("Cannot migrate {}", entry.path().display()))?
+        };
         let original = value.clone();
         if name.contains("runtime/operations/") {
             let active = value
@@ -752,7 +794,11 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
         if original != value {
             writes.push((
                 entry.path().to_path_buf(),
-                serde_json::to_vec_pretty(&value)?,
+                if yaml {
+                    crate::storage::config::document::encode(&value)?
+                } else {
+                    serde_json::to_vec_pretty(&value)?
+                },
             ));
         }
     }
@@ -815,12 +861,15 @@ fn migrate(base: &Path, disabling: bool) -> Result<()> {
 /// New downloads use a separate data folder so manager updates cannot overwrite data.
 pub fn default_library(base: &Path) -> PathBuf {
     if [
+        "config.yaml",
+        "installations.json",
         "settings.json",
         "manager-settings.json",
         "builder-settings.json",
         "releases",
         "builds",
         "sources",
+        "rollbacks",
     ]
     .iter()
     .any(|name| base.join(name).exists())

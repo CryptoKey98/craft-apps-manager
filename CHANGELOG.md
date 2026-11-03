@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.1.0
+
+- Keep one previous version per installation for rollback after supported updates and downgrades.
+- Restore portable apps and verified Windows MSI, Linux DEB/RPM/Arch, and macOS DMG installations only after recovery checks pass.
+- Review, restore, or remove a previous version in the new Rollback dialog, with retention settings for each installation. Existing backup preferences and legacy archives are preserved.
+- Keep Windows installer updates, downgrades, and rollbacks in the existing Just me or Everyone scope and folder. Fix administrator approval for supported MSI packages.
+- Keep Windows Manager updates in the existing installation folder, including when updating from 1.0.0.
+- Remove Manager files correctly when uninstalling from a custom Windows folder, while preserving unrelated files.
+- Keep Manager responsive while verifying an update and preparing to restart.
+- Fix Linux and macOS installer updates incorrectly reporting that another operation is running.
+- Show incompatible downgrade versions before installation, with an information button explaining why. Fix recovery checks for custom apps such as QuickLook with differing package and application architecture labels.
+- Load Craft app versions from a signed catalog for faster lists and fewer GitHub API requests, with GitHub fallback when needed.
+- Support automatic discovery of SolidCraft alongside Storytold Craft apps, and automatically enroll verified supported apps in the release catalog.
+- Show New for 14 days after an app officially joins discovery. Viewing it clears the badge sooner; app updates and fresh manager installs do not restart the period.
+- Place newly discovered apps at the top once, then respect your chosen sidebar and Home order.
+- Keep installation dialogs steady during background refreshes. Reuse version data, reduce duplicate requests, and make version, format, and architecture changes more responsive.
+- Save preference changes consistently with Save, including app visibility and custom apps. Keep GitHub token changes pending with clear Undo actions and better handling of pasted whitespace.
+- Migrate preferences into config.yaml and installation records into installations.json. Remove obsolete settings files only after verified migration, even after preferences are changed.
+- Add a GitHub activity menu with connection status, token management, and help creating a token. Handle rate-limit responses without presenting an unreliable request countdown.
+- Use less disk space for the GitHub cache, safely reuse older cache entries, clean unused entries after 30 days, and provide Clear cache in Settings.
+- Use shorter cache lifetimes for update checks, and keep discovery, release lists, and startup and periodic checks in sync. Custom GitHub apps use the GitHub API directly.
+- Preserve update indicators when switching installations or saving unrelated settings.
+- Show each app's progress during batch updates, including its sidebar status and the selected app's progress bar.
+- Clear completed activity and notification markers while preserving active operations. Limit retained completed history to prevent unlimited growth.
+- Choose Portable by default in portable managers and Installer in installed managers, while preserving saved per-app choices.
+- Number additional portable copies consistently, preserve their folder names when moved, avoid duplicate owned shortcuts, and improve downloaded-installer and empty-folder cleanup.
+- Open one Manager and one Builder per data folder, focusing the existing window when launched again. Improve tray Exit handling.
+- Keep uninstall dialogs responsive while checking app settings folders, and fix command-line app updates when legacy settings need migration on Unix systems.
+- Optionally remove supported macOS Craft app settings and caches during uninstall, with the folders shown before confirmation.
+- Set up supported macOS ArtCraft X prerequisites without Homebrew, and improve selected-app build-tool detection on Windows and Linux.
+- Remove bundled 7-Zip from Windows downloads and Linux prerequisites. Windows ArtCraft X setup uses native extraction first and downloads a private fallback only when needed, with archive safety checks and visible extraction output.
+- Improve macOS DMG presentation and theme consistency, fix garbled interface text, and refine icons and dialog transitions.
+- Allow theme changes during installation or removal, and add smooth sidebar transitions when installing, uninstalling, hiding, or unhiding apps.
+
 ## 1.0.0
 
 - Add an optional update service that keeps updates working when download names or supported package formats change. Every update is verified before installation.
@@ -61,7 +95,7 @@
 
 ## 0.8.1
 
-- Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings → Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
+- Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings Ã¢â€ â€™ Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
 - Preserve existing library and tools locations when updating older portable copies, including updates launched by old helpers. Windows elevated batches decode portable settings without running migration as administrator.
 - Clean up downloaded setup files as the final installation stage after verification. Preserve packages needed for repair, uninstallation or recovery, and retain files when installation fails or is cancelled.
 - Synchronize builder progress, cancellation, logs, activity notifications and theme between manager and builder windows.
@@ -80,8 +114,8 @@
 - Improve reused-job cancellation, preserve build results during tool setup, retain bounded Unicode activity records and avoid pruning unconfirmed workers.
 - Avoid a redundant installation scan when opening apps and preserve sidebar search focus as the clear button appears.
 - Add subtle button press feedback, smoother installation details, one-way progress animation, softer light-theme disabled controls and muted sidebar scrollbars in both themes.
-- Configure release format and architecture independently for built-in and custom apps, using the selected release’s compatible assets.
-- Preserve installed package facts separately from preferences; updates and bulk checks respect each installed app’s format and architecture.
+- Configure release format and architecture independently for built-in and custom apps, using the selected releaseÃ¢â‚¬â„¢s compatible assets.
+- Preserve installed package facts separately from preferences; updates and bulk checks respect each installed appÃ¢â‚¬â„¢s format and architecture.
 - Expand custom GitHub download matching, add setup review and an ambiguous-download chooser, and improve native installer detection and uninstall support.
 - Add centralized operation records, lifecycle validation, cooperative cancellation, parent/child batch results and cross-process builder synchronization.
 - Add a compact Activity panel with progress, expandable results, unread notifications, outside-click dismissal and matching light/dark detail surfaces.
@@ -95,14 +129,14 @@
 - Add a version picker for published releases, including explicit downgrade confirmation and installer downgrade recovery.
 - Update only installed apps in Update All and automatically include newly installed apps in its selection.
 - Add optional close-to-tray behavior with Open, Check for updates and Exit actions; show the tray icon only while the manager is hidden.
-- Hide apps from the sidebar and Home through a right-click menu and restore them in Settings → Apps → App visibility → Choose….
+- Hide apps from the sidebar and Home through a right-click menu and restore them in Settings Ã¢â€ â€™ Apps Ã¢â€ â€™ App visibility Ã¢â€ â€™ ChooseÃ¢â‚¬Â¦.
 - Redesign install and uninstall dialogs with app icons, folder previews, folder opening, download sizes and verification stages.
 - Support custom Windows MSI destinations where the installer provides a supported directory property, and manager-created desktop shortcuts.
 - Add installation relocation for portable apps and supported Windows MSI apps, with running-app checks, verified transfers and recovery copies.
 - Improve Windows installer cancellation, installation detection and restoration into protected folders.
 - Redesign build confirmation with source and build locations, source download status, folder browsing and matching progress feedback.
 - Add per-app source removal, compiled build deletion and build cache deletion controls.
-- Clarify startup, periodic and background update checks; allow a 10–60 minute interval while the manager is open.
+- Clarify startup, periodic and background update checks; allow a 10Ã¢â‚¬â€œ60 minute interval while the manager is open.
 - Use the system theme on first launch, refine dark checkbox styling and enlarge the default manager window.
 - Default app and source backups to off while preserving existing saved preferences.
 - Fix version-preview completion indicators, long path display and duplicate folder tooltips.
@@ -113,9 +147,9 @@ App discovery and ArtCraft support contributed by [carpaaaaa](https://github.com
 
 - Read the app list from the Storytold repositories on GitHub, so Craft apps published after this version appear without a manager update. A built-in list is used offline.
 - Offer new apps without changing bulk update selections by default. Automatic inclusion is opt-in.
-- Add Settings → App list → Refresh to look for new apps at any time.
-- Add Choose… to the Update all review so the app selection can be changed before running operations.
-- Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_…`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
+- Add Settings Ã¢â€ â€™ App list Ã¢â€ â€™ Refresh to look for new apps at any time.
+- Add ChooseÃ¢â‚¬Â¦ to the Update all review so the app selection can be changed before running operations.
+- Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_Ã¢â‚¬Â¦`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
 - Accept a release whose files switched to a single new name and remember that name, so renamed apps keep installing and updating.
 - Download icons for apps without a bundled one, with a neutral tile when a repository has none.
 - Accept an optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) to raise GitHub's API limit.

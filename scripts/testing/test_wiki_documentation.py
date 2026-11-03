@@ -45,8 +45,9 @@ class WikiTests(unittest.TestCase):
     def test_preview_is_allowlisted_deterministic_and_preserves_sources(self):
         before = {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         files = self.prepare()
-        self.assertEqual(len(files), 26)
-        self.assertEqual(len([p for p in files if p.endswith('.md')]), 17)
+        self.assertEqual(len(files), 27)
+        self.assertIn("App-release-catalog.md", files)
+        self.assertEqual(len([p for p in files if p.endswith('.md')]), 18)
         self.assertFalse(any(b'DO_NOT_EXPORT_SENTINEL' in content for content in files.values()))
         self.assertEqual(files, self.prepare())
         for p, body in before.items():

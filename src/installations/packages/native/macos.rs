@@ -186,6 +186,7 @@ fn installed_bundle(bundle: &Path, app: &str) -> Result<Installed> {
     Ok(Installed {
         installation_label: String::new(),
         package_type: String::new(),
+        windows_msi_scope: None,
         name: app.into(),
         version: platform::executable_version(bundle).unwrap_or_else(|| "0.0.0".into()),
         path: bundle
@@ -193,7 +194,7 @@ fn installed_bundle(bundle: &Path, app: &str) -> Result<Installed> {
             .context("Missing Applications folder")?
             .display()
             .to_string(),
-        architecture: crate::model::MANAGER_ARCH.into(),
+        architecture: "universal".into(),
         install_kind: "installer".into(),
         product_code: verify_identity(bundle, app)?,
     })

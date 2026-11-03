@@ -187,7 +187,8 @@ pub fn check(paths: &Paths) -> Result<Option<Available>> {
 pub(crate) fn check_legacy(paths: &Paths) -> Result<Option<Available>> {
     let network = Network::new(&paths.root)?;
     let url = format!("https://api.github.com/repos/{REPOSITORY_NAME}/releases/latest");
-    let mut release: Release = network.json(&url)?;
+    let mut release: Release =
+        network.json_with_policy(&url, crate::network::CachePolicy::Update)?;
     if let Some(asset) = release
         .assets
         .iter()
@@ -444,8 +445,13 @@ fn check_update_directory(home: &Path) -> Result<()> {
     Ok(())
 }
 pub fn launch(plan: &Path) -> Result<()> {
+    launch_with_guard(plan, || Ok(()))
+}
+/// Validate as usual, then allow cancellation/busy checks at the spawn boundary.
+/// Call the entire function on a worker: validation includes file hashes/scans.
+pub fn launch_with_guard(plan: &Path, before_spawn: impl FnOnce() -> Result<()>) -> Result<()> {
     if plan.file_name().is_some_and(|s| s == "authorization.json") {
-        return crate::manager_updates::transaction::launch_v2(plan);
+        return crate::manager_updates::transaction::launch_v2_with_guard(plan, before_spawn);
     }
     #[cfg(not(feature = "service-updater"))]
     crate::manager_updates::transaction::reject_file(plan)?;
@@ -465,6 +471,7 @@ pub fn launch(plan: &Path) -> Result<()> {
         )?;
         validate_macos_replacement(&prepared)?;
     }
+    before_spawn()?;
     Command::new(
         plan.parent()
             .context("Missing update folder")?
@@ -475,6 +482,10 @@ pub fn launch(plan: &Path) -> Result<()> {
     .spawn()?;
     Ok(())
 }
+#[cfg(test)]
+#[path = "handoff_tests.rs"]
+mod handoff_tests;
+
 pub fn apply(plan_path: &Path) -> Result<()> {
     if plan_path
         .file_name()

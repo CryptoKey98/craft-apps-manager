@@ -8,7 +8,7 @@ license=('MIT')
 depends=('glibc' 'gcc-libs' 'libx11' 'libxrandr' 'libxi' 'libxcursor'
          'libxkbcommon' 'wayland' 'libglvnd' 'polkit' 'libnotify'
          'xdg-utils' 'libarchive')
-optdepends=('7zip: compressed backups' 'systemd: scheduled update checks')
+optdepends=('systemd: scheduled update checks')
 options=('!strip' '!debug')
 source=('payload.tar.gz')
 

@@ -5,15 +5,13 @@
 //! hairline above right-aligned buttons.
 use super::theme::{self, btn, Icon, Kind};
 
-use super::{modal, App};
+use super::{modal, modal_faded, App};
 
 use craft_apps_manager::{
-    apps, backups as backup_store, jobs::Job, model, profiles, self_update as manager_update,
-    updates,
+    apps, jobs::Job, model, profiles, self_update as manager_update, updates,
 };
 
 use eframe::egui::{self, Color32, CornerRadius, FontId, RichText, Sense, Stroke, StrokeKind};
-mod backups;
 mod batch_updates;
 mod builds;
 mod cleanup;
@@ -24,16 +22,28 @@ mod launch;
 mod move_installation;
 mod notices;
 mod paths;
+pub(super) mod rollback;
 mod self_update;
 mod shared;
 mod uninstall;
+mod uninstall_preview;
+pub(in crate::ui) use installation::release_version_row;
 pub(super) use paths::DestinationPreview;
 use paths::*;
 pub(super) use shared::*;
+pub(super) use uninstall_preview::ProfilePreview;
 
 enum DialogFlow {
     Continue,
     Stop,
+}
+
+#[derive(Clone)]
+pub(super) struct CompatibilityInfo {
+    app: String,
+    version: String,
+    reason: String,
+    opened: f64,
 }
 
 impl App {
@@ -55,9 +65,10 @@ impl App {
         self.render_launch_dialogs(ctx);
         self.render_uninstall_dialog(ctx);
         self.render_batch_selection(ctx);
-        self.render_restore_dialog(ctx, busy);
+        self.render_rollback_dialog(ctx, busy);
         self.render_self_update_dialog(ctx);
         self.render_cleanup_dialog(ctx);
         self.render_notices(ctx);
+        self.render_compatibility_info(ctx);
     }
 }

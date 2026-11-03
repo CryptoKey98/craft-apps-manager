@@ -24,7 +24,7 @@ fn legacy_path_aliases_are_one_installation_after_refresh_and_save() {
         installations: vec![first, alias],
         portable_label_counters: Default::default(),
     };
-    crate::files::write_json(&paths.at("settings.json"), &config).unwrap();
+    crate::files::write_json(&paths.at("installations.json"), &config).unwrap();
     let mut refreshed = paths.config_with_detector(|_| Ok(None)).unwrap();
     assert_eq!(
         refreshed
@@ -40,7 +40,8 @@ fn legacy_path_aliases_are_one_installation_after_refresh_and_save() {
         .find(|copy| copy.name == "filmcraft")
         .unwrap()
         .clone();
-    assert_eq!(selected.installation_label, "A");
+    // Legacy aliases still collapse to one copy, with A migrated to stored 1.
+    assert_eq!(selected.installation_label, "1");
     paths.save_config(&refreshed).unwrap();
     crate::apps::forget_installation(&mut refreshed, &selected);
     assert!(!refreshed
@@ -88,7 +89,7 @@ fn settings_save_preserves_same_architecture_installations_in_other_folders() {
         None,
     )
     .unwrap();
-    let saved: Config = crate::files::read_json(&paths.at("settings.json")).unwrap();
+    let saved: Config = crate::files::read_json(&paths.at("installations.json")).unwrap();
     for copy in &copies {
         assert!(
             saved
@@ -245,14 +246,13 @@ fn visibility_defaults_visible_and_preserves_update_selection_and_order() {
 }
 use super::*;
 #[test]
-fn backup_defaults_are_off_and_saved_choices_are_preserved() {
+fn legacy_retention_choice_is_preserved_without_retired_source_controls() {
     let fresh = Preferences::default();
     assert!(!fresh.keep_app_backups);
-    assert!(!fresh.keep_source_backups);
     let saved: Preferences =
         serde_json::from_str(r#"{"keepAppBackups":true,"keepSourceBackups":true}"#).unwrap();
     assert!(saved.keep_app_backups);
-    assert!(saved.keep_source_backups);
+    assert!(saved.rollback_enabled());
 }
 #[test]
 fn theme_defaults_for_existing_settings_and_survives_restart() {
@@ -380,7 +380,7 @@ fn missing_old_portable_record_is_rediscovered_after_installer_removal() {
     };
     crate::files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     crate::files::write_json(
-        &paths.at("settings.json"),
+        &paths.at("installations.json"),
         &Config {
             portable_label_counters: Default::default(),
             apps_root: root.display().to_string(),
@@ -495,9 +495,10 @@ fn alternate_snapshot_detects_fresh_installers_and_forgets_removed_records_witho
         .alternates_with_detector(&config, detect)
         .unwrap()
         .is_empty());
-    assert!(!paths.at("settings.json").exists());
+    assert!(!paths.at("installations.json").exists());
     assert!(!paths.at("manager-settings.json").exists());
-    assert!(paths.at("updater-settings.json").exists());
+    assert!(!paths.at("updater-settings.json").exists());
+    assert!(paths.at("config.yaml").exists());
     std::fs::remove_dir_all(root).unwrap();
 }
 #[test]
@@ -533,7 +534,7 @@ fn installer_snapshot_verifies_portable_records_and_does_not_route_actions_to_th
         .alternates_with_detector(&config, |_| Ok(None))
         .unwrap()
         .is_empty());
-    assert!(!paths.at("settings.json").exists());
+    assert!(!paths.at("installations.json").exists());
     std::fs::remove_dir_all(root).unwrap();
 }
 #[cfg(target_os = "windows")]
@@ -605,7 +606,7 @@ fn selected_copy_survives_pending_architecture_changes_and_preserves_other_copy(
         })
         .collect();
     crate::files::write_json(
-        &paths.at("settings.json"),
+        &paths.at("installations.json"),
         &Config {
             portable_label_counters: Default::default(),
             apps: vec![copies[0].clone()],
@@ -663,10 +664,7 @@ fn effective_architecture_preserves_legacy_macos_choices() {
         prefs.validate().unwrap();
         if cfg!(target_os = "macos") {
             assert_eq!(release_arch(architecture), release_arch("universal"));
-            assert_eq!(
-                architecture_label(architecture),
-                "Universal (Intel + Apple silicon)"
-            );
+            assert_eq!(architecture_label(architecture), "Universal");
         } else {
             assert_ne!(release_arch(architecture), "universal");
             assert_eq!(architecture_label(architecture), architecture);
@@ -694,7 +692,7 @@ fn existing_libraries_gain_new_apps_without_resetting_preferences() {
         }],
         installations: vec![],
     };
-    crate::files::write_json(&paths.at("settings.json"), &config).unwrap();
+    crate::files::write_json(&paths.at("installations.json"), &config).unwrap();
     let detect = |name: &str| {
         Ok((name == "wordcraft").then(|| Installed {
             name: name.into(),
@@ -769,6 +767,7 @@ fn first_launch_detects_preexisting_installers_and_keeps_portable_inventory() {
             .then(|| Installed {
                 installation_label: Default::default(),
                 package_type: Default::default(),
+                windows_msi_scope: None,
                 name: name.into(),
                 path: root.join("system").join(name).display().to_string(),
                 version: "0.2.1".into(),
@@ -777,7 +776,7 @@ fn first_launch_detects_preexisting_installers_and_keeps_portable_inventory() {
                 product_code: "existing-product".into(),
             }))
     };
-    assert!(!paths.at("settings.json").exists());
+    assert!(!paths.at("installations.json").exists());
     let first = paths.config_with_detector(detect).unwrap();
     for name in ["photocraft", "printcraft"] {
         let app = first.apps.iter().find(|a| a.name == name).unwrap();

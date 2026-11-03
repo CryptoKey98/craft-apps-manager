@@ -53,7 +53,7 @@ impl Wake {
             Self {}
         }
     }
-    fn repaint(self, ctx: &egui::Context) {
+    pub(super) fn repaint(self, ctx: &egui::Context) {
         ctx.request_repaint();
         #[cfg(target_os = "windows")]
         if self.hwnd != 0 {
@@ -75,10 +75,70 @@ pub(super) enum Action {
     Exit,
 }
 
+#[derive(Clone)]
+struct EventTarget {
+    generation: u64,
+    sender: mpsc::Sender<Action>,
+    context: egui::Context,
+    wake: Wake,
+}
+
+// The native libraries only accept their global callbacks once. Keep those
+// callbacks stable and replace their destination when the tray is recreated.
+static EVENT_TARGET: std::sync::Mutex<Option<EventTarget>> = std::sync::Mutex::new(None);
+static EVENT_HANDLERS: std::sync::Once = std::sync::Once::new();
+static NEXT_GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+
+fn dispatch(action: Action) {
+    let target = EVENT_TARGET.lock().unwrap().clone();
+    if let Some(target) = target {
+        let _ = target.sender.send(action);
+        target.wake.repaint(&target.context);
+    }
+}
+
+fn attach_events(ctx: &egui::Context, wake: Wake) -> (u64, Receiver<Action>) {
+    EVENT_HANDLERS.call_once(|| {
+        MenuEvent::set_event_handler(Some(|event: MenuEvent| match event.id.0.as_str() {
+            "craft-tray-open" => dispatch(Action::Open),
+            "craft-tray-check" => dispatch(Action::Check),
+            "craft-tray-exit" => dispatch(Action::Exit),
+            _ => {}
+        }));
+        TrayIconEvent::set_event_handler(Some(|event: TrayIconEvent| {
+            if event.id().0 == "craft-manager-tray"
+                && matches!(
+                    event,
+                    TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } | TrayIconEvent::DoubleClick {
+                        button: MouseButton::Left,
+                        ..
+                    }
+                )
+            {
+                dispatch(Action::Open);
+            }
+        }));
+    });
+    let (sender, events) = mpsc::channel();
+    let generation = NEXT_GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    *EVENT_TARGET.lock().unwrap() = Some(EventTarget {
+        generation,
+        sender,
+        context: ctx.clone(),
+        wake,
+    });
+    (generation, events)
+}
+
 pub(super) struct Tray {
     _icon: TrayIcon,
     check: MenuItem,
     events: Receiver<Action>,
+    generation: u64,
     stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
     #[cfg(target_os = "windows")]
     menu: Menu,
@@ -113,39 +173,7 @@ impl Tray {
             .build()
             .context("Could not create the system tray icon; closing will quit normally")?;
         icon.set_visible(false)?;
-        let (tx, events) = mpsc::channel();
-        let menu_tx = tx.clone();
-        let menu_ctx = ctx.clone();
-        MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
-            let action = match event.id.0.as_str() {
-                "craft-tray-open" => Action::Open,
-                "craft-tray-check" => Action::Check,
-                "craft-tray-exit" => Action::Exit,
-                _ => return,
-            };
-            let _ = menu_tx.send(action);
-            wake.repaint(&menu_ctx);
-        }));
-        let icon_ctx = ctx.clone();
-        TrayIconEvent::set_event_handler(Some(move |event: TrayIconEvent| {
-            if event.id().0 != "craft-manager-tray" {
-                return;
-            }
-            if matches!(
-                event,
-                TrayIconEvent::Click {
-                    button: MouseButton::Left,
-                    button_state: MouseButtonState::Up,
-                    ..
-                } | TrayIconEvent::DoubleClick {
-                    button: MouseButton::Left,
-                    ..
-                }
-            ) {
-                let _ = tx.send(Action::Open);
-                wake.repaint(&icon_ctx);
-            }
-        }));
+        let (generation, events) = attach_events(ctx, wake);
         let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         #[cfg(target_os = "windows")]
         {
@@ -164,6 +192,7 @@ impl Tray {
             _icon: icon,
             check,
             events,
+            generation,
             stop,
             #[cfg(target_os = "windows")]
             menu,
@@ -200,13 +229,37 @@ impl Tray {
     pub(super) fn set_check_enabled(&self, enabled: bool) {
         self.check.set_enabled(enabled);
     }
+
+    #[cfg(all(test, target_os = "windows"))]
+    pub(in crate::ui) fn send_native_menu_command(&self, index: i32) {
+        use tray_icon::menu::ContextMenu;
+        use windows::Win32::{
+            Foundation::{HWND, LPARAM, WPARAM},
+            UI::WindowsAndMessaging::{GetMenuItemID, SendMessageW, HMENU, WM_COMMAND},
+        };
+        let command = unsafe { GetMenuItemID(HMENU(self.menu.hpopupmenu() as *mut _), index) };
+        assert_ne!(command, u32::MAX);
+        unsafe {
+            SendMessageW(
+                HWND(self._icon.window_handle() as *mut _),
+                WM_COMMAND,
+                WPARAM(command as usize),
+                LPARAM(0),
+            );
+        }
+    }
 }
 
 impl Drop for Tray {
     fn drop(&mut self) {
         self.stop.store(true, std::sync::atomic::Ordering::Release);
-        MenuEvent::set_event_handler(None::<fn(MenuEvent)>);
-        TrayIconEvent::set_event_handler(None::<fn(TrayIconEvent)>);
+        let mut target = EVENT_TARGET.lock().unwrap();
+        if target
+            .as_ref()
+            .is_some_and(|target| target.generation == self.generation)
+        {
+            *target = None;
+        }
     }
 }
 
@@ -239,7 +292,18 @@ pub(super) fn hide_on_close(enabled: bool, available: bool, exiting: bool) -> bo
 }
 
 impl super::App {
-    fn show_from_tray(&mut self, ctx: &egui::Context) {
+    pub(crate) fn attach_instance(
+        &mut self,
+        instance: crate::app::instance::Instance,
+        cc: &eframe::CreationContext<'_>,
+    ) {
+        let wake = self.tray_wake;
+        let ctx = cc.egui_ctx.clone();
+        instance.set_wake(move || wake.repaint(&ctx));
+        self.instance = Some(instance);
+    }
+
+    pub(super) fn show_from_tray(&mut self, ctx: &egui::Context) {
         self.tray_hidden = false;
         if let Some(tray) = &self.tray {
             let _ = tray.set_visible(false);
@@ -366,6 +430,36 @@ impl super::App {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn exit_event_reaches_recreated_tray() {
+        use super::*;
+        use tray_icon::menu::ContextMenu;
+        use windows::Win32::{
+            Foundation::{HWND, LPARAM, WPARAM},
+            UI::WindowsAndMessaging::{GetMenuItemID, SendMessageW, HMENU, WM_COMMAND},
+        };
+        let ctx = egui::Context::default();
+        for generation in 0..3 {
+            let tray = Tray::new(&ctx, Wake { hwnd: 0 }).unwrap();
+            let command = unsafe { GetMenuItemID(HMENU(tray.menu.hpopupmenu() as *mut _), 3) };
+            assert_ne!(command, u32::MAX);
+            unsafe {
+                SendMessageW(
+                    HWND(tray._icon.window_handle() as *mut _),
+                    WM_COMMAND,
+                    WPARAM(command as usize),
+                    LPARAM(0),
+                );
+            }
+            assert_eq!(
+                tray.actions(),
+                vec![Action::Exit],
+                "Exit must work in tray generation {generation}"
+            );
+        }
+    }
+
     #[test]
     fn closing_requires_opt_in_and_a_tray_but_exit_always_quits() {
         assert!(super::hide_on_close(true, true, false));

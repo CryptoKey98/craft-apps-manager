@@ -1,7 +1,6 @@
 //! Installed app records and platform/executable selection.
 pub mod actions;
 pub mod architecture;
-pub mod backups;
 pub(crate) mod cleanup;
 pub mod executables;
 pub mod identity;
@@ -13,4 +12,7 @@ pub mod packages;
 pub mod portable;
 pub mod releases;
 pub mod relocation;
+pub mod rollbacks;
 pub mod shortcuts;
+
+pub mod release_catalog;

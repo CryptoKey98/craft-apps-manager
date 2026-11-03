@@ -239,7 +239,7 @@ mod tests;
 
 /// Inspect the PE headers without loading or running the downloaded executable.
 #[cfg(target_os = "windows")]
-fn pe_info(path: &std::path::Path) -> anyhow::Result<(&'static str, u16)> {
+fn pe_details(path: &std::path::Path) -> anyhow::Result<(&'static str, u16, bool)> {
     use std::io::{Read, Seek, SeekFrom};
     let mut file = std::fs::File::open(path)?;
     let mut dos = [0u8; 64];
@@ -271,6 +271,7 @@ fn pe_info(path: &std::path::Path) -> anyhow::Result<(&'static str, u16)> {
     // IL-only PE32 assemblies can run in a 64-bit CLR even though COFF says
     // I386. Honor CLR Requires32Bit/Prefers32Bit, rather than the installer
     // registry view or the bootstrap executable's apparent machine type.
+    let mut anycpu = false;
     if architecture == "x86" && optional.len() >= 216 {
         let clr_rva = u32::from_le_bytes(optional[208..212].try_into().unwrap());
         let directories = u32::from_le_bytes(optional[92..96].try_into().unwrap());
@@ -298,6 +299,7 @@ fn pe_info(path: &std::path::Path) -> anyhow::Result<(&'static str, u16)> {
             file.read_exact(&mut clr)?;
             let flags = u32::from_le_bytes(clr[16..20].try_into().unwrap());
             if flags & 1 != 0 && flags & (2 | 0x20000) == 0 {
+                anycpu = u16::from_le_bytes([optional[0], optional[1]]) == 0x10b;
                 let host = std::env::var("PROCESSOR_ARCHITEW6432")
                     .or_else(|_| std::env::var("PROCESSOR_ARCHITECTURE"))
                     .unwrap_or_default();
@@ -314,7 +316,22 @@ fn pe_info(path: &std::path::Path) -> anyhow::Result<(&'static str, u16)> {
     Ok((
         architecture,
         u16::from_le_bytes([optional[68], optional[69]]),
+        anycpu,
     ))
+}
+#[cfg(target_os = "windows")]
+fn pe_info(path: &std::path::Path) -> anyhow::Result<(&'static str, u16)> {
+    pe_details(path).map(|(architecture, subsystem, _)| (architecture, subsystem))
+}
+
+/// Only IL-only desktop assemblies without Requires32Bit/Prefers32Bit qualify.
+#[cfg(target_os = "windows")]
+pub(crate) fn windows_anycpu_architecture(
+    path: &std::path::Path,
+) -> anyhow::Result<Option<&'static str>> {
+    pe_details(path).map(|(architecture, subsystem, anycpu)| {
+        (anycpu && matches!(subsystem, 2 | 9)).then_some(architecture)
+    })
 }
 #[cfg(target_os = "windows")]
 pub(crate) fn windows_executable_architecture(

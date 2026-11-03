@@ -88,6 +88,12 @@ fn desktop_executable_names(mut names: Vec<String>) -> Vec<String> {
 }
 
 pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
+    // A missing installation cannot contain an executable. In particular, an
+    // empty path must not turn into a search of the working directory or trigger
+    // a native registration scan for an installation that does not exist.
+    if !folder.exists() {
+        return None;
+    }
     #[cfg(target_os = "windows")]
     if let Some(executable) = crate::app_identity::portable(folder, app) {
         return Some(executable);
@@ -142,6 +148,21 @@ pub fn installed_executable(folder: &Path, app: &str) -> Option<PathBuf> {
 
 #[cfg(test)]
 mod desktop_executable_tests {
+    #[cfg(not(target_os = "macos"))]
+    #[test]
+    fn empty_installation_path_never_launches_a_working_directory_lookalike() {
+        let app = format!("pathfixture{}", uuid::Uuid::new_v4().simple());
+        let name = super::executable_name(&app);
+        // No process-wide current-directory changes; remove the unique fixture
+        // before asserting so the failing regression leaves nothing behind.
+        std::fs::write(&name, b"fixture").unwrap();
+        let found = super::installed_executable(std::path::Path::new(""), &app);
+        std::fs::remove_file(&name).unwrap();
+        assert!(
+            found.is_none(),
+            "An empty installation path is not the working directory"
+        );
+    }
     #[test]
     fn desktop_variants_keep_exact_names_and_exclude_background_tools() {
         let names = super::desktop_executable_names(vec!["transmission.exe".into()]);

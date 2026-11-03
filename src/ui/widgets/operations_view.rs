@@ -2,11 +2,14 @@ use crate::ui::{theme, App};
 use craft_apps_manager::operations::{Lifecycle, Operation};
 use eframe::egui;
 
+type ClearResult = Result<Vec<Operation>, String>;
+
 #[derive(Default)]
 pub(in crate::ui) struct ActivityNotifications {
     shared: Option<craft_apps_manager::operations::Manager>,
     initialized: bool,
-    seen: std::collections::HashMap<String, bool>,
+    clear_receiver: Option<std::sync::mpsc::Receiver<ClearResult>>,
+    seen: std::collections::HashMap<String, Lifecycle>,
     unread: std::collections::HashSet<String>,
     highlight_ids: std::collections::HashSet<egui::Id>,
 }
@@ -17,16 +20,52 @@ impl ActivityNotifications {
             ..Default::default()
         }
     }
+    fn begin_clear(&mut self, records: &[Operation], ctx: &egui::Context) {
+        if self.clear_receiver.is_some() {
+            return;
+        }
+        let Some(shared) = self.shared.clone() else {
+            return;
+        };
+        let records = records.to_vec();
+        let context = ctx.clone();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        self.clear_receiver = Some(receiver);
+        std::thread::spawn(move || {
+            let result = shared
+                .clear_activity(&records)
+                .map(|()| shared.list())
+                .map_err(|error| format!("Could not clear activity: {error:#}"));
+            let _ = sender.send(result);
+            context.request_repaint();
+        });
+    }
+    fn poll_clear(&mut self) -> Option<ClearResult> {
+        let result = match self.clear_receiver.as_ref()?.try_recv() {
+            Ok(result) => result,
+            Err(std::sync::mpsc::TryRecvError::Empty) => return None,
+            Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                Err("Could not clear activity: the background worker stopped unexpectedly.".into())
+            }
+        };
+        self.clear_receiver = None;
+        Some(result)
+    }
     pub(in crate::ui) fn observe(&mut self, records: &[Operation]) {
+        self.seen
+            .retain(|id, _| records.iter().any(|record| &record.id == id));
+        self.unread
+            .retain(|id| records.iter().any(|record| &record.id == id));
         for record in records
             .iter()
             .filter(|op| op.parent.is_none() && !op.kind.starts_with("Review "))
         {
             let terminal = record.lifecycle.terminal();
-            let previous = self.seen.insert(record.id.clone(), terminal);
+            let terminal_phase = terminal && record.lifecycle != Lifecycle::Interrupted;
+            let previous = self.seen.insert(record.id.clone(), record.lifecycle);
             // Existing history is already read on startup; active work is still noteworthy.
             if (previous.is_none() && (self.initialized || !terminal))
-                || previous == Some(false) && terminal
+                || previous.is_some_and(|state| state != record.lifecycle) && terminal
             {
                 if let Some(shared) = &self.shared {
                     let _ = shared.announce_activity(&record.id);
@@ -35,14 +74,14 @@ impl ActivityNotifications {
             }
             if self.shared.as_ref().is_some_and(|shared| {
                 shared.activity_was_announced(&record.id)
-                    && !shared.activity_is_read(&record.id, terminal)
+                    && !shared.activity_is_read(&record.id, terminal_phase)
             }) {
                 self.unread.insert(record.id.clone());
             }
             if self
                 .shared
                 .as_ref()
-                .is_some_and(|shared| shared.activity_is_read(&record.id, terminal))
+                .is_some_and(|shared| shared.activity_is_read(&record.id, terminal_phase))
             {
                 self.unread.remove(&record.id);
             }
@@ -68,8 +107,9 @@ impl ActivityNotifications {
     }
     fn mark_read(&mut self, id: &str) {
         if self.unread.remove(id) {
-            if let (Some(shared), Some(terminal)) = (&self.shared, self.seen.get(id)) {
-                let _ = shared.acknowledge_activity(id, *terminal);
+            if let (Some(shared), Some(state)) = (&self.shared, self.seen.get(id)) {
+                let _ = shared
+                    .acknowledge_activity(id, state.terminal() && *state != Lifecycle::Interrupted);
             }
         }
     }
@@ -77,6 +117,19 @@ impl ActivityNotifications {
 
 impl App {
     pub(in crate::ui) fn activity_panel(&mut self, ctx: &egui::Context) {
+        // Poll even while closed so persistence errors are always surfaced.
+        if let Some(result) = self.activity_notifications.poll_clear() {
+            match result {
+                Ok(records) => {
+                    self.operation_records = records;
+                    self.activity_notifications.observe(&self.operation_records);
+                    for id in self.activity_notifications.highlight_ids.drain() {
+                        ctx.animate_bool_with_time(id, false, 0.0);
+                    }
+                }
+                Err(error) => self.error = Some(error),
+            }
+        }
         let visible_id = egui::Id::new("activity-panel-was-visible");
         if !self.activity_open {
             if ctx.data(|data| data.get_temp::<bool>(visible_id).unwrap_or(false)) {
@@ -265,6 +318,19 @@ impl App {
                     .clicked()
                     {
                         self.activity_history = !self.activity_history;
+                    }
+                    let clearing = self.activity_notifications.clear_receiver.is_some();
+                    if theme::btn(if clearing {
+                        "Clearing…"
+                    } else {
+                        "Clear activity"
+                    })
+                    .enabled(!clearing)
+                    .show(ui)
+                    .clicked()
+                    {
+                        self.activity_notifications
+                            .begin_clear(&self.operation_records, ctx);
                     }
                 });
             });
@@ -799,6 +865,13 @@ mod activity_tests {
         manager.observe(&[]);
         builder.observe(&[]);
         let mut op = record("Build", Lifecycle::Running);
+        craft_apps_manager::files::write_json(
+            &root
+                .join("runtime/operations")
+                .join(format!("{}.json", op.id)),
+            &op,
+        )
+        .unwrap();
         manager.observe(&[op.clone()]);
         builder.observe(&[op.clone()]);
         assert_eq!(manager.count(), 1);
@@ -822,6 +895,13 @@ mod activity_tests {
         assert_eq!(builder.count(), 0);
         assert!(!builder.is_unread(&op.id));
         let next = record("Build", Lifecycle::Running);
+        craft_apps_manager::files::write_json(
+            &root
+                .join("runtime/operations")
+                .join(format!("{}.json", next.id)),
+            &next,
+        )
+        .unwrap();
         manager.observe(&[op.clone(), next.clone()]);
         builder.observe(&[op, next]);
         assert_eq!(manager.count(), 1);
@@ -829,6 +909,93 @@ mod activity_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
+    #[test]
+    fn clearing_activity_syncs_windows_and_running_work_notifies_on_completion() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let shared = craft_apps_manager::operations::Manager::new(&root);
+        let mut manager = ActivityNotifications::new(&root);
+        let mut builder = ActivityNotifications::new(&root);
+        manager.observe(&[]);
+        builder.observe(&[]);
+        let done = shared.register("Install", "done", None);
+        done.finish(Lifecycle::Completed, "ok".into());
+        let active = shared.register("Build", "active", None);
+        active.start();
+        manager.observe(&shared.list());
+        builder.observe(&shared.list());
+        assert_eq!(builder.count(), 2);
+        shared.clear_activity(&shared.list()).unwrap();
+        manager.observe(&shared.list());
+        builder.observe(&shared.list());
+        assert_eq!(manager.count(), 0);
+        assert_eq!(builder.count(), 0);
+        assert!(shared.read(&done.id()).is_err());
+        assert!(shared.read(&active.id()).is_ok());
+        active.finish(Lifecycle::Completed, "ok".into());
+        manager.observe(&shared.list());
+        builder.observe(&shared.list());
+        assert_eq!(manager.count(), 1);
+        assert_eq!(builder.count(), 1);
+        let mut reopened = ActivityNotifications::new(&root);
+        reopened.observe(&shared.list());
+        assert_eq!(reopened.count(), 1);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn clearing_interrupted_activity_does_not_read_a_later_confirmed_completion() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let shared = craft_apps_manager::operations::Manager::new(&root);
+        let mut manager = ActivityNotifications::new(&root);
+        let mut builder = ActivityNotifications::new(&root);
+        manager.observe(&[]);
+        builder.observe(&[]);
+        let worker = shared.register("Build", "worker", None);
+        worker.start();
+        let mut stale = worker.snapshot();
+        stale.heartbeat -= 60_000;
+        craft_apps_manager::files::write_json(
+            &root
+                .join("runtime/operations")
+                .join(format!("{}.json", worker.id())),
+            &stale,
+        )
+        .unwrap();
+        let records = shared.list();
+        assert_eq!(records[0].lifecycle, Lifecycle::Interrupted);
+        manager.observe(&records);
+        builder.observe(&records);
+        shared.clear_activity(&records).unwrap();
+        manager.observe(&records);
+        builder.observe(&records);
+        assert_eq!(builder.count(), 0);
+        worker.finish(Lifecycle::Completed, "ok".into());
+        manager.observe(&shared.list());
+        builder.observe(&shared.list());
+        assert_eq!(manager.count(), 1);
+        assert_eq!(builder.count(), 1);
+        assert!(shared.read(&worker.id()).is_ok());
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn clear_activity_starts_background_work_and_surfaces_persistence_failure() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        // A file instead of a library directory makes persistence fail reliably.
+        std::fs::write(&root, b"fixture").unwrap();
+        let mut badge = ActivityNotifications::new(&root);
+        badge.begin_clear(&[], &egui::Context::default());
+        assert!(
+            badge.clear_receiver.is_some(),
+            "clear must return with a pending background result"
+        );
+        let result = badge
+            .clear_receiver
+            .take()
+            .unwrap()
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .unwrap();
+        assert!(result.is_err());
+        std::fs::remove_file(root).unwrap();
+    }
     #[test]
     fn activity_badge_retains_unread_completion_until_viewed() {
         let mut badge = ActivityNotifications::default();

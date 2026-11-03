@@ -227,3 +227,7 @@ signing, so the other CPU architecture cannot silently carry an older configurat
 Service-activated releases validate publisher readiness, signing-key agreement and
 policy/profile scope before building or uploading packages. Format selections also gate
 MSI upgrade smoke tests and the Arch package job.
+
+### Preparing the next Manager policy
+
+Before a new Manager release, update `next_catalog_file` in `updater.production.toml` to a policy containing the new version, package names, and routes. Preserve previously signed package entries exactly. An unpublished package uses `size: 1` and an all-zero SHA-256 as explicit placeholders so routing can be checked before building. These are not verified package values. The release publisher replaces every new package's size and hash with its exact published asset metadata, independently downloads and verifies the bytes, then signs the catalog. Never deploy the unsigned policy file directly.

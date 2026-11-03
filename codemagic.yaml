@@ -81,7 +81,7 @@ workflows:
           # New updater/DMG code stays local until transferred over SSH.
           # This bootstrap must work with the already-committed repository.
           binary="dist/macos/Craft Apps Manager.app/Contents/MacOS/craft-apps-manager"
-          lipo -verify_arch arm64 x86_64 "$binary"
+          lipo "$binary" -verify_arch arm64 x86_64
           "$binary" --build-identity |
             tee target/codemagic-test-results/build-identity.json
           ls -lh dist/macos/

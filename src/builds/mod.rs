@@ -109,6 +109,15 @@ fn build_owned(
         env.insert("VITE_ENVIRONMENT_TYPE".into(), "production".into());
         env.insert("SQLX_OFFLINE".into(), "true".into());
         env.insert("NX_DAEMON".into(), "false".into());
+        env.insert(
+            "TAURI_FRONTEND_PATH".into(),
+            project.join("frontend").display().to_string(),
+        );
+        env.insert(
+            "TAURI_APP_PATH".into(),
+            project.join("crates/artcraftx").display().to_string(),
+        );
+        #[cfg(target_os = "windows")]
         let node = tools::find(paths, "node", "node.exe").unwrap();
         #[cfg(target_os = "windows")]
         let npm = node
@@ -116,7 +125,7 @@ fn build_owned(
             .unwrap()
             .join("node_modules/npm/bin/npm-cli.js");
         #[cfg(unix)]
-        let npm = std::fs::canonicalize(tools::system("npm").context("npm is missing")?)?;
+        let (node, npm) = tools::node_npm(paths)?;
         let frontend = project.join("frontend");
         job.stage(
             "Frontend dependencies",
@@ -124,10 +133,12 @@ fn build_owned(
             "Installing original locked dependencies",
         );
         job.run(
-            Command::new(&node)
-                .arg(npm)
+            npm_install_command(&node, &npm)
                 .args(["ci", "--no-audit", "--no-fund"])
-                .current_dir(tools::build_path(&frontend)?)
+                // Vite's TypeScript path resolver compares canonical source
+                // paths with its working directory; Windows short aliases do
+                // not match. Only the Rust compiler needs shortened paths.
+                .current_dir(&frontend)
                 .envs(&env),
             false,
         )?;
@@ -135,7 +146,7 @@ fn build_owned(
         job.run(
             Command::new(node)
                 .args(["node_modules/nx/bin/nx.js", "run", "artcraft:build"])
-                .current_dir(tools::build_path(&frontend)?)
+                .current_dir(&frontend)
                 .envs(&env),
             false,
         )?;
@@ -256,6 +267,38 @@ fn build_owned(
     Ok(())
 }
 
+fn npm_install_command(node: &std::path::Path, npm: &std::path::Path) -> Command {
+    #[cfg(windows)]
+    {
+        let mut command = Command::new(node);
+        command.arg(npm);
+        command
+    }
+    #[cfg(unix)]
+    {
+        let _ = node;
+        Command::new(npm)
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn npm_install_supports_executable_shell_wrappers() {
+    use std::os::unix::fs::PermissionsExt;
+    let folder = std::env::temp_dir().join(format!("craft-npm-test-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir(&folder).unwrap();
+    let npm = folder.join("npm");
+    std::fs::write(&npm, "#!/bin/sh\nprintf 'npm-wrapper:%s' \"$1\"\n").unwrap();
+    std::fs::set_permissions(&npm, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let output = npm_install_command(std::path::Path::new("must-not-run-node"), &npm)
+        .arg("ci")
+        .output()
+        .unwrap();
+    std::fs::remove_dir_all(folder).unwrap();
+    assert!(output.status.success());
+    assert_eq!(output.stdout, b"npm-wrapper:ci");
+}
+
 /// PDFCraft retained its `printcraft` library key after the upstream package rename.
 /// The source record identifies which Cargo package the downloaded archive contains.
 fn cargo_target<'a>(app: &'a str, source: &Source) -> &'a str {
@@ -291,8 +334,12 @@ pub struct BuildLaunchOptions {
 }
 pub fn build_options(paths: &Paths, app: &str) -> Result<BuildLaunchOptions> {
     crate::model::valid_app(app)?;
-    let all: BTreeMap<String, BuildLaunchOptions> =
-        files::read_or_default(&paths.at("runtime/build-launch-settings.json"))?;
+    let all: BTreeMap<String, BuildLaunchOptions> = crate::storage::config::document::section(
+        &crate::storage::config::ConfigStore::new(paths.root.clone())
+            .load()?
+            .document,
+        "build_launch",
+    )?;
     Ok(all.get(app).cloned().unwrap_or_default())
 }
 pub fn launch_options(paths: &Paths, app: &str) -> Result<crate::apps::LaunchSettings> {
@@ -312,10 +359,14 @@ pub fn save_build_options(paths: &Paths, app: &str, value: &BuildLaunchOptions) 
             "The selected completed build is no longer available."
         );
     }
-    let file = paths.at("runtime/build-launch-settings.json");
-    let mut all: BTreeMap<String, BuildLaunchOptions> = files::read_or_default(&file)?;
-    all.insert(app.to_owned(), value.clone());
-    files::write_json(&file, &all)
+    crate::storage::config::ConfigStore::new(paths.root.clone()).mutate_section::<BTreeMap<
+        String,
+        BuildLaunchOptions,
+    >>("build_launch", |all| {
+        all.insert(app.to_owned(), value.clone());
+        Ok(())
+    })?;
+    Ok(())
 }
 pub fn save_launch_options(
     paths: &Paths,

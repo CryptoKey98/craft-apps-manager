@@ -345,6 +345,7 @@ fn one_use_authority_survives_a_real_process_restart_without_touching_data() {
     let f = Fixture::new();
     let token = f.issued();
     fs::write(f.root.join("settings.json"), b"preserve settings").unwrap();
+    fs::write(f.root.join("installations.json"), b"preserve inventory").unwrap();
     fs::create_dir(f.root.join("apps")).unwrap();
     fs::write(f.root.join("apps/user-file"), b"preserve app").unwrap();
     let output = Command::new(std::env::current_exe().unwrap())
@@ -369,6 +370,10 @@ fn one_use_authority_survives_a_real_process_restart_without_touching_data() {
     assert_eq!(
         fs::read(f.root.join("settings.json")).unwrap(),
         b"preserve settings"
+    );
+    assert_eq!(
+        fs::read(f.root.join("installations.json")).unwrap(),
+        b"preserve inventory"
     );
     assert_eq!(
         fs::read(f.root.join("apps/user-file")).unwrap(),

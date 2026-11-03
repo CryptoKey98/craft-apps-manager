@@ -1,4 +1,20 @@
 #[test]
+fn msi_template_architecture_accepts_arm64_without_confusing_x64_or_itanium() {
+    assert_eq!(
+        super::msi_template_architecture("Arm64;1033").unwrap(),
+        "arm64"
+    );
+    assert_eq!(super::msi_template_architecture("x64;1033").unwrap(), "x64");
+    assert_eq!(
+        super::msi_template_architecture("Intel;1033").unwrap(),
+        "x86"
+    );
+    assert!(super::msi_template_architecture("Intel64;1033").is_err());
+    assert!(super::msi_template_architecture("Intel,x64;1033").is_err());
+    assert!(super::msi_template_architecture("unrecognized;1033").is_err());
+}
+
+#[test]
 fn intended_version_verification_rejects_old_or_unknown_copies() {
     assert!(super::matches_expected_version("1.2.3.0", "v1.2.3"));
     assert!(!super::matches_expected_version("1.2.2", "1.2.3"));
@@ -453,6 +469,29 @@ fn renamed_installations_select_newest_across_registry_roots() {
         assert_eq!(detected.version, "0.4.1");
         assert_eq!(detected.path, folder.join("new").display().to_string());
     }
+    let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+    let scoped = detect_in_roots_for_product(
+        "printcraft",
+        roots,
+        Some("x64"),
+        None,
+        None,
+        Some(&folder.join("old")),
+    )
+    .unwrap()
+    .unwrap();
+    assert_eq!(scoped.version, "0.2.1");
+    let roots = ["old", "new"].map(|name| (root.open_subkey(name).unwrap(), KEY_WOW64_64KEY));
+    assert!(detect_in_roots_for_product(
+        "printcraft",
+        roots,
+        Some("x64"),
+        None,
+        None,
+        Some(&folder.join("absent"))
+    )
+    .unwrap()
+    .is_none());
     let selected = Installed {
         name: "printcraft".into(),
         path: folder.join("old").display().to_string(),
@@ -580,5 +619,154 @@ fn names_allow_version_and_architecture_but_reject_other_products() {
         "PhotoCraft 0.3.0 Helper",
     ] {
         assert!(!super::matches_display_name("photocraft", name), "{name}");
+    }
+}
+
+#[test]
+fn msi_scope_regressions_dual_package_preserves_machine_scope() {
+    assert_eq!(
+        super::msi_scope_arguments(Some("2"), Some("machine")).unwrap(),
+        " ALLUSERS=1 MSIINSTALLPERUSER=\"\""
+    );
+}
+#[test]
+fn msi_scope_regressions_dual_package_preserves_user_scope() {
+    assert_eq!(
+        super::msi_scope_arguments(Some("2"), Some("user")).unwrap(),
+        " ALLUSERS=2 MSIINSTALLPERUSER=1"
+    );
+}
+#[test]
+fn msi_scope_regressions_unknown_scope_retains_authored_defaults() {
+    for authored in [None, Some(""), Some("1"), Some("2")] {
+        assert_eq!(super::msi_scope_arguments(authored, None).unwrap(), "");
+    }
+}
+#[test]
+fn msi_scope_regressions_fixed_scope_packages_are_not_overridden() {
+    assert_eq!(super::msi_scope_arguments(None, Some("user")).unwrap(), "");
+    assert_eq!(
+        super::msi_scope_arguments(Some(""), Some("user")).unwrap(),
+        ""
+    );
+    assert_eq!(
+        super::msi_scope_arguments(Some("1"), Some("machine")).unwrap(),
+        ""
+    );
+}
+#[test]
+fn msi_scope_regressions_incompatible_scope_is_rejected() {
+    assert!(super::msi_scope_arguments(None, Some("machine")).is_err());
+    assert!(super::msi_scope_arguments(Some("1"), Some("user")).is_err());
+    assert!(super::msi_scope_arguments(Some("2"), Some("unknown")).is_err());
+}
+#[test]
+fn msi_scope_regressions_fresh_setup_uses_authored_full_ui() {
+    assert!(!super::msi_use_basic_ui(true, false));
+    assert!(super::msi_use_basic_ui(true, true));
+    assert!(!super::msi_use_basic_ui(false, true));
+    assert!(!super::msi_use_basic_ui(false, false));
+}
+
+#[test]
+fn msi_capability_fixtures_reject_scope_changes_with_clear_errors() {
+    use super::*;
+    struct Fixture(std::path::PathBuf);
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+    #[link(name = "msi")]
+    unsafe extern "system" {
+        fn MsiDatabaseCommit(database: u32) -> u32;
+    }
+    for authored in [None, Some("1"), Some("2")] {
+        let path = std::env::temp_dir().join(format!(
+            "craft-scope-capability-{}.msi",
+            uuid::Uuid::new_v4()
+        ));
+        let _fixture = Fixture(path.clone());
+        let mut db = 0;
+        assert_eq!(
+            unsafe {
+                MsiOpenDatabaseW(
+                    platform::wide(&path).as_ptr(),
+                    3usize as *const u16,
+                    &mut db,
+                )
+            },
+            0
+        );
+        let db = MsiHandle(db);
+        let mut queries = vec!["CREATE TABLE `Property` (`Property` CHAR(72) NOT NULL, `Value` CHAR(0) LOCALIZABLE PRIMARY KEY `Property`)".to_string()];
+        if let Some(value) = authored {
+            queries.push(format!(
+                "INSERT INTO `Property` (`Property`,`Value`) VALUES ('ALLUSERS','{value}')"
+            ));
+        }
+        for query in queries {
+            let mut view = 0;
+            assert_eq!(
+                unsafe { MsiDatabaseOpenViewW(db.0, platform::wide(query).as_ptr(), &mut view) },
+                0
+            );
+            let view = MsiHandle(view);
+            assert_eq!(unsafe { MsiViewExecute(view.0, 0) }, 0);
+        }
+        assert_eq!(unsafe { MsiDatabaseCommit(db.0) }, 0);
+        drop(db);
+        let unknown_scope = Installed {
+            install_kind: "installer".into(),
+            product_code: "{11111111-1111-4111-8111-111111111111}".into(),
+            path: "fixture-installation".into(),
+            ..Default::default()
+        };
+        let message = validate_msi_replacement_scope(&path, &unknown_scope)
+            .unwrap_err()
+            .to_string();
+        assert!(
+            message.contains("installation scope could not be verified"),
+            "{message}"
+        );
+        validate_msi_replacement_scope(&path, &Installed::default()).unwrap();
+        let user = Installed {
+            windows_msi_scope: Some("user".into()),
+            ..Default::default()
+        };
+        let machine = Installed {
+            windows_msi_scope: Some("machine".into()),
+            ..Default::default()
+        };
+        if authored == Some("1") {
+            let message = validate_msi_replacement_scope(&path, &user)
+                .unwrap_err()
+                .to_string();
+            assert!(
+                message.contains("supports installation for everyone only"),
+                "{message}"
+            );
+            assert!(
+                message.contains("current copy is installed just for you"),
+                "{message}"
+            );
+        } else {
+            validate_msi_replacement_scope(&path, &user).unwrap();
+        }
+        if authored.is_none() {
+            let message = validate_msi_replacement_scope(&path, &machine)
+                .unwrap_err()
+                .to_string();
+            assert!(
+                message.contains("supports installation just for you only"),
+                "{message}"
+            );
+            assert!(
+                message.contains("current copy is installed for everyone"),
+                "{message}"
+            );
+        } else {
+            validate_msi_replacement_scope(&path, &machine).unwrap();
+        }
     }
 }

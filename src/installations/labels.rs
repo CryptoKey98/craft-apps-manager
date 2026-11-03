@@ -1,4 +1,4 @@
-//! Stable portable-copy letters live in the installation inventory itself.
+//! Stable portable-copy numbers live in the installation inventory itself.
 use crate::model::Config;
 use anyhow::{Context, Result};
 use std::collections::{BTreeMap, BTreeSet};
@@ -27,7 +27,10 @@ fn display_summary(copy: &crate::model::Installed, include_version: bool) -> Str
             copy.version.trim_start_matches(['v', 'V'])
         ));
     }
-    if copy.install_kind != "installer" && valid_label(&copy.installation_label) {
+    if copy.install_kind != "installer"
+        && valid_label(&copy.installation_label)
+        && copy.installation_label != "1"
+    {
         text.push_str(&format!(" ({})", copy.installation_label));
     }
     text
@@ -44,6 +47,16 @@ pub fn package_label(copy: &crate::model::Installed) -> &'static str {
 }
 
 fn index(label: &str) -> Option<u32> {
+    let value = label.parse::<u32>().ok()?;
+    (value > 0 && label == value.to_string()).then(|| value - 1)
+}
+
+/// Historical letters are accepted only while migrating inventory and owned links.
+pub(crate) fn legacy_label(label: &str) -> bool {
+    legacy_index(label).is_some()
+}
+
+fn legacy_index(label: &str) -> Option<u32> {
     if label.is_empty() || label.len() > 7 {
         return None;
     }
@@ -60,14 +73,7 @@ fn index(label: &str) -> Option<u32> {
 }
 
 fn label(index: u32) -> String {
-    let mut value = u64::from(index) + 1;
-    let mut letters = Vec::new();
-    while value > 0 {
-        value -= 1;
-        letters.push(char::from(b'A' + (value % 26) as u8));
-        value /= 26;
-    }
-    letters.into_iter().rev().collect()
+    (u64::from(index) + 1).to_string()
 }
 
 fn identity(copy: &crate::model::Installed) -> (String, String) {
@@ -87,7 +93,7 @@ pub fn path_identity(path: &str) -> String {
 }
 
 /// Migrate unlabeled records deterministically, sharing the selected record's
-/// label with its inventory entry. New copies reuse the first unused letter.
+/// label with its inventory entry. New copies reuse the first unused number.
 pub fn assign(config: &mut Config) -> Result<()> {
     let mut assignments = BTreeMap::new();
     let mut used: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -99,7 +105,9 @@ pub fn assign(config: &mut Config) -> Result<()> {
         if assignments.contains_key(&identity) {
             continue;
         }
-        if let Some(index) = index(&copy.installation_label) {
+        if let Some(index) =
+            index(&copy.installation_label).or_else(|| legacy_index(&copy.installation_label))
+        {
             let next = index
                 .checked_add(1)
                 .context("Portable installation label limit reached")?;
@@ -111,9 +119,9 @@ pub fn assign(config: &mut Config) -> Result<()> {
             if used
                 .entry(copy.name.clone())
                 .or_default()
-                .insert(copy.installation_label.clone())
+                .insert(label(index))
             {
-                assignments.insert(identity, copy.installation_label.clone());
+                assignments.insert(identity, label(index));
             }
         }
     }
@@ -153,7 +161,7 @@ pub fn assign(config: &mut Config) -> Result<()> {
 
 /// Persist only label metadata in older settings, preserving unknown fields.
 pub(crate) fn migrate(paths: &crate::model::Paths) -> Result<Option<Config>> {
-    let file = paths.at("settings.json");
+    let file = paths.inventory_path()?;
     if !file.exists() {
         return Ok(None);
     }
@@ -198,7 +206,7 @@ mod tests {
             package_type: "appimage".into(),
             architecture: "x64".into(),
             version: "0.8.2".into(),
-            installation_label: "A".into(),
+            installation_label: "1".into(),
             ..Default::default()
         };
         assert_eq!(
@@ -209,7 +217,7 @@ mod tests {
                 "Portable"
             }
         );
-        assert!(version_summary(&copy).ends_with("v0.8.2 (A)"));
+        assert!(version_summary(&copy).ends_with("v0.8.2"));
         copy.package_type.clear();
         assert_eq!(package_label(&copy), "Portable");
         copy.install_kind = "installer".into();
@@ -228,9 +236,9 @@ mod tests {
             ]
         })).unwrap();
         assign(&mut config).unwrap();
-        assert_eq!(config.installations[0].installation_label, "A");
-        assert_eq!(config.installations[1].installation_label, "A");
-        assert_eq!(config.installations[2].installation_label, "B");
+        assert_eq!(config.installations[0].installation_label, "1");
+        assert_eq!(config.installations[1].installation_label, "1");
+        assert_eq!(config.installations[2].installation_label, "2");
     }
 
     #[test]
@@ -238,15 +246,19 @@ mod tests {
         let root =
             std::env::temp_dir().join(format!("craft-legacy-labels-{}", uuid::Uuid::new_v4()));
         let paths = crate::model::Paths::new(root.clone(), None);
-        crate::files::write_json(&paths.at("settings.json"), &serde_json::json!({"appsRoot":root, "futureSetting":"keep", "apps":[{"name":"filmcraft","path":root.join("releases/filmcraft"),"version":"0.1.0","install_kind":"portable","futureField":42}]})).unwrap();
+        crate::files::write_json(&paths.at("installations.json"), &serde_json::json!({"appsRoot":root, "futureSetting":"keep", "apps":[{"name":"filmcraft","path":root.join("releases/filmcraft"),"version":"0.1.0","install_kind":"portable","installation_label":"A","futureField":42}]})).unwrap();
         let config = migrate(&paths).unwrap().unwrap();
-        assert_eq!(config.apps[0].installation_label, "A");
-        let value: serde_json::Value = crate::files::read_json(&paths.at("settings.json")).unwrap();
+        assert_eq!(config.apps[0].installation_label, "1");
+        let value: serde_json::Value =
+            crate::files::read_json(&paths.at("installations.json")).unwrap();
         assert_eq!(value["futureSetting"], "keep");
         assert_eq!(value["apps"][0]["futureField"], 42);
-        let before = std::fs::read(paths.at("settings.json")).unwrap();
+        let before = std::fs::read(paths.at("installations.json")).unwrap();
         migrate(&paths).unwrap();
-        assert_eq!(std::fs::read(paths.at("settings.json")).unwrap(), before);
+        assert_eq!(
+            std::fs::read(paths.at("installations.json")).unwrap(),
+            before
+        );
         std::fs::remove_dir_all(root).unwrap();
     }
 
@@ -266,8 +278,8 @@ mod tests {
             portable_label_counters: Default::default(),
         };
         assign(&mut config).unwrap();
-        assert_eq!(config.apps[0].installation_label, "A");
-        assert_eq!(config.installations[1].installation_label, "B");
+        assert_eq!(config.apps[0].installation_label, "1");
+        assert_eq!(config.installations[1].installation_label, "2");
         config.apps[0] = config.installations[1].clone();
         config.apps[0].version = "0.8.2".into();
         config.installations[1].path = root.join("moved").display().to_string();
@@ -279,15 +291,15 @@ mod tests {
         let mut restarted: Config =
             serde_json::from_slice(&serde_json::to_vec(&config).unwrap()).unwrap();
         assign(&mut restarted).unwrap();
-        assert_eq!(restarted.apps[0].installation_label, "B");
-        assert_eq!(restarted.installations[0].installation_label, "B");
-        assert_eq!(restarted.installations[1].installation_label, "A");
-        assert_eq!(label(25), "Z");
-        assert_eq!(label(26), "AA");
+        assert_eq!(restarted.apps[0].installation_label, "2");
+        assert_eq!(restarted.installations[0].installation_label, "2");
+        assert_eq!(restarted.installations[1].installation_label, "1");
+        assert_eq!(label(25), "26");
+        assert_eq!(label(26), "27");
     }
 
     #[test]
-    fn removed_letters_are_reused_without_renaming_surviving_copies() {
+    fn removed_numbers_are_reused_without_renaming_surviving_copies() {
         let mut config: Config = serde_json::from_value(serde_json::json!({
             "appsRoot":"", "apps":[], "portableLabelCounters":{"filmcraft":99},
             "installations":[
@@ -303,13 +315,13 @@ mod tests {
             .iter()
             .map(|copy| copy.installation_label.as_str())
             .collect();
-        assert_eq!(letters, ["A", "C", "B", "D"]);
+        assert_eq!(letters, ["1", "3", "2", "4"]);
         config.apps = vec![config.installations[2].clone()];
         let mut restarted: Config =
             serde_json::from_value(serde_json::to_value(&config).unwrap()).unwrap();
         assign(&mut restarted).unwrap();
-        assert_eq!(restarted.apps[0].installation_label, "B");
-        assert_eq!(restarted.installations[1].installation_label, "C");
+        assert_eq!(restarted.apps[0].installation_label, "2");
+        assert_eq!(restarted.installations[1].installation_label, "3");
         restarted.apps.clear();
         restarted.installations.clear();
         restarted.installations.push(Installed {
@@ -319,7 +331,33 @@ mod tests {
             ..Default::default()
         });
         assign(&mut restarted).unwrap();
-        assert_eq!(restarted.installations[0].installation_label, "A");
+        assert_eq!(restarted.installations[0].installation_label, "1");
+    }
+
+    #[test]
+    fn numeric_labels_preserve_gaps_and_migrate_legacy_letters() {
+        let mut config: Config = serde_json::from_value(serde_json::json!({
+            "appsRoot":"", "apps":[], "installations":[
+                {"name":"filmcraft","version":"","path":"third","installation_label":"3"},
+                {"name":"filmcraft","version":"","path":"first","installation_label":"A"},
+                {"name":"filmcraft","version":"","path":"new"},
+                {"name":"filmcraft","version":"","path":"legacy-aa","installation_label":"AA"}
+            ]
+        }))
+        .unwrap();
+        assign(&mut config).unwrap();
+        assert_eq!(
+            config
+                .installations
+                .iter()
+                .map(|copy| copy.installation_label.as_str())
+                .collect::<Vec<_>>(),
+            ["3", "1", "2", "27"]
+        );
+        assert!(!summary(&config.installations[1]).contains("(1)"));
+        assert!(summary(&config.installations[0]).ends_with("(3)"));
+        assert!(!valid_label("0"));
+        assert!(!valid_label("01"));
     }
 
     #[test]
@@ -330,8 +368,8 @@ mod tests {
             {"name":"filmcraft","version":"","path":"native","install_kind":"installer","installation_label":"C"}
         ]})).unwrap();
         assign(&mut config).unwrap();
-        assert_eq!(config.installations[0].installation_label, "A");
-        assert_eq!(config.installations[1].installation_label, "B");
+        assert_eq!(config.installations[0].installation_label, "1");
+        assert_eq!(config.installations[1].installation_label, "2");
         assert!(config.installations[2].installation_label.is_empty());
     }
 }

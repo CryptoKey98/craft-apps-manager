@@ -1,6 +1,5 @@
 param(
     [Parameter(Mandatory)][ValidateSet('x64', 'x86')][string]$Architecture,
-    [Parameter(Mandatory)][string]$SevenZipFolder,
     [string]$Wix = 'wix',
     [string]$TargetFolder = $env:CARGO_TARGET_DIR,
     [string]$OutputFolder
@@ -18,8 +17,7 @@ if (!$OutputFolder) { $OutputFolder = Join-Path $projectRoot "dist/windows-$Arch
 $target = if ($Architecture -eq 'x86') { 'i686-pc-windows-msvc' } else { 'x86_64-pc-windows-msvc' }
 $machine = if ($Architecture -eq 'x86') { 0x14c } else { 0x8664 }
 $exe = Join-Path $TargetFolder "$target/release/craft-apps-manager.exe"
-$seven = Join-Path $SevenZipFolder '7za.exe'
-foreach ($path in @($exe, $seven)) {
+foreach ($path in @($exe)) {
     $bytes = [IO.File]::ReadAllBytes($path)
     $offset = [BitConverter]::ToInt32($bytes, 0x3c)
     if ([BitConverter]::ToUInt16($bytes, $offset + 4) -ne $machine) { throw "Wrong architecture: $path" }
@@ -44,14 +42,8 @@ foreach ($name in @('README.md','CHANGELOG.md','LICENSE','THIRD-PARTY-NOTICES.tx
     Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage
 }
 $licenses = Join-Path $stage 'licenses/app-icons'
-$sevenStage = Join-Path $stage "tools/7zip/$Architecture"
-New-Item -ItemType Directory -Path $licenses,$sevenStage -Force | Out-Null
+New-Item -ItemType Directory -Path $licenses -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $projectRoot 'assets/app-icons') -Filter '*.txt' | Copy-Item -Destination $licenses
-Copy-Item -LiteralPath $seven -Destination $sevenStage
-$noticeFolder = if (Test-Path -LiteralPath (Join-Path $SevenZipFolder 'License.txt')) { $SevenZipFolder } else { Split-Path -Parent $SevenZipFolder }
-foreach ($name in @('License.txt','readme.txt','history.txt')) {
-    Copy-Item -LiteralPath (Join-Path $noticeFolder $name) -Destination $sevenStage
-}
 function Escape-Xml([string]$Text) { [Security.SecurityElement]::Escape($Text) }
 # Stable and distinct upgrade families let x86 and x64 coexist without replacing one another.
 $upgrade = if ($Architecture -eq 'x86') { '706B76C5-B377-48B9-AC61-E65986704A2F' } else { '964F2264-6758-4DE9-BBE9-1C74B295E47B' }
@@ -80,6 +72,13 @@ function Write-PayloadDirectory([string]$Path) {
 $payload = Write-PayloadDirectory $stage
 $references = ($components | ForEach-Object { "<ComponentRef Id='$_'/>" }) -join ''
 $icon = Escape-Xml (Join-Path $projectRoot 'assets/icon.ico')
+# This lives in the incoming MSI, so already-shipped updaters need no new arguments.
+# The immediate action restores INSTALLFOLDER for upgrades and maintenance,
+# including uninstall; registry-keypath components cannot recover custom paths.
+$locationSource = Join-Path $projectRoot 'packaging/windows/msi-install-location.rs'
+$locationDll = [IO.Path]::GetFullPath((Join-Path $OutputFolder "manager-install-location-$Architecture.dll"))
+& rustc $locationSource --edition 2021 --crate-type cdylib --target $target -C opt-level=s -C debuginfo=0 -o $locationDll
+if ($LASTEXITCODE -ne 0) { throw 'Could not build MSI install-location action' }
 # Remove the previous product inside the rollback transaction, before copying
 # new files. Older packages may have derived different component identities.
 $xml = @"
@@ -93,6 +92,15 @@ $xml = @"
          package-owned files even when Windows considers that version equal. -->
     <Property Id="REINSTALLMODE" Value="amus"/>
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/CryptoKey98/craft-apps-manager"/>
+    <Binary Id="ManagerInstallLocation" SourceFile="$(Escape-Xml $locationDll)"/>
+    <Property Id="MANAGERINSTALLDIRNAME" Value="Craft Apps Manager $Architecture"/>
+    <CustomAction Id="PreserveManagerInstallLocation" BinaryRef="ManagerInstallLocation" DllEntry="PreserveManagerInstallLocation" Execute="immediate" Return="check"/>
+    <InstallUISequence>
+      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize"/>
+    </InstallUISequence>
+    <InstallExecuteSequence>
+      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize"/>
+    </InstallExecuteSequence>
     <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" Before="InstallValidate" Sequence="execute"/>
     <StandardDirectory Id="LocalAppDataFolder"><Directory Id="ProgramsFolder" Name="Programs"><Directory Id="INSTALLFOLDER" Name="Craft Apps Manager $Architecture">$payload</Directory></Directory></StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder"><Directory Id="MenuFolder" Name="Craft Apps Manager $Architecture">

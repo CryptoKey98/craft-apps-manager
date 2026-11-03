@@ -742,3 +742,21 @@ fn bundle_identities_cover_renamed_repository() {
         "PhotoCraft.app"
     );
 }
+
+#[test]
+fn detected_native_bundle_retains_release_package_architecture() {
+    let fixture = Fixture::new();
+    let applications = fixture.folder("Applications");
+    let app = bundle(
+        &applications,
+        "DesignCraft.app",
+        "ai.storyteller.designcraft",
+        "0.13.0",
+    );
+    let detected = installed_bundle(&app, "designcraft").unwrap();
+    assert_eq!(detected.architecture, "universal");
+    assert_eq!(detected.path, applications.display().to_string());
+    assert_eq!(detected.version, "0.13.0");
+    assert_eq!(detected.product_code, "ai.storyteller.designcraft");
+    assert_eq!(detected.install_kind, "installer");
+}

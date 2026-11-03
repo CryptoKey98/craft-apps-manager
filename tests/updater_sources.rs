@@ -1,5 +1,8 @@
 use craft_apps_manager::manager_updates::coordinator::{selected_source, UpdateSource};
 #[cfg(feature = "service-updater")]
+#[path = "common/api_cache.rs"]
+mod api_cache;
+#[cfg(feature = "service-updater")]
 mod common_updater;
 
 #[test]
@@ -36,7 +39,7 @@ fn compiled_source_dispatch_preserves_service_trust_and_never_falls_back() {
     let temp = common_updater::Temp::new();
     let paths = Paths::new(temp.0.clone(), None);
     let url = format!("https://api.github.com/repos/{REPOSITORY_NAME}/releases/latest");
-    files::write_json(&temp.0.join("runtime/api-cache").join(format!("{:x}.json", Sha256::digest(url.as_bytes()))),
+    api_cache::write(&temp.0,&url,
         &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":{"tag_name":"v0.0.1","draft":false,"prerelease":false,"assets":[]}})).unwrap();
     let scope = format!("{REPOSITORY_NAME}\nstable");
     let trust = temp
