@@ -41,10 +41,15 @@ fn prepare(files: &[String], next: Option<&str>) -> Result<Vec<String>> {
     if files[2].matches(&caption).count() != 1 {
         bail!("README current-version caption does not match Cargo.toml");
     }
-    let heading = files[3]
-        .lines()
-        .find(|line| line.starts_with("## "))
+    let mut headings = files[3].lines().filter(|line| line.starts_with("## "));
+    let mut heading = headings
+        .next()
         .context("Missing changelog release heading")?;
+    if next.is_none() && heading == "## Unreleased" {
+        heading = headings
+            .next()
+            .context("Missing changelog release heading")?;
+    }
     if heading != format!("## {current}") {
         bail!("Latest changelog heading does not match Cargo.toml");
     }
@@ -122,6 +127,22 @@ mod tests {
             files[index] = files[index].replace("0.4.1", "0.4.0");
             assert!(prepare(&files, None).is_err());
         }
+    }
+    #[test]
+    fn development_check_accepts_pending_notes_but_keeps_version_validation() {
+        let mut files = fixture();
+        files[3] = files[3].replacen(
+            "## 0.4.1",
+            "## Unreleased\n\n- Pending change.\n\n## 0.4.1",
+            1,
+        );
+        assert_eq!(prepare(&files, None).unwrap(), files);
+        // Release preparation must still resolve pending notes explicitly.
+        assert!(prepare(&files, Some("0.4.2")).is_err());
+        files[3] = files[3].replace("## 0.4.1", "## 0.4.0");
+        assert!(prepare(&files, None).is_err());
+        files[3] = "# Changelog\n\n## Unreleased\n\n- Pending change.".into();
+        assert!(prepare(&files, None).is_err());
     }
     #[test]
     fn invalid_or_older_versions_are_rejected() {

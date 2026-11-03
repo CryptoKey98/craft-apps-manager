@@ -101,7 +101,7 @@ jobs:
       - name: Validate current release notes
         run: |
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
-          python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
+          python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md" --allow-unreleased
   windows:
     name: Core checks / Windows (${{ matrix.arch }})
     needs: changes
