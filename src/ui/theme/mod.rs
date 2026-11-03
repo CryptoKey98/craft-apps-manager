@@ -43,11 +43,14 @@ pub struct Palette {
     pub danger: Color32,
     pub amber: Color32,
     pub control_border: Color32,
+    // Continuous light-theme contribution, shared by controls during transitions.
+    lightness: f32,
 }
 
 // Neutral colors use exact Adobe Spectrum gray tokens:
 // https://opensource.adobe.com/spectrum-design-data/tokens/color-palette/
 const DARK: Palette = Palette {
+    lightness: 0.0,
     bg: Color32::from_rgb(17, 17, 17),
     panel: Color32::from_rgb(27, 27, 27),
     card: Color32::from_rgb(34, 34, 34),
@@ -82,6 +85,7 @@ const DARK: Palette = Palette {
 };
 
 const LIGHT: Palette = Palette {
+    lightness: 1.0,
     bg: Color32::from_rgb(248, 248, 248),
     panel: Color32::from_rgb(255, 255, 255),
     card: Color32::from_rgb(243, 243, 243),
@@ -125,16 +129,18 @@ pub fn palette() -> Palette {
     CURRENT.with(std::cell::Cell::get)
 }
 
+fn blend_color(a: Color32, b: Color32, amount: f32) -> Color32 {
+    let a = a.to_array();
+    let b = b.to_array();
+    let channel = |i: usize| (a[i] as f32 + (b[i] as f32 - a[i] as f32) * amount).round() as u8;
+    Color32::from_rgba_premultiplied(channel(0), channel(1), channel(2), channel(3))
+}
+
 impl Palette {
     fn blend(self, target: Self, amount: f32) -> Self {
-        let blend = |a: Color32, b: Color32| {
-            let a = a.to_array();
-            let b = b.to_array();
-            let channel =
-                |i: usize| (a[i] as f32 + (b[i] as f32 - a[i] as f32) * amount).round() as u8;
-            Color32::from_rgba_premultiplied(channel(0), channel(1), channel(2), channel(3))
-        };
+        let blend = |a, b| blend_color(a, b, amount);
         Self {
+            lightness: self.lightness + (target.lightness - self.lightness) * amount,
             bg: blend(self.bg, target.bg),
             panel: blend(self.panel, target.panel),
             card: blend(self.card, target.card),
@@ -192,6 +198,15 @@ pub fn resolved(ctx: &egui::Context, mode: Theme) -> Theme {
 pub fn apply(ctx: &egui::Context, mode: Theme) {
     let requested = mode;
     let mode = resolved(ctx, mode);
+    // egui selects separate light/dark style slots independently of the native
+    // window theme. Select the resolved slot before reading or updating it;
+    // otherwise a late OS appearance event can expose an unstyled slot.
+    // System mode is still resolved from ctx.system_theme() on every frame.
+    ctx.set_theme(if mode == Theme::Light {
+        egui::Theme::Light
+    } else {
+        egui::Theme::Dark
+    });
     let preference_id = egui::Id::new("manager-theme-preference");
     let changed = ctx.data_mut(|data| {
         let changed = data.get_temp::<Theme>(preference_id) != Some(requested);

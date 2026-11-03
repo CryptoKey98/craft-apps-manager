@@ -7,7 +7,7 @@ on:
       tag:
         description: Release tag to create or update
         required: true
-        default: v1.0.0
+        default: v1.1.0
       revision:
         description: Build revision (1 publishes a full release)
         required: true
@@ -139,10 +139,8 @@ jobs:
         include:
           - arch: x64
             target: x86_64-pc-windows-msvc
-            seven: 7zip/x64
           - arch: x86
             target: i686-pc-windows-msvc
-            seven: 7zip
     steps:
       - uses: actions/checkout@v4
         with:
@@ -151,14 +149,6 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - run: python scripts/lib/updater_config.py build --target-os windows --target ${{ matrix.target }}
-      - name: Download the 7-Zip console tools bundled with the manager
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download --repo ip7z/7zip --pattern '*-extra.7z' --dir 7zip-download
-          & 'C:\Program Files\7-Zip\7z.exe' x (Get-ChildItem 7zip-download/*-extra.7z).FullName -o7zip -y
-          if ($LASTEXITCODE -ne 0) { throw '7-Zip extraction failed' }
       - name: Install WiX
         shell: pwsh
         run: |
@@ -168,8 +158,8 @@ jobs:
         shell: pwsh
         run: |
           $out = "dist/windows-${{ matrix.arch }}"
-          ./scripts/packaging/package-windows.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
-          ./scripts/packaging/package-windows-msi.ps1 -Architecture ${{ matrix.arch }} -SevenZipFolder ${{ matrix.seven }} -TargetFolder target -OutputFolder $out
+          ./scripts/packaging/package-windows.ps1 -Architecture ${{ matrix.arch }} -TargetFolder target -OutputFolder $out
+          ./scripts/packaging/package-windows-msi.ps1 -Architecture ${{ matrix.arch }} -TargetFolder target -OutputFolder $out
           Get-ChildItem $out -File
       - name: Verify upgrade from the previous MSI release
         if: needs.validate.outputs.windows_msi == 'true'
@@ -190,8 +180,11 @@ jobs:
           }
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the baseline MSI' }
           $baseline = (Get-ChildItem baseline/*.msi).FullName
+          gh release download v1.0.0 --repo $env:GITHUB_REPOSITORY --pattern 'Craft-Apps-Manager-1.0.0-windows-${{ matrix.arch }}.msi' --dir baseline-custom
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the custom-folder upgrade baseline' }
+          $customBaseline = (Get-ChildItem baseline-custom/*.msi).FullName
           $candidate = (Get-ChildItem 'dist/windows-${{ matrix.arch }}/*.msi').FullName
-          ./scripts/testing/smoke-windows-msi.ps1 -Architecture ${{ matrix.arch }} -BaselineMsi $baseline -CandidateMsi $candidate
+          ./scripts/testing/smoke-windows-msi.ps1 -Architecture ${{ matrix.arch }} -BaselineMsi $baseline -CustomBaselineMsi $customBaseline -CandidateMsi $candidate
       - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.arch }}
@@ -277,6 +270,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin

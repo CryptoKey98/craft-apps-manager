@@ -1,20 +1,61 @@
 //! The Craft apps the manager knows about.
 //!
 //! A built-in list keeps the manager usable offline. `refresh` lists the
-//! Storytold repositories on GitHub and classifies every new `*craft*`
+//! main organization's repositories plus explicitly supported external sources,
+//! and classifies every new `*craft*`
 //! repository from its latest release, so apps published after this build
 //! appear without a manager update.
 use crate::{files, model::Release, network::Network};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-    sync::RwLock,
-};
+use std::{collections::BTreeMap, path::Path, sync::RwLock};
 
 pub const ORG: &str = "storytold";
-pub const REFRESH_INTERVAL: i64 = 6 * 3600;
+pub const REFRESH_INTERVAL: i64 = 60;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DiscoveryTrigger {
+    Startup,
+    Manual,
+    Periodic,
+}
+
+fn reuse_discovery(trigger: DiscoveryTrigger, age: Option<i64>) -> bool {
+    trigger != DiscoveryTrigger::Periodic
+        && age.is_some_and(|age| (0..REFRESH_INTERVAL).contains(&age))
+}
+
+pub fn refresh_for(root: &Path, trigger: DiscoveryTrigger) -> Result<Vec<Entry>> {
+    refresh_for_with(root, trigger, |force| refresh_network(root, force))
+}
+
+fn refresh_for_with(
+    root: &Path,
+    trigger: DiscoveryTrigger,
+    scan: impl FnOnce(bool) -> Result<Vec<Entry>>,
+) -> Result<Vec<Entry>> {
+    std::fs::create_dir_all(root)?;
+    let root_key = root.canonicalize()?;
+    use sha2::Digest;
+    let name = format!(
+        "Local\\CraftAppsManagerDiscovery-{:x}",
+        sha2::Sha256::digest(root_key.to_string_lossy().as_bytes())
+    );
+    let before: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
+    let _lock = crate::platform::Lock::wait(&name)?;
+    let current: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
+    let recent = age(root);
+    // A startup/manual scan that completed while we waited also satisfies a
+    // simultaneous periodic check. Merely cached HTTP pages do not advance this receipt.
+    if reuse_discovery(trigger, recent)
+        || current.checked_at != before.checked_at
+            && reuse_discovery(DiscoveryTrigger::Manual, recent)
+    {
+        reload(root, &current);
+        return Ok(all());
+    }
+    scan(trigger == DiscoveryTrigger::Periodic)
+}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -39,6 +80,9 @@ pub struct Entry {
     /// GitHub repository creation time, independent of release updates or local discovery.
     #[serde(default)]
     pub created_at: Option<i64>,
+    /// Official admission to supported discovery, independent of repository/release age.
+    #[serde(default)]
+    pub discovery_added_at: Option<i64>,
     pub title: String,
     /// Short label under the app name.
     #[serde(default)]
@@ -81,6 +125,7 @@ fn craft(key: &str, title: &str, category: &str, description: &str) -> Entry {
         asset_prefix: key.into(),
         aliases: Vec::new(),
         created_at: None,
+        discovery_added_at: None,
         bundle_ids: Vec::new(),
         release: true,
         source: true,
@@ -121,6 +166,7 @@ pub fn builtin() -> Vec<Entry> {
             asset_prefix: "ArtCraft".into(),
             aliases: Vec::new(),
             created_at: None,
+        discovery_added_at: None,
         bundle_ids: vec!["ai.artcraft.app".into()],
             release: true,
             source: false,
@@ -138,6 +184,7 @@ pub fn builtin() -> Vec<Entry> {
             asset_prefix: String::new(),
             aliases: Vec::new(),
             created_at: None,
+        discovery_added_at: None,
         bundle_ids: Vec::new(),
             release: false,
             source: true,
@@ -231,8 +278,8 @@ fn valid(entry: &Entry) -> bool {
             && s.bytes()
                 .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
     };
-    // A repository is either a bare Storytold name or an `owner/name` slug
-    // for an app hosted under a different account.
+    // Supported apps use a bare name resolved through the supported-source map;
+    // user-added apps use an explicit `owner/name` slug.
     let repository = |s: &str| {
         let (owner, name) = s.split_once('/').unwrap_or(("", s));
         (owner.is_empty() || repository_part(owner)) && repository_part(name)
@@ -270,7 +317,11 @@ fn merge(
                 .iter()
                 .chain(&found)
                 .any(|e| e.key == entry.key || e.repository == entry.repository)
-            && !custom.iter().any(|e| e.repository == entry.repository)
+            && !custom.iter().any(|e| {
+                e.key == entry.key
+                    || super::repository_slug(&e.repository)
+                        .eq_ignore_ascii_case(&super::repository_slug(&entry.repository))
+            })
         {
             found.push(entry);
         }
@@ -331,8 +382,10 @@ pub fn load(root: &Path) {
 }
 /// Rebuilds the process-wide catalog from saved discovery plus user apps.
 fn reload(root: &Path, cache: &Cache) {
-    let value: serde_json::Value =
-        files::read_or_default(&root.join("manager-settings.json")).unwrap_or_default();
+    let value = crate::storage::config::ConfigStore::new(root.to_path_buf())
+        .load()
+        .map(|s| s.document["manager"].clone())
+        .unwrap_or_default();
     let format = value
         .get("releaseFormat")
         .and_then(|v| v.as_str())
@@ -345,12 +398,11 @@ fn reload(root: &Path, cache: &Cache) {
     );
 }
 /// Apps the user added from GitHub links in Settings, newest last.
-fn custom_path(root: &Path) -> PathBuf {
-    root.join("runtime/custom-apps.json")
-}
 pub fn custom_apps(root: &Path) -> Vec<Entry> {
-    let value: serde_json::Value =
-        files::read_or_default(&root.join("manager-settings.json")).unwrap_or_default();
+    let value = crate::storage::config::ConfigStore::new(root.to_path_buf())
+        .load()
+        .map(|s| s.document["manager"].clone())
+        .unwrap_or_default();
     custom_apps_for_format_migration(
         root,
         value
@@ -360,7 +412,10 @@ pub fn custom_apps(root: &Path) -> Vec<Entry> {
     )
 }
 fn custom_apps_for_format_migration(root: &Path, format: &str) -> Vec<Entry> {
-    let mut entries: Vec<Entry> = files::read_or_default(&custom_path(root)).unwrap_or_default();
+    let mut entries = crate::storage::config::ConfigStore::new(root.to_path_buf())
+        .load()
+        .and_then(|s| s.custom_apps())
+        .unwrap_or_default();
     for entry in &mut entries {
         let repo = entry
             .repository
@@ -435,8 +490,18 @@ pub fn selected_custom_download(choice: &DownloadChoice, index: usize) -> Result
     entry.registered_formats = vec![choice.preferences.release_format.clone()];
     Ok(entry)
 }
-fn write_custom_apps(root: &Path, apps: &Vec<Entry>) -> Result<()> {
-    files::write_json(&custom_path(root), apps)
+fn custom_apps_for_write(root: &Path) -> Result<Vec<Entry>> {
+    crate::storage::config::ConfigStore::new(root.to_path_buf())
+        .load()?
+        .custom_apps()
+}
+fn write_custom_apps(root: &Path, base: &[Entry], apps: &[Entry]) -> Result<()> {
+    crate::storage::config::ConfigStore::new(root.to_path_buf()).patch_section_typed(
+        "custom_apps",
+        &base.to_vec(),
+        &apps.to_vec(),
+    )?;
+    Ok(())
 }
 /// Accepts `https://github.com/owner/repo`, `github.com/owner/repo` or a bare
 /// `owner/repo` slug. Anything deeper (a release page, a file) is rejected so
@@ -543,7 +608,7 @@ pub fn choose_custom_download(root: &Path, choice: &DownloadChoice, index: usize
         .assets
         .get(index)
         .ok_or_else(|| anyhow::anyhow!("Choose a download first"))?;
-    let customs = custom_apps(root);
+    let customs = custom_apps_for_write(root)?;
     let mut entry = customs
         .iter()
         .find(|entry| entry.key == choice.entry.key)
@@ -566,11 +631,11 @@ pub fn choose_custom_download(root: &Path, choice: &DownloadChoice, index: usize
     entry.download_rule = Some(rule);
     entry.scheme = Scheme::Generic;
     if customs.iter().any(|existing| existing.key == entry.key) {
-        let mut apps = customs;
+        let mut apps = customs.clone();
         if let Some(existing) = apps.iter_mut().find(|existing| existing.key == entry.key) {
             *existing = entry.clone();
         }
-        write_custom_apps(root, &apps)?;
+        write_custom_apps(root, &customs, &apps)?;
         load(root);
         Ok(entry)
     } else {
@@ -741,6 +806,7 @@ fn classify_custom(
             Vec::new()
         },
         created_at: None,
+        discovery_added_at: None,
         bundle_ids: Vec::new(),
         release: true,
         source: false,
@@ -881,7 +947,8 @@ pub fn add_custom_app(
 }
 
 fn save_custom_app(root: &Path, entry: Entry) -> Result<Entry> {
-    let mut apps = custom_apps(root);
+    let base = custom_apps_for_write(root)?;
+    let mut apps = base.clone();
     anyhow::ensure!(
         !apps.iter().any(|existing| existing.key == entry.key
             && existing
@@ -892,13 +959,14 @@ fn save_custom_app(root: &Path, entry: Entry) -> Result<Entry> {
     );
     merge_custom_registration(&mut apps, entry.clone())?;
     apps.sort_by(|a, b| a.key.cmp(&b.key));
-    write_custom_apps(root, &apps)?;
+    write_custom_apps(root, &base, &apps)?;
     load(root);
     Ok(entry)
 }
 /// Removes a user-added app. Built-in and discovered apps cannot be removed.
 pub fn remove_custom_app(root: &Path, key: &str) -> Result<Entry> {
-    let mut apps = custom_apps(root);
+    let base = custom_apps_for_write(root)?;
+    let mut apps = base.clone();
     let Some(position) = apps.iter().position(|e| e.key == key) else {
         if all().iter().any(|e| e.key == key) {
             anyhow::bail!("{key} is built in and cannot be removed; hide it instead");
@@ -906,7 +974,7 @@ pub fn remove_custom_app(root: &Path, key: &str) -> Result<Entry> {
         anyhow::bail!("Unknown custom app: {key}");
     };
     let removed = apps.remove(position);
-    write_custom_apps(root, &apps)?;
+    write_custom_apps(root, &base, &apps)?;
     let cache: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
     reload(root, &cache);
     Ok(removed)
@@ -981,32 +1049,92 @@ fn apply_repository_metadata(entry: &mut Entry, repository: &Repository) {
         .into();
     entry.category = repository_subtitle(&entry.title, &entry.description);
 }
-/// Lists Storytold repositories and classifies new Craft apps.
+
+/// Verify an explicitly supported external source using the same desktop-release
+/// admission as ordinary discovery. Shared with the catalog publisher.
+pub(crate) fn external_discovery_with(
+    source: &super::ExternalApp,
+    mut fetch: impl FnMut(&str) -> Result<Option<serde_json::Value>>,
+) -> Result<Option<Entry>> {
+    let url = format!("https://api.github.com/repos/{}", source.repository);
+    let Some(metadata) = fetch(&url)? else {
+        return Ok(None);
+    };
+    if !metadata
+        .get("full_name")
+        .and_then(|v| v.as_str())
+        .is_some_and(|name| name.eq_ignore_ascii_case(source.repository))
+    {
+        return Ok(None);
+    }
+    let repository: Repository = serde_json::from_value(metadata)?;
+    if repository.name != source.key
+        || !discovery_candidate(
+            &repository.name,
+            repository.archived,
+            repository.fork,
+            repository.disabled,
+        )
+    {
+        return Ok(None);
+    }
+    let Some(release) = fetch(&format!("{url}/releases/latest"))? else {
+        return Ok(None);
+    };
+    let release: Release = serde_json::from_value(release)?;
+    let mut entry = classify(source.key, Some(&release));
+    if !verified_discovery(&entry) {
+        return Ok(None);
+    }
+    apply_repository_metadata(&mut entry, &repository);
+    entry.category = source.category.into();
+    entry.aliases = source.aliases.iter().map(|name| (*name).into()).collect();
+    entry.bundle_ids = source
+        .bundle_ids
+        .iter()
+        .map(|name| (*name).into())
+        .collect();
+    Ok(Some(entry))
+}
+
+/// Lists the main organization and explicitly supported external sources.
 pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
+    refresh_for(root, DiscoveryTrigger::Manual)
+}
+
+fn refresh_network(root: &Path, force: bool) -> Result<Vec<Entry>> {
     let network = Network::new(root)?;
     let previous: Cache = files::read_or_default(&cache_path(root)).unwrap_or_default();
     let mut repositories: Vec<Repository> = Vec::new();
     for page in 1..=10 {
-        let batch: Vec<Repository> = network.json(&format!(
-            "https://api.github.com/orgs/{ORG}/repos?per_page=100&page={page}"
-        ))?;
+        let url = format!("https://api.github.com/orgs/{ORG}/repos?per_page=100&page={page}");
+        let batch: Vec<Repository> = if force {
+            network.json_fresh(&url)?
+        } else {
+            network.json_with_policy(&url, crate::network::CachePolicy::Discovery)?
+        };
         let last = batch.len() < 100;
         repositories.extend(batch);
         if last {
             break;
         }
     }
-    let pattern = regex::Regex::new(r"^[a-z0-9]+craft[a-z0-9]*$")?;
+    let official_dates =
+        crate::installations::release_catalog::provider::refresh_discovery_dates(root);
     let known = builtin();
     // A catalog refresh may discover more apps, but is not an uninstall or
     // removal request. Keep existing identities even if a repository vanishes.
     let mut discovered = previous.entries.clone();
     for repository in repositories {
-        if repository.archived
-            || repository.fork
-            || repository.disabled
-            || !pattern.is_match(&repository.name)
-            || known.iter().any(|e| e.repository == repository.name)
+        if !discovery_candidate(
+            &repository.name,
+            repository.archived,
+            repository.fork,
+            repository.disabled,
+        ) || known.iter().any(|e| e.repository == repository.name)
+            || super::EXTERNAL_APPS
+                .iter()
+                .any(|app| app.key == repository.name)
         {
             continue;
         }
@@ -1022,16 +1150,53 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
             retain_discovery(&mut discovered, entry);
             continue;
         }
-        let release: Option<Release> = network.json_optional(&format!(
+        let url = format!(
             "https://api.github.com/repos/{ORG}/{}/releases/latest",
             repository.name
-        ))?;
+        );
+        let release: Option<Release> = if force {
+            match network.json_fresh(&url) {
+                Ok(release) => Some(release),
+                Err(error) if crate::network::is_not_found(&error) => None,
+                Err(error) => return Err(error),
+            }
+        } else {
+            network.json_optional_with_policy(&url, crate::network::CachePolicy::Discovery)?
+        };
         let mut entry = classify(&repository.name, release.as_ref());
         apply_repository_metadata(&mut entry, &repository);
         // Do not admit source-only candidates or infer a new app's identity
         // from an unrelated release asset. Existing curated aliases still work.
         if verified_discovery(&entry) {
             retain_discovery(&mut discovered, entry);
+        }
+    }
+    for source in super::EXTERNAL_APPS {
+        let entry = external_discovery_with(source, |url| {
+            if force {
+                match network.json_fresh(url) {
+                    Ok(value) => Ok(Some(value)),
+                    Err(error) if crate::network::is_not_found(&error) => Ok(None),
+                    Err(error) => Err(error),
+                }
+            } else {
+                network.json_optional_with_policy(url, crate::network::CachePolicy::Discovery)
+            }
+        });
+        // One unavailable external source must not discard successful discovery
+        // from the main organization or remove an already remembered app.
+        if let Ok(Some(entry)) = entry {
+            retain_discovery(&mut discovered, entry);
+        }
+    }
+    for entry in &mut discovered {
+        let repository = super::repository_slug(&entry.repository);
+        if let Some(added) = official_dates
+            .get(&repository)
+            .copied()
+            .or_else(|| super::discovery::bundled_added_at(&repository))
+        {
+            entry.discovery_added_at.get_or_insert(added);
         }
     }
     let cache = Cache {
@@ -1044,8 +1209,21 @@ pub fn refresh(root: &Path) -> Result<Vec<Entry>> {
     Ok(all())
 }
 
-fn verified_discovery(entry: &Entry) -> bool {
+pub(crate) fn verified_discovery(entry: &Entry) -> bool {
     entry.release && entry.asset_prefix.eq_ignore_ascii_case(&entry.repository)
+}
+
+/// Shared admission rules for the Manager and the hosted release publisher.
+pub(crate) fn discovery_candidate(name: &str, archived: bool, fork: bool, disabled: bool) -> bool {
+    static PATTERN: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    !archived
+        && !fork
+        && !disabled
+        && PATTERN
+            .get_or_init(|| {
+                regex::Regex::new(r"^[a-z0-9]+craft[a-z0-9]*$").expect("Static discovery pattern")
+            })
+            .is_match(name)
 }
 
 fn retain_discovery(entries: &mut Vec<Entry>, entry: Entry) {
@@ -1094,6 +1272,7 @@ pub fn classify(repository: &str, release: Option<&Release>) -> Entry {
         asset_prefix: String::new(),
         aliases: Vec::new(),
         created_at: None,
+        discovery_added_at: None,
         bundle_ids: Vec::new(),
         release: false,
         source: true,
@@ -1200,3 +1379,26 @@ pub fn parse_asset(name: &str) -> Option<ParsedAsset> {
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
+
+/// Validate candidate registrations without consulting or mutating CURRENT.
+pub(crate) fn validate_config_custom_entries(entries: &[Entry]) -> Result<()> {
+    let mut keys = std::collections::BTreeSet::new();
+    let mut repositories = std::collections::BTreeSet::new();
+    for entry in entries {
+        anyhow::ensure!(valid(entry), "Invalid custom app registration");
+        anyhow::ensure!(
+            keys.insert(entry.key.to_ascii_lowercase()),
+            "Duplicate custom app key"
+        );
+        anyhow::ensure!(
+            repositories.insert(entry.repository.to_ascii_lowercase()),
+            "Duplicate custom app repository"
+        );
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+fn custom_path(root: &Path) -> std::path::PathBuf {
+    root.join("runtime/custom-apps.json")
+}

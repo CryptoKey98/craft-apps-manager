@@ -42,10 +42,9 @@ impl Paths {
         &self,
         detect: impl Fn(&str) -> Result<Option<Installed>>,
     ) -> Result<Config> {
-        if self.at("settings.json").exists() {
-            let config: Config = crate::files::read_json(&self.at("settings.json"))?;
+        if let Some(config) = self.read_inventory()? {
             if !Path::new(&config.apps_root).eq(&self.root) {
-                bail!("settings.json points to a different data folder. Select that folder in Settings.");
+                bail!("installations.json points to a different data folder. Select that folder in Settings.");
             }
             return self.refresh_config(config, &detect);
         }
@@ -83,6 +82,7 @@ impl Paths {
             apps.push(Installed {
                 installation_label: Default::default(),
                 package_type: Default::default(),
+                windows_msi_scope: None,
                 name: name.into(),
                 version,
                 path: if path.is_empty() && installed_executable(&direct, name).is_some() {
@@ -187,6 +187,7 @@ impl Paths {
                     config.installations.push(Installed {
                         installation_label: Default::default(),
                         package_type: Default::default(),
+                        windows_msi_scope: None,
                         name: app.name.clone(),
                         path: library.display().to_string(),
                         version: crate::platform::executable_version(&executable)
@@ -312,20 +313,19 @@ impl Paths {
             }
         }
         crate::installation_labels::assign(&mut config)?;
-        crate::files::write_json(&self.at("settings.json"), &config)
+        crate::files::write_json(&self.inventory_path()?, &config)
     }
-    /// Read preferences without migrating or changing any file.
+    /// Load the library YAML, importing legacy preference sources when necessary.
     pub fn read_preferences(&self) -> Result<Preferences> {
-        let target = self.at("manager-settings.json");
-        let legacy = self.at("updater-settings.json");
-        let mut p =
-            crate::files::read_or_default::<Preferences>(if !target.exists() && legacy.exists() {
-                &legacy
-            } else {
-                &target
-            })?;
-        p.validate()?;
-        Ok(p)
+        crate::storage::config::ConfigStore::new(self.root.clone())
+            .load()?
+            .manager()
+    }
+    pub fn read_preferences_locked(&self) -> Result<Preferences> {
+        let _config_lock = crate::storage::config::write_lock()?;
+        crate::storage::config::ConfigStore::new(self.root.clone())
+            .load_or_migrate_locked()?
+            .manager()
     }
     /// Verified alternate-format facts for display only; action inventory remains unchanged.
     pub fn alternate_installations(&self, config: &Config) -> Result<Vec<Installed>> {
@@ -396,27 +396,22 @@ impl Paths {
         Ok(records)
     }
     pub fn preferences(&self) -> Result<Preferences> {
-        let target = self.at("manager-settings.json");
-        let legacy = self.at("updater-settings.json");
-        let migrate = !target.exists() && legacy.exists();
-        let mut p =
-            crate::files::read_or_default::<Preferences>(if migrate { &legacy } else { &target })?;
-        let adopted = p.adopt_new_apps()?;
-        if migrate {
-            crate::files::write_json(&target, &p)?;
-            std::fs::remove_file(legacy)?;
-        } else if adopted && target.exists() {
-            // Remember discovered apps without changing update selections.
-            crate::files::write_json(&target, &p)?;
-        }
-        Ok(p)
+        let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
+        self.preferences_locked()
+    }
+    /// Adopt catalog changes while the caller owns the settings mutation lock.
+    pub(crate) fn preferences_locked(&self) -> Result<Preferences> {
+        crate::storage::config::ConfigStore::new(self.root.clone())
+            .mutate_section_locked::<Preferences>("manager", |prefs| {
+                prefs.adopt_new_apps()?;
+                Ok(())
+            })?
+            .manager()
     }
     pub fn builder_preferences(&self) -> Result<BuilderPreferences> {
-        let mut p =
-            crate::files::read_or_default::<BuilderPreferences>(&self.at("builder-settings.json"))?;
-        p.log_size_mb = p.log_size_mb.clamp(1, 100);
-        p.log_archives = p.log_archives.min(5);
-        Ok(p)
+        crate::storage::config::ConfigStore::new(self.root.clone())
+            .load()?
+            .builder()
     }
 }
 
@@ -441,7 +436,7 @@ mod detection_tests;
 mod appimage_header_tests {
     #[cfg(target_os = "linux")]
     #[test]
-    fn legacy_copies_recover_appimage_labels_without_changing_selection_or_letters() {
+    fn legacy_copies_recover_appimage_labels_and_migrate_letters_without_moving_copies() {
         use super::*;
         let root =
             std::env::temp_dir().join(format!("craft-appimage-migration-{}", uuid::Uuid::new_v4()));
@@ -492,17 +487,18 @@ mod appimage_header_tests {
             .unwrap();
         assert_eq!(selected.path, copies[0].path);
         assert_eq!(selected.package_type, "appimage");
-        assert_eq!(selected.installation_label, "A");
+        assert_eq!(selected.installation_label, "1");
         assert!(crate::installation_labels::summary(selected).starts_with("AppImage"));
         paths.save_config(&refreshed).unwrap();
         let reopened = paths.config_with_detector(|_| Ok(None)).unwrap();
-        for expected in &copies {
+        for (index, expected) in copies.iter().enumerate() {
             let copy = reopened
                 .installations
                 .iter()
                 .find(|copy| copy.path == expected.path)
                 .unwrap();
-            assert_eq!(copy.installation_label, expected.installation_label);
+            assert_eq!(copy.installation_label, (index + 1).to_string());
+            assert!(std::path::Path::new(&copy.path).is_dir());
             assert_eq!(
                 copy.package_type,
                 if expected.installation_label == "A" {
@@ -526,7 +522,7 @@ mod appimage_header_tests {
             .find(|copy| copy.name == "filmcraft")
             .unwrap();
         assert_eq!(selected.package_type, "");
-        assert_eq!(selected.installation_label, "A");
+        assert_eq!(selected.installation_label, "1");
         assert!(crate::installation_labels::summary(selected).starts_with("Portable"));
         std::fs::remove_dir_all(root).unwrap();
     }
@@ -548,6 +544,65 @@ mod appimage_header_tests {
         assert!(!super::is_appimage(&file));
         std::fs::write(&file, b"short").unwrap();
         assert!(!super::is_appimage(&file));
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod inventory_rename_tests {
+    use super::*;
+    fn fixture() -> (PathBuf, Paths, serde_json::Value) {
+        let root = std::env::temp_dir().join(format!("craft-inventory-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let paths = Paths::new(root.clone(), None);
+        let value = serde_json::json!({"appsRoot": root, "apps": [], "installations": [], "futureInventory": {"keep": true}});
+        (root, paths, value)
+    }
+    #[test]
+    fn inventory_rename_imports_legacy_and_preserves_unknown_fields() {
+        let (root, paths, value) = fixture();
+        crate::files::write_json(&paths.at("settings.json"), &value).unwrap();
+        paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert!(paths.at("installations.json").is_file());
+        assert!(!paths.at("settings.json").exists());
+        let saved: serde_json::Value =
+            crate::files::read_json(&paths.at("installations.json")).unwrap();
+        assert_eq!(saved["futureInventory"], value["futureInventory"]);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn inventory_rename_rejects_invalid_legacy_without_deletion() {
+        let (root, paths, _) = fixture();
+        for bytes in [
+            b"{broken".as_slice(),
+            br#"{"appsRoot":"other","apps":[]}"#,
+            br#"{"appsRoot":4,"apps":[]}"#,
+        ] {
+            std::fs::write(paths.at("settings.json"), bytes).unwrap();
+            assert!(paths.config_with_detector(|_| Ok(None)).is_err());
+            assert_eq!(std::fs::read(paths.at("settings.json")).unwrap(), bytes);
+            assert!(!paths.at("installations.json").exists());
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn inventory_rename_new_is_authoritative_even_when_corrupt() {
+        let (root, paths, value) = fixture();
+        crate::files::write_json(&paths.at("settings.json"), &value).unwrap();
+        std::fs::write(paths.at("installations.json"), b"{broken").unwrap();
+        assert!(paths.config_with_detector(|_| Ok(None)).is_err());
+        assert_eq!(
+            std::fs::read(paths.at("installations.json")).unwrap(),
+            b"{broken"
+        );
+        assert!(paths.at("settings.json").exists());
+        crate::files::write_json(&paths.at("installations.json"), &value).unwrap();
+        std::fs::write(paths.at("settings.json"), b"{broken legacy").unwrap();
+        paths.config_with_detector(|_| Ok(None)).unwrap();
+        assert_eq!(
+            std::fs::read(paths.at("settings.json")).unwrap(),
+            b"{broken legacy"
+        );
         std::fs::remove_dir_all(root).unwrap();
     }
 }

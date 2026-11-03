@@ -585,6 +585,12 @@ fn read_plan(path: &Path) -> Result<TransactionPlanV2> {
     Ok(plan)
 }
 pub fn launch_v2(path: &Path) -> Result<()> {
+    launch_v2_with_guard(path, || Ok(()))
+}
+pub(crate) fn launch_v2_with_guard(
+    path: &Path,
+    before_spawn: impl FnOnce() -> Result<()>,
+) -> Result<()> {
     let plan = read_plan(path)?;
     validate_source(
         &self_update::staged_executable(&plan.legacy.target),
@@ -598,9 +604,14 @@ pub fn launch_v2(path: &Path) -> Result<()> {
         files::hash(&helper)? == plan.source_hash,
         "Update helper mismatch"
     );
+    before_spawn()?;
     crate::platform::hidden(Command::new(helper).arg("--apply-self-update").arg(path)).spawn()?;
     Ok(())
 }
+#[cfg(test)]
+#[path = "transaction_handoff_tests.rs"]
+mod handoff_tests;
+
 pub fn apply_v2(path: &Path) -> Result<()> {
     let mut plan = read_plan(path)?;
     let stage = path

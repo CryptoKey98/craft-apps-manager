@@ -83,4 +83,4 @@ Close-to-tray needs a usable tray host and an X11/XWayland window. Some GNOME de
 - x86 launch tests used multilib on 64-bit systems; native 32-bit systems and Linux ARM64 have not been qualified.
 - Profile deletion is disabled where app profile locations have not been verified.
 
-For app actions, backups, builds, and troubleshooting, see [Using the manager](using-the-manager.md) and the [documentation index](../README.md).
+For app actions, rollback, builds, and troubleshooting, see [Using the manager](using-the-manager.md) and the [documentation index](../README.md).

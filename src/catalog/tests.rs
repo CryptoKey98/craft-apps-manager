@@ -166,6 +166,102 @@ fn fresh_catalog_uses_cache_without_a_network_request() {
     load(&root.join("unused"));
     std::fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn discovery_checks_use_a_success_cooldown_except_for_periodic_checks() {
+    for trigger in [DiscoveryTrigger::Startup, DiscoveryTrigger::Manual] {
+        assert!(reuse_discovery(trigger, Some(59)));
+        assert!(!reuse_discovery(trigger, Some(60)));
+        assert!(!reuse_discovery(trigger, Some(-1)));
+        assert!(!reuse_discovery(trigger, None));
+    }
+    assert!(!reuse_discovery(DiscoveryTrigger::Periodic, Some(0)));
+    assert!(!reuse_discovery(DiscoveryTrigger::Periodic, Some(59)));
+}
+
+#[test]
+fn discovery_orchestration_preserves_failed_checks_and_revalidates_periodic_scans() {
+    let root =
+        std::env::temp_dir().join(format!("craft-discovery-policy-{}", uuid::Uuid::new_v4()));
+    let old = chrono::Utc::now().timestamp() - 61;
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            checked_at: old,
+            entries: vec![craft("mapcraft", "MapCraft", "Maps", "")],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(
+        refresh_for_with(&root, DiscoveryTrigger::Startup, |_| anyhow::bail!(
+            "offline"
+        ))
+        .is_err()
+    );
+    let cached: Cache = files::read_or_default(&cache_path(&root)).unwrap();
+    assert_eq!(cached.checked_at, old);
+    assert_eq!(cached.entries[0].key, "mapcraft");
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            checked_at: chrono::Utc::now().timestamp(),
+            entries: cached.entries,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    for reason in [DiscoveryTrigger::Startup, DiscoveryTrigger::Manual] {
+        refresh_for_with(&root, reason, |_| {
+            panic!("Recent successful discovery should be reused")
+        })
+        .unwrap();
+    }
+    let mut forced = false;
+    refresh_for_with(&root, DiscoveryTrigger::Periodic, |force| {
+        forced = force;
+        Ok(all())
+    })
+    .unwrap();
+    assert!(forced);
+    load(&root.join("unused"));
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn discovered_craft_installers_support_location_selection() {
+    let root = std::env::temp_dir().join(format!(
+        "craft-discovered-location-{}",
+        uuid::Uuid::new_v4()
+    ));
+    let mut custom = craft("customfixture", "Custom fixture", "", "");
+    custom.repository = "another/customfixture".into();
+    custom.scheme = Scheme::Generic;
+    let mut source = craft("sourcefixture", "Source fixture", "", "");
+    source.release = false;
+    source.scheme = Scheme::None;
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            entries: vec![craft("figcraft", "FigCraft", "", ""), custom, source],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    load(&root);
+    let discovered = crate::installers::custom_location_supported("figcraft");
+    let custom = crate::installers::custom_location_supported("customfixture");
+    let source = crate::installers::custom_location_supported("sourcefixture");
+    let unknown = crate::installers::custom_location_supported("unknownfixture");
+    load(&root.join("unused"));
+    std::fs::remove_dir_all(root).unwrap();
+    assert!(
+        discovered,
+        "New Craft releases use the same location policy as built-in apps"
+    );
+    assert!(!custom && !source && !unknown);
+}
 use super::*;
 use crate::model::Asset;
 fn release(tag: &str, name: &str, assets: &[&str]) -> Release {
@@ -423,6 +519,7 @@ fn custom_apps_persist_and_win_over_discovery() {
         asset_prefix: "zookraft".into(),
         aliases: Vec::new(),
         created_at: None,
+        discovery_added_at: None,
         bundle_ids: Vec::new(),
         release: true,
         source: false,
@@ -604,7 +701,7 @@ fn rejected_architecture_does_not_block_retry_with_compatible_preferences() {
         "x64",
     )
     .unwrap();
-    write_custom_apps(&root, &vec![entry]).unwrap();
+    replace_custom_apps_for_test(&root, &[entry]).unwrap();
     files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
     load(&root);
     assert!(get("exampletool").is_some());
@@ -612,16 +709,13 @@ fn rejected_architecture_does_not_block_retry_with_compatible_preferences() {
         crate::updates::cached_download_available(&paths, "exampletool", &prefs),
         None
     );
-    use sha2::{Digest, Sha256};
     let url = "https://api.github.com/repos/someone/exampletool/releases/latest";
-    let path = root
-        .join("runtime/api-cache")
-        .join(format!("{:x}.json", Sha256::digest(url.as_bytes())));
-    files::write_json(
-        &path,
-        &serde_json::json!({"at":chrono::Utc::now().timestamp(),"etag":null,"value":release}),
-    )
-    .unwrap();
+    crate::network::cache_tests::seed(
+        &root,
+        url,
+        chrono::Utc::now().timestamp(),
+        serde_json::to_value(release).unwrap(),
+    );
     assert_eq!(
         crate::updates::cached_download_available(&paths, "exampletool", &prefs),
         Some(true)
@@ -729,7 +823,7 @@ fn format_registrations_are_staged_and_saved_together() {
     only_installer.key = "otherexample".into();
     only_installer.repository = "someone/otherexample".into();
     draft.push(only_installer);
-    write_custom_apps(&root, &draft).unwrap();
+    replace_custom_apps_for_test(&root, &draft).unwrap();
     let portable_prefs = crate::model::Preferences {
         release_format: "portable".into(),
         ..prefs.clone()
@@ -910,4 +1004,267 @@ fn custom_app_system_inspection_distinguishes_missing_packages_from_invalid_vers
     .unwrap_err();
     assert!(error.downcast_ref::<NoCompatibleCustomDownload>().is_none());
     assert!(error.to_string().contains("tags its releases"));
+}
+
+#[test]
+fn stale_custom_app_list_write_cannot_remove_a_concurrent_registration() {
+    let root = std::env::temp_dir().join(format!("craft-catalog-stale-{}", uuid::Uuid::new_v4()));
+    let mut first = craft("firstapp", "FirstApp", "", "");
+    first.repository = "owner/firstapp".into();
+    let mut second = craft("secondapp", "SecondApp", "", "");
+    second.repository = "owner/secondapp".into();
+    replace_custom_apps_for_test(&root, &[first.clone()]).unwrap();
+    let stale = custom_apps_for_write(&root).unwrap();
+    replace_custom_apps_for_test(&root, &[first, second]).unwrap();
+    let result = write_custom_apps(&root, &stale, &stale[..0]);
+    let latest = custom_apps(&root);
+    assert!(result.unwrap_err().to_string().contains("conflict"));
+    assert!(latest.iter().any(|entry| entry.key == "secondapp"));
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+fn replace_custom_apps_for_test(root: &Path, apps: &[Entry]) -> Result<()> {
+    let base = custom_apps_for_write(root)?;
+    write_custom_apps(root, &base, apps)
+}
+
+#[test]
+fn supported_external_repository_resolves_to_its_verified_owner() {
+    assert_eq!(
+        crate::model::repository("solidcraft"),
+        "tangency-labs/solidcraft"
+    );
+    assert_eq!(crate::model::repository("filmcraft"), "storytold/filmcraft");
+    assert_eq!(
+        super::super::metadata::icon_url("solidcraft"),
+        "https://raw.githubusercontent.com/tangency-labs/solidcraft/HEAD/assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png"
+    );
+    assert_eq!(
+        super::super::metadata::icon_url("filmcraft"),
+        "https://raw.githubusercontent.com/storytold/filmcraft/HEAD/assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png"
+    );
+}
+
+#[test]
+fn custom_external_registration_wins_over_supported_discovery() {
+    let discovered = craft("solidcraft", "SolidCraft", "Parametric 3D CAD", "");
+    let mut custom = discovered.clone();
+    custom.repository = "tangency-labs/solidcraft".into();
+    custom.title = "My SolidCraft".into();
+    let entries = merge(vec![discovered], &BTreeMap::new(), &[custom.clone()]);
+    assert_eq!(
+        entries.iter().find(|e| e.key == "solidcraft"),
+        Some(&custom)
+    );
+}
+
+#[test]
+fn supported_external_discovery_verifies_origin_release_and_identity() {
+    let source = &super::super::EXTERNAL_APPS[0];
+    let metadata = serde_json::json!({
+        "name":"solidcraft", "full_name":"tangency-labs/solidcraft",
+        "description":"SolidCraft: parametric 3D CAD", "created_at":"2026-10-07T18:57:48Z"
+    });
+    let latest = serde_json::to_value(release(
+        "v0.29.0",
+        "SolidCraft 0.29.0",
+        &[
+            "solidcraft-0.29.0-windows-x64.msi",
+            "solidcraft-0.29.0-windows-x64-portable.zip",
+            "solidcraft-0.29.0-macos-universal.dmg",
+            "solidcraft-0.29.0-linux-x86_64.AppImage",
+            "solidcraft-windows-x64.msi",
+            "solvecraft-linux-x86_64.AppImage.zsync",
+        ],
+    ))
+    .unwrap();
+    let entry = external_discovery_with(source, |url| {
+        Ok(Some(if url.ends_with("/latest") {
+            latest.clone()
+        } else {
+            metadata.clone()
+        }))
+    })
+    .unwrap()
+    .unwrap();
+    assert_eq!(entry.key, "solidcraft");
+    assert_eq!(entry.repository, "solidcraft");
+    assert!(entry.release && entry.source);
+    assert_eq!(entry.scheme, Scheme::Craft);
+    assert_eq!(entry.category, "Parametric 3D CAD");
+    assert_eq!(entry.aliases, vec!["solvecraft"]);
+    assert_eq!(entry.bundle_ids, vec!["io.tangencylabs.solidcraft"]);
+    assert!(entry.created_at.is_some());
+    let root = std::env::temp_dir().join(format!("craft-supported-test-{}", uuid::Uuid::new_v4()));
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            entries: vec![entry],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    load(&root);
+    assert_eq!(crate::model::repository("solidcraft"), source.repository);
+    assert!(names("solidcraft").contains(&"solvecraft".into()));
+    assert!(bundle_ids("solidcraft").contains(&"io.tangencylabs.solidcraft".into()));
+    load(&root.join("unused"));
+    std::fs::remove_dir_all(root).unwrap();
+
+    for (key, value) in [
+        ("full_name", serde_json::json!("someone/solidcraft")),
+        ("name", serde_json::json!("wrongcraft")),
+        ("archived", serde_json::json!(true)),
+        ("fork", serde_json::json!(true)),
+        ("disabled", serde_json::json!(true)),
+    ] {
+        let mut invalid = metadata.clone();
+        invalid[key] = value;
+        assert!(external_discovery_with(source, |url| {
+            assert!(
+                !url.ends_with("/latest"),
+                "Rejected metadata must not probe a release"
+            );
+            Ok(Some(invalid.clone()))
+        })
+        .unwrap()
+        .is_none());
+    }
+    for invalid in [
+        release("v0.29.0", "", &["othercraft-0.29.0-windows-x64.msi"]),
+        release("v0.29.0", "", &["solidcraft-0.29.0-web.zip"]),
+        Release {
+            prerelease: true,
+            ..release("v0.29.0", "", &["solidcraft-0.29.0-windows-x64.msi"])
+        },
+    ] {
+        assert!(
+            external_discovery_with(source, |url| Ok(Some(if url.ends_with("/latest") {
+                serde_json::to_value(&invalid).unwrap()
+            } else {
+                metadata.clone()
+            })))
+            .unwrap()
+            .is_none()
+        );
+    }
+    assert!(external_discovery_with(source, |_| Ok(None))
+        .unwrap()
+        .is_none());
+    assert!(external_discovery_with(source, |_| anyhow::bail!("offline")).is_err());
+}
+
+#[test]
+#[ignore = "requires a separately downloaded live GitHub metadata fixture"]
+fn supported_external_live_metadata_matches_discovery() {
+    let root = std::path::PathBuf::from(
+        std::env::var_os("CRAFT_SOLIDCRAFT_METADATA_FIXTURE").expect("metadata fixture folder"),
+    );
+    let entry = external_discovery_with(&super::super::EXTERNAL_APPS[0], |url| {
+        files::read_json::<serde_json::Value>(&root.join(if url.ends_with("/latest") {
+            "latest.json"
+        } else {
+            "repository.json"
+        }))
+        .map(Some)
+    })
+    .unwrap()
+    .expect("Live SolidCraft desktop release must pass the shared discovery checks");
+    assert_eq!(entry.key, "solidcraft");
+    assert_eq!(entry.repository, "solidcraft");
+    assert!(entry.release && entry.source);
+    assert_eq!(entry.asset_prefix, "solidcraft");
+    println!(
+        "Live metadata: {} / {} / {}",
+        entry.title,
+        entry.category,
+        super::super::repository_slug(&entry.repository)
+    );
+}
+
+#[test]
+fn fresh_orders_promote_loaded_discoveries_without_overriding_later_sorting() {
+    let root = std::env::temp_dir().join(format!("craft-fresh-sort-{}", uuid::Uuid::new_v4()));
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            entries: vec![
+                craft("solidcraft", "SolidCraft", "CAD", ""),
+                craft("texturecraft", "TextureCraft", "3D painting", ""),
+            ],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    load(&root);
+    let mut preferences = crate::model::Preferences::default();
+    let expected: std::collections::BTreeSet<_> =
+        ["solidcraft", "texturecraft"].into_iter().collect();
+    for order in [&preferences.app_order, &preferences.home_app_order] {
+        assert_eq!(
+            order
+                .iter()
+                .take(2)
+                .map(String::as_str)
+                .collect::<std::collections::BTreeSet<_>>(),
+            expected
+        );
+    }
+    // An explicit order, even one putting a new app last, survives revalidation.
+    preferences.app_order.retain(|name| name != "texturecraft");
+    preferences.app_order.push("texturecraft".into());
+    preferences.home_app_order = preferences.app_order.clone();
+    let manual_order = preferences.app_order.clone();
+    preferences.adopt_new_apps().unwrap();
+    assert_eq!(preferences.app_order, manual_order);
+    assert_eq!(preferences.home_app_order, manual_order);
+    load(&root.join("empty"));
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn discovered_apps_are_promoted_once_and_remain_manually_sortable() {
+    let root = std::env::temp_dir().join(format!("craft-discovery-sort-{}", uuid::Uuid::new_v4()));
+    load(&root);
+    let mut original = crate::model::Preferences::default();
+    // Older managers may have remembered a source-only app before its first release.
+    original.known_apps.push("texturecraft".into());
+    files::write_json(&root.join("manager-settings.json"), &original).unwrap();
+    files::write_json(
+        &cache_path(&root),
+        &Cache {
+            entries: vec![craft("texturecraft", "TextureCraft", "3D painting", "")],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    load(&root);
+    let paths = crate::model::Paths::new(root.clone(), None);
+    let preferences = paths.preferences().unwrap();
+    assert_eq!(
+        preferences.app_order.first().map(String::as_str),
+        Some("texturecraft")
+    );
+    assert_eq!(
+        preferences.home_app_order.first().map(String::as_str),
+        Some("texturecraft")
+    );
+    let target = original.app_order.last().unwrap();
+    crate::settings::reorder(&paths, "texturecraft", target, false).unwrap();
+    crate::settings::reorder_home(&paths, "texturecraft", target, false).unwrap();
+    let preferences = paths.preferences().unwrap();
+    assert_eq!(
+        preferences.app_order.last().map(String::as_str),
+        Some("texturecraft")
+    );
+    assert_eq!(
+        preferences.home_app_order.last().map(String::as_str),
+        Some("texturecraft")
+    );
+    load(&root);
+    let restarted = paths.preferences().unwrap();
+    assert_eq!(restarted.app_order, preferences.app_order);
+    assert_eq!(restarted.home_app_order, preferences.home_app_order);
+    load(&root.join("empty"));
+    std::fs::remove_dir_all(root).unwrap();
 }

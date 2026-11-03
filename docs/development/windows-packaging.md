@@ -8,17 +8,19 @@ Portable builds keep their library next to the executable. Moving from portable 
 
 ## Building
 
-Build the Rust release for `x86_64-pc-windows-msvc` or `i686-pc-windows-msvc`. Packaging requires PowerShell, a matching portable 7-Zip SDK folder with license notices, and WiX 4.0.6 with its UI extension. WiX needs the .NET SDK on the packaging computer only:
+Build the Rust release for `x86_64-pc-windows-msvc` or `i686-pc-windows-msvc`. Portable packaging requires PowerShell; MSI packaging also requires WiX 5.0.2 with its UI extension. Neither package bundles 7-Zip. WiX needs the .NET SDK on the packaging computer only:
 
 ```powershell
-dotnet tool install --global wix --version 4.0.6
-wix extension add -g WixToolset.UI.wixext/4.0.6
-./scripts/packaging/package-windows-msi.ps1 -Architecture x64 -SevenZipFolder C:/tools/7zip/x64
+dotnet tool install --global wix --version 5.0.2
+wix extension add -g WixToolset.UI.wixext/5.0.2
+./scripts/packaging/package-windows-msi.ps1 -Architecture x64
 ```
 
-Use `-TargetFolder` for an external Cargo target directory and `-OutputFolder` for external package output. The package script rejects the wrong executable or 7-Zip architecture. It creates an MSI and a SHA-256 checksum file. The portable packaging script remains available separately.
+Use `-TargetFolder` for an external Cargo target directory and `-OutputFolder` for external package output. The package script rejects the wrong executable architecture. It creates an MSI and a SHA-256 checksum file. The portable packaging script remains available separately.
 
 Upgrade codes are stable and distinct for x86 and x64. Each new version receives a new MSI product code. Windows Installer rejects downgrades and upgrades the matching architecture in place. Keep those upgrade codes unchanged in future releases.
+
+ArtCraft X build-tool setup first checks the built-in Windows extractor. If it cannot handle TAR.XZ, setup reuses an available 7-Zip or downloads a private fallback into the build-tools folder. Normal ZIP extraction needs no external tool.
 
 ## Manager updates
 

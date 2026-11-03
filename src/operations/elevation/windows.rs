@@ -61,7 +61,7 @@ pub fn eligible(plan: &ReleasePlan) -> bool {
                 })
                 .count()
                 > 1)
-            || (plan.installer_downgrade()
+            || ((plan.installer_downgrade() || plan.native_rollback.is_some())
                 && plan.entries[0]
                     .asset
                     .as_ref()
@@ -82,21 +82,53 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         job.check()?;
         let asset = entry.asset.as_ref().context("Missing approved installer")?;
         files::safe_relative(&asset.name)?;
-        let destination = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
+        let destination = updates::planned_installer_path(paths, &native, &entry.app, asset)?;
         if destination.exists() {
             crate::network::verify_asset(&destination, asset)?;
         } else {
             network.asset(asset, &destination, job)?;
         }
     }
+    // Reject incompatible versions before recovery preparation and administrator approval.
+    let config = paths.config()?;
+    for entry in &native.entries {
+        let installed = config
+            .apps
+            .iter()
+            .find(|app| app.name == entry.app)
+            .context("Planned installation is missing")?;
+        if installed.install_kind != "installer" || installed.path.is_empty() {
+            continue;
+        }
+        let asset = entry.asset.as_ref().context("Missing approved installer")?;
+        let destination = updates::planned_installer_path(paths, &native, &entry.app, asset)?;
+        if destination
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("msi"))
+        {
+            if let Err(error) = crate::installations::release_catalog::inspection::observe(
+                &paths.root,
+                &crate::model::repository(&entry.app),
+                asset,
+                &entry.preferences.architecture,
+                &destination,
+            ) {
+                job.log(&format!(
+                    "Installer compatibility metadata unavailable: {error:#}"
+                ));
+            }
+            let selected = crate::installers::snapshot_msi_scope(installed)?;
+            crate::installers::validate_msi_replacement_scope(&destination, &selected)?;
+        }
+    }
     // Resolve user choices before elevation; the worker never waits for a GUI reply.
     for entry in &native.entries {
         let asset = entry.asset.as_ref().context("Missing approved installer")?;
-        let destination = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
+        let destination = updates::planned_installer_path(paths, &native, &entry.app, asset)?;
         crate::installers::prepare_custom_identity(&paths.root, &destination, &entry.app, job)?;
     }
     let mut recovery_packages = std::collections::BTreeMap::new();
-    if native.installer_downgrade() {
+    if native.entries.iter().any(|entry| entry.action == "Update") {
         let config = paths.config()?;
         for entry in &native.entries {
             let installed = config
@@ -104,8 +136,29 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
                 .iter()
                 .find(|app| app.name == entry.app)
                 .context("Downgrade installation is missing")?;
-            let (asset, _) = updates::prepare_downgrade_recovery(paths, installed, job)?;
-            recovery_packages.insert(entry.app.clone(), asset);
+            let mandatory = native.installer_downgrade() || native.native_rollback.is_some();
+            if installed.install_kind != "installer"
+                || installed.path.is_empty()
+                || installed.version.is_empty()
+            {
+                continue;
+            }
+            let retention = crate::installations::rollbacks::native::supported(installed).is_ok()
+                && crate::installations::rollbacks::native::enabled(paths, installed)?;
+            if !mandatory && !retention {
+                continue;
+            }
+            match crate::installations::rollbacks::native::prepare_current(
+                paths, installed, job, None,
+            ) {
+                Ok(prepared) => {
+                    recovery_packages.insert(entry.app.clone(), prepared.asset);
+                }
+                Err(error) if mandatory || crate::jobs::is_cancelled(&error) => return Err(error),
+                Err(error) => job.log(&format!(
+                    "Previous installer could not be staged for approval: {error:#}"
+                )),
+            }
         }
     }
     let folder = paths.at(format!("runtime/admin-batches/{}", uuid::Uuid::new_v4()));
@@ -289,7 +342,7 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
         let asset = entry.asset.as_ref().context("Missing approved package")?;
         files::safe_relative(&asset.name)?;
         crate::model::valid_app(&entry.app)?;
-        let file = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
+        let file = updates::planned_installer_path(&paths, &request.plan, &entry.app, asset)?;
         locked.entry(entry.app.clone()).or_default().push(
             std::fs::OpenOptions::new()
                 .read(true)
@@ -300,13 +353,14 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
     }
     for (app, asset) in &request.recovery_packages {
         anyhow::ensure!(
-            request.plan.installer_downgrade()
-                && request.plan.entries.iter().any(|entry| &entry.app == app),
+            request.plan.entries.iter().any(|entry| &entry.app == app
+                && entry.preferences.release_format == "installer"
+                && entry.action == "Update"),
             "Invalid recovery package scope"
         );
         crate::model::valid_app(app)?;
         files::safe_relative(&asset.name)?;
-        let file = paths.at(format!("releases/installers/{app}/{}", asset.name));
+        let file = updates::installer_package_path(&paths, app, asset)?;
         locked.entry(app.clone()).or_default().push(
             std::fs::OpenOptions::new()
                 .read(true)
@@ -316,7 +370,8 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
         crate::network::verify_asset(&file, asset)?;
     }
     anyhow::ensure!(
-        !request.plan.installer_downgrade() || request.recovery_packages.len() == 1,
+        !(request.plan.installer_downgrade() || request.plan.native_rollback.is_some())
+            || request.recovery_packages.len() == 1,
         "Downgrade recovery must be prepared before administrator approval"
     );
     let folder = manifest

@@ -3,6 +3,7 @@ set -eu
 project=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 selected=$(python3 "$project/scripts/lib/updater_config.py" format --target-os macos --package-format dmg)
 [ "$selected" = true ] || { echo "DMG packaging is disabled in updater.toml"; exit 0; }
+python3 -c 'import sys; sys.exit("DMG packaging requires Python 3.10 or newer") if sys.version_info < (3, 10) else None'
 bundle=${1:?Pass the bundle already verified by package-macos.sh}
 output=${2:?Pass the output DMG path}
 [ ! -e "$output" ] || { echo "DMG already exists" >&2; exit 1; }

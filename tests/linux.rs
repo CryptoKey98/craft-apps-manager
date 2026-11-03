@@ -166,8 +166,7 @@ fn normal_uninstall_does_not_require_profile_cleanup_or_reacquire_lock() {
     assert!(!app.exists());
     // A real native FilmCraft may also be installed on a developer's VM.
     // Assert removal of this fixture rather than absence of every system installation.
-    let saved: craft_apps_manager::model::Config =
-        files::read_json(&paths.at("settings.json")).unwrap();
+    let saved = paths.read_inventory().unwrap().unwrap();
     assert!(saved
         .apps
         .iter()

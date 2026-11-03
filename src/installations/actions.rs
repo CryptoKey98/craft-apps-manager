@@ -25,7 +25,16 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
             eprintln!("Desktop shortcut cleanup: {error:#}");
         }
         forget_installation(&mut config, &installed);
-        return paths.save_config(&config);
+        paths.save_config(&config)?;
+        if let Err(error) =
+            crate::installations::rollbacks::native::discard_uninstalled(paths, &installed)
+        {
+            eprintln!("Previous installer cleanup: {error:#}");
+        }
+        if let Err(error) = crate::installer_cleanup::after_uninstall(paths, &installed, &config) {
+            eprintln!("Downloaded installer cleanup: {error:#}");
+        }
+        return Ok(());
     }
     let root = PathBuf::from(&installed.path);
     crate::portable::validate(paths, app, &root)?;
@@ -39,6 +48,11 @@ fn uninstall_locked(paths: &Paths, app: &str) -> Result<()> {
     if let Err(error) = paths.save_config(&config) {
         std::fs::rename(&temporary, &root)?;
         return Err(error);
+    }
+    if let Err(error) =
+        crate::installations::rollbacks::discard_uninstalled(paths, &installed, &temporary)
+    {
+        eprintln!("Previous-version cleanup: {error:#}");
     }
     if let Err(error) = crate::portable::remove_shortcut(&temporary) {
         eprintln!("Shortcut cleanup: {error:#}");

@@ -156,11 +156,21 @@ impl App {
         let title = model::title(&app);
         let status = self.status(&app);
         let format = self.app_preferences(&self.app).release_format.clone();
-        let mine = self
-            .job_target
-            .as_ref()
-            .filter(|(target, _)| *target == app)
-            .map(|(_, action)| action.clone());
+        let installation_state = crate::ui::app_installation_state(
+            &self.operation_records,
+            &app,
+            state,
+            self.job.operation_id().as_deref(),
+        );
+        let state = installation_state.as_ref().unwrap_or(state);
+        let mine = if installation_state.is_some() {
+            Some("install-app".to_owned())
+        } else {
+            self.job_target
+                .as_ref()
+                .filter(|(target, _)| *target == app)
+                .map(|(_, action)| action.clone())
+        };
         ui.spacing_mut().item_spacing.y = 0.0;
         // Header: artwork, name, then category · state · repository.
         ui.horizontal_top(|ui| {
@@ -255,10 +265,7 @@ impl App {
             ui.add_space(MAIN_GAP - shift);
         }
 
-        if status.installed.is_some() {
-            self.installation_selector(ui, state);
-            ui.add_space(26.0);
-        }
+        self.installation_selector_transition(ui, state, status.installed.as_ref());
         let status = self.status(&app);
 
         // A failed install, update, uninstall or source download for this app.
@@ -268,8 +275,8 @@ impl App {
                     "uninstall-app" => "uninstall",
                     "move-app" => "move",
                     "source-app" => "download the source for",
-                    "restore" => "restore a backup of",
-                    "delete-backups" => "delete backups of",
+                    "rollback" => "roll back",
+                    "remove-rollback" => "remove the previous version of",
                     _ if status.installed.is_some() => "update",
                     _ => "install",
                 };
@@ -356,8 +363,8 @@ impl App {
                 Some("uninstall-app") => "Uninstalling",
                 Some("move-app") => "Moving",
                 Some("source-app") => "Downloading source for",
-                Some("restore") => "Restoring",
-                Some("delete-backups") => "Deleting backups of",
+                Some("rollback") => "Rolling back",
+                Some("remove-rollback") => "Removing the previous version of",
                 _ if status.installed.is_some() => "Updating",
                 _ => "Installing",
             };
@@ -438,13 +445,13 @@ impl App {
                     });
             });
         }
-        // Source downloads and backup deletion leave the installed copy alone,
+        // Source downloads and retained-version removal leave the installed copy alone,
         // so its actions (Open in particular) stay available beside the progress.
         let replaces_actions = (state.busy || show_progress)
             && self.installation_selection.is_none()
             && matches!(
                 mine.as_deref(),
-                Some("install-app" | "uninstall-app" | "restore" | "move-app")
+                Some("install-app" | "uninstall-app" | "rollback" | "move-app")
             );
         // Keep the success banner in the action slot until its fade finishes,
         // then bring the buttons back from transparent rather than popping in.
@@ -561,6 +568,7 @@ impl App {
         let (tx, rx) = std::sync::mpsc::channel();
         self.installation_selection = Some(rx);
         self.config_receiver = None;
+        self.inventory_receiver = None;
         let app = app.to_owned();
         std::thread::spawn(move || {
             let result = (|| -> anyhow::Result<crate::ui::InstallationSelection> {
@@ -584,22 +592,31 @@ impl App {
                     .ok_or_else(|| anyhow::anyhow!("App missing"))?;
                 *selected = copy.clone();
                 paths.save_config(&config)?;
-                let mut preferences = paths.read_preferences()?;
+                let mut preferences = paths.read_preferences_locked()?;
+                let base = preferences.clone();
                 if let Some(options) =
                     craft_apps_manager::install_options::InstallOptions::installed(&copy)
                 {
                     preferences
                         .app_install_options
                         .insert(craft_apps_manager::install_options::identity(&app), options);
-                    craft_apps_manager::files::write_json(
-                        &paths.at("manager-settings.json"),
+                    preferences = craft_apps_manager::settings::save_preferences_patch_locked(
+                        &paths,
+                        &base,
                         &preferences,
                     )?;
                 }
+                let check = craft_apps_manager::updates::cached_installation_check(
+                    &paths,
+                    &copy,
+                    &preferences,
+                )
+                .map(|result| result.map_err(|error| format!("{error:#}")));
                 Ok(crate::ui::InstallationSelection {
                     app,
                     config,
                     preferences,
+                    check,
                 })
             })();
             let _ = tx.send(result.map_err(|error| format!("{error:#}")));
@@ -644,19 +661,53 @@ impl App {
         copies
     }
 
-    fn installation_selector(&mut self, ui: &mut Ui, state: &State) {
+    fn installation_selector_transition(
+        &mut self,
+        ui: &mut Ui,
+        state: &State,
+        current: Option<&model::Installed>,
+    ) {
+        let id = egui::Id::new((
+            "installation-selector-visibility",
+            &self.paths.root,
+            &self.app,
+        ));
+        let snapshot_id = id.with("last-copy");
+        if let Some(copy) = current {
+            ui.ctx()
+                .data_mut(|data| data.insert_temp(snapshot_id, copy.clone()));
+        }
+        let opacity = ui.ctx().animate_value_with_time(
+            id,
+            f32::from(current.is_some()),
+            if ui.style().animation_time > 0.0 {
+                0.18
+            } else {
+                0.0
+            },
+        );
+        if opacity <= 0.0 {
+            ui.ctx()
+                .data_mut(|data| data.remove::<model::Installed>(snapshot_id));
+            return;
+        }
+        if let Some(copy) = ui
+            .ctx()
+            .data(|data| data.get_temp::<model::Installed>(snapshot_id))
+        {
+            ui.scope(|ui| {
+                ui.multiply_opacity(opacity);
+                if current.is_none() || opacity < 1.0 {
+                    ui.disable();
+                }
+                self.installation_selector(ui, state, copy);
+                ui.add_space(26.0);
+            });
+        }
+    }
+
+    fn installation_selector(&mut self, ui: &mut Ui, state: &State, selected: model::Installed) {
         let app = self.app.clone();
-        let Some(config) = self.display_config.as_ref() else {
-            return;
-        };
-        let Some(selected) = config
-            .apps
-            .iter()
-            .find(|copy| copy.name == app && !copy.path.is_empty())
-            .cloned()
-        else {
-            return;
-        };
         let copies = self.installation_copies(&app);
         let label = craft_apps_manager::installation_labels::version_summary;
         theme::text(ui, "Installation", 12.0, theme::palette().muted);
@@ -796,6 +847,11 @@ impl App {
             ui.memory_mut(|memory| memory.toggle_popup(popup_id));
             if opening {
                 self.open_versions(ui.ctx());
+                crate::ui::dialogs::begin_version_list_transition(
+                    ui.ctx(),
+                    popup_id.with("loaded-list"),
+                    self.versions_result.is_some(),
+                );
             }
         }
         let mut anchor = main.clone().union(arrow.clone());
@@ -810,29 +866,38 @@ impl App {
                 ui.spacing_mut().item_spacing.y = 4.0;
                 theme::text(ui, "CHOOSE A VERSION", 12.0, theme::palette().muted);
                 ui.add_space(6.0);
-                if self.versions_app.as_deref() != Some(app.as_str())
-                    || self.versions_result.is_none()
-                {
-                    ui.horizontal(|ui| {
-                        ui.spinner();
-                        theme::text(ui, "Loading versions…", 13.0, theme::palette().text_2);
-                    });
-                } else {
-                    match self.versions_result.clone().unwrap() {
-                        Err(error) => {
-                            ui.add(
-                                egui::Label::new(
-                                    RichText::new(error).size(12.0).color(theme::palette().red),
-                                )
-                                .wrap(),
-                            );
-                            if btn("Retry").show(ui).clicked() {
-                                self.open_versions(ui.ctx());
-                            }
-                        }
-                        Ok(versions) => {
-                            if versions.is_empty() {
-                                ui.add(
+                let ready = self.versions_app.as_deref() == Some(app.as_str())
+                    && self.versions_result.is_some();
+                crate::ui::dialogs::animated_version_list(
+                    ui,
+                    popup_id.with("loaded-list"),
+                    ready,
+                    |ui| {
+                        if self.versions_app.as_deref() != Some(app.as_str())
+                            || self.versions_result.is_none()
+                        {
+                            ui.horizontal(|ui| {
+                                ui.spinner();
+                                theme::text(ui, "Loading versions…", 13.0, theme::palette().text_2);
+                            });
+                        } else {
+                            match self.versions_result.clone().unwrap() {
+                                Err(error) => {
+                                    ui.add(
+                                        egui::Label::new(
+                                            RichText::new(error)
+                                                .size(12.0)
+                                                .color(theme::palette().red),
+                                        )
+                                        .wrap(),
+                                    );
+                                    if btn("Retry").show(ui).clicked() {
+                                        self.open_versions(ui.ctx());
+                                    }
+                                }
+                                Ok(versions) => {
+                                    if versions.is_empty() {
+                                        ui.add(
                                     egui::Label::new(
                                         RichText::new(
                                             "No compatible releases with published checksums.",
@@ -842,8 +907,8 @@ impl App {
                                     )
                                     .wrap(),
                                 );
-                            }
-                            egui::ScrollArea::vertical()
+                                    }
+                                    egui::ScrollArea::vertical()
                                 .id_salt((&app, "version-menu-scroll"))
                                 .max_height(288.0)
                                 .show(ui, |ui| {
@@ -856,61 +921,24 @@ impl App {
                                             .installed
                                             .as_ref()
                                             .is_some_and(|i| i.version == version);
-                                        let (rect, response) = ui.allocate_exact_size(
-                                            vec2(ui.available_width(), 40.0),
-                                            Sense::click(),
-                                        );
-                                        if response.hovered() && !current {
-                                            ui.painter().rect_filled(
-                                                rect,
-                                                CornerRadius::same(5),
-                                                theme::palette().button_hover,
-                                            );
-                                            ui.ctx()
-                                                .set_cursor_icon(egui::CursorIcon::PointingHand);
+                                        let scope_error =
+                                            status.installed.as_ref().and_then(|copy| {
+                                                craft_apps_manager::updates::downgrade_scope_error(
+                                                    &self.paths.root,
+                                                    copy,
+                                                    &release,
+                                                    &self.preferences,
+                                                )
+                                            });
+                                        let unknown=craft_apps_manager::catalog::get(&app).is_some_and(|entry| !entry.repository.contains('/')) && status.installed.as_ref().is_some_and(|copy|matches!(craft_apps_manager::updates::downgrade_scope_decision(&self.paths.root,copy,&release,&self.preferences),craft_apps_manager::installations::release_catalog::CompatibilityDecision::Unknown(_)));
+                                        let disabled = current || scope_error.is_some();
+                                        let tag=if scope_error.is_some(){"Incompatible"}else if unknown{"Unknown"}else if current{"Installed"}else if index==0{"Latest"}else{""};
+                                        let (response,information)=crate::ui::dialogs::release_version_row(ui,&format!("Version {version}"),tag,false,disabled,scope_error.is_some());
+                                        if unknown { response.clone().on_hover_text("Compatibility unknown. The installer is verified before installation changes."); }
+                                        if information.is_some_and(|response|response.clicked()) {
+                                            if let Some(error)=&scope_error { self.open_compatibility_info(&app,&release.tag_name,error,ui.ctx()); }
                                         }
-                                        response.widget_info(|| {
-                                            egui::WidgetInfo::labeled(
-                                                egui::WidgetType::Button,
-                                                !current,
-                                                format!(
-                                                    "Install {} {}",
-                                                    model::title(&app),
-                                                    version
-                                                ),
-                                            )
-                                        });
-                                        let color = if current {
-                                            theme::palette().muted
-                                        } else {
-                                            theme::palette().text
-                                        };
-                                        ui.painter().text(
-                                            pos2(rect.left() + 10.0, rect.center().y),
-                                            egui::Align2::LEFT_CENTER,
-                                            format!("Version {version}"),
-                                            FontId::proportional(14.0),
-                                            color,
-                                        );
-                                        let tag = if current {
-                                            "Installed"
-                                        } else if index == 0 {
-                                            "Latest"
-                                        } else {
-                                            ""
-                                        };
-                                        ui.painter().text(
-                                            pos2(rect.right() - 10.0, rect.center().y),
-                                            egui::Align2::RIGHT_CENTER,
-                                            tag,
-                                            FontId::proportional(12.0),
-                                            if current {
-                                                theme::palette().muted
-                                            } else {
-                                                theme::palette().link
-                                            },
-                                        );
-                                        if response.clicked() && !current {
+                                        if response.clicked() && !disabled {
                                             ui.memory_mut(|memory| memory.close_popup());
                                             self.review_version(
                                                 app.clone(),
@@ -920,9 +948,11 @@ impl App {
                                         }
                                     }
                                 });
+                                }
+                            }
                         }
-                    }
-                }
+                    },
+                );
                 ui.add_space(6.0);
                 crate::ui::dialogs::rule(ui);
                 ui.add_space(6.0);
@@ -944,7 +974,7 @@ impl App {
     fn app_actions(&mut self, ui: &mut Ui, state: &State, status: &crate::ui::AppStatus) {
         let app = self.app.clone();
         let title = model::title(&app);
-        let install_available = self.install_available(&app);
+        let install_available = self.install_available(&app, ui.ctx());
         let installed = status.installed.clone();
         // Only an installed copy in the active format can be updated in place.
         let matching_format = installed.as_ref().is_some_and(|i| {
@@ -1370,39 +1400,49 @@ impl App {
                 }
             }
             theme::divider(ui);
-            // Backups
-            let backups = self.display_backups.get(&app).cloned().unwrap_or_default();
-            let summary = match backups.len() {
-                0 => "None yet".to_owned(),
-                1 => "1 backup".to_owned(),
-                n => format!("{n} backups"),
-            };
-            let manage = tool_row(
+            // Rollback is scoped to the selected installation, never another copy.
+            let summary = installed
+                .as_ref()
+                .map(|installed| {
+                    self.display_rollbacks
+                        .get(&app)
+                        .and_then(|result| result.as_ref().ok())
+                        .filter(|cached| {
+                            crate::ui::dialogs::rollback::same_installation(
+                                &cached.installed,
+                                installed,
+                            )
+                        })
+                        .map(|cached| {
+                            if cached.unsupported.is_some() {
+                                "Use version selector".to_owned()
+                            } else if let Some(point) = &cached.previous {
+                                format!("Previous version: {}", crate::ui::dialogs::rollback::version_label(&point.version))
+                            } else {
+                                "No previous version".to_owned()
+                            }
+                        })
+                        .unwrap_or_else(|| "Review availability".to_owned())
+                })
+                .unwrap_or_else(|| "Not installed".to_owned());
+            if tool_row(
                 ui,
                 Row {
-                    icon: Icon::Archive,
-                    title: "Backups",
+                    icon: Icon::Rollback,
+                    title: "Rollback",
                     detail: &summary,
                     color: theme::palette().muted,
                     gap: 0.0,
                     progress: None,
                 },
-                btn("Manage…").enabled(!state.busy && !backups.is_empty()),
-            );
-            if manage
-                .on_disabled_hover_text(if state.busy {
-                    "Wait for the current operation to finish."
-                } else {
-                    "No backups are available for this app."
-                })
-                .clicked()
+                btn("Review…").enabled(!state.busy && installed.is_some()),
+            )
+            .on_disabled_hover_text("Install the app and wait for the current operation to finish.")
+            .clicked()
             {
-                self.restore_backups = backups;
-                self.restore_selected = None;
-                self.confirm_restore = false;
-                self.backup_delete_mode = false;
-                self.backup_delete_selected.clear();
-                self.restore_app = Some(app.clone());
+                if let Some(installed) = installed.clone() {
+                    self.open_rollback_dialog(installed, ui.ctx());
+                }
             }
             theme::divider(ui);
             // Source
@@ -1455,7 +1495,7 @@ impl App {
                             !state.busy && !build.busy,
                         )
                         .on_hover_text(
-                            "Remove this app’s downloaded source ZIP. Builds and backups are kept.",
+                            "Remove this app’s downloaded source ZIP. Builds and retained rollback versions are kept.",
                         )
                         .clicked()
                         {
@@ -1595,7 +1635,7 @@ impl App {
                                 },
                             );
                             ui.allocate_ui_with_layout(
-                                vec2(ui.available_width(), 0.0),
+                                vec2((ui.available_width() - 24.0).max(1.0), 0.0),
                                 Layout::top_down(Align::Min),
                                 |ui| {
                                     theme::text(ui, "Local build", 14.0, theme::palette().text);
@@ -1618,6 +1658,8 @@ impl App {
                                     }
                                 },
                             );
+                            let (icon, _) = ui.allocate_exact_size(vec2(16.0, 36.0), Sense::hover());
+                            theme::paint_icon(ui.painter(), Rect::from_center_size(icon.center(), vec2(16.0, 16.0)), Icon::Hammer, theme::palette().muted);
                         });
                     });
                     if running {

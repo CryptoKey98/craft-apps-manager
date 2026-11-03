@@ -50,7 +50,17 @@ class MacOSDmgTests(unittest.TestCase):
                     self.assertEqual(store[bundle.name]["Iloc"], (140, 120))
                     self.assertEqual(store["Applications"]["Iloc"], (500, 120))
                     self.assertEqual(store["."]["icvp"]["backgroundType"], 2)
+                    self.assertTrue(store["."]["icvp"]["backgroundImageAlias"])
+                    # Tahoe rejects the extra bookmark written by older dmgbuild
+                    # versions, hiding an otherwise valid background image.
+                    self.assertNotIn(b"pBBk", {
+                        entry.code for entry in store if entry.filename == "."
+                    })
                     self.assertFalse(store["."]["bwsp"]["ShowToolbar"])
+                self.assertEqual(
+                    (mount / ".background.tiff").read_bytes(),
+                    (ROOT / "packaging/macos/dmg-background.tiff").read_bytes(),
+                )
             finally:
                 subprocess.run(["hdiutil", "detach", str(mount)], check=True)
 

@@ -274,10 +274,27 @@ impl Job {
         true
     }
     fn begin(&self) -> Option<crate::operations::Handle> {
-        let mut state = self.state.lock().unwrap();
-        if state.busy {
+        if !self.reserve() {
             return None;
         }
+        self.begin_reserved()
+    }
+    fn reserve(&self) -> bool {
+        let mut state = self.state.lock().unwrap();
+        if state.busy {
+            return false;
+        }
+        if self.parent.is_none() {
+            self.cancel.store(false, Ordering::Relaxed);
+        }
+        state.busy = true;
+        state.outcome.clear();
+        state.stage = "Preparing".into();
+        state.detail.clear();
+        state.progress = None;
+        true
+    }
+    fn begin_reserved(&self) -> Option<crate::operations::Handle> {
         if self
             .active
             .lock()
@@ -287,28 +304,24 @@ impl Job {
         {
             self.children.lock().unwrap().clear();
         }
-        let handle = self
-            .active
-            .lock()
-            .unwrap()
-            .as_ref()
-            .filter(|handle| !handle.snapshot().lifecycle.terminal())
-            .cloned()
-            .unwrap_or_else(|| {
-                self.operations.register(
-                    &self.descriptor.0,
-                    &self.descriptor.1,
-                    self.parent.clone(),
-                )
-            });
+        let reusable = {
+            self.active
+                .lock()
+                .unwrap()
+                .as_ref()
+                .filter(|handle| !handle.snapshot().lifecycle.terminal())
+                .cloned()
+        };
+        let handle = reusable.unwrap_or_else(|| {
+            self.operations
+                .register(&self.descriptor.0, &self.descriptor.1, self.parent.clone())
+        });
         handle.report("Log file", &self.log_path.display().to_string());
         if !handle.start() {
+            self.state.lock().unwrap().busy = false;
             return None;
         }
-        if self.parent.is_none() {
-            self.cancel.store(false, Ordering::Relaxed);
-        }
-        state.busy = true;
+        let mut state = self.state.lock().unwrap();
         *self.executing_thread.lock().unwrap() = Some(std::thread::current().id());
         state.outcome.clear();
         state.stage = "Preparing".into();
@@ -736,36 +749,59 @@ impl Job {
     pub fn spawn(&self, work: impl FnOnce(Job) -> Result<()> + Send + 'static) {
         let _ = self.spawn_worker(work);
     }
+    /// Reserve local busy state immediately; persist history and register the
+    /// operation on the worker, without blocking the caller's UI frame.
+    pub fn spawn_background(&self, work: impl FnOnce(Job) -> Result<()> + Send + 'static) {
+        let _ = self.spawn_background_worker(work);
+    }
+    fn spawn_background_worker(
+        &self,
+        work: impl FnOnce(Job) -> Result<()> + Send + 'static,
+    ) -> Option<std::thread::JoinHandle<()>> {
+        if !self.reserve() {
+            return None;
+        }
+        let job = self.clone();
+        Some(std::thread::spawn(move || {
+            if let Some(handle) = job.begin_reserved() {
+                job.run_worker(handle, work);
+            }
+        }))
+    }
     fn spawn_worker(
         &self,
         work: impl FnOnce(Job) -> Result<()> + Send + 'static,
     ) -> Option<std::thread::JoinHandle<()>> {
         let handle = self.begin()?;
+        let job = self.clone();
+        Some(std::thread::spawn(move || {
+            job.run_worker(handle, work);
+        }))
+    }
+    fn run_worker(&self, handle: crate::operations::Handle, work: impl FnOnce(Job) -> Result<()>) {
+        // Each worker keeps its own operation handle. A retained old worker
+        // must never inherit a later operation started through the UI's Job.
         let mut job = self.clone();
         job.active = Arc::new(Mutex::new(Some(handle.clone())));
-        Some(std::thread::spawn(move || {
-            *job.executing_thread.lock().unwrap() = Some(std::thread::current().id());
-            let result =
-                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(job.clone())));
-            let result =
-                result.unwrap_or_else(|_| Err(anyhow::anyhow!("Worker failed unexpectedly")));
-            job.choice
-                .lock()
-                .unwrap_or_else(|poison| poison.into_inner())
-                .take();
-            job.state.clear_poison();
-            if let Err(error) = &result {
-                job.log(&format!(
-                    "{}: {error:#}",
-                    if is_cancelled(error) {
-                        "Cancelled"
-                    } else {
-                        "ERROR"
-                    }
-                ));
-            }
-            job.complete(&handle, &result);
-        }))
+        *job.executing_thread.lock().unwrap() = Some(std::thread::current().id());
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(job.clone())));
+        let result = result.unwrap_or_else(|_| Err(anyhow::anyhow!("Worker failed unexpectedly")));
+        job.choice
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .take();
+        job.state.clear_poison();
+        if let Err(error) = &result {
+            job.log(&format!(
+                "{}: {error:#}",
+                if is_cancelled(error) {
+                    "Cancelled"
+                } else {
+                    "ERROR"
+                }
+            ));
+        }
+        job.complete(&handle, &result);
     }
     pub fn history(&self, path: &Path) {
         if let Ok(bytes) = fs::read(path) {

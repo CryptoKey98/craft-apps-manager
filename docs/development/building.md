@@ -1,6 +1,6 @@
 # Building and testing
 
-For contributors compiling the manager. To build a Craft app through the UI, see [Using the manager](../user-guide/using-the-manager.md#build-apps-and-manage-backups). Packaged manager releases do not require Rust.
+For contributors compiling the manager. To build a Craft app through the UI, see [Using the manager](../user-guide/using-the-manager.md#build-apps-and-roll-back-updates). Packaged manager releases do not require Rust.
 
 Run the commands below from the repository root. Use stable Rust installed through [rustup](https://rust-lang.org/tools/install/).
 
@@ -22,6 +22,10 @@ sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrand
 ```
 
 These are build-machine dependencies. User installation requirements are in the [Linux](../user-guide/linux.md) and [macOS](../user-guide/macos.md) guides. Upstream Craft apps may require additional tools; the manager's tool setup handles supported app/platform combinations.
+
+## App-release catalog
+
+The optional app-release catalog supplies supported apps' release lists and verified compatibility information. It is separate from the Manager's self-updater. Normal source builds use the checked-in disabled catalog source; the local test-catalog feature requires an explicitly supplied test source. See [App-release catalog](app-release-catalog.md) for configuration and publishing rules.
 
 ## Choose the updater
 
@@ -101,7 +105,7 @@ Build for `x86_64-pc-windows-msvc` or `i686-pc-windows-msvc` before running pack
 python scripts/lib/updater_config.py build --config updater.production.toml --target-os windows --target x86_64-pc-windows-msvc
 ```
 
-Portable and MSI packaging require a matching 7-Zip SDK folder with its license files. MSI packaging also needs WiX. See [Windows packaging](windows-packaging.md) for commands and prerequisites.
+Windows packages do not bundle 7-Zip. MSI packaging needs WiX; ArtCraft X setup downloads a private extraction fallback only when needed. See [Windows packaging](windows-packaging.md) for commands and prerequisites.
 
 ### Linux
 
@@ -138,7 +142,7 @@ sh scripts/packaging/package-macos-dmg.sh 'dist/macos/Craft Apps Manager.app' di
 
 The first script compiles both architectures, combines them into a universal bundle, verifies both embedded updater identities, applies an ad-hoc signature, and creates a ZIP with `portable.txt`. The DMG script uses that same bundle in a drag-to-Applications layout. Adjust the example version to match Cargo.toml.
 
-DMG packaging needs Python 3.9+ with `venv` and access to PyPI. Pinned `dmgbuild` dependencies are installed into a temporary environment and removed afterward. These are packaging requirements, not prerequisites for running the app. Bundles are not Apple-notarized; see [First launch](../user-guide/macos.md#first-launch).
+DMG packaging needs Python 3.10+ with `venv` and access to PyPI. Pinned `dmgbuild` dependencies are installed into a temporary environment and removed afterward. These are packaging requirements, not prerequisites for running the app. Bundles are not Apple-notarized; see [First launch](../user-guide/macos.md#first-launch).
 
 ## Continuous integration
 

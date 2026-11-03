@@ -1,4 +1,49 @@
 use super::*;
+
+fn preparation_reads_approval_preference_under_execution_gate(retain: bool) {
+    let root = std::env::temp_dir().join(format!("craft-native-lock-{}", uuid::Uuid::new_v4()));
+    fs::create_dir_all(&root).unwrap();
+    let result = (|| -> Result<()> {
+        let paths = Paths::new(root.clone(), None);
+        let base = crate::model::Preferences::default();
+        let mut edited = base.clone();
+        edited.batch_admin = retain;
+        crate::settings::save_preferences_patch(&paths, &base, &edited)?;
+        let (manifest, trust) = fixture();
+        let catalog = verify_catalog(&manifest.envelope, &trust, 1001, None)?;
+        let mut selection = SignedSelection {
+            catalog,
+            offer: manifest.offer,
+        };
+        // A direct update does not download packages or launch an admin helper.
+        selection.offer.route_ids.truncate(1);
+        let job = Job::new(root.join("logs/update.log"), &Default::default());
+        let _execution = super::super::bridge::execution_gate()?;
+        prepare(&paths, &selection, &manifest.source, false, None, &job)?;
+        for name in ["Local\\CraftAppsSourceBuilder", "Local\\CraftAppsManager"] {
+            assert!(
+                std::thread::spawn(move || crate::platform::Lock::take(name).is_err())
+                    .join()
+                    .unwrap()
+            );
+        }
+        assert!(!exists(&root));
+        Ok(())
+    })();
+    fs::remove_dir_all(root).unwrap();
+    result.unwrap();
+}
+
+#[test]
+fn native_preparation_reads_enabled_approval_without_reacquiring_execution_lock() {
+    preparation_reads_approval_preference_under_execution_gate(true);
+}
+
+#[test]
+fn native_preparation_reads_disabled_approval_without_reacquiring_execution_lock() {
+    preparation_reads_approval_preference_under_execution_gate(false);
+}
+
 #[test]
 fn final_acknowledgement_is_observable_but_cannot_authorize_another_install() {
     let mut gate = Gate {

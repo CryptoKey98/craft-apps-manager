@@ -1,7 +1,6 @@
-use crate::{
-    files,
-    model::{Installed, Paths},
-};
+#[cfg(all(test, target_os = "macos"))]
+use crate::files;
+use crate::model::{Installed, Paths};
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf, process::Command};
@@ -13,8 +12,12 @@ pub struct LaunchSettings {
 }
 
 pub fn settings(paths: &Paths, app: &str) -> Result<LaunchSettings> {
-    let all: BTreeMap<String, LaunchSettings> =
-        files::read_or_default(&paths.at("runtime/launch-settings.json"))?;
+    let all: BTreeMap<String, LaunchSettings> = crate::storage::config::document::section(
+        &crate::storage::config::ConfigStore::new(paths.root.clone())
+            .load()?
+            .document,
+        "launch",
+    )?;
     let (key, folder) = launch_settings_key(paths, app);
     if let Some(settings) = all.get(&key) {
         return Ok(settings.clone());
@@ -45,8 +48,10 @@ pub fn settings(paths: &Paths, app: &str) -> Result<LaunchSettings> {
 }
 
 fn launch_settings_key(paths: &Paths, app: &str) -> (String, Option<PathBuf>) {
-    let folder = files::read_json::<crate::model::Config>(&paths.at("settings.json"))
+    let folder = paths
+        .read_inventory()
         .ok()
+        .flatten()
         .and_then(|config| {
             config
                 .apps
@@ -65,30 +70,34 @@ fn launch_settings_key(paths: &Paths, app: &str) -> (String, Option<PathBuf>) {
 
 pub fn save(paths: &Paths, app: &str, value: &LaunchSettings) -> Result<()> {
     crate::model::valid_app(app)?;
-    let file = paths.at("runtime/launch-settings.json");
-    let mut all: BTreeMap<String, LaunchSettings> = files::read_or_default(&file)?;
-    all.insert(launch_settings_key(paths, app).0, value.clone());
-    files::write_json(&file, &all)
+    let key = launch_settings_key(paths, app).0;
+    crate::storage::config::ConfigStore::new(paths.root.clone())
+        .mutate_section::<BTreeMap<String, LaunchSettings>>("launch", |all| {
+            all.insert(key, value.clone());
+            Ok(())
+        })?;
+    Ok(())
 }
 
 /// Keep the old key until relocation commits, so a failed move still has its options.
 pub(crate) fn carry_launch_settings(paths: &Paths, app: &str, old: &str, new: &str) -> Result<()> {
-    let file = paths.at("runtime/launch-settings.json");
-    let mut all: BTreeMap<String, LaunchSettings> = files::read_or_default(&file)?;
-    if let Some(mut settings) = all
-        .get(&format!("{app}|{old}"))
-        .or_else(|| all.get(app))
-        .cloned()
-    {
-        if let Ok(relative) = std::path::Path::new(&settings.executable).strip_prefix(old) {
-            settings.executable = std::path::Path::new(new)
-                .join(relative)
-                .display()
-                .to_string();
-        }
-        all.insert(format!("{app}|{new}"), settings);
-        files::write_json(&file, &all)?;
-    }
+    crate::storage::config::ConfigStore::new(paths.root.clone())
+        .mutate_section_locked::<BTreeMap<String, LaunchSettings>>("launch", |all| {
+            if let Some(mut settings) = all
+                .get(&format!("{app}|{old}"))
+                .or_else(|| all.get(app))
+                .cloned()
+            {
+                if let Ok(relative) = std::path::Path::new(&settings.executable).strip_prefix(old) {
+                    settings.executable = std::path::Path::new(new)
+                        .join(relative)
+                        .display()
+                        .to_string();
+                }
+                all.insert(format!("{app}|{new}"), settings);
+            }
+            Ok(())
+        })?;
     Ok(())
 }
 

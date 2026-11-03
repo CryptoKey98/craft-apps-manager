@@ -24,7 +24,6 @@ unsafe extern "system" {
         value: *mut u16,
         size: *mut u32,
     ) -> u32;
-    #[cfg(any(test, feature = "service-updater"))]
     fn MsiGetProductInfoExW(
         product: *const u16,
         user_sid: *const u16,
@@ -263,7 +262,6 @@ fn msi_rows(file: &Path, query: &str) -> Result<Vec<String>> {
     Ok(rows)
 }
 /// Inspect the manager MSI without executing installer code.
-#[cfg(feature = "service-updater")]
 pub(crate) fn manager_msi_metadata(file: &Path) -> Result<(String, String, String, String)> {
     #[link(name = "msi")]
     unsafe extern "system" {
@@ -309,11 +307,7 @@ pub(crate) fn manager_msi_metadata(file: &Path) -> Result<(String, String, Strin
         "Cannot inspect MSI template"
     );
     let template = String::from_utf16(&text[..size as usize])?;
-    let arch = match template.split(';').next().unwrap_or_default() {
-        "x64" => "x64",
-        "Intel" => "x86",
-        _ => bail!("Unsupported MSI architecture"),
-    };
+    let arch = msi_template_architecture(&template)?;
     let property = |name: &str| -> Result<String> {
         let values = msi_rows(
             file,
@@ -331,6 +325,41 @@ pub(crate) fn manager_msi_metadata(file: &Path) -> Result<(String, String, Strin
         arch.into(),
         property("UpgradeCode")?,
     ))
+}
+fn msi_template_architecture(template: &str) -> Result<&'static str> {
+    Ok(match template.split(';').next().unwrap_or_default() {
+        "x64" => "x64",
+        "Intel" => "x86",
+        "Arm64" => "arm64",
+        _ => bail!("Unsupported MSI architecture"),
+    })
+}
+pub(crate) fn rollback_package_identity(
+    file: &Path,
+) -> Result<crate::installations::rollbacks::native::PackageIdentity> {
+    anyhow::ensure!(
+        file.extension()
+            .is_some_and(|s| s.eq_ignore_ascii_case("msi")),
+        "Rollback supports verified MSI installers; this installer type is unsupported"
+    );
+    anyhow::ensure!(package_location_supported(file), "This MSI does not expose a verified installation-folder property; rollback cannot safely preserve its location");
+    let (_, version, architecture, family) = manager_msi_metadata(file)?;
+    let products = msi_rows(
+        file,
+        "SELECT `Value` FROM `Property` WHERE `Property` = 'ProductCode'",
+    )?;
+    let [product] = products.as_slice() else {
+        bail!("Missing or ambiguous MSI product identity");
+    };
+    uuid::Uuid::parse_str(product)?;
+    uuid::Uuid::parse_str(&family)?;
+    Ok(crate::installations::rollbacks::native::PackageIdentity {
+        format: "msi".into(),
+        identity: family.to_ascii_lowercase(),
+        product: product.clone(),
+        version,
+        architecture,
+    })
 }
 #[cfg(any(test, feature = "service-updater"))]
 pub(crate) fn manager_msi_per_user(file: &Path) -> Result<bool> {
@@ -845,22 +874,14 @@ fn matches_registration(app: &str, key_name: &str, key: &RegKey, display: &str) 
         || matches_display_name(app, display)
 }
 pub fn custom_location_supported(app: &str) -> bool {
-    matches!(
-        app,
-        "artcraft"
-            | "designcraft"
-            | "effectcraft"
-            | "filmcraft"
-            | "lightcraft"
-            | "photocraft"
-            | "printcraft"
-            | "vectorcraft"
-            | "wordcraft"
-            | "gridcraft"
-            | "deckcraft"
-            | "cadcraft"
-            | "soundcraft"
-    )
+    crate::catalog::get(app).is_some_and(|entry| {
+        entry.release
+            && !entry.repository.contains('/')
+            && matches!(
+                entry.scheme,
+                crate::catalog::Scheme::Craft | crate::catalog::Scheme::Tauri
+            )
+    })
 }
 pub fn package_location_supported(file: &Path) -> bool {
     install_directory_property(file).is_some()
@@ -896,7 +917,7 @@ fn install_directory_property(file: &Path) -> Option<&'static str> {
 pub fn validate_custom_location(target: &Path) -> Result<()> {
     validate_location(target, true)
 }
-fn validate_location(target: &Path, must_be_new: bool) -> Result<()> {
+pub(crate) fn validate_location(target: &Path, must_be_new: bool) -> Result<()> {
     anyhow::ensure!(target.is_absolute(), "Choose an absolute install location");
     anyhow::ensure!(
         !must_be_new || !target.exists(),
@@ -975,6 +996,26 @@ fn detect_registered_product(
     selected: Option<&Installed>,
     product: Option<&str>,
 ) -> Result<Option<Installed>> {
+    detect_registered_at(app, architecture, selected, product, None)
+}
+
+pub(crate) fn detect_rollback_copy(previous: &Installed) -> Result<Option<Installed>> {
+    detect_registered_at(
+        &previous.name,
+        Some(&previous.architecture),
+        None,
+        None,
+        Some(Path::new(&previous.path)),
+    )
+}
+
+fn detect_registered_at(
+    app: &str,
+    architecture: Option<&str>,
+    selected: Option<&Installed>,
+    product: Option<&str>,
+    location: Option<&Path>,
+) -> Result<Option<Installed>> {
     let mut roots = Vec::new();
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
@@ -986,7 +1027,7 @@ fn detect_registered_product(
             }
         }
     }
-    detect_in_roots_for_product(app, roots, architecture, selected, product)
+    detect_in_roots_for_product(app, roots, architecture, selected, product, location)
 }
 // MSI versions can have a fourth numeric component. Compare numbers, not text.
 fn installation_version(value: &str) -> Option<[u64; 4]> {
@@ -1046,7 +1087,7 @@ fn detect_in_roots_for_installation(
     architecture: Option<&str>,
     selected: Option<&Installed>,
 ) -> Result<Option<Installed>> {
-    detect_in_roots_for_product(app, roots, architecture, selected, None)
+    detect_in_roots_for_product(app, roots, architecture, selected, None, None)
 }
 fn detect_in_roots_for_product(
     app: &str,
@@ -1054,6 +1095,7 @@ fn detect_in_roots_for_product(
     architecture: Option<&str>,
     selected: Option<&Installed>,
     product: Option<&str>,
+    wanted_location: Option<&Path>,
 ) -> Result<Option<Installed>> {
     let mut best: Option<Installed> = None;
     for (root, view) in roots {
@@ -1084,7 +1126,7 @@ fn detect_in_roots_for_product(
                 }
                 // Conventional folders are discovery hints, not proof that this
                 // registration owns the copy the user asked us to uninstall.
-                if selected.is_some() {
+                if selected.is_some() || wanted_location.is_some() {
                     continue;
                 }
                 let mut candidates = Vec::new();
@@ -1133,6 +1175,11 @@ fn detect_in_roots_for_product(
                 }
                 .into(),
                 install_kind: "installer".into(),
+                windows_msi_scope: if msi == 1 {
+                    registered_msi_scope(&name).ok().flatten()
+                } else {
+                    None
+                },
                 product_code: if msi == 1 {
                     name.clone()
                 } else {
@@ -1154,6 +1201,12 @@ fn detect_in_roots_for_product(
                 }
             }
             if architecture.is_some_and(|wanted| candidate.architecture != wanted) {
+                continue;
+            }
+            if wanted_location.is_some_and(|path| {
+                crate::installations::labels::path_identity(&candidate.path)
+                    != crate::installations::labels::path_identity(&path.display().to_string())
+            }) {
                 continue;
             }
             if selected.is_some_and(|selected| {
@@ -1304,6 +1357,98 @@ fn registered_icon_executable(folder: &Path, icon: &str) -> Option<std::path::Pa
 fn executable_architecture(path: &Path) -> Option<&'static str> {
     crate::downloads::windows_executable_architecture(path).ok()
 }
+// Query the current user's registered MSI contexts, never infer scope from a folder.
+fn registered_msi_scope(product: &str) -> Result<Option<String>> {
+    if uuid::Uuid::parse_str(product).is_err() {
+        return Ok(None);
+    }
+    let product = platform::wide(product);
+    let property = platform::wide("VersionString");
+    let mut user = false;
+    let mut machine = false;
+    for context in [1, 2, 4] {
+        let mut value = [0u16; 256];
+        let mut size = (value.len() - 1) as u32;
+        let code = unsafe {
+            MsiGetProductInfoExW(
+                product.as_ptr(),
+                std::ptr::null(),
+                context,
+                property.as_ptr(),
+                value.as_mut_ptr(),
+                &mut size,
+            )
+        };
+        match code {
+            0 | 234 => {
+                if context == 4 {
+                    machine = true;
+                } else {
+                    user = true;
+                }
+            }
+            1605 => {} // Product is not registered in this context.
+            _ => bail!("Could not verify Windows Installer scope (error {code})"),
+        }
+    }
+    anyhow::ensure!(!(user && machine), "This MSI product has both user and machine registrations; its installation scope is ambiguous");
+    Ok(if user {
+        Some("user".into())
+    } else if machine {
+        Some("machine".into())
+    } else {
+        None
+    })
+}
+/// Capture verified scope before uninstall so replacement and recovery retain it.
+pub fn snapshot_msi_scope(installed: &Installed) -> Result<Installed> {
+    let mut snapshot = installed.clone();
+    if let Some(scope) = registered_msi_scope(&installed.product_code)? {
+        snapshot.windows_msi_scope = Some(scope);
+    }
+    Ok(snapshot)
+}
+pub(crate) fn msi_authored_all_users(file: &Path) -> Result<Option<String>> {
+    let values = msi_rows(
+        file,
+        "SELECT `Value` FROM `Property` WHERE `Property` = 'ALLUSERS'",
+    )?;
+    anyhow::ensure!(values.len() <= 1, "Ambiguous MSI installation scope");
+    Ok(values.into_iter().next())
+}
+
+pub(crate) fn msi_scope_arguments(
+    all_users: Option<&str>,
+    scope: Option<&str>,
+) -> Result<&'static str> {
+    match (all_users.filter(|value| !value.is_empty()), scope) {
+        (_, None) => Ok(""),
+        (Some("2"), Some("machine")) => Ok(" ALLUSERS=1 MSIINSTALLPERUSER=\"\""),
+        (Some("2"), Some("user")) => Ok(" ALLUSERS=2 MSIINSTALLPERUSER=1"),
+        (Some("1"), Some("machine")) | (None, Some("user")) => Ok(""),
+        (Some("1"), Some("user")) => bail!("This version supports installation for everyone only. Your current copy is installed just for you. Choose a compatible version to preserve its installation scope."),
+        (None, Some("machine")) => bail!("This version supports installation just for you only. Your current copy is installed for everyone. Choose a compatible version to preserve its installation scope."),
+        _ => bail!("This installer cannot preserve the verified installation scope"),
+    }
+}
+/// Check compatibility while the current installation still exists.
+pub fn validate_msi_replacement_scope(file: &Path, previous: &Installed) -> Result<()> {
+    let existing_msi = previous.install_kind == "installer"
+        && !previous.path.is_empty()
+        && (previous.package_type.eq_ignore_ascii_case("msi")
+            || uuid::Uuid::parse_str(&previous.product_code).is_ok());
+    anyhow::ensure!(
+        !existing_msi
+            || matches!(previous.windows_msi_scope.as_deref(), Some("user" | "machine")),
+        "The current MSI installation scope could not be verified. Repair or reinstall the current version before replacing it."
+    );
+    let all_users = msi_authored_all_users(file)?;
+    msi_scope_arguments(all_users.as_deref(), previous.windows_msi_scope.as_deref())?;
+    Ok(())
+}
+fn msi_use_basic_ui(managed_location: bool, has_destination: bool) -> bool {
+    managed_location && has_destination
+}
 pub fn run(file: &Path, app: &str) -> Result<Installed> {
     run_with_job(file, app, None)
 }
@@ -1316,7 +1461,24 @@ pub fn run_with_destination(
     job: Option<&crate::jobs::Job>,
     destination: Option<&Path>,
 ) -> Result<Installed> {
-    run_with_destination_inner(file, app, job, destination, false, None)
+    run_with_destination_inner(file, app, job, destination, false, None, None)
+}
+/// Reinstall at an explicit location while retaining the selected copy's verified scope.
+pub fn run_relocation(
+    file: &Path,
+    previous: &Installed,
+    job: Option<&crate::jobs::Job>,
+    destination: &Path,
+) -> Result<Installed> {
+    run_with_destination_inner(
+        file,
+        &previous.name,
+        job,
+        Some(destination),
+        false,
+        None,
+        Some(previous),
+    )
 }
 /// Replace an already verified native installation without relocating its files.
 pub fn run_replacement(
@@ -1331,6 +1493,7 @@ pub fn run_replacement(
         Some(Path::new(&previous.path)),
         true,
         None,
+        Some(previous),
     )
 }
 pub fn run_for_version(
@@ -1348,6 +1511,7 @@ pub fn run_for_version(
         destination,
         false,
         Some((expected, selected)),
+        Some(selected),
     )
 }
 fn matches_expected_version(installed: &str, expected: &str) -> bool {
@@ -1386,6 +1550,7 @@ fn run_with_destination_inner(
     destination: Option<&Path>,
     replacing: bool,
     intended: Option<(&str, &Installed)>,
+    previous: Option<&Installed>,
 ) -> Result<Installed> {
     validate_installer_package(file)?;
     if let Some(target) = destination {
@@ -1397,7 +1562,11 @@ fn run_with_destination_inner(
             "This installer does not support custom locations"
         );
         anyhow::ensure!(
-            detect(app)?.is_none(),
+            if replacing {
+                detect_registered_at(app, None, None, None, Some(target))?.is_none()
+            } else {
+                detect(app)?.is_none()
+            },
             "Existing installer updates keep their current location"
         );
         validate_location(target, !replacing)?;
@@ -1410,11 +1579,14 @@ fn run_with_destination_inner(
             .extension()
             .is_some_and(|e| e.eq_ignore_ascii_case("msi"))
     {
-        detect(app)?.map(|a| std::path::PathBuf::from(a.path))
+        detect(app)?
     } else {
         None
     };
-    let destination = destination.or(existing.as_deref());
+    let previous = previous.or(existing.as_ref());
+    let previous = previous.map(snapshot_msi_scope).transpose()?;
+    let existing_destination = existing.as_ref().map(|app| Path::new(&app.path));
+    let destination = destination.or(existing_destination);
     if let Some(job) = job {
         job.check()?;
     }
@@ -1465,11 +1637,24 @@ fn run_with_destination_inner(
                 path.trim_end_matches('\\')
             ));
         }
+        let all_users = msi_rows(
+            file,
+            "SELECT `Value` FROM `Property` WHERE `Property` = 'ALLUSERS'",
+        )?;
+        anyhow::ensure!(all_users.len() <= 1, "Ambiguous MSI installation scope");
+        properties.push_str(msi_scope_arguments(
+            all_users.first().map(String::as_str),
+            previous
+                .as_ref()
+                .and_then(|app| app.windows_msi_scope.as_deref()),
+        )?);
         let package = platform::wide(file);
         let properties = platform::wide(properties);
-        msi_transaction(job, managed_location, || unsafe {
-            MsiInstallProductW(package.as_ptr(), properties.as_ptr())
-        })?
+        msi_transaction(
+            job,
+            msi_use_basic_ui(managed_location, destination.is_some()),
+            || unsafe { MsiInstallProductW(package.as_ptr(), properties.as_ptr()) },
+        )?
     } else {
         run_exe(file, job)?
     };
@@ -1485,7 +1670,7 @@ fn run_with_destination_inner(
         let [product] = product.as_slice() else {
             bail!("Installer package has no unique product identity");
         };
-        detect_registered_product(app,None,None,Some(product))?.context("Installer finished, but its exact product registration and executable could not be verified")?
+        detect_registered_at(app,None,None,Some(product),if replacing { destination } else { None })?.context("Installer finished, but its exact product registration and executable could not be verified")?
     } else if custom_exe && intended.is_some_and(|(_, selected)| !selected.path.is_empty()) {
         let (expected, selected) = intended.context("Missing selected installation")?;
         verify_selected_exe(

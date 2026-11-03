@@ -119,6 +119,7 @@ fn removing_build_shortcuts_preserves_other_builds_and_user_edits() {
         create_named_shortcut(
             &marker,
             Ownership {
+                installation_id: None,
                 app: "filmcraft".into(),
                 library: std::path::absolute(&paths.root).unwrap(),
                 shortcut: None,

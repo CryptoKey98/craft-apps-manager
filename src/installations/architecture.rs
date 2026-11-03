@@ -55,7 +55,7 @@ pub fn release_os() -> &'static str {
 
 pub fn architecture_label(architecture: &str) -> &str {
     if cfg!(target_os = "macos") {
-        "Universal (Intel + Apple silicon)"
+        "Universal"
     } else {
         architecture
     }

@@ -46,6 +46,7 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
         files::read_json(&marker)?
     } else {
         Ownership {
+            installation_id: None,
             app: app.into(),
             library: std::path::absolute(&paths.root)?,
             shortcut: None,
@@ -59,7 +60,62 @@ pub fn installer_desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Re
             ),
         "Shortcut record belongs to another app library"
     );
-    create_installation_shortcut(paths, &marker, owner, target, &desktop()?, "Installer")
+    let desktop = desktop()?;
+    #[cfg(target_os = "windows")]
+    let mut owner = owner;
+    #[cfg(target_os = "windows")]
+    if let Ok(shared) =
+        crate::profiles::known_folder(&windows::Win32::UI::Shell::FOLDERID_PublicDesktop)
+    {
+        if reuse_installer_shortcut(&marker, &mut owner, target, &desktop, &[&shared])? {
+            return Ok(());
+        }
+    }
+    create_installation_shortcut(paths, &marker, owner, target, &desktop, "Installer")
+}
+
+/// Installer-created links remain the installer's responsibility. Reuse only
+/// plain launch links to this exact executable, without adopting their ownership.
+#[cfg(target_os = "windows")]
+fn reuse_installer_shortcut(
+    marker: &Path,
+    owner: &mut Ownership,
+    target: &Path,
+    desktop: &Path,
+    candidates: &[&Path],
+) -> Result<bool> {
+    let executable = crate::model::installed_executable(target, &owner.app)
+        .context("Missing installed executable")?;
+    let found = candidates.iter().any(|directory| {
+        std::fs::read_dir(directory)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .any(|entry| {
+                let path = entry.path();
+                entry.file_type().is_ok_and(|kind| kind.is_file())
+                && path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("lnk"))
+                && !files::linked(&path).unwrap_or(true)
+                && !owner.shortcut.as_ref().is_some_and(|(owned, _)| owned == &path)
+                // shortcut_target rejects arguments and resolves advertised MSI links.
+                && crate::platform::shortcut_target(&path)
+                    .is_some_and(|actual| same_shortcut_target(&actual, &executable))
+            })
+    });
+    if !found {
+        return Ok(false);
+    }
+    if let Some((old, proof)) = owner.shortcut.take() {
+        if owned_installation_title(&owner.app, &old, desktop).is_some()
+            && shortcut_proof(&old).is_ok_and(|actual| actual == proof)
+        {
+            std::fs::remove_file(old)?;
+        }
+    }
+    if marker.exists() {
+        files::write_json(marker, owner)?;
+    }
+    Ok(true)
 }
 
 /// Upgrade only unchanged, manager-owned portable desktop shortcuts.
@@ -158,10 +214,14 @@ pub(super) fn installation_shortcut_title(
         crate::installation_labels::valid_label(label),
         "Portable installation label is missing"
     );
+    let number = if label == "1" {
+        String::new()
+    } else {
+        format!(" · {label}")
+    };
     Ok(format!(
-        "{} ({kind}{architecture} · {})",
-        crate::model::title(app),
-        label
+        "{} ({kind}{architecture}{number})",
+        crate::model::title(app)
     ))
 }
 
@@ -173,11 +233,17 @@ pub(super) fn create_installation_shortcut(
     desktop: &Path,
     kind: &str,
 ) -> Result<()> {
-    let mut config: Option<crate::model::Config> = if paths.at("settings.json").exists() {
-        Some(files::read_json(&paths.at("settings.json"))?)
-    } else {
-        None
+    #[cfg(target_os = "windows")]
+    let owner = {
+        let mut owner = owner;
+        if kind == "Installer"
+            && reuse_installer_shortcut(marker, &mut owner, target, desktop, &[desktop])?
+        {
+            return Ok(());
+        }
+        owner
     };
+    let mut config = paths.read_inventory()?;
     if let Some(config) = &mut config {
         crate::installation_labels::assign(config)?;
     }
@@ -242,6 +308,10 @@ pub(super) fn owned_installation_title(app: &str, path: &Path, desktop: &Path) -
             | "Installer x64"
             | "Installer x86"
             | "Installer arm64"
+            | "Portable"
+            | "Portable x64"
+            | "Portable x86"
+            | "Portable arm64"
     ) {
         return Some(title.into());
     }
@@ -257,6 +327,7 @@ pub(super) fn owned_installation_title(app: &str, path: &Path, desktop: &Path) -
             | "Installer x86"
             | "Installer arm64"
     ) || !(crate::installation_labels::valid_label(digest)
+        || crate::installation_labels::legacy_label(digest)
         || digest.len() == 8 && digest.bytes().all(|c| c.is_ascii_hexdigit()))
     {
         return None;
@@ -325,6 +396,7 @@ pub(super) fn build_desktop_shortcut_at(
         files::read_json(&marker)?
     } else {
         Ownership {
+            installation_id: None,
             app: app.into(),
             library: std::path::absolute(&paths.root)?,
             shortcut: None,
@@ -639,3 +711,6 @@ pub(super) fn desktop() -> Result<PathBuf> {
 #[cfg(all(test, target_os = "windows"))]
 #[path = "build_shortcut_tests.rs"]
 mod build_shortcut_tests;
+
+#[cfg(all(test, target_os = "windows"))]
+mod installer_shortcut_tests;

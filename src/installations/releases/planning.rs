@@ -13,6 +13,8 @@ pub struct ReleaseEntry {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct ReleasePlan {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) native_rollback: Option<String>,
     #[serde(default)]
     pub additional_installation: bool,
     pub entries: Vec<ReleaseEntry>,
@@ -60,6 +62,37 @@ impl ReleasePlan {
     }
 }
 
+pub(crate) fn plan_native_rollback(
+    paths: &Paths,
+    installed: &crate::model::Installed,
+    id: &str,
+    version: &str,
+    tag: &str,
+    asset: Asset,
+) -> Result<ReleasePlan> {
+    let config = paths.config()?;
+    let preferences = paths.read_preferences_locked()?;
+    let options = crate::install_options::for_installed(&preferences, installed)?;
+    Ok(ReleasePlan {
+        native_rollback: Some(id.into()),
+        additional_installation: false,
+        entries: vec![ReleaseEntry {
+            app: installed.name.clone(),
+            action: "Update".into(),
+            version: version.into(),
+            asset: Some(asset),
+            destination: None,
+            error: None,
+            preferences: options.clone(),
+        }],
+        snapshot: state_snapshot(paths, &preferences, &config)?,
+        preferences: options,
+        requested_tag: Some(tag.into()),
+        desktop_shortcut: false,
+        installer_destination: None,
+    })
+}
+
 pub(super) fn state_snapshot(
     paths: &Paths,
     prefs: &Preferences,
@@ -101,7 +134,7 @@ pub(super) fn state_snapshot(
 pub fn plan_releases(paths: &Paths, job: &Job) -> Result<ReleasePlan> {
     let network = Network::new(&paths.root)?;
     plan_with(paths, job, None, |name| {
-        network.json(&format!(
+        network.release_json(&format!(
             "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
@@ -112,18 +145,112 @@ pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
     crate::model::valid_app(app)?;
     let network = Network::new(&paths.root)?;
     plan_with(paths, job, Some(app), |name| {
-        network.json(&format!(
+        network.release_json(&format!(
             "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
     })
 }
 
+/// Interactive previews may reuse the window's observed inventory. Execution
+/// still reloads inventory and compares the complete snapshot under its lock.
+pub fn plan_install_preview(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    tag: Option<&str>,
+    additional: bool,
+    config: crate::model::Config,
+) -> Result<ReleasePlan> {
+    let network = Network::new(&paths.root)?;
+    plan_preview_with(paths, job, app, tag, additional, config, |app| {
+        let mut url = reqwest::Url::parse(&format!(
+            "https://api.github.com/repos/{}/releases/",
+            crate::model::repository(app)
+        ))?;
+        if let Some(tag) = tag {
+            url.path_segments_mut()
+                .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+                .pop_if_empty()
+                .push("tags")
+                .push(tag);
+        } else {
+            url.path_segments_mut()
+                .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
+                .pop_if_empty()
+                .push("latest");
+        }
+        network.release_json(url.as_str())
+    })
+}
+
+pub(super) fn plan_preview_with(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    tag: Option<&str>,
+    additional: bool,
+    mut config: crate::model::Config,
+    mut fetch: impl FnMut(&str) -> Result<Release>,
+) -> Result<ReleasePlan> {
+    crate::model::valid_app(app)?;
+    anyhow::ensure!(
+        Path::new(&config.apps_root) == paths.root,
+        "Preview inventory belongs to another library"
+    );
+    anyhow::ensure!(
+        config.apps.iter().any(|entry| entry.name == app),
+        "App missing from preview inventory"
+    );
+    if let Some(tag) = tag {
+        release_version(tag)?;
+    }
+    let prefs = paths.read_preferences()?;
+    // Empty observations carry preference-derived placeholder kinds, not
+    // installation identities. Bring those up to date when options changed
+    // since the window's inventory refresh; preserve every installed fact.
+    for entry in config.apps.iter_mut().filter(|entry| {
+        entry.path.is_empty() && entry.version.is_empty() && entry.product_code.is_empty()
+    }) {
+        entry.install_kind =
+            if crate::install_options::preferred(&prefs, &entry.name).release_format == "installer"
+            {
+                "installer"
+            } else {
+                "portable"
+            }
+            .into();
+    }
+    let release = fetch(app)?;
+    if let Some(tag) = tag {
+        anyhow::ensure!(
+            release.tag_name == tag,
+            "The release tag changed; choose the version again"
+        );
+    }
+    let mut plan = if additional {
+        plan_additional_from_config(paths, job, app, prefs, config, |_| Ok(release.clone()))?
+    } else if tag.is_some() {
+        plan_selected_version_from_config(paths, job, app, release, prefs, config)?
+    } else {
+        plan_from_config(
+            paths,
+            job,
+            Some(app),
+            prefs,
+            config,
+            |_| Ok(release.clone()),
+        )?
+    };
+    plan.requested_tag = tag.map(str::to_owned);
+    Ok(plan)
+}
+
 /// Preview a new copy without changing the currently selected installation.
 pub fn plan_additional(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
     let network = Network::new(&paths.root)?;
     plan_additional_with(paths, job, app, |name| {
-        network.json(&format!(
+        network.release_json(&format!(
             "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(name)
         ))
@@ -147,7 +274,7 @@ pub fn plan_additional_version(
         .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
         .pop_if_empty()
         .push(tag);
-    let release: Release = Network::new(&paths.root)?.json(url.as_str())?;
+    let release: Release = Network::new(&paths.root)?.release_json(url.as_str())?;
     anyhow::ensure!(
         release.tag_name == tag,
         "The release tag changed; choose the version again"
@@ -165,7 +292,18 @@ pub(super) fn plan_additional_with(
 ) -> Result<ReleasePlan> {
     crate::model::valid_app(app)?;
     let prefs = paths.read_preferences()?;
-    let mut config = paths.config()?;
+    let config = paths.config()?;
+    plan_additional_from_config(paths, job, app, prefs, config, fetch)
+}
+
+fn plan_additional_from_config(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    prefs: Preferences,
+    mut config: crate::model::Config,
+    fetch: impl FnMut(&str) -> Result<Release>,
+) -> Result<ReleasePlan> {
     let snapshot = state_snapshot(paths, &prefs, &config)?;
     let native_exists = config
         .installations
@@ -309,7 +447,7 @@ pub fn plan_version(paths: &Paths, job: &Job, app: &str, tag: &str) -> Result<Re
         .map_err(|_| anyhow::anyhow!("Invalid release endpoint"))?
         .pop_if_empty()
         .push(tag);
-    let release: Release = Network::new(&paths.root)?.json(url.as_str())?;
+    let release: Release = Network::new(&paths.root)?.release_json(url.as_str())?;
     anyhow::ensure!(
         release.tag_name == tag,
         "The release tag changed; choose the version again"
@@ -323,13 +461,27 @@ pub(super) fn plan_selected_version(
     app: &str,
     release: Release,
 ) -> Result<ReleasePlan> {
+    let prefs = paths.read_preferences()?;
+    let config = paths.config()?;
+    plan_selected_version_from_config(paths, job, app, release, prefs, config)
+}
+
+fn plan_selected_version_from_config(
+    paths: &Paths,
+    job: &Job,
+    app: &str,
+    release: Release,
+    prefs: Preferences,
+    config: crate::model::Config,
+) -> Result<ReleasePlan> {
     let tag = release.tag_name.clone();
-    let mut plan = plan_with(paths, job, Some(app), |_| Ok(release.clone()))?;
+    let mut plan = plan_from_config(paths, job, Some(app), prefs, config.clone(), |_| {
+        Ok(release.clone())
+    })?;
     anyhow::ensure!(
         !plan.entries.is_empty(),
         "App is missing from the current catalog"
     );
-    let config = paths.config()?;
     for entry in &mut plan.entries {
         // Only an explicit selection can downgrade. Update all still skips older versions.
         if entry.error.is_none() && entry.action == "Skip" {
@@ -536,6 +688,7 @@ pub(super) fn plan_from_config(
         return Err(error);
     }
     Ok(ReleasePlan {
+        native_rollback: None,
         additional_installation: false,
         requested_tag: None,
         desktop_shortcut: false,

@@ -68,18 +68,25 @@ fn installation_shortcut_names_distinguish_copies_and_validate_ownership() {
     let root = std::env::temp_dir().join("shortcut-names");
     let desktop = root.join("desktop");
     let first =
-        installation_shortcut_title("filmcraft", &root.join("first"), "Portable", "x64", "A")
+        installation_shortcut_title("filmcraft", &root.join("first"), "Portable", "x64", "1")
             .unwrap();
     let second =
-        installation_shortcut_title("filmcraft", &root.join("second"), "Portable", "x64", "B")
+        installation_shortcut_title("filmcraft", &root.join("second"), "Portable", "x64", "2")
             .unwrap();
     let installer =
         installation_shortcut_title("filmcraft", &root.join("first"), "Installer", "x64", "")
             .unwrap();
+    assert_eq!(first, "FilmCraft (Portable x64)");
+    assert_eq!(second, "FilmCraft (Portable x64 · 2)");
     assert_ne!(first, second);
     assert_ne!(first, installer);
     assert_eq!(installer, "FilmCraft (x64)");
-    for title in ["FilmCraft (x64)", "FilmCraft (Installer x64)"] {
+    for title in [
+        "FilmCraft (x64)",
+        "FilmCraft (Installer x64)",
+        "FilmCraft (Portable x64 · A)",
+        "FilmCraft (Portable x64 · 3)",
+    ] {
         let shortcut = desktop.join(format!("{title}.{}", crate::platform::shortcut_extension()));
         assert_eq!(
             owned_installation_title("filmcraft", &shortcut, &desktop).as_deref(),
@@ -129,9 +136,10 @@ fn multiple_installation_shortcuts_survive_updates_moves_and_individual_removal(
             .unwrap() = record.clone();
         config.installations.push(record);
         paths.save_config(&config).unwrap();
-        config = files::read_json(&paths.at("settings.json")).unwrap();
+        config = files::read_json(&paths.at("installations.json")).unwrap();
         let marker = target.join(MARKER);
         let owner = Ownership {
+            installation_id: None,
             app: "filmcraft".into(),
             library: paths.root.clone(),
             shortcut: None,
@@ -200,20 +208,22 @@ fn legacy_shortcut_is_replaced_only_when_still_owned() {
         std::fs::create_dir_all(&target).unwrap();
         std::fs::write(target.join("filmcraft.exe"), b"fixture").unwrap();
         // A pre-label installation record must still be usable.
-        files::write_json(&paths.at("settings.json"), &serde_json::json!({"appsRoot":paths.root, "apps":[{"name":"filmcraft","path":target,"version":"0.1.0","architecture":"x64","install_kind":"portable"}]})).unwrap();
+        files::write_json(&paths.at("installations.json"), &serde_json::json!({"appsRoot":paths.root, "apps":[{"name":"filmcraft","path":target,"version":"0.1.0","architecture":"x64","install_kind":"portable"}]})).unwrap();
         let marker = target.join(MARKER);
-        create_shortcut(
+        create_named_shortcut(
             &marker,
             Ownership {
+                installation_id: None,
                 app: "filmcraft".into(),
                 library: paths.root.clone(),
                 shortcut: None,
             },
             &target,
             &desktop,
+            "FilmCraft (Portable x64 · A)",
         )
         .unwrap();
-        let legacy = desktop.join("FilmCraft.lnk");
+        let legacy = desktop.join("FilmCraft (Portable x64 · A).lnk");
         if edited {
             std::fs::write(&legacy, b"user edit").unwrap();
         }
@@ -239,6 +249,7 @@ fn installer_shortcuts_are_tracked_without_writing_to_app_folder() {
     std::fs::write(target.join("photocraft.exe"), b"fixture").unwrap();
     let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
     let owner = Ownership {
+        installation_id: None,
         app: "photocraft".into(),
         library: root.clone(),
         shortcut: None,
@@ -275,6 +286,7 @@ fn shortcuts_repair_when_the_target_still_points_at_the_app() {
     std::fs::write(target.join("photocraft.exe"), b"fixture").unwrap();
     let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
     let owner = Ownership {
+        installation_id: None,
         app: "photocraft".into(),
         library: root.clone(),
         shortcut: None,
@@ -318,6 +330,7 @@ fn installer_cache_path_alone_does_not_prove_shortcut_ownership() {
     crate::platform::shortcut(&shortcut, &advertised, "", &target).unwrap();
     let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
     let owner = Ownership {
+        installation_id: None,
         app: "photocraft".into(),
         library: root.clone(),
         shortcut: None,
@@ -345,6 +358,7 @@ fn shortcuts_pointing_elsewhere_are_left_unchanged() {
     let before = std::fs::read(&shortcut).unwrap();
     let marker = root.join("runtime/desktop-shortcuts/photocraft.json");
     let owner = Ownership {
+        installation_id: None,
         app: "photocraft".into(),
         library: root.clone(),
         shortcut: None,
@@ -360,6 +374,7 @@ fn shortcuts_pointing_elsewhere_are_left_unchanged() {
     .unwrap();
     let before = std::fs::read(&shortcut).unwrap();
     let owner = Ownership {
+        installation_id: None,
         app: "photocraft".into(),
         library: root.clone(),
         shortcut: None,
@@ -433,12 +448,30 @@ fn additional_library_copies_are_flat_numbered_and_never_replace_existing_files(
         additional_destination(&paths, &custom_parent, "filmcraft").unwrap(),
         custom_parent.join("filmcraft")
     );
-    assert!(validate_install(&paths, "filmcraft", &custom_parent.join("filmcraft-2")).is_err());
+    // Numbered owned copies can retain their leaf when moved outside the library.
+    validate_install(&paths, "filmcraft", &custom_parent.join("filmcraft-2")).unwrap();
+    assert!(validate_install(&paths, "filmcraft", &custom_parent.join("filmcraft-01")).is_err());
+    let numbered = custom_parent.join("filmcraft-2");
+    std::fs::create_dir_all(&numbered).unwrap();
+    assert!(validate(&paths, "filmcraft", &numbered).is_err());
+    mark_additional(&paths, "filmcraft", &numbered).unwrap();
+    validate(&paths, "filmcraft", &numbered).unwrap();
+    assert!(validate(
+        &Paths::new(root.join("foreign"), None),
+        "filmcraft",
+        &numbered
+    )
+    .is_err());
     assert_eq!(
         std::fs::read(library.join("filmcraft/keep.txt")).unwrap(),
         b"original"
     );
     assert_eq!(std::fs::read(&second).unwrap(), b"unrelated file");
+    std::fs::remove_dir_all(library.join("filmcraft")).unwrap();
+    assert_eq!(
+        additional_destination(&paths, &library, "filmcraft").unwrap(),
+        library.join("filmcraft")
+    );
     std::fs::remove_dir_all(root).unwrap();
 }
 #[test]

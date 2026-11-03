@@ -31,18 +31,12 @@ pub fn title(name: &str) -> String {
         .unwrap_or_else(|| crate::catalog::pretty(name))
 }
 
-/// The upstream repository as an `owner/name` slug. Storytold apps store a
-/// bare name in the catalog; third-party apps store a full slug.
+/// The upstream repository as an `owner/name` slug. Supported apps store a
+/// stable bare key; user-added apps store their explicit full slug.
 pub fn repository(name: &str) -> String {
     crate::catalog::get(name)
-        .map(|e| {
-            if e.repository.contains('/') {
-                e.repository
-            } else {
-                format!("{}/{}", crate::catalog::ORG, e.repository)
-            }
-        })
-        .unwrap_or_else(|| format!("{}/{}", crate::catalog::ORG, name))
+        .map(|e| crate::catalog::repository_slug(&e.repository))
+        .unwrap_or_else(|| crate::catalog::repository_slug(name))
 }
 
 /// The bare repository name, without any `owner/` prefix. Used where a single
@@ -51,6 +45,22 @@ pub fn repository_name(name: &str) -> String {
     crate::catalog::get(name)
         .map(|e| crate::catalog::repository_name(&e.repository).to_string())
         .unwrap_or_else(|| name.into())
+}
+
+/// Direct image URL; icon lookup does not consume GitHub API requests.
+pub fn icon_url(name: &str) -> String {
+    let repository = repository(name);
+    let path = super::EXTERNAL_APPS
+        .iter()
+        .find(|source| source.repository.eq_ignore_ascii_case(&repository))
+        .map(|source| source.icon_path.to_owned())
+        .unwrap_or_else(|| {
+            format!(
+                "assets/app-icon/hicolor/64x64/apps/ai.storyteller.{}.png",
+                repository_name(name)
+            )
+        });
+    format!("https://raw.githubusercontent.com/{repository}/HEAD/{path}")
 }
 
 /// Short category shown under each app, taken from the upstream repository description.

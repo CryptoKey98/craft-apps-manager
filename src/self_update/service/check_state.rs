@@ -89,10 +89,8 @@ fn inner(profile: &ClientProfile, ctx: &CheckContext<'_>) -> Result<CheckOutcome
         State::default()
     };
     let cached = || verify_catalog(&state.bytes, ctx.trust, ctx.now, prior.as_ref());
-    let interval = match ctx.trigger {
-        CheckTrigger::Periodic(mins) => mins.clamp(10, 60) * 60,
-        _ => 60,
-    } as i64;
+    // Scheduling decides when periodic checks run, independently of freshness.
+    let interval = 60;
     // A backward clock cannot suppress requests indefinitely or authorize expired bytes.
     if !matches!(ctx.trigger, CheckTrigger::BridgeRestart)
         && (ctx.now >= state.checked && ctx.now.saturating_sub(state.checked) < interval

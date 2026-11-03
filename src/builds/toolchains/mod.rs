@@ -10,6 +10,20 @@ pub use linux::*;
 mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::*;
+#[cfg(unix)]
+mod unix_tools;
+
+#[cfg(unix)]
+pub fn node_npm(
+    paths: &crate::model::Paths,
+) -> anyhow::Result<(std::path::PathBuf, std::path::PathBuf)> {
+    use anyhow::Context;
+    Ok((
+        unix_tools::node(paths)
+            .context("ArtCraft X requires Node.js 20+; use Set up build tools")?,
+        unix_tools::npm(paths).context("ArtCraft X requires npm; use Set up build tools")?,
+    ))
+}
 
 /// Path passed to compilers, which can have stricter limits than file operations.
 pub fn build_path(path: &std::path::Path) -> anyhow::Result<std::path::PathBuf> {

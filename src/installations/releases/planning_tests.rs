@@ -1,4 +1,41 @@
 #[cfg(target_os = "windows")]
+fn approved_recovery_msi_fixture(file: &Path) {
+    #[link(name = "msi")]
+    unsafe extern "system" {
+        fn MsiOpenDatabaseW(path: *const u16, mode: *const u16, database: *mut u32) -> u32;
+        fn MsiDatabaseOpenViewW(database: u32, query: *const u16, view: *mut u32) -> u32;
+        fn MsiViewExecute(view: u32, record: u32) -> u32;
+        fn MsiDatabaseCommit(database: u32) -> u32;
+        fn MsiCloseHandle(handle: u32) -> u32;
+    }
+    let mut database = 0;
+    assert_eq!(
+        unsafe {
+            MsiOpenDatabaseW(
+                crate::platform::wide(file).as_ptr(),
+                3usize as *const u16,
+                &mut database,
+            )
+        },
+        0
+    );
+    let query = crate::platform::wide("CREATE TABLE `Property` (`Property` CHAR(72) NOT NULL, `Value` CHAR(0) LOCALIZABLE PRIMARY KEY `Property`)");
+    let mut view = 0;
+    assert_eq!(
+        unsafe { MsiDatabaseOpenViewW(database, query.as_ptr(), &mut view) },
+        0
+    );
+    assert_eq!(unsafe { MsiViewExecute(view, 0) }, 0);
+    unsafe {
+        MsiCloseHandle(view);
+    }
+    assert_eq!(unsafe { MsiDatabaseCommit(database) }, 0);
+    unsafe {
+        MsiCloseHandle(database);
+    }
+}
+
+#[cfg(target_os = "windows")]
 #[test]
 fn approved_recovery_is_pinned_and_never_falls_back_to_release_discovery() {
     use sha2::{Digest, Sha256};
@@ -7,20 +44,31 @@ fn approved_recovery_is_pinned_and_never_falls_back_to_release_discovery() {
         name: "photocraft".into(),
         ..Default::default()
     };
-    let bytes = b"approved package fixture";
     let file = paths.at("releases/installers/photocraft/approved.msi");
     fs::create_dir_all(file.parent().unwrap()).unwrap();
-    fs::write(&file, bytes).unwrap();
+    approved_recovery_msi_fixture(&file);
+    let bytes = fs::read(&file).unwrap();
     let asset = Asset {
         name: "approved.msi".into(),
         size: bytes.len() as u64,
         browser_download_url: "https://example.invalid/never-requested".into(),
-        digest: Some(format!("sha256:{:x}", Sha256::digest(bytes))),
+        digest: Some(format!("sha256:{:x}", Sha256::digest(&bytes))),
     };
     let approved = std::collections::BTreeMap::from([("photocraft".into(), asset)]);
     assert_eq!(
         downgrade_recovery_path(&paths, &app, &job, Some(&approved)).unwrap(),
         file
+    );
+    // A checksum-approved source must still preserve the selected copy's scope.
+    let machine_app = crate::model::Installed {
+        windows_msi_scope: Some("machine".into()),
+        ..app.clone()
+    };
+    assert!(
+        downgrade_recovery_path(&paths, &machine_app, &job, Some(&approved))
+            .unwrap_err()
+            .to_string()
+            .contains("installation scope")
     );
     assert!(
         downgrade_recovery_path(&paths, &app, &job, Some(&Default::default()))
@@ -35,8 +83,73 @@ fn approved_recovery_is_pinned_and_never_falls_back_to_release_discovery() {
 }
 use super::*;
 use std::sync::atomic::Ordering;
+#[test]
+#[ignore = "local release-mode install-dialog phase measurements"]
+fn install_dialog_phase_timings() {
+    use std::time::Instant;
+    let project = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let session: serde_json::Value = serde_json::from_slice(
+        &fs::read(project.join("target/install-dialog-timing-session.json")).unwrap(),
+    )
+    .unwrap();
+    let root = PathBuf::from(session["Path"].as_str().unwrap()).join("data");
+    assert!(root.starts_with(project.join("target")));
+    let paths = Paths::new(root, None);
+    crate::catalog::load(&paths.root);
+    let job = Job::new(paths.at("logs/phase-benchmark.log"), &Default::default());
+    let endpoint = format!(
+        "https://api.github.com/repos/{}/releases/latest",
+        crate::model::repository("filmcraft")
+    );
+    let release: Release =
+        Network::cached_json(&paths.root, &endpoint).expect("Load FilmCraft preview once first");
+    let observed = paths.config().unwrap();
+    plan_install_preview(&paths, &job, "filmcraft", None, false, observed.clone()).unwrap();
+    let mut rows = Vec::new();
+    for _ in 0..8 {
+        let start = Instant::now();
+        let prefs = paths.read_preferences().unwrap();
+        let preferences_ms = start.elapsed().as_secs_f64() * 1000.;
+        let start = Instant::now();
+        let config = paths.config().unwrap();
+        let inventory_ms = start.elapsed().as_secs_f64() * 1000.;
+        let start = Instant::now();
+        let _: Release = Network::cached_json(&paths.root, &endpoint).unwrap();
+        let cached_release_ms = start.elapsed().as_secs_f64() * 1000.;
+        let start = Instant::now();
+        let _ = state_snapshot(&paths, &prefs, &config).unwrap();
+        let snapshot_ms = start.elapsed().as_secs_f64() * 1000.;
+        let start = Instant::now();
+        let plan = plan_from_config(&paths, &job, Some("filmcraft"), prefs, config, |_| {
+            Ok(release.clone())
+        })
+        .unwrap();
+        assert!(
+            plan.entries[0].error.is_none(),
+            "{:?}",
+            plan.entries[0].error
+        );
+        let plan_ms = start.elapsed().as_secs_f64() * 1000.;
+        let start = Instant::now();
+        let preview =
+            plan_install_preview(&paths, &job, "filmcraft", None, false, observed.clone()).unwrap();
+        assert!(preview.entries[0].error.is_none());
+        let cached_preview_ms = start.elapsed().as_secs_f64() * 1000.;
+        rows.push(serde_json::json!({"preferences_ms":preferences_ms,"inventory_ms":inventory_ms,"cached_release_ms":cached_release_ms,"snapshot_ms":snapshot_ms,"plan_ms":plan_ms,"cached_preview_ms":cached_preview_ms}));
+    }
+    let report = serde_json::to_string_pretty(&rows).unwrap();
+    fs::write(
+        project.join("target/install-dialog-phase-timings.json"),
+        &report,
+    )
+    .unwrap();
+    println!("{report}");
+}
 fn fixture() -> (Paths, Job) {
-    let root = std::env::temp_dir().join(format!("craft-plan-{}", uuid::Uuid::new_v4()));
+    let root = std::env::temp_dir()
+        .canonicalize()
+        .unwrap()
+        .join(format!("craft-plan-{}", uuid::Uuid::new_v4()));
     let paths = Paths::new(root, None);
     files::write_json(
         &paths.at("updater-settings.json"),
@@ -52,9 +165,158 @@ fn fixture() -> (Paths, Job) {
 }
 
 #[test]
+fn preview_uses_supplied_inventory_and_execution_still_rejects_changed_state() {
+    let (paths, job) = fixture();
+    let mut config = paths.config().unwrap();
+    let original = config.clone();
+    config.apps.retain(|app| app.name == "photocraft");
+    let plan = plan_preview_with(&paths, &job, "photocraft", None, false, config, |_| {
+        Ok(release("photocraft", "0.2.0"))
+    })
+    .unwrap();
+    let (_, snapshot, _): (Preferences, crate::model::Config, serde_json::Value) =
+        serde_json::from_slice(&plan.snapshot).unwrap();
+    assert_eq!(
+        snapshot.apps.len(),
+        1,
+        "Preview must reuse supplied inventory"
+    );
+    assert_eq!(plan.entries[0].action, "Install");
+    paths.save_config(&original).unwrap();
+    let mut executed = false;
+    assert!(execute_validated(&paths, &plan, |_| {
+        executed = true;
+        Ok(())
+    })
+    .is_err());
+    assert!(
+        !executed,
+        "Fresh execution validation cannot accept changed inventory"
+    );
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn observed_preview_preserves_version_and_additional_copy_plans() {
+    let (paths, job) = installed_fixture();
+    for additional in [false, true] {
+        for tag in [None, Some("0.0.9")] {
+            let release = release("photocraft", "0.0.9");
+            let config = paths.config().unwrap();
+            let preview =
+                plan_preview_with(&paths, &job, "photocraft", tag, additional, config, |_| {
+                    Ok(release.clone())
+                })
+                .unwrap();
+            let mut expected = if additional {
+                plan_additional_with(&paths, &job, "photocraft", |_| Ok(release.clone())).unwrap()
+            } else if tag.is_some() {
+                plan_selected_version(&paths, &job, "photocraft", release.clone()).unwrap()
+            } else {
+                plan_with(&paths, &job, Some("photocraft"), |_| Ok(release.clone())).unwrap()
+            };
+            expected.requested_tag = tag.map(str::to_owned);
+            assert_eq!(
+                serde_json::to_value(&preview).unwrap(),
+                serde_json::to_value(&expected).unwrap()
+            );
+            let mut checked = false;
+            execute_validated(&paths, &preview, |_| {
+                checked = true;
+                Ok(())
+            })
+            .unwrap();
+            assert!(
+                checked,
+                "Unchanged observations must pass fresh execution checks"
+            );
+        }
+    }
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn changing_format_for_an_uninstalled_app_keeps_the_preview_executable() {
+    let (paths, job) = fixture();
+    let base = paths.read_preferences().unwrap();
+    let mut preferences = base.clone();
+    preferences.app_install_options.insert(
+        crate::install_options::identity("photocraft"),
+        crate::install_options::InstallOptions {
+            release_format: "portable".into(),
+            architecture: crate::model::MANAGER_ARCH.into(),
+        },
+    );
+    crate::storage::settings::save_preferences_patch(&paths, &base, &preferences).unwrap();
+    let mut observed = paths.config().unwrap();
+    let placeholder = observed
+        .apps
+        .iter_mut()
+        .find(|app| app.name == "photocraft")
+        .unwrap();
+    assert!(placeholder.path.is_empty());
+    // A window observation from before switching Installer to Portable still
+    // carries the old preference-derived placeholder kind, not installed facts.
+    placeholder.install_kind = "installer".into();
+    let preview = plan_preview_with(&paths, &job, "photocraft", None, false, observed, |_| {
+        Ok(release("photocraft", "0.2.0"))
+    })
+    .unwrap();
+    assert!(preview.entries[0].error.is_none());
+    let expected = plan_with(&paths, &job, Some("photocraft"), |_| {
+        Ok(release("photocraft", "0.2.0"))
+    })
+    .unwrap();
+    assert!(
+        preview.snapshot == expected.snapshot,
+        "Uninstalled placeholders must follow current options"
+    );
+    execute_validated(&paths, &preview, |_| Ok(())).unwrap();
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn observed_preview_rejects_foreign_inventory_and_changed_tags_and_missing_digests() {
+    let (paths, job) = fixture();
+    let config = paths.config().unwrap();
+    let mut foreign = config.clone();
+    foreign.apps_root = paths.at("another-library").display().to_string();
+    assert!(plan_preview_with(
+        &paths,
+        &job,
+        "photocraft",
+        None,
+        false,
+        foreign,
+        |_| panic!("Reject foreign inventory before requesting metadata")
+    )
+    .is_err());
+    assert!(plan_preview_with(
+        &paths,
+        &job,
+        "photocraft",
+        Some("0.2.0"),
+        false,
+        config.clone(),
+        |_| Ok(release("photocraft", "0.3.0"))
+    )
+    .is_err());
+    let mut unverified = release("photocraft", "0.2.0");
+    for asset in &mut unverified.assets {
+        asset.digest = None;
+    }
+    let preview = plan_preview_with(&paths, &job, "photocraft", None, false, config, |_| {
+        Ok(unverified.clone())
+    })
+    .unwrap();
+    assert!(preview.entries[0].error.is_some());
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
 fn additional_install_preview_preserves_existing_copy_and_rejects_collisions() {
     let (paths, job) = installed_fixture();
-    let before = fs::read(paths.at("settings.json")).unwrap();
+    let before = fs::read(paths.at("installations.json")).unwrap();
     let existing = crate::apps::installed(&paths, "photocraft").unwrap();
     let mut plan = plan_additional_with(&paths, &job, "photocraft", |name| {
         Ok(release(name, "0.2.0"))
@@ -78,7 +340,7 @@ fn additional_install_preview_preserves_existing_copy_and_rejects_collisions() {
         "{:?}",
         plan.entries[0].error
     );
-    assert_eq!(fs::read(paths.at("settings.json")).unwrap(), before);
+    assert_eq!(fs::read(paths.at("installations.json")).unwrap(), before);
     let parent = paths.at("releases/second-copy");
     choose_destination(&paths, &mut plan, &parent, false).unwrap();
     assert_eq!(plan.entries[0].destination, Some(parent.join("photocraft")));
@@ -97,7 +359,7 @@ fn additional_install_preview_preserves_existing_copy_and_rejects_collisions() {
         Ok(())
     })
     .unwrap();
-    assert_eq!(fs::read(paths.at("settings.json")).unwrap(), before);
+    assert_eq!(fs::read(paths.at("installations.json")).unwrap(), before);
     fs::create_dir_all(parent.join("photocraft")).unwrap();
     assert!(execute_validated(&paths, &plan, |_| panic!(
         "must reject collision before execution"
@@ -212,7 +474,12 @@ fn newly_installed_app_is_selected_once_without_resetting_other_preferences() {
     let mut preferences = paths.read_preferences().unwrap();
     preferences.selected_apps.clear();
     preferences.close_to_tray = true;
-    crate::files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &preferences,
+    )
+    .unwrap();
     include_new_install(&paths, "photocraft").unwrap();
     include_new_install(&paths, "photocraft").unwrap();
     let saved = paths.read_preferences().unwrap();
@@ -235,7 +502,12 @@ fn installed_fixture() -> (Paths, Job) {
             },
         );
     }
-    files::write_json(&paths.at("updater-settings.json"), &prefs).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &prefs,
+    )
+    .unwrap();
     let apps = ["photocraft", "filmcraft"].into_iter().map(|name| {
             let folder = paths.at(format!("releases/{name}"));
             let executable = folder.join(crate::model::executable_name(name));
@@ -247,7 +519,7 @@ fn installed_fixture() -> (Paths, Job) {
             crate::model::Installed { name: name.into(), version: "0.1.0".into(), path: folder.display().to_string(), architecture: crate::model::MANAGER_ARCH.into(), install_kind: "portable".into(), ..Default::default() }
         }).collect::<Vec<_>>();
     files::write_json(
-        &paths.at("settings.json"),
+        &paths.at("installations.json"),
         &crate::model::Config {
             portable_label_counters: Default::default(),
             apps_root: paths.root.display().to_string(),
@@ -275,7 +547,12 @@ fn preferred_architecture_change_requires_uninstall_but_bulk_keeps_installed_opt
             architecture: other_architecture.into(),
         },
     );
-    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &prefs,
+    )
+    .unwrap();
     let plan = plan_with(&paths, &job, Some("photocraft"), |app| {
         Ok(release(app, "0.1.0"))
     })
@@ -297,7 +574,8 @@ fn bulk_updates_never_install_missing_apps_but_explicit_install_still_works() {
     let (paths, job) = installed_fixture();
     fs::remove_dir_all(paths.at("releases/filmcraft")).unwrap();
     // Planning fixtures must not discover real packages installed on the test machine.
-    let mut config: crate::model::Config = files::read_json(&paths.at("settings.json")).unwrap();
+    let mut config: crate::model::Config =
+        files::read_json(&paths.at("installations.json")).unwrap();
     config.installations.retain(|app| app.name != "filmcraft");
     *config
         .apps
@@ -388,7 +666,6 @@ fn release(app: &str, tag: &str) -> Release {
 }
 #[test]
 fn downgrade_availability_reuses_cached_latest_and_survives_restart() {
-    use sha2::Digest;
     let (paths, _) = fixture();
     let prefs = Preferences {
         release_format: "portable".into(),
@@ -407,15 +684,12 @@ fn downgrade_availability_reuses_cached_latest_and_survives_restart() {
         "https://api.github.com/repos/{}/releases/latest",
         crate::model::repository("photocraft")
     );
-    let cache = paths.at(format!(
-        "runtime/api-cache/{:x}.json",
-        sha2::Sha256::digest(endpoint.as_bytes())
-    ));
-    files::write_json(
-        &cache,
-        &serde_json::json!({ "at": 0, "etag": null, "value": release("photocraft", "0.4.0") }),
-    )
-    .unwrap();
+    crate::network::cache_tests::seed(
+        &paths.root,
+        &endpoint,
+        0,
+        serde_json::to_value(release("photocraft", "0.4.0")).unwrap(),
+    );
     assert_eq!(
         cached_installation_check(&paths, &installed, &prefs)
             .unwrap()
@@ -520,7 +794,7 @@ fn only_explicit_version_selection_can_plan_a_downgrade_and_stays_pinned() {
         ..Default::default()
     };
     files::write_json(
-        &paths.at("settings.json"),
+        &paths.at("installations.json"),
         &crate::model::Config {
             portable_label_counters: Default::default(),
             apps_root: paths.root.display().to_string(),
@@ -536,7 +810,12 @@ fn only_explicit_version_selection_can_plan_a_downgrade_and_stays_pinned() {
     assert_eq!(ordinary.entries[0].action, "Skip");
     let mut prefs = paths.read_preferences().unwrap();
     prefs.selected_apps = vec!["filmcraft".into()];
-    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &prefs,
+    )
+    .unwrap();
     let explicit =
         plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.3.0")).unwrap();
     assert_eq!(explicit.entries.len(), 1);
@@ -623,7 +902,12 @@ fn legacy_mac_architecture_is_current_for_same_universal_release() {
     let mut prefs = paths.read_preferences().unwrap();
     prefs.architecture = "arm64".into();
     prefs.selected_apps = vec!["photocraft".into()];
-    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &prefs,
+    )
+    .unwrap();
     let record = crate::model::Installed {
         name: "photocraft".into(),
         version: "0.4.0".into(),
@@ -638,7 +922,7 @@ fn legacy_mac_architecture_is_current_for_same_universal_release() {
         apps: vec![record.clone()],
         installations: vec![record],
     };
-    files::write_json(&paths.at("settings.json"), &config).unwrap();
+    files::write_json(&paths.at("installations.json"), &config).unwrap();
     let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
     assert_eq!(plan.entries[0].action, "Skip");
     assert_eq!(plan.executable_count(), 0);
@@ -662,8 +946,8 @@ fn legacy_mac_architecture_is_current_for_same_universal_release() {
 #[test]
 fn planning_is_read_only_pins_assets_and_excludes_per_app_errors() {
     let (paths, job) = installed_fixture();
-    let saved = fs::read(paths.at("settings.json")).unwrap();
-    let legacy = fs::read(paths.at("updater-settings.json")).unwrap();
+    let saved = fs::read(paths.at("installations.json")).unwrap();
+    let preferences = fs::read(paths.at("config.yaml")).unwrap();
     let plan = plan_with(&paths, &job, None, |app| {
         if app == "filmcraft" {
             bail!("Metadata unavailable");
@@ -689,8 +973,8 @@ fn planning_is_read_only_pins_assets_and_excludes_per_app_errors() {
         })
     })
     .unwrap_err();
-    assert_eq!(fs::read(paths.at("updater-settings.json")).unwrap(), legacy);
-    assert_eq!(fs::read(paths.at("settings.json")).unwrap(), saved);
+    assert_eq!(fs::read(paths.at("config.yaml")).unwrap(), preferences);
+    assert_eq!(fs::read(paths.at("installations.json")).unwrap(), saved);
     for name in ["manager-settings.json", "runtime/downloads"] {
         assert!(!paths.at(name).exists(), "{name}");
     }
@@ -719,7 +1003,12 @@ fn changed_preferences_destination_and_lock_reject_before_execution() {
     fs::remove_file(paths.at("releases/photocraft/changed.txt")).unwrap();
     let mut prefs = paths.read_preferences().unwrap();
     prefs.selected_apps.clear();
-    files::write_json(&paths.at("manager-settings.json"), &prefs).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &prefs,
+    )
+    .unwrap();
     assert!(execute_validated(&paths, &plan, |_| panic!(
         "must not execute after selection change"
     ))
@@ -738,7 +1027,12 @@ fn custom_destination_keeps_pinned_release_and_rejects_a_late_folder_collision()
             architecture: crate::model::MANAGER_ARCH.into(),
         },
     );
-    files::write_json(&paths.at("manager-settings.json"), &preferences).unwrap();
+    crate::storage::settings::save_preferences_patch(
+        &paths,
+        &paths.read_preferences().unwrap(),
+        &preferences,
+    )
+    .unwrap();
     let parent = std::env::temp_dir().join(format!("craft-destination-{}", uuid::Uuid::new_v4()));
     let mut plan = plan_with(&paths, &job, Some("photocraft"), |app| {
         Ok(release(app, "0.4.0"))
@@ -822,4 +1116,87 @@ fn cancelled_planning_never_fetches_packages_and_preserves_prior_metadata_failur
     assert!(error.to_string().contains("Actual metadata error"));
     assert!(!paths.at("runtime/downloads").exists());
     fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn incompatible_msi_scope_is_rejected_before_identity_or_recovery_preparation() {
+    let (paths, job) = fixture();
+    struct FixtureRoot(PathBuf);
+    impl Drop for FixtureRoot {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+    let _root = FixtureRoot(paths.root.clone());
+    let package = paths.at("releases/installers/photocraft/previous.msi");
+    fs::create_dir_all(package.parent().unwrap()).unwrap();
+    // This metadata-only package has fixed per-user scope, no executable payload,
+    // and no supported install directory: even a regressed preflight cannot run it.
+    approved_recovery_msi_fixture(&package);
+    let current_path = paths.at("current");
+    fs::create_dir_all(&current_path).unwrap();
+    fs::write(
+        current_path.join("keep.txt"),
+        b"preserved current installation",
+    )
+    .unwrap();
+    let installed = crate::model::Installed {
+        name: "photocraft".into(),
+        path: current_path.display().to_string(),
+        version: "2.0.0".into(),
+        architecture: "x64".into(),
+        install_kind: "installer".into(),
+        windows_msi_scope: Some("machine".into()),
+        ..Default::default()
+    };
+    let mut config = crate::model::Config {
+        apps_root: paths.root.display().to_string(),
+        apps: vec![installed.clone()],
+        installations: vec![installed.clone()],
+        portable_label_counters: Default::default(),
+    };
+    let preferences = Preferences {
+        release_format: "installer".into(),
+        architecture: "x64".into(),
+        ..Default::default()
+    };
+    let plan = ReleasePlan {
+        native_rollback: None,
+        additional_installation: false,
+        entries: vec![ReleaseEntry {
+            app: installed.name.clone(),
+            action: "Update".into(),
+            version: "1.0.0".into(),
+            asset: Some(Asset {
+                name: "previous.msi".into(),
+                size: fs::metadata(&package).unwrap().len(),
+                browser_download_url: "https://example.invalid/not-requested".into(),
+                digest: Some(format!("sha256:{}", files::hash(&package).unwrap())),
+            }),
+            destination: None,
+            error: None,
+            preferences: preferences.clone(),
+        }],
+        preferences,
+        requested_tag: Some("1.0.0".into()),
+        snapshot: vec![],
+        desktop_shortcut: false,
+        installer_destination: None,
+    };
+    assert!(execute_entries(&paths, &plan, &mut config, &job, None, None).is_err());
+    let log = fs::read_to_string(paths.at("log")).unwrap();
+    assert!(
+        log.contains("current copy is installed for everyone"),
+        "{log}"
+    );
+    assert!(!log.contains("Previous installation restored"), "{log}");
+    assert!(!log.contains("Preparing previous installer"), "{log}");
+    assert!(!paths.at("runtime/admin-batches").exists());
+    assert!(!paths.at("runtime/api-cache").exists());
+    assert_eq!(config.apps[0].path, installed.path);
+    assert_eq!(
+        fs::read(current_path.join("keep.txt")).unwrap(),
+        b"preserved current installation"
+    );
 }

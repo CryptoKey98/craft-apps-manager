@@ -1,6 +1,6 @@
 [package]
 name = "craft-apps-manager"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 license = "MIT"
 description = "Release and source manager for the Craft apps"
@@ -9,10 +9,17 @@ readme = "README.md"
 default-run = "craft-apps-manager"
 
 [features]
+app-catalog-tools = []
+app-catalog-test-source = []
 release-tools = ["dep:toml_edit", "dep:semver"]
 updater-test-fixture = ["service-updater"]
 service-updater = ["dep:craft-updater-service"]
 updater-test-tar = ["updater-test-fixture"]
+
+[[bin]]
+name = "app-release-catalog-tool"
+path = "src/bin/app-release-catalog-tool.rs"
+required-features = ["app-catalog-tools"]
 
 [[bin]]
 name = "release-tool"
@@ -48,6 +55,7 @@ regex = "1"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde-saphyr = { version = "=2.0.0", default-features = false, features = ["serialize", "deserialize"] }
 sha2 = "0.10"
 uuid = { version = "1", features = ["v4"] }
 walkdir = "2"

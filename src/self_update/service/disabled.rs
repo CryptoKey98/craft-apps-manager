@@ -55,6 +55,9 @@ pub mod transaction {
     pub(crate) fn launch_v2(_: &Path) -> Result<()> {
         bail!("Update service is not compiled into this manager")
     }
+    pub(crate) fn launch_v2_with_guard(path: &Path, _: impl FnOnce() -> Result<()>) -> Result<()> {
+        launch_v2(path)
+    }
     pub(crate) fn apply_v2(_: &Path) -> Result<()> {
         bail!("Update service is not compiled into this manager")
     }

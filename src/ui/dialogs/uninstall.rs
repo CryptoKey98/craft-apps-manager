@@ -2,6 +2,37 @@ use super::*;
 
 impl App {
     pub(super) fn render_uninstall_dialog(&mut self, ctx: &egui::Context) {
+        if !self.confirm_uninstall {
+            self.uninstall_profiles = Default::default();
+            return;
+        }
+        let paths = self.paths.clone();
+        let app = self.app.clone();
+        let selected = self
+            .display_config
+            .as_ref()
+            .and_then(|c| c.apps.iter().find(|a| a.name == app));
+        let key = format!(
+            "{}|{}|{}",
+            paths.root.display(),
+            app,
+            serde_json::to_string(&selected).unwrap_or_default()
+        );
+        let changed = self.uninstall_profiles.update(key, ctx, move || {
+            profiles::targets(&paths, &app)
+                .map(|targets| {
+                    targets
+                        .into_iter()
+                        .filter(|target| target.path.exists())
+                        .map(|target| target.path)
+                        .collect()
+                })
+                .map_err(|error| format!("{error:#}"))
+        });
+        if changed {
+            self.delete_profile = false;
+        }
+        let targets = self.uninstall_profiles.result.clone();
         if self.confirm_uninstall {
             let modal = modal(
                 ctx,
@@ -77,9 +108,25 @@ impl App {
                         ui.add_space(12.0);
                         note(ui, "Projects and images saved outside the app folder are kept. Move personal files stored directly inside that folder before uninstalling.");
                         ui.add_space(8.0);
-                        note(ui, "Source ZIPs, compiled builds, backups and launch settings are also kept.");
+                        note(ui, "Source ZIPs, compiled builds, legacy archives and launch settings are also kept.");
+                        if self
+                            .display_config
+                            .as_ref()
+                            .and_then(|config| {
+                                config
+                                    .apps
+                                    .iter()
+                                    .find(|installed| installed.name == self.app)
+                            })
+                            .is_some_and(|installed| installed.install_kind == "portable")
+                        {
+                            ui.add_space(8.0);
+                            note(
+                                ui,
+                                "Also removes this installation’s retained previous version.",
+                            );
+                        }
                         ui.add_space(18.0);
-                        let targets = profiles::targets(&self.paths, &self.app);
                         theme::group().show(ui, |ui| {
                             ui.set_width(ui.available_width());
                             let label = format!(
@@ -97,12 +144,12 @@ impl App {
                                             18.0,
                                             CHECK_RED,
                                             &label,
-                                            targets.is_ok(),
+                                            matches!(&targets, Some(Ok(_))),
                                         );
                                     });
                                     ui.vertical(|ui| {
                                         ui.spacing_mut().item_spacing.y = 2.0;
-                                        let enabled = targets.is_ok();
+                                        let enabled = matches!(&targets, Some(Ok(_)));
                                         let title = ui.add_enabled(
                                             enabled,
                                             egui::Label::new(
@@ -125,9 +172,7 @@ impl App {
                                 bottom: 12,
                             };
                             match &targets {
-                                Ok(targets) => {
-                                    let existing: Vec<_> =
-                                        targets.iter().filter(|t| t.path.exists()).collect();
+                                Some(Ok(existing)) => {
                                     band(ui, list_margin, 0.0, |ui| {
                                         ui.spacing_mut().item_spacing.y = 4.0;
                                         if existing.is_empty() {
@@ -140,7 +185,7 @@ impl App {
                                                 for target in existing {
                                                     let response = ui.label(
                                                         RichText::new(
-                                                            target.path.display().to_string(),
+                                                            target.display().to_string(),
                                                         )
                                                         .font(FontId::monospace(12.0))
                                                         .color(theme::palette().text_2),
@@ -169,7 +214,12 @@ impl App {
                                         },
                                     );
                                 }
-                                Err(error) => {
+                                None => {
+                                    band(ui, list_margin, 0.0, |ui| {
+                                        ui.horizontal(|ui| { ui.spinner(); note(ui, "Checking settings folders…"); });
+                                    });
+                                }
+                                Some(Err(error)) => {
                                     band(ui, list_margin, 0.0, |ui| {
                                         note(ui, format!("Not available: {error}"));
                                     });
@@ -191,6 +241,9 @@ impl App {
             if modal.should_close() {
                 self.confirm_uninstall = false;
             }
+        }
+        if !self.confirm_uninstall {
+            self.uninstall_profiles = Default::default();
         }
     }
 }

@@ -1,3 +1,5 @@
+#[path = "windows/extraction.rs"]
+mod extraction;
 use crate::{
     files,
     jobs::Job,
@@ -43,11 +45,45 @@ pub fn cargo(paths: &Paths) -> Option<PathBuf> {
         system("cargo.exe")
     }
 }
+fn find_seven_in_program_folders(folders: &[PathBuf]) -> Option<PathBuf> {
+    folders
+        .iter()
+        .map(|folder| folder.join("7-Zip/7z.exe"))
+        .find(|exe| exe.is_file())
+}
+fn registered_seven() -> Option<PathBuf> {
+    use winreg::{
+        enums::{
+            HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_32KEY, KEY_WOW64_64KEY,
+        },
+        RegKey,
+    };
+    for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+            if let Ok(key) =
+                RegKey::predef(hive).open_subkey_with_flags(r"Software\7-Zip", KEY_READ | view)
+            {
+                for name in ["Path", "Path64", "Path32"] {
+                    if let Ok(folder) = key.get_value::<String, _>(name) {
+                        if !Path::new(&folder).is_absolute() {
+                            continue;
+                        }
+                        let exe = PathBuf::from(folder).join("7z.exe");
+                        if exe.is_file() {
+                            return Some(exe);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
 pub fn seven(paths: &Paths) -> Option<PathBuf> {
     let native = paths
         .tools
         .join(format!("7zip/{}/7za.exe", crate::model::MANAGER_ARCH));
-    if native.exists() {
+    if native.is_file() {
         return Some(native);
     }
     paths
@@ -62,9 +98,15 @@ pub fn seven(paths: &Paths) -> Option<PathBuf> {
                 .join(format!("tools/7zip/{}/7za.exe", crate::model::MANAGER_ARCH));
             bundled.is_file().then_some(bundled)
         })
+        .or_else(registered_seven)
         .or_else(|| {
-            let p = PathBuf::from("C:/Program Files/7-Zip/7z.exe");
-            p.exists().then_some(p)
+            let folders = ["ProgramW6432", "ProgramFiles", "ProgramFiles(x86)"]
+                .into_iter()
+                .filter_map(std::env::var_os)
+                .map(PathBuf::from)
+                .filter(|folder| folder.is_absolute())
+                .collect::<Vec<_>>();
+            find_seven_in_program_folders(&folders)
         })
         .or_else(|| system("7z.exe"))
 }
@@ -374,7 +416,6 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     Ok(())
 }
 fn native(paths: &Paths, network: &Network, cache: &Path, job: &Job) -> Result<()> {
-    let seven = ensure_seven(paths, network, cache, job)?;
     for (repo, pattern, folder, exe) in [
         (
             "Kitware/CMake",
@@ -405,36 +446,25 @@ fn native(paths: &Paths, network: &Network, cache: &Path, job: &Job) -> Result<(
         let archive = cache.join(&a.name);
         network.asset(&a, &archive, job)?;
         let dest = paths.tools.join(folder);
-        fs::create_dir_all(&dest)?;
         if a.name.ends_with(".zip") {
             let stage = cache.join(uuid::Uuid::new_v4().simple().to_string());
             files::extract_zip(&archive, &stage, job)?;
             merge_directory(&stage, &dest)?;
             files::remove_managed(&stage, cache)?;
         } else {
-            job.run(
-                Command::new(&seven)
-                    .arg("x")
-                    .arg(&archive)
-                    .arg(format!("-o{}", dest.display()))
-                    .arg("-y"),
-                false,
-            )?;
-            let tar = fs::read_dir(&dest)?
-                .filter_map(|e| e.ok())
-                .map(|e| e.path())
-                .find(|p| p.extension().is_some_and(|e| e == "tar"))
-                .context("LLVM intermediate TAR missing")?;
-            job.run(
-                Command::new(&seven)
-                    .arg("x")
-                    .arg(&tar)
-                    .arg(format!("-o{}", dest.display()))
-                    .arg("-y"),
-                false,
-            )?;
-            fs::remove_file(tar)?;
+            if dest.is_dir() && fs::read_dir(&dest)?.next().is_none() {
+                fs::remove_dir(&dest)?;
+            }
+            let native = extraction::system_tar();
+            extraction::extract_tar_xz(&archive, &dest, job, native.as_deref(), || {
+                ensure_seven(paths, network, job)
+            })?;
+            if find_in(&dest, exe).is_none() || find_in(&dest, "libclang.dll").is_none() {
+                files::remove_managed(&dest, &paths.tools)?;
+                bail!("LLVM archive is missing clang.exe or libclang.dll");
+            }
         }
+
         if find_in(&dest, exe).is_none() {
             bail!("{exe} was not installed")
         };
@@ -557,28 +587,58 @@ fn merge_directory(source: &Path, dest: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn ensure_seven(paths: &Paths, network: &Network, cache: &Path, job: &Job) -> Result<PathBuf> {
+fn ensure_seven(paths: &Paths, network: &Network, job: &Job) -> Result<PathBuf> {
     if let Some(s) = seven(paths) {
         return Ok(s);
     }
+    install_seven(paths, network, job)
+}
+fn install_seven(paths: &Paths, network: &Network, job: &Job) -> Result<PathBuf> {
+    job.check()?;
+    job.stage(
+        "Setting up tools",
+        None,
+        "Downloading optional 7-Zip extraction fallback",
+    );
+    let stage = extraction::Stage::new(&paths.tools)?;
     let bootstrap = asset(network, "ip7z/7zip", r"^7zr\.exe$")?;
-    let exe = cache.join("7zr.exe");
+    let exe = stage.0.join("7zr.exe");
     network.asset(&bootstrap, &exe, job)?;
     let extra = asset(network, "ip7z/7zip", r"-extra\.7z$")?;
-    let archive = cache.join(&extra.name);
+    let archive = stage.0.join(&extra.name);
     network.asset(&extra, &archive, job)?;
+    let installed = stage.0.join("installed");
+    fs::create_dir(&installed)?;
+    // Flatten only these known root-level SDK files. Do not extract arbitrary
+    // SDK member paths or install a system-wide application.
     job.run(
         Command::new(&exe)
-            .arg("x")
+            .arg("e")
             .arg(&archive)
-            .arg(format!("-o{}", paths.tools.join("7zip").display()))
-            .arg("-y"),
+            .args(["7za.exe", "License.txt", "readme.txt", "history.txt", "-y"])
+            .arg(format!("-o{}", installed.display())),
         false,
     )?;
-    fs::remove_file(exe)?;
-    fs::remove_file(archive)?;
-    seven(paths).context("7-Zip setup failed")
+    files::no_links(&installed)?;
+    anyhow::ensure!(
+        installed.join("7za.exe").is_file() && installed.join("License.txt").is_file(),
+        "7-Zip fallback or its license is missing"
+    );
+    job.check()?;
+    let target = paths.tools.join("7zip");
+    files::inside(&target, &paths.tools)?;
+    if target.is_dir() && fs::read_dir(&target)?.next().is_none() {
+        fs::remove_dir(&target)?;
+    }
+    anyhow::ensure!(
+        !target.exists(),
+        "The fallback tool folder contains other files; it was preserved"
+    );
+    fs::create_dir_all(&paths.tools)?;
+    fs::rename(&installed, &target)?;
+    Ok(target.join("7za.exe"))
 }
+
 fn install_cpp(network: &Network, cache: &Path, job: &Job) -> Result<()> {
     job.stage(
         "Setting up tools",
@@ -600,6 +660,20 @@ fn install_cpp(network: &Network, cache: &Path, job: &Job) -> Result<()> {
 #[cfg(test)]
 mod build_path_tests {
     use super::*;
+    #[test]
+    fn finds_seven_zip_in_a_32_bit_program_files_directory() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let standard = root.join("Program Files");
+        let x86 = root.join("Program Files (x86)");
+        let executable = x86.join("7-Zip/7z.exe");
+        fs::create_dir_all(executable.parent().unwrap()).unwrap();
+        fs::write(&executable, b"test fixture").unwrap();
+        assert_eq!(
+            find_seven_in_program_folders(&[standard, x86]),
+            Some(executable)
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn compiler_alias_preserves_file_identity_and_reports_unsupported_long_paths() {
         let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());

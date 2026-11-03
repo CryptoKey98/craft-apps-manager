@@ -13,7 +13,7 @@ A DMG is a disk image, not an installer wizard. Do not run the manager from the 
 
 ## First launch
 
-The manager has an ad-hoc signature and is not Apple-notarized. If macOS blocks the downloaded app, dismiss the warning, open **System Settings → Privacy & Security**, and use **Open Anyway** when available for that app. Follow macOS's confirmation prompts. Do not disable system-wide security checks.
+The manager has an ad-hoc signature and is not Apple-notarized. If macOS blocks the downloaded app, dismiss the warning, open **System Settings â†’ Privacy & Security**, and use **Open Anyway** when available for that app. Follow macOS's confirmation prompts. Do not disable system-wide security checks.
 
 Rust and 7-Zip are not required to run the manager. Compilation prerequisites are in [Building and testing](../development/building.md#macos).
 
@@ -40,18 +40,22 @@ Staging and rollback stay beside the installed bundle even if the library is on 
 
 ### Older updater failures
 
-Managers 0.8.1–0.8.3 could fail when another app in the same directory contained symbolic links, with `Archive contains a linked path`. The saved failure could also reappear on launch. These issues were fixed in 0.9.0.
+Managers 0.8.1â€“0.8.3 could fail when another app in the same directory contained symbolic links, with `Archive contains a linked path`. The saved failure could also reappear on launch. These issues were fixed in 0.9.0.
 
 If an affected updater still fails, manually download a current macOS package and replace the manager app, preserving your library and portable files. The saved error may appear once on the first fixed launch; dismiss it. Users already on 0.9.0 have the corrected updater.
 
 Failures can leave a `.craft-manager-update-*` recovery folder beside the app. Check the error and retained `previous.app` before removing anything. Results may also be recorded in `~/Library/Application Support/Craft Apps Manager/self-update-result.json` and the staging folder's `result.json`. See [Updater recovery](../development/updater-operations.md#failure-recovery-and-retention) before deleting recovery data.
 
-## Builds and backups
+## Builds and rollback
 
-Manager and Builder are available in both ZIP and DMG packages. Building Craft apps requires Rust, Xcode Command Line Tools, and app-specific tools. Native source ZIP extraction is internal and keeps archive safety checks; 7-Zip is optional.
+Manager and Builder are available in both ZIP and DMG packages. Building Craft apps requires Rust, Xcode Command Line Tools, and app-specific tools. Native source ZIP extraction is internal and keeps archive safety checks.
 
-7-Zip is needed for compressed `.7z` backups and restoring existing `.7z` backups. Without it, the original backup is retained. Install `sevenzip` through Homebrew if needed. ArtCraft X needs additional tools such as Node, CMake, and NASM; supported setup can use Homebrew for those tools. Local app builds produce executables rather than complete app bundles.
+Portable rollback versions are retained uncompressed and do not require 7-Zip. Old `.7z` archives remain on disk and can be opened separately with an archive utility.
 
-Shortcut files and app-profile deletion are not provided on macOS. Open app bundles directly in Finder.
+ArtCraft X setup reuses compatible tools or downloads verified Node.js/npm and CMake into the manager's build-tools folder. Homebrew is optional. Apple Command Line Tools provide the compiler, assembler, and libclang on Intel and Apple Silicon; NASM is not a mandatory macOS setup prerequisite. Local app builds produce executables rather than complete app bundles.
 
-[Using the manager](using-the-manager.md) · [Documentation index](../README.md)
+During uninstall, **Also delete settings and caches** is available for Craft apps with verified data locations. The dialog lists the folders first; checking and cleanup run in the background. The option is unchecked by default. Other installations may share these folders, and cleanup includes plug-ins and recovery copies. Custom profile locations and projects outside the listed folders are kept.
+
+Open app bundles directly in Finder.
+
+[Using the manager](using-the-manager.md) Â· [Documentation index](../README.md)

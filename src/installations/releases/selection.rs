@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn expected_asset_url(value: &str, repository: &str) -> bool {
+pub(crate) fn expected_asset_url(value: &str, repository: &str) -> bool {
     let Ok(url) = reqwest::Url::parse(value) else {
         return false;
     };
@@ -78,32 +78,81 @@ pub fn release_version(tag: &str) -> Result<String> {
 
 /// Unknown metadata stays actionable; only a confirmed incompatible release disables Install.
 pub fn cached_download_available(paths: &Paths, app: &str, prefs: &Preferences) -> Option<bool> {
-    let entry = crate::catalog::get(app)?;
-    let release: Release = Network::cached_json(
+    let release: Release = crate::installations::release_catalog::provider::peek_release(
         &paths.root,
-        &format!(
-            "https://api.github.com/repos/{}/releases/latest",
-            crate::model::repository(app)
-        ),
-    )?;
+        &crate::model::repository(app),
+        None,
+    )
+    .map(|r| (*r).clone())
+    .or_else(|| {
+        Network::cached_json(
+            &paths.root,
+            &format!(
+                "https://api.github.com/repos/{}/releases/latest",
+                crate::model::repository(app)
+            ),
+        )
+    })?;
+    cached_release_available(&release, app, prefs)
+}
+
+pub fn cached_download_available_ready(
+    paths: &Paths,
+    app: &str,
+    prefs: &Preferences,
+    wake: impl Fn() + Send + 'static,
+) -> Option<bool> {
+    let release = crate::installations::release_catalog::provider::peek_release(
+        &paths.root,
+        &crate::model::repository(app),
+        None,
+    )
+    .or_else(|| {
+        Network::peek_json::<Release>(
+            &paths.root,
+            &format!(
+                "https://api.github.com/repos/{}/releases/latest",
+                crate::model::repository(app)
+            ),
+            wake,
+        )
+    })?;
+    cached_release_available(&release, app, prefs)
+}
+
+fn cached_release_available(release: &Release, app: &str, prefs: &Preferences) -> Option<bool> {
+    crate::catalog::get(app)?;
     if release.draft || release.prerelease || release_version(&release.tag_name).is_err() {
         return None;
     }
-    let _ = entry;
     Some(
-        !crate::install_options::available(&release, app, prefs).is_empty()
-            || !crate::downloads::candidates(&release, prefs).is_empty(),
+        !crate::install_options::available(release, app, prefs).is_empty()
+            || !crate::downloads::candidates(release, prefs).is_empty(),
     )
 }
 
 pub fn check_app(paths: &Paths, app: &str) -> Result<Option<String>> {
     crate::model::valid_app(app)?;
     let installed = crate::apps::installed(paths, app)?;
-    let release: Release = Network::new(&paths.root)?.json(&format!(
-        "https://api.github.com/repos/{}/releases/latest",
-        crate::model::repository(app)
-    ))?;
-    check_installed_release(&release, app, &installed, &paths.read_preferences()?)
+    check_installation(paths, &installed, &paths.read_preferences()?)
+}
+
+/// Check the captured copy, even if another window changes the selected copy.
+pub fn check_installation(
+    paths: &Paths,
+    installed: &crate::model::Installed,
+    prefs: &Preferences,
+) -> Result<Option<String>> {
+    let app = &installed.name;
+    crate::model::valid_app(app)?;
+    let release: Release = Network::new(&paths.root)?.release_json_with_policy(
+        &format!(
+            "https://api.github.com/repos/{}/releases/latest",
+            crate::model::repository(app)
+        ),
+        crate::network::CachePolicy::Update,
+    )?;
+    check_installed_release(&release, app, installed, prefs)
 }
 
 /// Recompare known latest-release metadata against the actual installed version, without HTTP.
@@ -112,13 +161,50 @@ pub fn cached_installation_check(
     installed: &crate::model::Installed,
     prefs: &Preferences,
 ) -> Option<Result<Option<String>>> {
-    let release: Release = Network::cached_json(
+    let release: Release = crate::installations::release_catalog::provider::peek_release(
         &paths.root,
-        &format!(
-            "https://api.github.com/repos/{}/releases/latest",
-            crate::model::repository(&installed.name)
-        ),
-    )?;
+        &crate::model::repository(&installed.name),
+        None,
+    )
+    .map(|r| (*r).clone())
+    .or_else(|| {
+        Network::cached_json(
+            &paths.root,
+            &format!(
+                "https://api.github.com/repos/{}/releases/latest",
+                crate::model::repository(&installed.name)
+            ),
+        )
+    })?;
+    Some(check_installed_release(
+        &release,
+        &installed.name,
+        installed,
+        prefs,
+    ))
+}
+
+pub fn cached_installation_check_ready(
+    paths: &Paths,
+    installed: &crate::model::Installed,
+    prefs: &Preferences,
+    wake: impl Fn() + Send + 'static,
+) -> Option<Result<Option<String>>> {
+    let release = crate::installations::release_catalog::provider::peek_release(
+        &paths.root,
+        &crate::model::repository(&installed.name),
+        None,
+    )
+    .or_else(|| {
+        Network::peek_json::<Release>(
+            &paths.root,
+            &format!(
+                "https://api.github.com/repos/{}/releases/latest",
+                crate::model::repository(&installed.name)
+            ),
+            wake,
+        )
+    })?;
     Some(check_installed_release(
         &release,
         &installed.name,
@@ -452,7 +538,7 @@ pub fn available_versions(paths: &Paths, app: &str) -> Result<Vec<Release>> {
     crate::model::valid_app(app)?;
     let prefs = crate::install_options::preferred(&paths.read_preferences()?, app);
     let network = Network::new(&paths.root)?;
-    let releases: Vec<Release> = network.json(&format!(
+    let releases: Vec<Release> = network.release_json(&format!(
         "https://api.github.com/repos/{}/releases?per_page=100",
         crate::model::repository(app)
     ))?;

@@ -127,7 +127,7 @@ impl App {
                 })
                 .primary()
                 .medium()
-                .icon(Icon::Wrench)
+                .icon(Icon::Hammer)
                 .min_width(width)
                 .enabled(!state.busy)
                 .show(ui)

@@ -128,8 +128,8 @@ jobs:
         run: cargo clippy --locked --features release-tools --bin release-tool -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
-      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater --all-targets -- --test-threads=1
-      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater --all-targets -- -D warnings
+      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
+      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- -D warnings
       - name: Verify updater build configuration modes
         if: matrix.target == 'x86_64-pc-windows-msvc'
         env:
@@ -165,28 +165,30 @@ jobs:
         with:
           name: windows-build-${{ matrix.target }}
           path: target/${{ matrix.target }}/release
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
       - name: Test Windows MSI upgrade and shortcuts
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $arch = if ('${{ matrix.target }}' -eq 'i686-pc-windows-msvc') { 'x86' } else { 'x64' }
-          gh release download --repo ip7z/7zip --pattern '*-extra.7z' --dir 7zip-download
-          & 'C:\Program Files\7-Zip\7z.exe' x (Get-ChildItem 7zip-download/*-extra.7z).FullName -o7zip -y
-          if ($LASTEXITCODE -ne 0) { throw '7-Zip extraction failed' }
-          $seven = if ($arch -eq 'x86') { '7zip' } else { '7zip/x64' }
           dotnet tool install --global wix --version 5.0.2
           wix extension add --global WixToolset.UI.wixext/5.0.2
           $out = "dist/windows-$arch"
-          ./scripts/packaging/package-windows.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
+          ./scripts/packaging/package-windows.ps1 -Architecture $arch -TargetFolder target -OutputFolder $out
           $portableZip = (Get-ChildItem "$out/*.zip").FullName
           Expand-Archive -LiteralPath $portableZip -DestinationPath portable-check
           if (!(Test-Path 'portable-check/Craft Apps Manager/portable.txt')) { throw 'Portable marker missing' }
           if (!(Test-Path 'portable-check/Craft Apps Manager/CraftApps-Manager.exe')) { throw 'Portable executable missing' }
-          ./scripts/packaging/package-windows-msi.ps1 -Architecture $arch -SevenZipFolder $seven -TargetFolder target -OutputFolder $out
+          if (Get-ChildItem 'portable-check' -Recurse -Filter '7z*.exe') { throw 'Unexpected bundled 7-Zip' }
+          ./scripts/packaging/package-windows-msi.ps1 -Architecture $arch -TargetFolder target -OutputFolder $out
           gh release download v0.5.1 --repo CryptoKey98/craft-apps-manager --pattern "Craft-Apps-Manager-0.5.1-windows-$arch.msi" --dir baseline
+          gh release download v1.0.0 --repo CryptoKey98/craft-apps-manager --pattern "Craft-Apps-Manager-1.0.0-windows-$arch.msi" --dir baseline-custom
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the custom-folder upgrade baseline' }
           $candidate = (Get-ChildItem "$out/*.msi").FullName
-          ./scripts/testing/smoke-windows-msi.ps1 -Architecture $arch -BaselineMsi "baseline/Craft-Apps-Manager-0.5.1-windows-$arch.msi" -CandidateMsi $candidate
+          ./scripts/testing/smoke-windows-msi.ps1 -Architecture $arch -BaselineMsi "baseline/Craft-Apps-Manager-0.5.1-windows-$arch.msi" -CustomBaselineMsi "baseline-custom/Craft-Apps-Manager-1.0.0-windows-$arch.msi" -CandidateMsi $candidate
       - name: Install and remove real Craft apps
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
@@ -243,7 +245,7 @@ jobs:
       PKG_CONFIG_LIBDIR: ${{ matrix.pkgconfig }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev p7zip-full libarchive-tools
+      - run: sudo apt-get update && sudo apt-get install -y build-essential pkg-config libx11-dev libxi-dev libxrandr-dev libxcursor-dev libxinerama-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libssl-dev libarchive-tools
       - if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
           sudo dpkg --add-architecture i386
@@ -257,8 +259,8 @@ jobs:
         env:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
-      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater --all-targets -- --test-threads=1
-      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater --all-targets -- -D warnings
+      - run: cargo test --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
+      - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- -D warnings
       - run: cargo build --release --locked --target ${{ matrix.target }}
         if: needs.changes.outputs.packages == 'true'
       - uses: actions/upload-artifact@v4
@@ -432,7 +434,7 @@ jobs:
     steps:
       - name: Install Arch build and runtime dependencies
         run: |
-          pacman -Syu --noconfirm --needed base-devel git rust python pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl 7zip libarchive polkit libnotify xdg-utils
+          pacman -Syu --noconfirm --needed base-devel git rust python pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl libarchive polkit libnotify xdg-utils
           useradd --create-home builder
       - uses: actions/checkout@v4
       - name: Prepare unprivileged build workspace
@@ -475,9 +477,9 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-apple-darwin, x86_64-apple-darwin
       - run: cargo test --locked --all-targets -- --test-threads=1
-      - run: cargo test --locked --features service-updater --all-targets -- --test-threads=1
+      - run: cargo test --locked --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
       - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo clippy --locked --all-targets --features service-updater -- -D warnings
+      - run: cargo clippy --locked --all-targets --features service-updater,app-catalog-tools -- -D warnings
 
   macos-packages:
     name: macOS package checks
@@ -486,6 +488,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin

@@ -6,6 +6,8 @@ use craft_apps_manager::{
     model, settings,
 };
 use eframe::egui::{self, Color32, CornerRadius, FontId, Rect, Sense, Stroke};
+#[path = "sidebar_arrival.rs"]
+mod arrival;
 
 /// Height of one CSS text line in the mockups: IBM Plex Sans renders at 1.327 em.
 const LINE: f32 = 1.327;
@@ -150,15 +152,14 @@ impl App {
                             self.activity_settings_buttons(ui);
                             if theme::theme_toggle(ui, self.preferences.theme).clicked() {
                                 let result = (|| -> anyhow::Result<()> {
-                                    let mut preferences = self.paths.read_preferences()?;
-                                    preferences.theme =
-                                        theme::resolved(ctx, self.preferences.theme).toggled();
-                                    craft_apps_manager::files::write_json(
-                                        &self.paths.at("manager-settings.json"),
-                                        &preferences,
+                                    let preferences = craft_apps_manager::settings::save_theme(
+                                        &self.paths,
+                                        theme::resolved(ctx, self.preferences.theme).toggled(),
                                     )?;
                                     self.preferences.theme = preferences.theme;
-                                    self.settings_draft.theme = preferences.theme;
+                                    if !self.settings {
+                                        self.settings_draft.theme = preferences.theme;
+                                    }
                                     theme::apply(ctx, preferences.theme);
                                     ctx.request_repaint();
                                     Ok(())
@@ -182,6 +183,7 @@ impl App {
                 .unwrap_or(&self.build_app)
         };
         let build = self.observed_build_state(active_app);
+        let mut manage_token = false;
         egui::TopBottomPanel::bottom("footer")
             .frame(
                 egui::Frame::new()
@@ -207,11 +209,7 @@ impl App {
                 } else if build.busy {
                     (
                         BUSY_DOT,
-                        format!(
-                            "Building {} · {}",
-                            model::title(active_app),
-                            build.stage
-                        ),
+                        format!("Building {} · {}", model::title(active_app), build.stage),
                     )
                 } else if state.stage == "Failed" {
                     (theme::palette().red, "Last operation failed".to_owned())
@@ -228,22 +226,8 @@ impl App {
                         theme::dot(ui, color);
                         ui.add_space(8.0);
                         ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                        use craft_apps_manager::network::TokenStatus;
-                        let palette = theme::palette();
-                        let (label, token_color, detail) = match self.token_status {
-                            TokenStatus::Connected => ("Token connected", palette.green, "GitHub authentication verified. Higher API limits are available."),
-                            TokenStatus::NotConfigured => ("Not configured", palette.muted, "No GitHub token found. Set CRAFT_GITHUB_TOKEN or GITHUB_TOKEN and restart the manager."),
-                            TokenStatus::Invalid => ("Invalid token", palette.red, "GitHub rejected the token. Check its value or expiration and restart the manager."),
-                            TokenStatus::NotVerified => ("Not verified", palette.muted, "A GitHub token was detected. Authentication is being checked."),
-                            TokenStatus::UnableToVerify => ("Unable to verify", palette.amber, "GitHub authentication could not be verified. Network issues or API restrictions may prevent verification."),
-                        };
-                        ui.horizontal(|ui| {
-                            let (rect, _) = ui.allocate_exact_size(egui::Vec2::splat(13.0), egui::Sense::hover());
-                            crate::ui::whats_new::github(ui, rect);
-                            theme::dot(ui, token_color);
-                        }).response.on_hover_text(format!("{label}\n{detail}{}", craft_apps_manager::network::token_source().map(|source| format!("\nSource: {source}")).unwrap_or_default()));
-                        ui.separator();
-                        ui.add_space(8.0);
+                            manage_token = super::github_activity::show(ui, self.token_status);
+                            ui.add_space(10.0);
                             ui.add(
                                 egui::Label::new(
                                     egui::RichText::new(format!(
@@ -259,6 +243,9 @@ impl App {
                     },
                 );
             });
+        if manage_token {
+            self.open_token_settings();
+        }
     }
 
     pub(in crate::ui) fn sidebar(&mut self, ctx: &egui::Context, state: &State) {
@@ -363,6 +350,40 @@ impl App {
             &self.preferences.app_order,
             &self.preferences.release_format,
         );
+        let now = ui.input(|input| input.time);
+        let arrival_id = ui.id().with("sidebar-install-arrivals");
+        let mut arrivals = ui
+            .ctx()
+            .data_mut(|data| data.get_temp::<arrival::Arrivals>(arrival_id))
+            .unwrap_or_default();
+        arrivals.update(
+            model::apps()
+                .into_iter()
+                .filter(|name| self.status(name).installed.is_some())
+                .collect(),
+            self.display_config.is_some(),
+            now,
+            ui.style().animation_time > 0.0,
+        );
+        ui.ctx()
+            .data_mut(|data| data.insert_temp(arrival_id, arrivals.clone()));
+        let visibility_id = ui.id().with("sidebar-app-visibility");
+        let mut visibility = ui
+            .ctx()
+            .data_mut(|data| data.get_temp::<arrival::Visibility>(visibility_id))
+            .unwrap_or_default();
+        visibility.update(
+            order
+                .iter()
+                .filter(|name| !self.preferences.hidden_apps.contains(name))
+                .cloned()
+                .collect(),
+            self.display_config.is_some(),
+            now,
+            ui.style().animation_time > 0.0,
+        );
+        ui.ctx()
+            .data_mut(|data| data.insert_temp(visibility_id, visibility.clone()));
         let updates = order
             .iter()
             .filter(|name| self.status(name).update.is_some())
@@ -371,13 +392,52 @@ impl App {
             self.page = Page::Overview;
         }
         let mut reorder = None;
-        let (installed, mut available): (Vec<_>, Vec<_>) = order
+        let (installed, available): (Vec<_>, Vec<_>) = order
             .iter()
             .filter(|name| matches(name))
-            .filter(|name| !self.preferences.hidden_apps.contains(name))
+            .filter(|name| {
+                visibility.visible(name, !self.preferences.hidden_apps.contains(name), now)
+            })
             .cloned()
-            .partition(|name| self.status(name).installed.is_some());
-        available.sort_by_cached_key(|name| self.new_app_rank(name));
+            .partition(|name| {
+                arrivals.displayed_installed(name, self.status(name).installed.is_some(), now)
+            });
+        let arrival_visible = (arrivals.active()
+            && installed
+                .iter()
+                .chain(available.iter())
+                .any(|name| arrivals.progress(name, now) < 1.0))
+            || visibility
+                .active_matching(|name| order.iter().any(|known| known == name) && matches(name));
+        if arrival_visible {
+            ui.ctx().request_repaint();
+        }
+        let installed_height_id = ui.id().with("installed-section-height");
+        if installed.is_empty() {
+            let remaining = ui.ctx().animate_value_with_time(
+                installed_height_id,
+                0.0,
+                if arrival_visible {
+                    arrival::DURATION
+                } else {
+                    0.0
+                },
+            );
+            if remaining > 0.0 {
+                let (rect, _) = ui.allocate_exact_size(
+                    egui::vec2(ui.available_width(), remaining),
+                    Sense::hover(),
+                );
+                if let Some(count) = arrivals.closing_count() {
+                    let mut fading = ui.new_child(egui::UiBuilder::new().max_rect(rect));
+                    fading.set_clip_rect(fading.clip_rect().intersect(rect));
+                    fading.multiply_opacity(arrivals.header_progress(now));
+                    fading.disable();
+                    fading.add_space(14.0);
+                    group_header(&mut fading, "Installed", count);
+                }
+            }
+        }
         // Until the first snapshot loads nothing is known to be installed or not.
         let groups = if self.display_config.is_some() {
             vec![
@@ -391,10 +451,43 @@ impl App {
             if group.is_empty() {
                 continue;
             }
-            ui.add_space(14.0);
-            group_header(ui, label, group.len());
             let height = if is_installed { 48.0 } else { 47.5 };
             let step = height + 2.0;
+            let full_height = 14.0 + 8.0 + 12.0 * LINE + 2.0 + group.len() as f32 * step - 2.0;
+            let shown_height = if is_installed {
+                ui.ctx().animate_value_with_time(
+                    installed_height_id,
+                    full_height,
+                    if arrival_visible {
+                        arrival::DURATION
+                    } else {
+                        0.0
+                    },
+                )
+            } else {
+                full_height
+            };
+            let (allocated, _) = ui.allocate_exact_size(
+                egui::vec2(ui.available_width(), shown_height),
+                Sense::hover(),
+            );
+            let mut group_ui = ui.new_child(
+                egui::UiBuilder::new()
+                    .id_salt(("sidebar-group", is_installed))
+                    .max_rect(Rect::from_min_size(
+                        allocated.min,
+                        egui::vec2(allocated.width(), full_height),
+                    )),
+            );
+            group_ui.set_clip_rect(group_ui.clip_rect().intersect(allocated));
+            let ui = &mut group_ui;
+            ui.add_space(14.0);
+            ui.scope(|ui| {
+                if is_installed {
+                    ui.multiply_opacity(arrivals.header_progress(now));
+                }
+                group_header(ui, label, group.len());
+            });
             ui.add_space(2.0);
             let (area, _) = ui.allocate_exact_size(
                 egui::vec2(ui.available_width(), group.len() as f32 * step - 2.0),
@@ -413,7 +506,13 @@ impl App {
                 .ctx()
                 .data_mut(|data| data.get_temp::<f64>(motion_id))
                 .is_some_and(|time| now - time < 0.22);
-            let duration = if animate { 0.16 } else { 0.0 };
+            let duration = if animate {
+                0.16
+            } else if arrival_visible {
+                arrival::DURATION
+            } else {
+                0.0
+            };
             let mut preview = group.clone();
             let drop_id = ui.id().with(("sidebar-drop-position", is_installed));
             if let Some(drag) = &drag {
@@ -476,7 +575,30 @@ impl App {
                 }
                 ui.ctx()
                     .animate_bool_with_time(ui.id().with(("sidebar-lift", name)), false, 0.12);
-                self.app_row(ui, state, name, is_installed, rect, false);
+                let progress = arrivals.progress(name, now);
+                ui.scope(|ui| {
+                    if arrivals.moving(name) || visibility.moving(name) {
+                        ui.multiply_opacity(
+                            arrivals.opacity(name, now) * visibility.opacity(name, now),
+                        );
+                        ui.disable();
+                    }
+                    self.app_row(
+                        ui,
+                        state,
+                        name,
+                        is_installed,
+                        rect.translate(egui::vec2(
+                            0.0,
+                            if arrivals.departing(name, now) {
+                                0.0
+                            } else {
+                                6.0 * (1.0 - progress)
+                            },
+                        )),
+                        false,
+                    );
+                });
             }
             if let (Some(drag), Some(pos)) = (&drag, pointer) {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
@@ -546,6 +668,7 @@ impl App {
                         self.release_checks.clear();
                         self.display_config = None;
                         self.config_receiver = None;
+                        self.inventory_receiver = None;
                         self.config_refresh_at = std::time::Instant::now();
                     }
                     self.settings_draft = preferences.clone();
@@ -625,15 +748,12 @@ impl App {
         floating: bool,
     ) {
         let status = self.status(name);
-        let install_available = self.install_available(name);
+        let install_available = self.install_available(name, ui.ctx());
         let unavailable_message = self.unavailable_download_message(name);
         let selected = self.page == Page::App && self.app == name;
         let response = ui.interact(rect, ui.id().with(("sidebar-row", name)), Sense::click());
-        let installing = state.busy
-            && self
-                .job_target
-                .as_ref()
-                .is_some_and(|(app, action)| app == name && action == "install-app");
+        let operation = super::super::sidebar_install_operation(&self.operation_records, name);
+        let installing = operation.is_some();
         let app_preferences = self.app_preferences(name);
         let format = status
             .installed
@@ -778,7 +898,9 @@ impl App {
                 .paint_at(ui, icon);
         }
         let text_left = icon.right() + 12.0;
-        let chip = if status.update.is_some() {
+        let chip = if installing {
+            None
+        } else if status.update.is_some() {
             Some("Update")
         } else if !is_installed && status.loaded && !installing {
             Some("Get")
@@ -801,7 +923,15 @@ impl App {
                 egui::vec2(width, height),
             )
         });
-        let text_right = chip_rect.map_or(rect.right() - 10.0, |chip| chip.left() - 12.0);
+        let text_right = chip_rect.map_or(
+            rect.right()
+                - if installing || status.checking {
+                    34.0
+                } else {
+                    10.0
+                },
+            |chip| chip.left() - 12.0,
+        );
         let max_text = (text_right - text_left).max(1.0);
         let new_opacity = self.new_app_opacity(name);
         let show_new = new_opacity > 0.0;
@@ -823,7 +953,7 @@ impl App {
         let title = ui.painter().layout_job(title_job);
         let (detail, detail_color) = if installing {
             (
-                match state.progress {
+                match operation.and_then(|operation| operation.progress) {
                     Some(progress) => format!("Installing… {:.0}%", progress * 100.0),
                     None => "Installing…".into(),
                 },
@@ -925,6 +1055,7 @@ impl App {
                 egui::WidgetInfo::labeled(egui::WidgetType::Button, enabled, &label)
             });
             let hovered = chip_response.hovered() && enabled;
+            let paint_rect = theme::animated_button_rect(ui, &chip_response, chip_rect);
             let (fill, stroke, color, radius) = if chip == "Update" {
                 (
                     if hovered {
@@ -950,14 +1081,14 @@ impl App {
             };
             let alpha = if !enabled { 0.45 } else { 1.0 };
             ui.painter().rect(
-                chip_rect,
+                paint_rect,
                 CornerRadius::same(radius),
                 fill,
                 stroke,
                 egui::StrokeKind::Inside,
             );
             ui.painter().galley(
-                chip_rect.center() - galley.size() / 2.0,
+                paint_rect.center() - galley.size() / 2.0,
                 galley,
                 color.gamma_multiply(alpha),
             );
@@ -965,7 +1096,7 @@ impl App {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
             }
             chip_clicked = chip_response.clicked();
-        } else if status.checking {
+        } else if installing || status.checking {
             let spinner = Rect::from_center_size(
                 egui::pos2(rect.right() - 20.0, rect.center().y),
                 egui::vec2(14.0, 14.0),
@@ -973,7 +1104,11 @@ impl App {
             // Not `ui.put`: allocating the spinner would move the next row up to its bottom.
             ui.new_child(egui::UiBuilder::new().max_rect(spinner))
                 .add(egui::Spinner::new().size(12.0))
-                .on_hover_text("Checking for updates…");
+                .on_hover_text(if installing {
+                    "Installing update…"
+                } else {
+                    "Checking for updates…"
+                });
         }
         if !floating {
             self.app_visibility_menu(&response, name);
@@ -1071,6 +1206,227 @@ fn dimmed_icon(ctx: &egui::Context, name: &str) -> Option<egui::TextureHandle> {
 #[cfg(test)]
 mod search_tests {
     use super::*;
+
+    #[test]
+    fn saved_sidebar_order_overrides_legacy_discovery_promotion() {
+        const CHILD_ROOT: &str = "CRAFT_SIDEBAR_ORDER_TEST_ROOT";
+        let Some(root) = std::env::var_os(CHILD_ROOT) else {
+            let root =
+                std::env::temp_dir().join(format!("craft-sidebar-order-{}", uuid::Uuid::new_v4()));
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "ui::widgets::sidebar::search_tests::saved_sidebar_order_overrides_legacy_discovery_promotion", "--test-threads=1"])
+                .env(CHILD_ROOT, &root).status().unwrap();
+            if root.exists() {
+                std::fs::remove_dir_all(root).unwrap();
+            }
+            assert!(status.success());
+            return;
+        };
+        let root = std::path::PathBuf::from(root);
+        let paths = model::Paths::new(root.clone(), None);
+        let mut entry = craft_apps_manager::catalog::builtin().remove(0);
+        entry.key = "texturecraft".into();
+        entry.repository = "texturecraft".into();
+        entry.title = "TextureCraft".into();
+        entry.asset_prefix = "texturecraft".into();
+        craft_apps_manager::files::write_json(
+            &root.join("runtime/catalog.json"),
+            &serde_json::json!({"checkedAt":1,"entries":[entry]}),
+        )
+        .unwrap();
+        craft_apps_manager::files::write_json(
+            &root.join("runtime/new-apps.json"),
+            &serde_json::json!({"known":["texturecraft"],"unread":[],"promoted":["texturecraft"]}),
+        )
+        .unwrap();
+        craft_apps_manager::files::write_json(
+            &root.join("updater-settings.json"),
+            &model::Preferences {
+                check_catalog_on_startup: false,
+                check_manager_on_startup: false,
+                check_installed_apps_on_startup: false,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        craft_apps_manager::catalog::load(&root);
+        assert!(craft_apps_manager::catalog::get("texturecraft").is_some());
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(&cc, paths, root.clone(), false).unwrap();
+        app.preferences.app_order = vec!["filmcraft".into(), "texturecraft".into()];
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: Vec::new(),
+            installations: Vec::new(),
+            portable_label_counters: Default::default(),
+        });
+        let mut positions = std::collections::BTreeMap::new();
+        for time in [0.0, 0.4] {
+            let output = ctx.run(
+                egui::RawInput {
+                    time: Some(time),
+                    screen_rect: Some(Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(265.0, 800.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        app.app_list(ui, &State::default());
+                    });
+                },
+            );
+            for shape in output.shapes {
+                if let egui::Shape::Text(text) = shape.shape {
+                    if ["FilmCraft", "TextureCraft"].contains(&text.galley.job.text.as_str()) {
+                        positions.insert(text.galley.job.text.clone(), text.pos.y);
+                    }
+                }
+            }
+        }
+        assert!(
+            positions["FilmCraft"] < positions["TextureCraft"],
+            "{positions:?}"
+        );
+        drop(app);
+        craft_apps_manager::catalog::load(&root.join("empty"));
+        // The parent removes this fixture after asynchronous readers exit.
+    }
+
+    #[test]
+    fn first_install_and_last_uninstall_move_the_available_header_smoothly() {
+        let root =
+            std::env::temp_dir().join(format!("craft-sidebar-motion-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            false,
+        )
+        .unwrap();
+        app.preferences.hidden_apps = model::apps()
+            .into_iter()
+            .filter(|name| name != "filmcraft" && name != "photocraft")
+            .collect();
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: vec![model::Installed {
+                name: "filmcraft".into(),
+                ..Default::default()
+            }],
+            installations: Vec::new(),
+            portable_label_counters: Default::default(),
+        });
+        let draw = |app: &mut App, time| {
+            let output = ctx.run(
+                egui::RawInput {
+                    time: Some(time),
+                    screen_rect: Some(Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(265.0, 800.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        app.app_list(ui, &State::default());
+                    });
+                },
+            );
+            let alpha = output.shapes.iter().find_map(|shape| match &shape.shape {
+                egui::Shape::Text(text) if text.galley.job.text == "FilmCraft" => {
+                    Some(text.fallback_color.a())
+                }
+                _ => None,
+            });
+            ctx.data_mut(|data| {
+                data.insert_temp(egui::Id::new("test-sidebar-filmcraft-opacity"), alpha)
+            });
+            output
+                .shapes
+                .iter()
+                .find_map(|shape| match &shape.shape {
+                    egui::Shape::Text(text) if text.galley.job.text == "NOT INSTALLED" => {
+                        Some(text.pos.y)
+                    }
+                    _ => None,
+                })
+                .unwrap()
+        };
+        let baseline = draw(&mut app, 0.0);
+        let installed = &mut app.display_config.as_mut().unwrap().apps[0];
+        installed.path = root.join("filmcraft").display().to_string();
+        installed.version = "1.0.0".into();
+        draw(&mut app, 1.0);
+        assert!(
+            (draw(&mut app, 1.07) - baseline).abs() < 0.1,
+            "old section stays in place while the row fades out"
+        );
+        draw(&mut app, 1.15);
+        let install_middle = draw(&mut app, 1.28);
+        let installed_y = draw(&mut app, 1.6);
+        assert!(install_middle > baseline && install_middle < installed_y);
+        let installed = &mut app.display_config.as_mut().unwrap().apps[0];
+        installed.path.clear();
+        installed.version.clear();
+        draw(&mut app, 2.0);
+        assert!((draw(&mut app, 2.07) - installed_y).abs() < 0.1);
+        draw(&mut app, 2.15);
+        let uninstall_middle = draw(&mut app, 2.28);
+        let uninstalled_y = draw(&mut app, 2.6);
+        assert!(uninstall_middle > uninstalled_y && uninstall_middle < installed_y);
+        assert!((uninstalled_y - baseline).abs() < 0.1);
+        let row_alpha = || {
+            ctx.data_mut(|data| {
+                data.get_temp::<Option<u8>>(egui::Id::new("test-sidebar-filmcraft-opacity"))
+            })
+            .flatten()
+        };
+        for (index, is_installed) in [false, true].into_iter().enumerate() {
+            let time = 3.0 + index as f64 * 4.0;
+            let installed = &mut app.display_config.as_mut().unwrap().apps[0];
+            installed.path = if is_installed {
+                root.join("filmcraft").display().to_string()
+            } else {
+                String::new()
+            };
+            installed.version = if is_installed {
+                "1.0.0".into()
+            } else {
+                String::new()
+            };
+            draw(&mut app, time);
+            draw(&mut app, time + 0.15);
+            draw(&mut app, time + 0.6);
+            let full_alpha = row_alpha().unwrap();
+            app.preferences.hidden_apps.push("filmcraft".into());
+            draw(&mut app, time + 1.0);
+            draw(&mut app, time + 1.07);
+            let fading = row_alpha().unwrap();
+            assert!(fading > 0 && fading < full_alpha);
+            draw(&mut app, time + 1.6);
+            assert!(
+                row_alpha().is_none(),
+                "hidden row is removed only after fade-out"
+            );
+            app.preferences
+                .hidden_apps
+                .retain(|name| name != "filmcraft");
+            draw(&mut app, time + 2.0);
+            draw(&mut app, time + 2.13);
+            let appearing = row_alpha().unwrap();
+            assert!(appearing > 0 && appearing < full_alpha);
+            draw(&mut app, time + 2.6);
+            assert_eq!(row_alpha(), Some(full_alpha));
+        }
+        drop(app);
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn typing_keeps_focus_when_clear_button_appears() {

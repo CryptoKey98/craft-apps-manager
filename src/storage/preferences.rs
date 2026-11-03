@@ -51,12 +51,14 @@ pub struct Preferences {
     /// Presentation only; unread activity is still tracked and highlighted.
     pub hide_activity_badge: bool,
     pub batch_admin: bool,
+    /// Legacy setting retained only to migrate the user's retention preference.
     pub keep_app_backups: bool,
-    pub keep_source_backups: bool,
-    pub compress_backups: bool,
-    pub compress_source_backups: bool,
+    /// None means an older configuration: honor its explicit keepAppBackups value.
+    #[serde(default)]
+    pub rollback_enabled: Option<bool>,
+    #[serde(default)]
+    pub rollback_overrides: std::collections::BTreeMap<String, bool>,
     pub notify_updates: bool,
-    pub backup_versions: usize,
     /// Legacy global fields are read for compatibility, never installation authority.
     pub release_format: String,
     pub app_install_options:
@@ -85,17 +87,16 @@ pub struct Preferences {
 
 impl Default for Preferences {
     fn default() -> Self {
+        let order = default_release_order();
         Self {
             theme: Theme::System,
             close_to_tray: false,
             hide_activity_badge: false,
             batch_admin: true,
             keep_app_backups: false,
-            keep_source_backups: false,
-            compress_backups: true,
-            compress_source_backups: true,
+            rollback_enabled: Some(true),
+            rollback_overrides: Default::default(),
             notify_updates: true,
-            backup_versions: 1,
             app_install_options: Default::default(),
             release_format: if cfg!(any(target_os = "windows", target_os = "macos")) {
                 "installer"
@@ -106,8 +107,8 @@ impl Default for Preferences {
             architecture: MANAGER_ARCH.into(),
             selected_apps: apps(),
             selected_sources: sources(),
-            app_order: apps(),
-            home_app_order: apps(),
+            app_order: order.clone(),
+            home_app_order: order,
             hidden_apps: Vec::new(),
             check_manager_on_startup: true,
             check_installed_apps_on_startup: true,
@@ -120,7 +121,30 @@ impl Default for Preferences {
     }
 }
 
+/// Defaults may be read after the discovery cache is loaded. Give discoveries
+/// their initial position here too, without pinning any explicitly saved order.
+fn default_release_order() -> Vec<String> {
+    let builtins: std::collections::BTreeSet<_> = crate::catalog::builtin()
+        .into_iter()
+        .map(|entry| entry.key)
+        .collect();
+    let discoveries: std::collections::BTreeSet<_> = crate::catalog::all()
+        .into_iter()
+        .filter(|entry| {
+            entry.release && !entry.repository.contains('/') && !builtins.contains(&entry.key)
+        })
+        .map(|entry| entry.key)
+        .collect();
+    let mut order = apps();
+    order.sort_by_key(|name| !discoveries.contains(name));
+    order
+}
+
 impl Preferences {
+    pub fn rollback_enabled(&self) -> bool {
+        self.rollback_enabled.unwrap_or(self.keep_app_backups)
+    }
+
     pub fn validate(&mut self) -> Result<()> {
         self.adopt_new_apps()?;
         Ok(())
@@ -132,7 +156,6 @@ impl Preferences {
         for options in self.app_install_options.values() {
             options.validate()?;
         }
-        self.backup_versions = self.backup_versions.clamp(1, 10);
         let apps: Vec<_> = crate::catalog::known_entries()
             .into_iter()
             .filter(|e| e.release)
@@ -142,6 +165,17 @@ impl Preferences {
             .into_iter()
             .filter(|e| e.source)
             .map(|e| e.key)
+            .collect();
+        let builtins: std::collections::BTreeSet<_> = crate::catalog::builtin()
+            .into_iter()
+            .map(|entry| entry.key)
+            .collect();
+        let new_discoveries: std::collections::BTreeSet<_> = crate::catalog::all()
+            .into_iter()
+            .filter(|entry| {
+                entry.release && !entry.repository.contains('/') && !builtins.contains(&entry.key)
+            })
+            .map(|entry| entry.key)
             .collect();
         let mut adopted = false;
         for entry in crate::catalog::all() {
@@ -165,16 +199,61 @@ impl Preferences {
         let mut home_seen = std::collections::BTreeSet::new();
         self.home_app_order
             .retain(|s| apps.contains(s) && home_seen.insert(s.clone()));
-        for name in &apps {
-            if home_seen.insert(name.clone()) {
-                self.home_app_order.push(name.clone());
-            }
-        }
+        let mut sidebar_front = 0;
+        let mut home_front = 0;
+        // Only missing order entries are promoted, including formerly source-only
+        // apps gaining their first release. Existing manual positions stay intact.
         for name in apps {
+            if home_seen.insert(name.clone()) {
+                if new_discoveries.contains(&name) {
+                    self.home_app_order.insert(home_front, name.clone());
+                    home_front += 1;
+                } else {
+                    self.home_app_order.push(name.clone());
+                }
+            }
             if seen.insert(name.clone()) {
-                self.app_order.push(name);
+                if new_discoveries.contains(&name) {
+                    self.app_order.insert(sidebar_front, name);
+                    sidebar_front += 1;
+                } else {
+                    self.app_order.push(name);
+                }
             }
         }
         Ok(adopted)
+    }
+}
+
+#[cfg(test)]
+mod rollback_preference_tests {
+    use super::*;
+    #[test]
+    fn fresh_rollback_default_and_explicit_legacy_preferences_are_preserved() {
+        assert!(Preferences::default().rollback_enabled());
+        let disabled: Preferences =
+            serde_json::from_str(r#"{"keepAppBackups":false,"compressBackups":true}"#).unwrap();
+        assert!(!disabled.rollback_enabled());
+        let enabled: Preferences = serde_json::from_str(r#"{"keepAppBackups":true}"#).unwrap();
+        assert!(enabled.rollback_enabled());
+        let explicit: Preferences =
+            serde_json::from_str(r#"{"keepAppBackups":false,"rollbackEnabled":true}"#).unwrap();
+        assert!(explicit.rollback_enabled());
+        assert!(explicit.rollback_overrides.is_empty());
+    }
+    #[test]
+    fn fresh_configuration_enables_rollback_and_override_roundtrips() {
+        let root =
+            std::env::temp_dir().join(format!("rollback-preferences-{}", uuid::Uuid::new_v4()));
+        let paths = crate::model::Paths::new(root.clone(), None);
+        let mut preferences = paths.read_preferences().unwrap();
+        assert!(preferences.rollback_enabled());
+        preferences
+            .rollback_overrides
+            .insert(uuid::Uuid::nil().to_string(), false);
+        let decoded: Preferences =
+            serde_json::from_value(serde_json::to_value(&preferences).unwrap()).unwrap();
+        assert_eq!(decoded.rollback_overrides, preferences.rollback_overrides);
+        let _ = std::fs::remove_dir_all(root);
     }
 }

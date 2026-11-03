@@ -1,3 +1,4 @@
+use super::unix_tools;
 use crate::{jobs::Job, model::Paths};
 use anyhow::{bail, Context, Result};
 use std::{
@@ -48,9 +49,6 @@ pub fn cargo(paths: &Paths) -> Option<PathBuf> {
                 .filter(|p| p.is_file())
         })
 }
-pub fn seven(paths: &Paths) -> Option<PathBuf> {
-    find(paths, "7zip", "7zz").or_else(|| system("7z"))
-}
 pub fn visual_cpp() -> Result<Option<PathBuf>> {
     Ok(None)
 }
@@ -73,6 +71,10 @@ pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
         );
     }
     let mut bins = Vec::new();
+    bins.extend(unix_tools::tool_bins(paths));
+    if let Some(cmake) = find(paths, "cmake", "cmake") {
+        bins.push(cmake.parent().context("CMake has no parent")?.to_path_buf());
+    }
     if let Some(cargo) = cargo(paths) {
         bins.push(cargo.parent().context("Cargo has no parent")?.to_path_buf());
     }
@@ -83,6 +85,9 @@ pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
             .into_string()
             .map_err(|_| anyhow::anyhow!("PATH is not UTF-8"))?,
     );
+    if let Some(libclang) = apple_libclang() {
+        env.insert("LIBCLANG_PATH".into(), libclang.display().to_string());
+    }
     for (key, value) in [
         ("NO_COLOR", "1"),
         ("FORCE_COLOR", "0"),
@@ -99,7 +104,13 @@ pub fn preflight(paths: &Paths, app: &str) -> Result<()> {
         bail!("Xcode Command Line Tools are missing. Use Set up build tools or run xcode-select --install.");
     }
     if app == "artcraftx" {
-        for command in ["node", "npm", "cmake", "perl", "nasm", "clang", "git"] {
+        unix_tools::node(paths)
+            .context("ArtCraft X requires Node.js 20+; use Set up build tools")?;
+        unix_tools::npm(paths).context("ArtCraft X requires npm; use Set up build tools")?;
+        find(paths, "cmake", "cmake")
+            .context("ArtCraft X requires CMake; use Set up build tools")?;
+        apple_libclang().context("Apple libclang is missing; repair Xcode Command Line Tools")?;
+        for command in ["perl", "make", "clang", "git"] {
             system(command).with_context(|| format!("ArtCraft X build tool missing: {command}"))?;
         }
     }
@@ -114,30 +125,9 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
             .status();
         bail!("Install the Xcode Command Line Tools from the dialog that opened, then run Set up build tools again.");
     }
-    let packages = prerequisite_packages(app);
-    let missing: Vec<_> = packages
-        .iter()
-        .filter(|(command, _)| system(command).is_none())
-        .map(|(_, package)| *package)
-        .collect();
-    if !missing.is_empty() {
-        let brew = system("brew").context(format!(
-            "Install Homebrew from https://brew.sh, or install these tools manually: {}",
-            missing.join(", ")
-        ))?;
-        job.stage("Installing package", None, "Installing Homebrew packages");
-        job.log(&format!(
-            "Required packages for {}: {}",
-            crate::model::title(app),
-            missing.join(", ")
-        ));
-        job.run(
-            Command::new(brew)
-                .arg("install")
-                .args(&missing)
-                .env("HOMEBREW_NO_AUTO_UPDATE", "1"),
-            false,
-        )?;
+    if app == "artcraftx" {
+        unix_tools::ensure_node(paths, job)?;
+        install_cmake(paths, job)?;
     }
     job.check()?;
     if cargo(paths).is_none() {
@@ -147,19 +137,75 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     job.log("Build tools are ready");
     Ok(())
 }
-/// Command to look for and the Homebrew package that provides it.
-fn prerequisite_packages(app: &str) -> Vec<(&'static str, &'static str)> {
-    let mut packages = Vec::new();
-    if app == "artcraftx" {
-        packages.extend([
-            ("node", "node"),
-            ("npm", "node"),
-            ("cmake", "cmake"),
-            ("nasm", "nasm"),
-        ]);
+fn apple_libclang() -> Option<PathBuf> {
+    let output = Command::new("/usr/bin/xcrun")
+        .args(["--find", "clang"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
     }
-    packages.dedup_by_key(|(_, package)| *package);
-    packages
+    let clang = PathBuf::from(String::from_utf8(output.stdout).ok()?.trim());
+    let library = clang.parent()?.parent()?.join("lib");
+    library.join("libclang.dylib").is_file().then_some(library)
+}
+
+fn install_cmake(paths: &Paths, job: &Job) -> Result<()> {
+    if find(paths, "cmake", "cmake").is_some() {
+        return Ok(());
+    }
+    download_cmake(paths, job)
+}
+
+fn download_cmake(paths: &Paths, job: &Job) -> Result<()> {
+    let version = "3.31.12";
+    let name = format!("cmake-{version}-macos-universal.tar.gz");
+    let base = format!("https://github.com/Kitware/CMake/releases/download/v{version}");
+    let network = crate::network::Network::new(&paths.root)?;
+    let sums = network.text(&format!("{base}/cmake-{version}-SHA-256.txt"))?;
+    let hash = sums
+        .lines()
+        .find_map(|line| {
+            let mut fields = line.split_whitespace();
+            let hash = fields.next()?;
+            (fields.next()?.trim_start_matches('*') == name).then_some(hash)
+        })
+        .context("CMake checksum is missing")?;
+    job.stage(
+        "Installing CMake",
+        None,
+        "Downloading verified macOS build tools",
+    );
+    unix_tools::install_tar_gz(
+        paths,
+        &network,
+        job,
+        "cmake",
+        &format!("{base}/{name}"),
+        hash,
+    )
+}
+
+#[cfg(test)]
+#[test]
+#[ignore = "Downloads and executes the official universal CMake package in an isolated directory"]
+fn verified_universal_cmake_runs_without_homebrew() {
+    let root = std::env::temp_dir().join(format!("craft-cmake-smoke-{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir(&root).unwrap();
+    let paths = Paths::new(root.clone(), None);
+    let job = Job::new(root.join("test.log"), &Default::default());
+    let result = (|| -> Result<()> {
+        download_cmake(&paths, &job)?;
+        let cmake =
+            find_in(&paths.tools.join("cmake"), "cmake").context("Downloaded CMake is missing")?;
+        anyhow::ensure!(
+            Command::new(cmake).arg("--version").status()?.success(),
+            "Downloaded CMake did not start"
+        );
+        Ok(())
+    })();
+    let _ = std::fs::remove_dir_all(root);
+    result.unwrap();
 }
 fn install_rust(paths: &Paths, job: &Job) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
@@ -197,22 +243,4 @@ fn install_rust(paths: &Paths, job: &Job) -> Result<()> {
         false,
     )?;
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn prerequisite_setup_only_installs_selected_apps_extra_tools() {
-        let normal = prerequisite_packages("filmcraft");
-        assert!(
-            normal.is_empty(),
-            "Ordinary source builds must not require Homebrew packages"
-        );
-        assert!(!normal.iter().any(|(_, p)| *p == "node"));
-        let desktop = prerequisite_packages("artcraftx");
-        assert!(!desktop.iter().any(|(_, p)| *p == "sevenzip"));
-        assert_eq!(desktop.iter().filter(|(_, p)| *p == "node").count(), 1);
-        assert!(desktop.iter().any(|(_, p)| *p == "nasm"));
-    }
 }

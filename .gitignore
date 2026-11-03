@@ -29,19 +29,28 @@ __pycache__/
 *.tsbuildinfo
 
 # Local credentials; keep shareable configuration examples visible.
-/.env
-/.env.*
-!/.env.example
-!/.env.sample
-/.dev.vars
-/.dev.vars.*
-!/.dev.vars.example
-!/.dev.vars.sample
+.env
+.env.*
+!.env.example
+!.env.sample
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+!.dev.vars.sample
+
+# Private signing material accidentally copied to the project root.
+/*.key
+/*.pem
+/*.p8
+/*.p12
+/*.pfx
+/*.private.hex
 
 /.release-secrets/
 /.wrangler/
 /update-service/node_modules/
 /update-service/.wrangler/
+/update-service/target/
 /update-service/.dev.vars
 /update-service/.dev.vars.*
 !/update-service/.dev.vars.example

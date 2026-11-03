@@ -33,6 +33,19 @@ fn shared_app_parent_does_not_allow_adjacent_portable_metadata() {
 }
 use super::*;
 #[test]
+fn portable_migration_leaves_installed_app_yaml_untouched() {
+    let base = std::env::temp_dir().join(format!("craft-app-yaml-{}", uuid::Uuid::new_v4()));
+    let app_config = base.join("data/releases/filmcraft/config.yaml");
+    fs::create_dir_all(app_config.parent().unwrap()).unwrap();
+    let contents = b"app_setting: true\n";
+    fs::write(&app_config, contents).unwrap();
+    fs::write(base.join(MARKER), b"portable\n").unwrap();
+    initialize(&base).unwrap();
+    assert_eq!(fs::read(&app_config).unwrap(), contents);
+    fs::remove_dir_all(base).unwrap();
+}
+
+#[test]
 fn portable_adoption_ignores_unrelated_link_but_rejects_linked_metadata() {
     let temp = std::env::temp_dir().join(format!("craft-adoption-links-{}", uuid::Uuid::new_v4()));
     let base = temp.join("Applications");
@@ -547,4 +560,116 @@ fn tagged_paths_reject_traversal_and_mac_data_stays_outside_bundle() {
         executable_folder(&base.join("Manager.app/Contents/MacOS/manager")).unwrap(),
         base
     );
+}
+#[test]
+fn renamed_inventory_import_survives_portable_moves_and_keeps_external_paths() {
+    let temp =
+        std::env::temp_dir().join(format!("craft-renamed-portable-{}", uuid::Uuid::new_v4()));
+    let base = temp.join("first");
+    let library = base.join("my-library");
+    fs::create_dir_all(&library).unwrap();
+    fs::write(base.join(MARKER), b"").unwrap();
+    initialize(&base).unwrap();
+    let external = temp.join("external/app");
+    let value = serde_json::json!({"appsRoot": library, "apps": [
+        {"name":"filmcraft","version":"1","path":library.join("releases/filmcraft"),"install_kind":"portable"},
+        {"name":"photocraft","version":"1","path":external,"install_kind":"installer"}
+    ], "installations":[], "unknown":{"keep":true}});
+    crate::files::write_json(&library.join("settings.json"), &value).unwrap();
+    let paths = crate::model::Paths::new(library.clone(), None);
+    let imported = paths.read_inventory().unwrap().unwrap();
+    assert_eq!(std::path::Path::new(&imported.apps_root), library);
+    assert!(!library.join("settings.json").exists());
+    let encoded: Value =
+        serde_json::from_slice(&fs::read(library.join("installations.json")).unwrap()).unwrap();
+    assert!(encoded["appsRoot"]
+        .as_str()
+        .unwrap()
+        .starts_with("@portable"));
+    let moved = temp.join("moved");
+    fs::rename(&base, &moved).unwrap();
+    initialize(&moved).unwrap();
+    let moved_library = moved.join("my-library");
+    let paths = crate::model::Paths::new(moved_library.clone(), None);
+    let config = paths.read_inventory().unwrap().unwrap();
+    assert_eq!(std::path::Path::new(&config.apps_root), moved_library);
+    assert_eq!(
+        std::path::Path::new(&config.apps[0].path),
+        moved_library.join("releases/filmcraft")
+    );
+    assert_eq!(std::path::Path::new(&config.apps[1].path), external);
+    let decoded: Value = crate::files::read_json(&paths.inventory_path().unwrap()).unwrap();
+    assert_eq!(decoded["unknown"], value["unknown"]);
+    fs::remove_dir_all(temp).unwrap();
+}
+
+#[test]
+fn default_library_recognizes_renamed_inventory() {
+    let root =
+        std::env::temp_dir().join(format!("craft-inventory-default-{}", uuid::Uuid::new_v4()));
+    fs::create_dir_all(&root).unwrap();
+    fs::write(root.join("installations.json"), b"{}").unwrap();
+    assert_eq!(default_library(&root), root);
+    fs::remove_dir_all(root).unwrap();
+}
+#[test]
+fn yaml_configuration_launch_choices_rebase_on_move_without_changing_arguments() {
+    let temp = std::env::temp_dir().join(format!("craft-yaml-portable-{}", uuid::Uuid::new_v4()));
+    let first = temp.join("first");
+    fs::create_dir_all(first.join("data")).unwrap();
+    fs::write(first.join(MARKER), b"").unwrap();
+    initialize(&first).unwrap();
+    let root = first.join("data");
+    let store = crate::storage::config::ConfigStore::new(root.clone());
+    let mut document = crate::storage::config::document::defaults();
+    let key = format!("filmcraft|{}", root.join("releases/filmcraft").display());
+    document["launch"][&key] = serde_json::json!({"executable":root.join("releases/filmcraft/filmcraft.exe"),"arguments":["C:/literal.argument"]});
+    document["build_launch"]["filmcraft"] = serde_json::json!({"executable":"","arguments":[],"selectedBuild":root.join("builds/filmcraft/commit")});
+    document["manager"]["futurePath"] = serde_json::json!("C:/do-not-rebase");
+    store.publish_locked(document).unwrap();
+    let raw = fs::read_to_string(store.path()).unwrap();
+    assert!(raw.contains("@portable/"));
+    let moved = temp.join("moved");
+    fs::rename(first, &moved).unwrap();
+    initialize(&moved).unwrap();
+    let store = crate::storage::config::ConfigStore::new(moved.join("data"));
+    let loaded = store.load().unwrap();
+    let expected_folder = moved.join("data/releases/filmcraft");
+    let launch = loaded.document["launch"].as_object().unwrap();
+    assert_eq!(launch.len(), 1);
+    let (app, folder) = launch.keys().next().unwrap().split_once('|').unwrap();
+    assert_eq!(app, "filmcraft");
+    assert_eq!(std::path::Path::new(folder), expected_folder);
+    assert_eq!(
+        launch.values().next().unwrap()["arguments"],
+        serde_json::json!(["C:/literal.argument"])
+    );
+    assert_eq!(
+        std::path::Path::new(
+            loaded.document["build_launch"]["filmcraft"]["selectedBuild"]
+                .as_str()
+                .unwrap()
+        ),
+        moved.join("data/builds/filmcraft/commit")
+    );
+    assert_eq!(loaded.document["manager"]["futurePath"], "C:/do-not-rebase");
+    deactivate(&moved, false).unwrap();
+    assert_eq!(store.load().unwrap().document, loaded.document);
+    fs::remove_dir_all(temp).unwrap();
+}
+
+#[test]
+fn immutable_rollback_contents_are_not_rewritten_as_library_metadata() {
+    assert!(!super::metadata_name(
+        "rollbacks/installation/previous/.craft-manager-install.json"
+    ));
+    assert!(!super::metadata_name(
+        "runtime/rollback-transactions/id/previous/.craft-manager-install.json"
+    ));
+    assert!(!super::metadata_name(
+        "runtime/source-transactions/id/previous.zip"
+    ));
+    assert!(super::metadata_name(
+        "releases/filmcraft/.craft-manager-install.json"
+    ));
 }

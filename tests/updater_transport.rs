@@ -63,6 +63,35 @@ fn cached_catalog_reverified() {
         CheckOutcome::CheckFailed(_)
     ));
 }
+
+#[test]
+fn periodic_checks_do_not_extend_the_one_minute_cache_window() {
+    let temp = Temp::new();
+    let mock = Mock {
+        calls: AtomicUsize::new(0),
+        body: signed(&catalog()),
+        status: 200,
+    };
+    run(&temp, &mock, 1001);
+    let endpoints = [ValidatedEndpoint::new("https://updates.example/v2/catalog.json").unwrap()];
+    for now in [1060, 1061] {
+        assert!(matches!(
+            check(
+                &profile(true),
+                &CheckContext {
+                    root: &temp.0,
+                    trust: &context(),
+                    endpoints: &endpoints,
+                    transport: &mock,
+                    now,
+                    trigger: CheckTrigger::Periodic(60),
+                }
+            ),
+            CheckOutcome::DirectUpdate(_)
+        ));
+    }
+    assert_eq!(mock.calls.load(Ordering::SeqCst), 2);
+}
 #[test]
 fn retry_deadline_survives_restart() {
     let temp = Temp::new();

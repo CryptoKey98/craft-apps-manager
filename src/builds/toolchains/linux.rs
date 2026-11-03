@@ -36,9 +36,6 @@ pub fn cargo(paths: &Paths) -> Option<PathBuf> {
                 .filter(|p| p.is_file())
         })
 }
-pub fn seven(paths: &Paths) -> Option<PathBuf> {
-    find(paths, "7zip", "7zz").or_else(|| system("7z"))
-}
 pub fn visual_cpp() -> Result<Option<PathBuf>> {
     Ok(None)
 }
@@ -54,18 +51,19 @@ pub fn environment(paths: &Paths) -> Result<BTreeMap<String, String>> {
             paths.tools.join("rustup").display().to_string(),
         );
     }
+    let mut bins = super::unix_tools::tool_bins(paths);
     if let Some(cargo) = cargo(paths) {
-        let mut bins = vec![cargo.parent().context("Cargo has no parent")?.to_path_buf()];
-        bins.extend(std::env::split_paths(
-            &std::env::var_os("PATH").unwrap_or_default(),
-        ));
-        env.insert(
-            "PATH".into(),
-            std::env::join_paths(bins)?
-                .into_string()
-                .map_err(|_| anyhow::anyhow!("PATH is not UTF-8"))?,
-        );
+        bins.push(cargo.parent().context("Cargo has no parent")?.to_path_buf());
     }
+    bins.extend(std::env::split_paths(
+        &std::env::var_os("PATH").unwrap_or_default(),
+    ));
+    env.insert(
+        "PATH".into(),
+        std::env::join_paths(bins)?
+            .into_string()
+            .map_err(|_| anyhow::anyhow!("PATH is not UTF-8"))?,
+    );
     for (key, value) in [
         ("NO_COLOR", "1"),
         ("FORCE_COLOR", "0"),
@@ -82,7 +80,10 @@ pub fn preflight(paths: &Paths, app: &str) -> Result<()> {
         system(command).with_context(|| format!("Build tool missing: {command}"))?;
     }
     if app == "artcraftx" {
-        for command in ["node", "npm", "cmake", "perl", "nasm", "clang", "git"] {
+        super::unix_tools::node(paths)
+            .context("ArtCraft X needs Node.js 20+ with npm. Use Set up build tools.")?;
+        super::unix_tools::npm(paths).context("ArtCraft X needs npm. Use Set up build tools.")?;
+        for command in ["cmake", "make", "perl", "nasm", "clang", "git"] {
             system(command).with_context(|| format!("ArtCraft X build tool missing: {command}"))?;
         }
     }
@@ -100,18 +101,7 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     if system(manager).is_none() || system("pkexec").is_none() {
         bail!("Automatic prerequisite setup requires {manager} and PolicyKit. Install Rust and the development packages listed in docs/linux.md.");
     }
-    let seven_package = if kind != crate::installers::PackageKind::Debian
-        || std::process::Command::new("apt-cache")
-            .args(["show", "7zip"])
-            .output()?
-            .status
-            .success()
-    {
-        "7zip"
-    } else {
-        "p7zip-full"
-    };
-    let packages = prerequisite_packages(kind, app, seven_package);
+    let packages = prerequisite_packages(kind, app);
     job.stage(
         "Installing package",
         None,
@@ -148,15 +138,14 @@ pub fn setup(paths: &Paths, app: &str, job: &Job) -> Result<()> {
     if cargo(paths).is_none() {
         install_rust(paths, job)?;
     }
+    if app == "artcraftx" {
+        super::unix_tools::ensure_node(paths, job)?;
+    }
     preflight(paths, app)?;
     job.log("Build tools are ready");
     Ok(())
 }
-fn prerequisite_packages<'a>(
-    kind: crate::installers::PackageKind,
-    app: &str,
-    seven: &'a str,
-) -> Vec<&'a str> {
+fn prerequisite_packages(kind: crate::installers::PackageKind, app: &str) -> Vec<&'static str> {
     if kind == crate::installers::PackageKind::Arch {
         let mut packages = vec![
             "base-devel",
@@ -171,7 +160,6 @@ fn prerequisite_packages<'a>(
             "alsa-lib",
             "openssl",
             "systemd",
-            "7zip",
             "libarchive",
         ];
         if app == "artcraftx" {
@@ -195,6 +183,7 @@ fn prerequisite_packages<'a>(
         let mut packages = vec![
             "gcc",
             "gcc-c++",
+            "make",
             "pkgconf-pkg-config",
             "libxkbcommon-devel",
             "wayland-devel",
@@ -206,7 +195,6 @@ fn prerequisite_packages<'a>(
             "alsa-lib-devel",
             "openssl-devel",
             "systemd-devel",
-            "7zip",
         ];
         if app == "artcraftx" {
             packages.extend([
@@ -238,7 +226,6 @@ fn prerequisite_packages<'a>(
         "libasound2-dev",
         "libssl-dev",
         "libudev-dev",
-        seven,
     ];
     if app == "artcraftx" {
         packages.extend([
@@ -302,19 +289,30 @@ mod tests {
     use super::*;
     use crate::installers::PackageKind;
     #[test]
+    fn fedora_prerequisites_include_make_for_native_cmake_builds() {
+        assert!(prerequisite_packages(PackageKind::Rpm, "artcraftx").contains(&"make"));
+    }
+    #[test]
     fn prerequisite_setup_only_installs_selected_apps_extra_tools() {
         for kind in [PackageKind::Debian, PackageKind::Rpm, PackageKind::Arch] {
-            let normal = prerequisite_packages(kind, "filmcraft", "7zip");
+            let normal = prerequisite_packages(kind, "filmcraft");
             assert!(!normal
                 .iter()
                 .any(|p| p.contains("node") || p.contains("npm") || p.contains("webkit")));
-            let desktop = prerequisite_packages(kind, "artcraftx", "7zip");
+            let desktop = prerequisite_packages(kind, "artcraftx");
             assert!(desktop.iter().any(|p| p.contains("node")));
             assert!(desktop.iter().any(|p| p.contains("npm")));
             assert!(desktop.iter().any(|p| p.contains("webkit")));
             assert!(desktop.contains(&"clang"));
+            assert!(
+                !normal
+                    .iter()
+                    .chain(&desktop)
+                    .any(|p| p.contains("7zip") || p.contains("p7zip")),
+                "7-Zip must not be a Linux prerequisite"
+            );
         }
-        let fedora = prerequisite_packages(PackageKind::Rpm, "filmcraft", "7zip");
+        let fedora = prerequisite_packages(PackageKind::Rpm, "filmcraft");
         assert!(fedora.contains(&"gcc"));
         assert!(!fedora.contains(&"build-essential"));
     }

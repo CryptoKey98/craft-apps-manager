@@ -1,11 +1,12 @@
 use super::*;
+use crate::ui::screens::settings::edit_session::SelectionOrigin;
 
 impl App {
     pub(super) fn render_release_review(&mut self, ctx: &egui::Context) {
         if let Some(plan) = self
             .release_plan
             .clone()
-            .filter(|_| !self.selection_from_review)
+            .filter(|_| self.selection_origin != Some(SelectionOrigin::ReleaseReview))
         {
             let response = modal(ctx, "Review release operations", 600.0, |ui| {
                 band(ui, BODY, 0.0, |ui| {
@@ -192,7 +193,7 @@ impl App {
                             {
                                 self.selection_draft = plan.preferences.selected_apps.clone();
                                 self.source_selection = false;
-                                self.selection_from_review = true;
+                                self.selection_origin = Some(SelectionOrigin::ReleaseReview);
                                 self.selection = true;
                             }
                         },
@@ -390,7 +391,7 @@ impl App {
                         });
                     footer(ui, |ui| {
                         if action(ui, "Save", Kind::Primary, true).clicked() {
-                            if self.selection_from_review {
+                            if self.selection_origin == Some(SelectionOrigin::ReleaseReview) {
                                 match craft_apps_manager::settings::select_release_apps(
                                     &self.paths,
                                     &self.selection_draft,
@@ -399,30 +400,37 @@ impl App {
                                         self.preferences = preferences.clone();
                                         self.settings_draft = preferences;
                                         self.selection = false;
-                                        self.selection_from_review = false;
+                                        self.selection_origin = None;
                                         self.release_plan = None;
                                         self.begin_release_review();
                                     }
                                     Err(error) => self.error = Some(format!("{error:#}")),
                                 }
-                            } else if self.source_selection {
+                            } else if self.settings_edit.as_ref().is_some_and(|s| {
+                                self.selection_origin == Some(SelectionOrigin::Settings(s.id()))
+                            }) && self.source_selection
+                            {
                                 self.settings_draft.selected_sources = self.selection_draft.clone();
                                 self.selection = false;
-                            } else {
+                                self.selection_origin = None;
+                            } else if self.settings_edit.as_ref().is_some_and(|s| {
+                                self.selection_origin == Some(SelectionOrigin::Settings(s.id()))
+                            }) {
                                 self.settings_draft.selected_apps = self.selection_draft.clone();
                                 self.selection = false;
+                                self.selection_origin = None;
                             }
                         }
                         if action(ui, "Cancel", Kind::Secondary, true).clicked() {
                             self.selection = false;
-                            self.selection_from_review = false;
+                            self.selection_origin = None;
                         }
                     });
                 },
             );
             if modal.should_close() {
                 self.selection = false;
-                self.selection_from_review = false;
+                self.selection_origin = None;
             }
         }
     }

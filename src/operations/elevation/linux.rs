@@ -25,6 +25,10 @@ use std::{
 struct Package {
     path: PathBuf,
     checksum: String,
+    #[serde(default)]
+    downgrade: bool,
+    #[serde(default)]
+    recovery: bool,
 }
 #[derive(Serialize, Deserialize)]
 struct Request {
@@ -48,18 +52,18 @@ pub(crate) fn active() -> bool {
 }
 
 pub fn eligible(plan: &ReleasePlan) -> bool {
+    let count = plan
+        .entries
+        .iter()
+        .filter(|e| {
+            e.preferences.release_format == "installer"
+                && matches!(e.action.as_str(), "Install" | "Update")
+                && e.error.is_none()
+        })
+        .count();
     plan.preferences.batch_admin
-        && plan.requested_tag.is_none()
-        && plan
-            .entries
-            .iter()
-            .filter(|e| {
-                e.preferences.release_format == "installer"
-                    && matches!(e.action.as_str(), "Install" | "Update")
-                    && e.error.is_none()
-            })
-            .count()
-            > 1
+        && ((plan.requested_tag.is_none() && count > 1)
+            || (plan.native_rollback.is_some() && count == 1))
 }
 fn peer_uid(stream: &UnixStream) -> Result<u32> {
     use std::os::fd::AsRawFd;
@@ -115,10 +119,6 @@ pub(crate) fn install_package(
         let mut client = cell.borrow_mut();
         let client = client.as_mut()?;
         Some((|| {
-            ensure!(
-                !downgrade,
-                "An approved update batch cannot downgrade packages"
-            );
             if let Some(job) = job {
                 job.check()?;
             }
@@ -127,6 +127,10 @@ pub(crate) fn install_package(
                 .iter()
                 .position(|p| p.path == file)
                 .context("Package is outside the approved batch")?;
+            ensure!(
+                client.packages[index].recovery || client.packages[index].downgrade == downgrade,
+                "Package replacement direction was not approved"
+            );
             ensure!(
                 client.consumed.insert(index),
                 "Package was already executed in this batch"
@@ -174,10 +178,11 @@ fn await_helper(listener: &UnixListener, child: &mut Child, job: &Job) -> Result
 pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     ensure!(
         eligible(plan),
-        "Batch approval requires multiple installer operations"
+        "Batch approval requires a supported installer operation"
     );
     let network = crate::network::Network::new(&paths.root)?;
     let mut packages = Vec::new();
+    let config = paths.config()?;
     for entry in plan.entries.iter().filter(|e| {
         e.preferences.release_format == "installer"
             && matches!(e.action.as_str(), "Install" | "Update")
@@ -187,7 +192,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         let asset = entry.asset.as_ref().context("Missing approved package")?;
         files::safe_relative(&asset.name)?;
         crate::model::valid_app(&entry.app)?;
-        let path = paths.at(format!("releases/installers/{}/{}", entry.app, asset.name));
+        let path = updates::planned_installer_path(paths, plan, &entry.app, asset)?;
         if !path.exists() {
             network.asset(asset, &path, job)?;
         }
@@ -195,7 +200,44 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         packages.push(Package {
             path: path.canonicalize()?,
             checksum: files::hash(&path)?,
+            downgrade: plan.native_rollback.is_some()
+                && config
+                    .apps
+                    .iter()
+                    .find(|a| a.name == entry.app)
+                    .is_some_and(|a| {
+                        updates::version(&entry.version).ok() < updates::version(&a.version).ok()
+                    }),
+            recovery: false,
         });
+        if let Some(installed) = config.apps.iter().find(|a| {
+            a.name == entry.app
+                && a.install_kind == "installer"
+                && !a.path.is_empty()
+                && !a.version.is_empty()
+        }) {
+            let mandatory = plan.native_rollback.is_some();
+            let enabled = crate::installations::rollbacks::native::supported(installed).is_ok()
+                && crate::installations::rollbacks::native::enabled(paths, installed)?;
+            if !mandatory && !enabled {
+                continue;
+            }
+            match crate::installations::rollbacks::native::prepare_current(
+                paths, installed, job, None,
+            ) {
+                Ok(recovery) => packages.push(Package {
+                    path: recovery.package.canonicalize()?,
+                    checksum: files::hash(&recovery.package)?,
+                    downgrade: updates::version(&installed.version)?
+                        < updates::version(&entry.version)?,
+                    recovery: true,
+                }),
+                Err(error) if mandatory || crate::jobs::is_cancelled(&error) => return Err(error),
+                Err(error) => job.log(&format!(
+                    "Previous installer could not be staged for approval: {error:#}"
+                )),
+            }
+        }
     }
     // Keep the socket path short and private; long library paths exceed Unix socket limits.
     let directory = std::env::temp_dir().join(format!("craft-batch-{}", uuid::Uuid::new_v4()));
@@ -356,7 +398,18 @@ pub fn worker(manifest: &Path, checksum: &str) -> Result<()> {
             index < copies.len() && used.insert(index),
             "Unapproved or repeated package request"
         );
-        let status = crate::installers::approved_package_command(kind, &copies[index]).status();
+        let status = if request.packages[index].recovery {
+            crate::installers::approved_recovery_command(kind, &copies[index])
+                .and_then(|mut command| Ok(command.status()?))
+        } else {
+            crate::installers::approved_package_command(
+                kind,
+                &copies[index],
+                request.packages[index].downgrade,
+            )
+            .status()
+            .map_err(Into::into)
+        };
         let reply = match status {
             Ok(status) => Reply {
                 code: status.code(),
@@ -411,6 +464,8 @@ mod tests {
                 Package {
                     checksum: files::hash(&path).unwrap(),
                     path,
+                    downgrade: false,
+                    recovery: false,
                 }
             })
             .collect();
@@ -497,6 +552,44 @@ mod tests {
             .is_err());
         assert!(install_package(&approved, true, None).unwrap().is_err());
         thread.join().unwrap();
+    }
+    #[test]
+    fn approved_recovery_accepts_either_direction_but_executes_only_once() {
+        for downgrade in [false, true] {
+            let (_directory, mut request) = fixture();
+            request.packages[0].recovery = true;
+            let approved = request.packages[0].path.clone();
+            let (stream, mut helper) = UnixStream::pair().unwrap();
+            let thread = std::thread::spawn(move || {
+                assert_eq!(receive::<usize>(&mut helper, None).unwrap(), 0);
+                send(
+                    &mut helper,
+                    &Reply {
+                        code: Some(0),
+                        error: None,
+                    },
+                )
+                .unwrap();
+            });
+            CLIENT.with(|cell| {
+                *cell.borrow_mut() = Some(Client {
+                    stream,
+                    packages: request.packages,
+                    consumed: Default::default(),
+                });
+            });
+            let _scope = Scope;
+            assert_eq!(
+                install_package(&approved, downgrade, None)
+                    .unwrap()
+                    .unwrap(),
+                0
+            );
+            assert!(install_package(&approved, downgrade, None)
+                .unwrap()
+                .is_err());
+            thread.join().unwrap();
+        }
     }
     #[test]
     fn cancelled_jobs_do_not_dispatch_another_package() {
