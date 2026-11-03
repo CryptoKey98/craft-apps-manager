@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793743066,
+      "checked_at": 1793744577,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793743066,
+      "checked_at": 1793744578,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -3300,7 +3300,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793743067,
+      "checked_at": 1793744578,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -5609,7 +5609,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793743068,
+      "checked_at": 1793744579,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -8412,7 +8412,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793743069,
+      "checked_at": 1793744580,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -11593,7 +11593,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793743070,
+      "checked_at": 1793744581,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -14258,7 +14258,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793743071,
+      "checked_at": 1793744582,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -17043,7 +17043,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793743071,
+      "checked_at": 1793744583,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -19540,7 +19540,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793743072,
+      "checked_at": 1793744584,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -22477,7 +22477,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793743073,
+      "checked_at": 1793744584,
       "latest_tag": "v0.1.0",
       "releases": [
         {
@@ -22666,7 +22666,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793743074,
+      "checked_at": 1793744585,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -25807,7 +25807,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793743075,
+      "checked_at": 1793744586,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29278,7 +29278,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793743076,
+      "checked_at": 1793744587,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -31653,7 +31653,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793743076,
+      "checked_at": 1793744588,
       "latest_tag": "v0.3.0",
       "releases": [
         {
@@ -32170,7 +32170,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793743077,
+      "checked_at": 1793744589,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -35589,7 +35589,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793743078,
+      "checked_at": 1793744590,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -37904,7 +37904,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793743081,
+      "checked_at": 1793744592,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -51173,7 +51173,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"09d07576647d396ac54af6a71920d883f66f02741e4db9aa07a5f1981a8e3183\"",
+      "etag": "\"c8b31560d88605d8639f662c21c1c6b418bf67e55abddbf3b08e063e829c512f\"",
       "body": {
         "assets": [
           {
@@ -51208,7 +51208,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"a4d612d15446df13a0ef030159259db74dd84d7d2eb9eed5f6a0d8defa1b347c\"",
+      "etag": "\"11e6e8a553d3ccec19911853d831e89c174e3b6be51f51b5d70b18f43d98bcd5\"",
       "body": [
         {
           "assets": [
@@ -52013,7 +52013,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"a10ef6284954081146a82a8705a6ce90531e963c816bf7bb05dc630b3f45abaa\"",
+      "etag": "\"777ce07c4ae97e41cbe62683131bf5d29581f9847c88d87aa10f057e2cb2b16e\"",
       "body": {
         "assets": [
           {
@@ -52198,7 +52198,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"c7b6aa90b4b5efb4ad87b4ae36f0dbdbfdef46eaa241f7516d33c2a726d33422\"",
+      "etag": "\"6a04ad1e0e21b1a014a2244d8b111efe9cc27d70fe016f5b746e390be8acfa41\"",
       "body": [
         {
           "assets": [
@@ -54687,7 +54687,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"5857af7641d8e07e5dd06e70d7e4ed227ca169d94f929a5fe8ba368afb51b503\"",
+      "etag": "\"ed258fdf97fa9776a87b7f1a566461ee6a20f83ad0da0949135c8aced593ccf2\"",
       "body": {
         "assets": [
           {
@@ -54872,7 +54872,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"619b3d3762f7ea3230fdcd8564209228718fbbe7d0a4ce92aad9a3430adf7acb\"",
+      "etag": "\"331d2160f0f6735f84bf9a6d956517352ccdf8f4fe15487f55e376f7d36b0325\"",
       "body": [
         {
           "assets": [
@@ -57179,7 +57179,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"8f9fb8248a401be4f50944a30cedc8810be6de149208e948c84f33ea10cc743d\"",
+      "etag": "\"2845777f46d33128edad96e4006807f074bd4e3822f4f07a93efde9753dd564f\"",
       "body": {
         "assets": [
           {
@@ -57364,7 +57364,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"ec70697d3b7c017591b533b38b472bd4d48a0e844446a18abbea58af29dbdd6e\"",
+      "etag": "\"551e630e0b1ed8e82bad898f67692fea7a0e8c9652e77816bbd36f72b085a508\"",
       "body": [
         {
           "assets": [
@@ -60165,7 +60165,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"32c46adb0144791542cb45caf82404f633e8a068b711e415af5776d3f88d73a6\"",
+      "etag": "\"19c03cf0010c71ad8265d49f201f4824472389c9e6cd9c90742336c85776c6f8\"",
       "body": {
         "assets": [
           {
@@ -60350,7 +60350,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"a12e97be05f1436a4b93929554e8c1672a5051ca77ee545cf76dd1754bc75920\"",
+      "etag": "\"1b69e334de29b02441d225e4cc9755dafea4385b1110a1ee35601d7f5b7d98ef\"",
       "body": [
         {
           "assets": [
@@ -63529,7 +63529,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"8adf7d8ec753faff75f56d1bbefb56d2b77bc10f3005a67de62e0bd9f3b7855f\"",
+      "etag": "\"490eaa071f6f514103df20ef53455694b6bb6448b9abc03c9d2fc505cae458f9\"",
       "body": {
         "assets": [
           {
@@ -63726,7 +63726,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"9f85dce72f431d5ac0b1f29e68ef958f79c4d5e0abf1a2d791a70e892b1318e3\"",
+      "etag": "\"ec8b376b6b2a18fd45bf6289877b4fc4a105277fda520156316c32ade77b98c2\"",
       "body": [
         {
           "assets": [
@@ -66389,7 +66389,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"0874fc746f76e4e3b931eaab8fe7ff684756b26a619ca859ddf158db1756f67a\"",
+      "etag": "\"3d37501abd0af650e0cbdcd5b31238e1688016254c681f0d70d7040688ee8aad\"",
       "body": {
         "assets": [
           {
@@ -66574,7 +66574,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"a0b5025e5b7999bbb6308d575f55591998dd075ea14cdf3d5414cbb7c60a02b7\"",
+      "etag": "\"b7df3fdd93cb9f6a1ad90869c2303fb3c0f9c4d8a385f6505582f9ebd992a94d\"",
       "body": [
         {
           "assets": [
@@ -69357,7 +69357,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"4c537bbab7cecc176a70f0ab0f8840affb795b3c583c3330985bc657b5b8c189\"",
+      "etag": "\"8ba44e425167ee93a1fdad5f1e78496b7053b2d183e3b22fc93a9fd8e9569b9e\"",
       "body": {
         "assets": [
           {
@@ -69542,7 +69542,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"60d888eac18d891e141040f798e40fcab8a29ba0e5512d050d4c9551861cc976\"",
+      "etag": "\"e2fe20c65872be8ddc0df17c067aaef96a77109b05231e0dc17f90403a3dafe3\"",
       "body": [
         {
           "assets": [
@@ -72037,7 +72037,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"4d04a5725b28c30f9897cd4f9202c5ad2569c89f5c2ce6f684b3676403134ce6\"",
+      "etag": "\"6d64b7d5610eb5e2ca125d776be57ad3cbdc860155a55e72e2ac48486238c913\"",
       "body": {
         "assets": [
           {
@@ -72222,7 +72222,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"1d60ff767a28d36af3b4fce775a0d0bce040b656a56d15f4329afd559f63131c\"",
+      "etag": "\"5ed0704d5acc13e6c881e72cb026521aba0c6e603261720d1dccff9d49df1628\"",
       "body": [
         {
           "assets": [
@@ -75157,7 +75157,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"ee0ce35109a620a22d0da9475995e87f50f32338310c08251b67cc192fe3ff2d\"",
+      "etag": "\"0dc70818e652fe700bd3f2b2d3e9d4d1864e5828b37128f1021e64feae83822a\"",
       "body": {
         "assets": [
           {
@@ -75342,7 +75342,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"53bb4e9fdfd034cf191f4fbf16244a52c3e162806a2a8712e412fb05403bcd28\"",
+      "etag": "\"57d4b86eb66b4bc54ccc3f8187bf464c3409bf5f0cb022e4b1b3e8cd077aa2ca\"",
       "body": [
         {
           "assets": [
@@ -75529,7 +75529,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"3b64a31281c943513caaf1680e828a69470efaffa67249028b718f0cf6291ad0\"",
+      "etag": "\"3ff76dd33f6c30fcd096141a43d9426316533ff89d9c7ea58dbc059efd2ed57c\"",
       "body": {
         "assets": [
           {
@@ -75726,7 +75726,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"23a6cbd5b8a767b34fe99c61bfb8e32d1066d8fecaed03d639d28c27ed70fc13\"",
+      "etag": "\"2c8ec452b03cfcda0cb09301750e713e30e588d5ba1088b732519434e97b7ded\"",
       "body": [
         {
           "assets": [
@@ -78865,7 +78865,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"ebf2dbe03cac556ec459dd734bd6489591678a6bdd2c612a1e68cb2eccd8dc13\"",
+      "etag": "\"76c437b91c688232f16eb126b70a5e62d939cb8869b92f33b13b72d115d84d6e\"",
       "body": {
         "assets": [
           {
@@ -79068,7 +79068,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"eff1ada06eba909babb01e5c1abe755996f2c0a6059a5a6e7553a1786ccc88bb\"",
+      "etag": "\"b7cebb7b5b452e1d859e7906ebadb70ec3c754edf5c0edcb5e025886031f214d\"",
       "body": [
         {
           "assets": [
@@ -82537,7 +82537,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"5874d045eb13337587dc175a6dbd2182d22dc9f19d0b5f13bb5f757c3f5238f3\"",
+      "etag": "\"eab2910aac73a149d6b016782fedac8a5c46e81b4d7cbdbd4061600dd70adc17\"",
       "body": {
         "assets": [
           {
@@ -82722,7 +82722,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"08c0d2e1f8719942e0e2f44be0ee71948612efb16add56dec3b43d9a31c2aa06\"",
+      "etag": "\"1bd1fc026ea8241d80ec5d9ce64ce253762bca8b96b17b6b9a8f93205ea7b5da\"",
       "body": [
         {
           "assets": [
@@ -85095,7 +85095,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"caa6e26962bb7e874f0f0fceaa8f61c2b09d02539e161b1809d6e0b1ec2d6c65\"",
+      "etag": "\"a9a2574ec211ae8d780ff645c95317d283bb189d79a97328edce21e6cbb1b870\"",
       "body": {
         "assets": [
           {
@@ -85280,7 +85280,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"65205ac61d23a78a969d524f5abd633bb252b2f7c0bbfd326aa41a2c2b90ede2\"",
+      "etag": "\"0922f3ce3d57f270380d56aeebaa7cfe97dff48fcf5e6473b5059935452aaf26\"",
       "body": [
         {
           "assets": [
@@ -85795,7 +85795,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"6b372d90ff5f249eaf5a586dc18cfe5a9ff0d3096038c579e93e29bd467b882c\"",
+      "etag": "\"15be6ef0ceb568ac4137936c024967dbb6bffaeca0466adcf0e7c17c1d0199d2\"",
       "body": {
         "assets": [
           {
@@ -85980,7 +85980,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"75015070cc29f63ebef783081fb503428ea99ebdb7b95bb35cf72626ac643071\"",
+      "etag": "\"116b04aaf300b8d6a4080ace0a4e6c916bede46c212c786a1c77ba514392f696\"",
       "body": [
         {
           "assets": [
@@ -89397,7 +89397,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"e2018b41db1e06d7e58aa39bf513edf803f34b7874e1a5842f3a7eb637d4fcd2\"",
+      "etag": "\"712d22885a9f2cf61a13dd7564da3b8b64c681d66868fc47ebf760d4f0d81cec\"",
       "body": {
         "assets": [
           {
@@ -89582,7 +89582,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"f385b940b56fe5b0c36331dc3340f39bd470877cbc80b0ed5e21ee7f5706cec5\"",
+      "etag": "\"3f3ad11c5723e587815617e1f07dcf8e871b75c7dea4d43a1970217623d822ca\"",
       "body": [
         {
           "assets": [
@@ -91895,7 +91895,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"aba8af9f94d9e2fb4a691e5403bab1dc88ec59337797229cfbbabf6262a71241\"",
+      "etag": "\"cd0b70b923a4cece81a2ce5910733275da40d3ef775d80ae1064e56a7770f509\"",
       "body": {
         "assets": [
           {
@@ -92200,8 +92200,310 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"63c161675a924af9c88211d3875fe14950cfe92fd5ac47c48b4788d4f89434ac\"",
+      "etag": "\"cb88baa1b098c090f543bddd91e84f45d2aa3544e3d25d2726888481060ad43e\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/SHA256SUMS.txt",
+              "digest": "sha256:541ed9cf557e391e8f9d47db2006799733a1beeac0057f8010190f4a653e6ae7",
+              "name": "SHA256SUMS.txt",
+              "size": 5055
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-freebsd-x86_64.tar.gz",
+              "digest": "sha256:80ea05eacd93e889ac38ce8d329ba3c9b500924e07b92f62d43f1708aadd732b",
+              "name": "solidcraft-0.40.0-rc.2-freebsd-x86_64.tar.gz",
+              "size": 128666122
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.AppImage",
+              "digest": "sha256:09c434377cb79a1f9bf2937c5cd984330d36eaa9964afa7fad95f7ae7dc87104",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.AppImage",
+              "size": 109992456
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:26383cf44eef41c8168a33f670bc094013923b2d136ca0d1f7515419a0aad47b",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.AppImage.zsync",
+              "size": 188240
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.deb",
+              "digest": "sha256:fd27f91102a5d201a6feebea41c5e53a1c0e68b7b2cb9a290ebc7fdc49d3ebae",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.deb",
+              "size": 123595310
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.flatpak",
+              "digest": "sha256:6efc9a4c443b3fe63c18e7f7a803f14d39aa579a63bb037460a15287bd5dcb9b",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.flatpak",
+              "size": 79418520
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:21a165741dbc160acf86833a96c9fb61629255e67b3b62b0fb2844c8c6728130",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.pkg.tar.zst",
+              "size": 89505717
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.rpm",
+              "digest": "sha256:20b17486d00bf9dc117139b663e30fd7ca7f3bca5dfda2bfe2214a3602510bed",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.rpm",
+              "size": 122304342
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.snap",
+              "digest": "sha256:66c332de78f7d874058b2ba60fde23a01c02f52735ff51332e159ef38268d6b6",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.snap",
+              "size": 128876544
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-aarch64.tar.gz",
+              "digest": "sha256:722979b90e8f4925173da012d429efc0c39cb878a970e84480dbde584a3b5ee2",
+              "name": "solidcraft-0.40.0-rc.2-linux-aarch64.tar.gz",
+              "size": 118723707
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.AppImage",
+              "digest": "sha256:85220c31208de480c1113cfa887fd1b11fe8060760b4a47734096f1be56fcacd",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.AppImage",
+              "size": 118831608
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:7219f7a0f140d53c64c39a3408d365a12c9a1c8f3c3d087f9aa94b4bdca988a2",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.AppImage.zsync",
+              "size": 203344
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.deb",
+              "digest": "sha256:642a6d45b33d0fd1147cd03bebf86bfa2465dff70946e9c9ca2255e46a4c1e9b",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.deb",
+              "size": 131340996
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.flatpak",
+              "digest": "sha256:e57ac4c5bfbeba1c146a86524110b5973ce1848b7ef8dce2d2d77b3a3d651c17",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.flatpak",
+              "size": 89603032
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:ff2520550c07c2442cf2b8fc979433a862f2127b3f5801acb7a8f6ffeddb6367",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.pkg.tar.zst",
+              "size": 95511407
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.rpm",
+              "digest": "sha256:9b52147c9efc97dcbfecb8c7aa995d4c26a3d7e9c127d59ac248721bb6b3dcee",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.rpm",
+              "size": 130502343
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.snap",
+              "digest": "sha256:9871f450caf13c784af062421a574a0c8f7df0f503f99f5f5e2ca3fd942fe3ba",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.snap",
+              "size": 139087872
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-linux-x86_64.tar.gz",
+              "digest": "sha256:187479a4bf107ceead34f2e99f09cb8fc939accae5ae5073fc9501546bfa34af",
+              "name": "solidcraft-0.40.0-rc.2-linux-x86_64.tar.gz",
+              "size": 129152570
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-macos-universal.dmg",
+              "digest": "sha256:afefbb85f2249885f3b71b9ad62485b882be8f3197687bdb4d554b18bfd9a19a",
+              "name": "solidcraft-0.40.0-rc.2-macos-universal.dmg",
+              "size": 290317508
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-arm64-portable.zip",
+              "digest": "sha256:d7a65c8d7e80dd8fea5e0fb3ca85d91e204f416c0a506dc7ce61a681fc691f01",
+              "name": "solidcraft-0.40.0-rc.2-windows-arm64-portable.zip",
+              "size": 123029845
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-arm64.msi",
+              "digest": "sha256:650e7c0410ab148215fd7f87941da37ab48dd6543177a9a9fac0c093cb2bd4d6",
+              "name": "solidcraft-0.40.0-rc.2-windows-arm64.msi",
+              "size": 94097408
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-x64-portable.zip",
+              "digest": "sha256:1266958452d7354ebb54fbb6d0c5afc0f4190d13837675792f13bb8d34004646",
+              "name": "solidcraft-0.40.0-rc.2-windows-x64-portable.zip",
+              "size": 134042929
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/SolidCraft-0.40.0-rc.2-windows-x64.exe",
+              "digest": "sha256:a5d98169596665919b19d56687e3d35f27dfc6437b751a956b2e7803c74549a3",
+              "name": "SolidCraft-0.40.0-rc.2-windows-x64.exe",
+              "size": 215497416
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-x64.msi",
+              "digest": "sha256:6dba0987d212850c1d942fca14a457b34b2973721525e4791aebfb0742299fce",
+              "name": "solidcraft-0.40.0-rc.2-windows-x64.msi",
+              "size": 104071168
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-x86-portable.zip",
+              "digest": "sha256:25f69c3947e35d687f6ce3b63e0b7814e694320e98d91fdc74fb00f5feb1289f",
+              "name": "solidcraft-0.40.0-rc.2-windows-x86-portable.zip",
+              "size": 124134298
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-0.40.0-rc.2-windows-x86.msi",
+              "digest": "sha256:f3ff99060670f7391b67205e9a98d6b76ca119d8e3ce227a7ba1d4ce16ff430f",
+              "name": "solidcraft-0.40.0-rc.2-windows-x86.msi",
+              "size": 98947072
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-cli-0.40.0-rc.2-macos-universal.zip",
+              "digest": "sha256:bcabfb714740b904ad589c9a9c7529d95d616cad16d28c7c7fe9ec0a72ecd3de",
+              "name": "solidcraft-cli-0.40.0-rc.2-macos-universal.zip",
+              "size": 110977061
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.AppImage",
+              "digest": "sha256:09c434377cb79a1f9bf2937c5cd984330d36eaa9964afa7fad95f7ae7dc87104",
+              "name": "solidcraft-linux-aarch64.AppImage",
+              "size": 109992456
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.deb",
+              "digest": "sha256:fd27f91102a5d201a6feebea41c5e53a1c0e68b7b2cb9a290ebc7fdc49d3ebae",
+              "name": "solidcraft-linux-aarch64.deb",
+              "size": 123595310
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.flatpak",
+              "digest": "sha256:6efc9a4c443b3fe63c18e7f7a803f14d39aa579a63bb037460a15287bd5dcb9b",
+              "name": "solidcraft-linux-aarch64.flatpak",
+              "size": 79418520
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:21a165741dbc160acf86833a96c9fb61629255e67b3b62b0fb2844c8c6728130",
+              "name": "solidcraft-linux-aarch64.pkg.tar.zst",
+              "size": 89505717
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.rpm",
+              "digest": "sha256:20b17486d00bf9dc117139b663e30fd7ca7f3bca5dfda2bfe2214a3602510bed",
+              "name": "solidcraft-linux-aarch64.rpm",
+              "size": 122304342
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-aarch64.snap",
+              "digest": "sha256:66c332de78f7d874058b2ba60fde23a01c02f52735ff51332e159ef38268d6b6",
+              "name": "solidcraft-linux-aarch64.snap",
+              "size": 128876544
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.AppImage",
+              "digest": "sha256:85220c31208de480c1113cfa887fd1b11fe8060760b4a47734096f1be56fcacd",
+              "name": "solidcraft-linux-x86_64.AppImage",
+              "size": 118831608
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.deb",
+              "digest": "sha256:642a6d45b33d0fd1147cd03bebf86bfa2465dff70946e9c9ca2255e46a4c1e9b",
+              "name": "solidcraft-linux-x86_64.deb",
+              "size": 131340996
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.flatpak",
+              "digest": "sha256:e57ac4c5bfbeba1c146a86524110b5973ce1848b7ef8dce2d2d77b3a3d651c17",
+              "name": "solidcraft-linux-x86_64.flatpak",
+              "size": 89603032
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:ff2520550c07c2442cf2b8fc979433a862f2127b3f5801acb7a8f6ffeddb6367",
+              "name": "solidcraft-linux-x86_64.pkg.tar.zst",
+              "size": 95511407
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.rpm",
+              "digest": "sha256:9b52147c9efc97dcbfecb8c7aa995d4c26a3d7e9c127d59ac248721bb6b3dcee",
+              "name": "solidcraft-linux-x86_64.rpm",
+              "size": 130502343
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-linux-x86_64.snap",
+              "digest": "sha256:9871f450caf13c784af062421a574a0c8f7df0f503f99f5f5e2ca3fd942fe3ba",
+              "name": "solidcraft-linux-x86_64.snap",
+              "size": 139087872
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-macos-universal.dmg",
+              "digest": "sha256:afefbb85f2249885f3b71b9ad62485b882be8f3197687bdb4d554b18bfd9a19a",
+              "name": "solidcraft-macos-universal.dmg",
+              "size": 290317508
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-web-0.40.0-rc.2.zip",
+              "digest": "sha256:c1884f0269ad03406b1c8381534acd676e56e056f53c300642bff6834399e414",
+              "name": "solidcraft-web-0.40.0-rc.2.zip",
+              "size": 45888738
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-arm64-portable.zip",
+              "digest": "sha256:d7a65c8d7e80dd8fea5e0fb3ca85d91e204f416c0a506dc7ce61a681fc691f01",
+              "name": "solidcraft-windows-arm64-portable.zip",
+              "size": 123029845
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-arm64.msi",
+              "digest": "sha256:650e7c0410ab148215fd7f87941da37ab48dd6543177a9a9fac0c093cb2bd4d6",
+              "name": "solidcraft-windows-arm64.msi",
+              "size": 94097408
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-x64-portable.zip",
+              "digest": "sha256:1266958452d7354ebb54fbb6d0c5afc0f4190d13837675792f13bb8d34004646",
+              "name": "solidcraft-windows-x64-portable.zip",
+              "size": 134042929
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-x64.msi",
+              "digest": "sha256:6dba0987d212850c1d942fca14a457b34b2973721525e4791aebfb0742299fce",
+              "name": "solidcraft-windows-x64.msi",
+              "size": 104071168
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-x86-portable.zip",
+              "digest": "sha256:25f69c3947e35d687f6ce3b63e0b7814e694320e98d91fdc74fb00f5feb1289f",
+              "name": "solidcraft-windows-x86-portable.zip",
+              "size": 124134298
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solidcraft-windows-x86.msi",
+              "digest": "sha256:f3ff99060670f7391b67205e9a98d6b76ca119d8e3ce227a7ba1d4ce16ff430f",
+              "name": "solidcraft-windows-x86.msi",
+              "size": 98947072
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solvecraft-0.40.0-rc.2-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:26383cf44eef41c8168a33f670bc094013923b2d136ca0d1f7515419a0aad47b",
+              "name": "solvecraft-0.40.0-rc.2-linux-aarch64.AppImage.zsync",
+              "size": 188240
+            },
+            {
+              "browser_download_url": "https://github.com/tangency-labs/solidcraft/releases/download/v0.40.0-rc.2/solvecraft-0.40.0-rc.2-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:7219f7a0f140d53c64c39a3408d365a12c9a1c8f3c3d087f9aa94b4bdca988a2",
+              "name": "solvecraft-0.40.0-rc.2-linux-x86_64.AppImage.zsync",
+              "size": 203344
+            }
+          ],
+          "draft": false,
+          "name": "SolidCraft v0.40.0-rc.2",
+          "prerelease": true,
+          "tag_name": "v0.40.0-rc.2"
+        },
         {
           "assets": [
             {
