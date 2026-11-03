@@ -73,7 +73,8 @@ $payload = Write-PayloadDirectory $stage
 $references = ($components | ForEach-Object { "<ComponentRef Id='$_'/>" }) -join ''
 $icon = Escape-Xml (Join-Path $projectRoot 'assets/icon.ico')
 # This lives in the incoming MSI, so already-shipped updaters need no new arguments.
-# The immediate action only reads current-user MSI registration and sets INSTALLFOLDER.
+# The immediate action restores INSTALLFOLDER for upgrades and maintenance,
+# including uninstall; registry-keypath components cannot recover custom paths.
 $locationSource = Join-Path $projectRoot 'packaging/windows/msi-install-location.rs'
 $locationDll = [IO.Path]::GetFullPath((Join-Path $OutputFolder "manager-install-location-$Architecture.dll"))
 & rustc $locationSource --edition 2021 --crate-type cdylib --target $target -C opt-level=s -C debuginfo=0 -o $locationDll
@@ -95,10 +96,10 @@ $xml = @"
     <Property Id="MANAGERINSTALLDIRNAME" Value="Craft Apps Manager $Architecture"/>
     <CustomAction Id="PreserveManagerInstallLocation" BinaryRef="ManagerInstallLocation" DllEntry="PreserveManagerInstallLocation" Execute="immediate" Return="check"/>
     <InstallUISequence>
-      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize" Condition="NOT REMOVE~=&quot;ALL&quot;"/>
+      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize"/>
     </InstallUISequence>
     <InstallExecuteSequence>
-      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize" Condition="NOT REMOVE~=&quot;ALL&quot;"/>
+      <Custom Action="PreserveManagerInstallLocation" Before="CostFinalize"/>
     </InstallExecuteSequence>
     <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" Before="InstallValidate" Sequence="execute"/>
     <StandardDirectory Id="LocalAppDataFolder"><Directory Id="ProgramsFolder" Name="Programs"><Directory Id="INSTALLFOLDER" Name="Craft Apps Manager $Architecture">$payload</Directory></Directory></StandardDirectory>

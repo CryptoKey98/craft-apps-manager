@@ -33,6 +33,8 @@ $locationTest = Join-Path $logHome 'msi-location-tests.exe'
 if ($LASTEXITCODE -ne 0) { throw 'MSI location regression tests did not compile' }
 & $locationTest
 if ($LASTEXITCODE -ne 0) { throw 'MSI location regression tests failed' }
+& python (Join-Path $PSScriptRoot 'test_msi_location.py')
+if ($LASTEXITCODE -ne 0) { throw 'MSI location packaging tests failed' }
 $allLogs = $logHome
 foreach ($case in @('default', 'custom-install')) {
 $currentBaseline = if ($case -eq 'custom-install') { $CustomBaselineMsi } else { $BaselineMsi }
@@ -77,7 +79,7 @@ try {
     }
     Write-Output "Passed $Architecture upgrade to ${version}: executable and both shortcuts survived. Logs: $logHome"
 } finally {
-    Run-Msi @('/x', $cleanupCode, '/qn', '/norestart')
+    Run-Msi @('/x', $cleanupCode, '/qn', '/norestart', '/l*v', ('"' + (Join-Path $logHome 'uninstall.log') + '"'))
 }
 if (Test-Path -LiteralPath (Join-Path $installFolder 'CraftApps-Manager.exe')) { throw 'Uninstall left the manager executable behind' }
 if ((Get-FileHash -LiteralPath $marker).Hash -ne $markerHash) { throw 'Uninstall changed unowned app data' }

@@ -7,6 +7,7 @@
 - Review, restore, or remove a previous version in the new Rollback dialog, with retention settings for each installation. Existing backup preferences and legacy archives are preserved.
 - Keep Windows installer updates, downgrades, and rollbacks in the existing Just me or Everyone scope and folder. Fix administrator approval for supported MSI packages.
 - Keep Windows Manager updates in the existing installation folder, including when updating from 1.0.0.
+- Remove Manager files correctly when uninstalling from a custom Windows folder, while preserving unrelated files.
 - Keep Manager responsive while verifying an update and preparing to restart.
 - Fix Linux and macOS installer updates incorrectly reporting that another operation is running.
 - Show incompatible downgrade versions before installation, with an information button explaining why. Fix recovery checks for custom apps such as QuickLook with differing package and application architecture labels.
