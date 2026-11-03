@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 
 
-def release_notes(root, tag):
+def release_notes(root, tag, *, allow_unreleased=False):
     match = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", tag)
     if not match or any(int(part) > limit for part, limit in zip(match.groups(), (255, 255, 65535))):
         raise ValueError("Use a stable vMAJOR.MINOR.PATCH tag within Windows MSI limits")
@@ -29,6 +29,8 @@ def release_notes(root, tag):
         raise ValueError("README current-version caption does not match the release tag")
     changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
     headings = list(re.finditer(r"(?m)^## ([^\n]+)$", changelog))
+    if allow_unreleased and headings and headings[0][1] == "Unreleased":
+        headings = headings[1:]
     if not headings or headings[0][1] != version:
         raise ValueError("Latest changelog heading does not match the release tag")
     end = headings[1].start() if len(headings) > 1 else len(changelog)
@@ -42,10 +44,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag", required=True)
     parser.add_argument("--notes-file", type=Path, required=True)
+    parser.add_argument("--allow-unreleased", action="store_true",
+                        help="For development checks only: skip a leading Unreleased section")
     args = parser.parse_args()
     root = project_root()
     try:
-        notes = release_notes(root, args.tag)
+        notes = release_notes(root, args.tag, allow_unreleased=args.allow_unreleased)
     except (ValueError, OSError) as error:
         parser.exit(1, f"Release validation failed: {error}\n")
     args.notes_file.write_text(notes, encoding="utf-8")

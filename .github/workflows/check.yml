@@ -95,12 +95,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/testing/test_validate_release.py
+      - run: python3 scripts/testing/test_catalog_tool_cache.py
       - run: python3 -m pip install 'cryptography==50.0.1'
       - run: python3 scripts/testing/test_revision_manifest.py
       - name: Validate current release notes
         run: |
           version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -1)
-          python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md"
+          python3 scripts/publishing/validate-release.py --tag "v$version" --notes-file "$RUNNER_TEMP/release-notes.md" --allow-unreleased
   windows:
     name: Core checks / Windows (${{ matrix.arch }})
     needs: changes

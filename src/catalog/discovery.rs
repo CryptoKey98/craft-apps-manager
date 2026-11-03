@@ -51,7 +51,7 @@ fn added_at(entry: &Entry) -> Option<i64> {
         .discovery_added_at
         .or_else(|| bundled_added_at(&crate::catalog::repository_slug(&entry.repository)))
 }
-fn recent(entry: &Entry) -> bool {
+pub(crate) fn recently_added(entry: &Entry) -> bool {
     let now = chrono::Utc::now().timestamp();
     added_at(entry).is_some_and(|added| added > 0 && now >= added && now - added < NEW_APP_SECONDS)
 }
@@ -89,7 +89,7 @@ impl NewApps {
         let mut next = self.state.clone();
         let recent: BTreeSet<_> = entries
             .iter()
-            .filter(|entry| recent(entry))
+            .filter(|entry| recently_added(entry))
             .map(|entry| entry.repository.to_ascii_lowercase())
             .collect();
         // Keep legacy unread records while official metadata is unavailable.
@@ -121,7 +121,7 @@ impl NewApps {
     }
 
     pub fn is_new(&self, entry: &Entry) -> bool {
-        (self.preview.as_deref() == Some(entry.key.as_str()) || recent(entry))
+        (self.preview.as_deref() == Some(entry.key.as_str()) || recently_added(entry))
             && self
                 .state
                 .unread

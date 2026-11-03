@@ -1380,6 +1380,10 @@ pub fn parse_asset(name: &str) -> Option<ParsedAsset> {
 #[path = "tests.rs"]
 mod tests;
 
+#[cfg(test)]
+#[path = "discovery_order_tests.rs"]
+mod discovery_order_tests;
+
 /// Validate candidate registrations without consulting or mutating CURRENT.
 pub(crate) fn validate_config_custom_entries(entries: &[Entry]) -> Result<()> {
     let mut keys = std::collections::BTreeSet::new();

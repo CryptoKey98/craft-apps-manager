@@ -45,6 +45,26 @@ class ReleaseValidationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     validator.release_notes(self.root, "v0.8.2")
 
+    def test_development_check_allows_unreleased_without_publishing_pending_notes(self):
+        path = self.root / "CHANGELOG.md"
+        path.write_text(self.files["CHANGELOG.md"].replace(
+            "## 0.8.2", "## Unreleased\n\n- Pending fix.\n\n## 0.8.2", 1), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            validator.release_notes(self.root, "v0.8.2")
+        self.assertEqual(validator.release_notes(self.root, "v0.8.2", allow_unreleased=True),
+                         "- Fix cache cleanup.\n")
+
+    def test_development_check_still_requires_latest_version_and_real_notes(self):
+        for section in ("## 0.8.1\n\n- Wrong version.", "## 0.8.2\n\n",
+                        "## 0.8.2\n\nDescribe the changes before merging this release preparation.",
+                        "## Unreleased\n\n- Duplicate pending section."):
+            with self.subTest(section=section):
+                (self.root / "CHANGELOG.md").write_text(
+                    "# Changelog\n\n## Unreleased\n\n- Pending fix.\n\n" + section,
+                    encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    validator.release_notes(self.root, "v0.8.2", allow_unreleased=True)
+
     def test_rejects_invalid_tags(self):
         for tag in ("0.8.2", "v0.8.2-beta", "v256.0.0", "v0.0.65536", "v00.8.2"):
             with self.subTest(tag=tag), self.assertRaises(ValueError):
@@ -58,6 +78,11 @@ class ReleaseValidationTests(unittest.TestCase):
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_only_development_checks_allow_unreleased_notes(self):
+        root = project_root()
+        self.assertIn('--allow-unreleased', (root / '.github/workflows/check.yml').read_text())
+        self.assertNotIn('--allow-unreleased', (root / '.github/workflows/release.yml').read_text())
+
     def test_build_jobs_cover_tag_releases_and_manual_platform_selection(self):
         workflow = (project_root() / ".github/workflows/release.yml").read_text()
         conditions = dict(re.findall(r"^  (windows|linux|arch|macos):\n    if: (.+)$", workflow, re.MULTILINE))
