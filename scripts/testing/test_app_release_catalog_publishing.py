@@ -68,7 +68,9 @@ class PublicationTests(unittest.TestCase):
         self.assertTrue((self.feed/'v1/index.json').is_file(), 'Verified publication must produce the catalog root')
         next_feed,candidate,digest = self.publication(2,'v2.0.0')
         old = (self.feed/'v1/index.json').read_bytes()
-        catalog.stage_objects(self.feed,next_feed,self.source,self.tool)
+        # The process clock may tick while the fixture keeps its simulated time.
+        with mock.patch.object(catalog.time, 'time', return_value=self.now + 1):
+            catalog.stage_objects(self.feed,next_feed,self.source,self.tool,now=self.now)
         self.assertTrue((self.feed/'v1/apps'/f'{digest}.json').is_file())
         self.assertEqual((self.feed/'v1/index.json').read_bytes(),old)
         catalog.stage_root(self.feed,next_feed,candidate,self.source,self.tool,now=self.now)
@@ -82,7 +84,7 @@ class PublicationTests(unittest.TestCase):
         envelope['signature'] = '00'*64
         (next_feed/'index.json').write_text(json.dumps(envelope))
         before = (self.feed/'v1/index.json').read_bytes()
-        with self.assertRaises(Exception):catalog.stage_objects(self.feed,next_feed,self.source,self.tool)
+        with self.assertRaises(Exception):catalog.stage_objects(self.feed,next_feed,self.source,self.tool,now=self.now)
         self.assertFalse((self.feed/'v1/apps'/f'{digest}.json').exists())
         self.assertEqual((self.feed/'v1/index.json').read_bytes(),before)
 
@@ -91,7 +93,7 @@ class PublicationTests(unittest.TestCase):
         published,_,digest = self.publication(2,'v2.0.0')
         target = self.feed/'v1/apps'/f'{digest}.json'
         target.write_text('unrecognized bytes')
-        with self.assertRaises(Exception):catalog.stage_objects(self.feed,published,self.source,self.tool)
+        with self.assertRaises(Exception):catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
         self.assertEqual(target.read_text(),'unrecognized bytes')
 
     def test_lower_or_conflicting_sequences_are_rejected(self):
@@ -99,7 +101,7 @@ class PublicationTests(unittest.TestCase):
         before = (self.feed/'v1/index.json').read_bytes()
         for seq in [4,5]:
             published,candidate,_ = self.publication(seq,f'v{seq}.1.0')
-            with self.assertRaises(Exception):catalog.stage_objects(self.feed,published,self.source,self.tool)
+            with self.assertRaises(Exception):catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
             with self.assertRaises(Exception):catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
         self.assertEqual((self.feed/'v1/index.json').read_bytes(),before)
 
@@ -108,7 +110,7 @@ class PublicationTests(unittest.TestCase):
         published,candidate,_ = self.publication(2,'v2.0.0')
         bundle=json.loads((candidate/'bundle.json').read_text());bundle['index']['sequence']=999
         (candidate/'bundle.json').write_text(json.dumps(bundle))
-        catalog.stage_objects(self.feed,published,self.source,self.tool)
+        catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
         before=(self.feed/'v1/index.json').read_bytes()
         with self.assertRaises(Exception):catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
         self.assertEqual((self.feed/'v1/index.json').read_bytes(),before)
@@ -134,6 +136,19 @@ class PublicationTests(unittest.TestCase):
         with self.assertRaises(Exception):catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
         self.assertEqual(outside.read_text(),'keep')
 
+    def test_future_retention_timestamp_cannot_replace_the_current_catalog(self):
+        self.publish(1,'v1.0.0')
+        published,candidate,digest=self.publication(2,'v2.0.0')
+        catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
+        ledger=self.feed/'publisher/retention.json'
+        value=json.loads(ledger.read_text())
+        value['retired'][digest]=self.now+1
+        ledger.write_text(json.dumps(value))
+        before=(self.feed/'v1/index.json').read_bytes()
+        with self.assertRaisesRegex(ValueError,'Invalid catalog retention ledger'):
+            catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
+        self.assertEqual((self.feed/'v1/index.json').read_bytes(),before)
+
     def test_interrupted_object_phase_is_owned_and_can_be_cleaned_later(self):
         self.publish(1,'v1.0.0',self.now-32*86400)
         abandoned,_,digest=self.publication(2,'v2.0.0',self.now-31*86400)
@@ -149,9 +164,9 @@ class PublicationTests(unittest.TestCase):
         value=json.loads(archive.read_text());value['signature']='00'*64
         archive.write_text(json.dumps(value))
         published,candidate,_=self.publication(3,'v3.0.0')
-        catalog.stage_objects(self.feed,published,self.source,self.tool)
+        catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
         before=(self.feed/'v1/index.json').read_bytes()
-        with self.assertRaises(Exception):catalog.stage_root(self.feed,published,candidate,self.source,self.tool)
+        with self.assertRaises(Exception):catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
         self.assertEqual((self.feed/'v1/index.json').read_bytes(),before,'All cleanup inputs must be verified before replacing authority')
 
     def test_public_source_configuration_rejects_wrong_origins_and_paths(self):

@@ -69,6 +69,9 @@ pub struct Preferences {
     pub app_order: Vec<String>,
     /// Independent ordering for Home tiles; never follows sidebar reordering.
     pub home_app_order: Vec<String>,
+    /// Discoveries whose initial placement is complete; later user sorting wins.
+    #[serde(default)]
+    pub discovery_ordered_apps: std::collections::BTreeSet<String>,
     /// Presentation only: does not affect installation or update selection.
     pub hidden_apps: Vec<String>,
     #[serde(alias = "checkUpdaterOnStartup")]
@@ -109,6 +112,7 @@ impl Default for Preferences {
             selected_sources: sources(),
             app_order: order.clone(),
             home_app_order: order,
+            discovery_ordered_apps: discovered_release_apps(),
             hidden_apps: Vec::new(),
             check_manager_on_startup: true,
             check_installed_apps_on_startup: true,
@@ -124,20 +128,24 @@ impl Default for Preferences {
 /// Defaults may be read after the discovery cache is loaded. Give discoveries
 /// their initial position here too, without pinning any explicitly saved order.
 fn default_release_order() -> Vec<String> {
+    let discoveries = discovered_release_apps();
+    let mut order = apps();
+    order.sort_by_key(|name| !discoveries.contains(name));
+    order
+}
+
+fn discovered_release_apps() -> std::collections::BTreeSet<String> {
     let builtins: std::collections::BTreeSet<_> = crate::catalog::builtin()
         .into_iter()
         .map(|entry| entry.key)
         .collect();
-    let discoveries: std::collections::BTreeSet<_> = crate::catalog::all()
+    crate::catalog::all()
         .into_iter()
         .filter(|entry| {
             entry.release && !entry.repository.contains('/') && !builtins.contains(&entry.key)
         })
         .map(|entry| entry.key)
-        .collect();
-    let mut order = apps();
-    order.sort_by_key(|name| !discoveries.contains(name));
-    order
+        .collect()
 }
 
 impl Preferences {
@@ -150,7 +158,7 @@ impl Preferences {
         Ok(())
     }
     /// Normalizes the settings against the current catalog. Returns `true`
-    /// when newly published apps were adopted and the settings should be saved.
+    /// when discovery or its initial placement changed and should be saved.
     pub fn adopt_new_apps(&mut self) -> Result<bool> {
         self.app_check_interval_minutes = self.app_check_interval_minutes.clamp(10, 60);
         for options in self.app_install_options.values() {
@@ -166,14 +174,16 @@ impl Preferences {
             .filter(|e| e.source)
             .map(|e| e.key)
             .collect();
-        let builtins: std::collections::BTreeSet<_> = crate::catalog::builtin()
-            .into_iter()
-            .map(|entry| entry.key)
-            .collect();
-        let new_discoveries: std::collections::BTreeSet<_> = crate::catalog::all()
+        let new_discoveries = discovered_release_apps();
+        // Older managers appended discoveries without distinguishing automatic
+        // placement from a user's sort. Move recent entries once on upgrade;
+        // established apps and already-placed discoveries keep their positions.
+        let promote_existing: std::collections::BTreeSet<_> = crate::catalog::all()
             .into_iter()
             .filter(|entry| {
-                entry.release && !entry.repository.contains('/') && !builtins.contains(&entry.key)
+                new_discoveries.contains(&entry.key)
+                    && !self.discovery_ordered_apps.contains(&entry.key)
+                    && crate::catalog::discovery::recently_added(entry)
             })
             .map(|entry| entry.key)
             .collect();
@@ -194,16 +204,23 @@ impl Preferences {
         self.selected_sources.sort();
         self.selected_sources.dedup();
         let mut seen = std::collections::BTreeSet::new();
-        self.app_order
-            .retain(|s| apps.contains(s) && seen.insert(s.clone()));
+        self.app_order.retain(|s| {
+            apps.contains(s) && !promote_existing.contains(s) && seen.insert(s.clone())
+        });
         let mut home_seen = std::collections::BTreeSet::new();
-        self.home_app_order
-            .retain(|s| apps.contains(s) && home_seen.insert(s.clone()));
+        self.home_app_order.retain(|s| {
+            apps.contains(s) && !promote_existing.contains(s) && home_seen.insert(s.clone())
+        });
         let mut sidebar_front = 0;
         let mut home_front = 0;
-        // Only missing order entries are promoted, including formerly source-only
-        // apps gaining their first release. Existing manual positions stay intact.
+        // Missing discoveries include formerly source-only apps gaining a release.
+        // Record placement in the same settings write as both updated lists.
         for name in apps {
+            if new_discoveries.contains(&name)
+                && (!home_seen.contains(&name) || !seen.contains(&name))
+            {
+                adopted |= self.discovery_ordered_apps.insert(name.clone());
+            }
             if home_seen.insert(name.clone()) {
                 if new_discoveries.contains(&name) {
                     self.home_app_order.insert(home_front, name.clone());

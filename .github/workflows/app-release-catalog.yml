@@ -7,7 +7,8 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    # Daily fallback; more frequent refreshes can use workflow_dispatch.
+    - cron: '37 8 * * *'
 permissions:
   contents: read
 concurrency:
@@ -31,7 +32,33 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Identify publisher compiler and source revision
+        id: compiler
+        shell: pwsh
+        run: |
+          $rust = rustc --version --verbose
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $cargo = cargo --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes(($rust -join "`n") + "`n" + $cargo)
+          $hash = [System.Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+          "fingerprint=$hash" >> $env:GITHUB_OUTPUT
+      - name: Restore exact publisher executable cache
+        id: publisher_cache
+        uses: actions/cache@v4
+        with:
+          path: target/catalog-publisher-cache
+          key: app-catalog-publisher-v1-windows-2022-${{ runner.arch }}-${{ github.sha }}-${{ steps.compiler.outputs.fingerprint }}
+      - name: Validate cached publisher before reuse
+        id: cached_tool
+        env:
+          CACHE_IDENTITY: windows-2022-${{ runner.arch }}-${{ github.sha }}-${{ steps.compiler.outputs.fingerprint }}
+        shell: pwsh
+        run: |
+          python scripts/publishing/catalog_tool_cache.py restore --directory target/catalog-publisher-cache --binary target/release/app-release-catalog-tool.exe --identity "$env:CACHE_IDENTITY"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/cache@v4
+        if: steps.cached_tool.outputs.reused != 'true'
         with:
           path: |
             ~/.cargo/registry
@@ -39,14 +66,24 @@ jobs:
             target/release
           key: app-catalog-windows-${{ hashFiles('Cargo.lock') }}-${{ hashFiles('src/**', 'crates/**') }}
           restore-keys: app-catalog-windows-${{ hashFiles('Cargo.lock') }}-
-      - name: Build and test the publisher from this source revision
-        id: tool
+      - name: Build publisher on executable cache miss
+        if: steps.cached_tool.outputs.reused != 'true'
+        env:
+          CACHE_IDENTITY: windows-2022-${{ runner.arch }}-${{ github.sha }}-${{ steps.compiler.outputs.fingerprint }}
         shell: pwsh
         run: |
           cargo build --release --locked --features app-catalog-tools --bin app-release-catalog-tool
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/publishing/catalog_tool_cache.py store --directory target/catalog-publisher-cache --binary target/release/app-release-catalog-tool.exe --identity "$env:CACHE_IDENTITY"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify and test publisher on every refresh
+        id: tool
+        shell: pwsh
+        run: |
           $hash = (Get-FileHash target/release/app-release-catalog-tool.exe -Algorithm SHA256).Hash.ToLowerInvariant()
           "sha256=$hash" >> $env:GITHUB_OUTPUT
+          python scripts/testing/test_catalog_tool_cache.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pip install 'cryptography==50.0.1'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/testing/test_app_release_catalog_publishing.py

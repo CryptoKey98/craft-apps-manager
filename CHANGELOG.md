@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Move newly discovered apps to the top once when upgrading from older Managers, while preserving later sidebar and Home sorting.
+
 ## 1.1.0
 
 - Keep one previous version per installation for rollback after supported updates and downgrades.
