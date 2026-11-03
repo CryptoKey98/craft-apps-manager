@@ -653,26 +653,56 @@ fn unrelated_settings_save_preserves_available_updates_and_inflight_checks() {
 
 #[test]
 fn settings_package_change_invalidates_only_the_affected_app_update() {
-    let (root, ctx, mut app) = token_verification_fixture();
-    for name in ["printcraft", "photocraft"] {
-        app.release_checks
-            .insert(name.into(), ("1.0.0".into(), Ok(Some("2.0.0".into()))));
+    for change in ["unchanged", "format", "architecture"] {
+        let (root, ctx, mut app) = token_verification_fixture();
+        for name in ["printcraft", "photocraft"] {
+            app.release_checks
+                .insert(name.into(), ("1.0.0".into(), Ok(Some("2.0.0".into()))));
+        }
+        // Portable/x86 is already the default on some hosts. Compare explicit
+        // changes with the effective options rather than assuming host defaults.
+        let previous =
+            craft_apps_manager::install_options::preferred(&app.preferences, "printcraft");
+        let mut next = craft_apps_manager::install_options::InstallOptions {
+            release_format: previous.release_format,
+            architecture: previous.architecture,
+        };
+        if change == "format" {
+            next.release_format = if next.release_format == "portable" {
+                "installer"
+            } else {
+                "portable"
+            }
+            .into();
+        } else if change == "architecture" {
+            next.architecture = if next.architecture == "x86" {
+                "x64"
+            } else {
+                "x86"
+            }
+            .into();
+        }
+        let identity = craft_apps_manager::install_options::identity("printcraft");
+        app.settings_draft
+            .app_install_options
+            .insert(identity.clone(), next.clone());
+        app.save_settings(&ctx);
+        finish_settings_save(&mut app, &ctx);
+        assert_eq!(
+            app.preferences.app_install_options.get(&identity),
+            Some(&next)
+        );
+        assert_eq!(
+            app.release_checks.contains_key("printcraft"),
+            change == "unchanged",
+            "Unexpected update invalidation for {change} options"
+        );
+        assert!(
+            matches!(app.release_checks.get("photocraft"), Some((_, Ok(Some(version)))) if version == "2.0.0")
+        );
+        drop(app);
+        std::fs::remove_dir_all(root).unwrap();
     }
-    app.settings_draft.app_install_options.insert(
-        craft_apps_manager::install_options::identity("printcraft"),
-        craft_apps_manager::install_options::InstallOptions {
-            release_format: "portable".into(),
-            architecture: "x86".into(),
-        },
-    );
-    app.save_settings(&ctx);
-    finish_settings_save(&mut app, &ctx);
-    assert!(!app.release_checks.contains_key("printcraft"));
-    assert!(
-        matches!(app.release_checks.get("photocraft"), Some((_, Ok(Some(version)))) if version == "2.0.0")
-    );
-    drop(app);
-    std::fs::remove_dir_all(root).unwrap();
 }
 #[test]
 fn switching_installations_preserves_each_copy_update_result() {
