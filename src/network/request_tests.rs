@@ -121,23 +121,41 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::Release);
-        let _ = self.thread.take().unwrap().join();
+        let server_result = self.thread.take().unwrap().join();
         ROUTES.get().unwrap().lock().unwrap().remove(&self.root);
         cache::clear(&self.root).unwrap();
         fs::remove_dir_all(&self.root).unwrap();
+        if !std::thread::panicking() {
+            server_result.expect("Loopback fixture server failed");
+        }
     }
 }
 
 #[test]
 fn measure_release_actions_cold_and_warm() {
+    measure_release_actions_for_architecture(&crate::install_options::host_architecture());
+}
+
+#[test]
+#[cfg(any(target_os = "windows", target_os = "linux"))]
+fn measure_x86_release_actions_cold_and_warm() {
+    measure_release_actions_for_architecture("x86");
+}
+
+fn measure_release_actions_for_architecture(architecture: &str) {
     use crate::{
         model::{Installed, Paths, Preferences},
         updates,
     };
     let release = |tag: &str| {
+        let suffixes = [
+            format!("windows-{architecture}-portable.zip"),
+            format!("linux-{architecture}.AppImage"),
+            "macos-universal.dmg".into(),
+        ];
         serde_json::json!({
             "tag_name":tag, "draft":false,"prerelease":false,
-            "assets":(["windows-x64-portable.zip", "linux-x64.AppImage", "macos-universal.dmg"].into_iter().map(|suffix| serde_json::json!({"name":format!("filmcraft-{}-{suffix}", &tag[1..]),
+            "assets":(suffixes.into_iter().map(|suffix| serde_json::json!({"name":format!("filmcraft-{}-{suffix}", &tag[1..]),
                 "size":100,"browser_download_url":format!("https://github.com/storytold/filmcraft/releases/download/{tag}/filmcraft-{}-{suffix}", &tag[1..]),
                 "digest":format!("sha256:{}", "a".repeat(64))})).collect::<Vec<_>>())
         })
@@ -169,7 +187,7 @@ fn measure_release_actions_cold_and_warm() {
         "filmcraft".into(),
         crate::install_options::InstallOptions {
             release_format: "portable".into(),
-            architecture: crate::install_options::host_architecture(),
+            architecture: architecture.into(),
         },
     );
     crate::settings::save_preferences_patch(&paths, &base, &prefs).unwrap();
@@ -180,7 +198,7 @@ fn measure_release_actions_cold_and_warm() {
         version: "1.0.0".into(),
         path: server.root.join("FilmCraft").display().to_string(),
         install_kind: "portable".into(),
-        architecture: crate::install_options::host_architecture(),
+        architecture: architecture.into(),
         ..Default::default()
     };
     for label in ["Check update cold", "Check update warm"] {
@@ -246,6 +264,10 @@ fn measure_discovery_without_releases() {
         ),
         (
             "/repos/storytold/fixturecraft/releases/latest".into(),
+            (404, serde_json::json!({"message":"Not Found"})),
+        ),
+        (
+            "/repos/tangency-labs/solidcraft".into(),
             (404, serde_json::json!({"message":"Not Found"})),
         ),
     ]));

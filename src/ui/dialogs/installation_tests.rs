@@ -294,6 +294,11 @@ fn version_dropdown_grows_when_lazy_history_arrives() {
     let cc = eframe::CreationContext::_new_kittest(ctx.clone());
     let mut app = App::new(&cc, paths, root.clone(), false).unwrap();
     app.versions_app = Some("filmcraft".into());
+    // Model an in-flight history fetch without contacting the hosted catalog.
+    // Deliver its result through the same poll path as the real worker.
+    let (versions_sender, versions_receiver) = std::sync::mpsc::channel();
+    app.versions_receiver = Some(versions_receiver);
+    app.token_check_started = true;
     let frame = |app: &mut App, time, events| {
         ctx.run(
             egui::RawInput {
@@ -342,15 +347,30 @@ fn version_dropdown_grows_when_lazy_history_arrives() {
     }
     frame(&mut app, 0.3, Vec::new());
     assert!(ctx.memory(|memory| memory.any_popup_open()));
-    app.versions_result = Some(Ok((0..20)
-        .map(|index| model::Release {
-            tag_name: format!("v1.0.{index}"),
-            name: None,
-            draft: false,
-            prerelease: false,
-            assets: Vec::new(),
-        })
-        .collect()));
+    assert!(app.versions_result.is_none());
+    assert!(app.versions_receiver.is_some());
+    versions_sender
+        .send(Ok((0..20)
+            .map(|index| model::Release {
+                tag_name: format!("v1.0.{index}"),
+                name: None,
+                draft: false,
+                prerelease: false,
+                assets: Vec::new(),
+            })
+            .collect()))
+        .unwrap();
+    app.poll(&ctx);
+    assert!(app.versions_receiver.is_none());
+    assert_eq!(
+        app.versions_result
+            .as_ref()
+            .unwrap()
+            .as_ref()
+            .unwrap()
+            .len(),
+        20
+    );
     frame(&mut app, 0.4, Vec::new());
     let output = frame(&mut app, 0.5, Vec::new());
     let visible_versions = output
