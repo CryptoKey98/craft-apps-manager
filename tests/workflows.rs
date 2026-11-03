@@ -443,6 +443,9 @@ fn individual_check_detects_newer_release_without_downloading() {
     entry.repository = "fixture/fixtureapp".into();
     entry.title = "FixtureApp".into();
     entry.asset_prefix = key.into();
+    // The synthetic app must own its fixture bundle, not FilmCraft's identifiers.
+    entry.bundle_ids = vec![format!("ai.storyteller.{key}")];
+    entry.aliases.clear();
     entry.registered_formats = vec!["portable".into()];
     ConfigStore::new(paths.root.clone())
         .patch_section_typed(

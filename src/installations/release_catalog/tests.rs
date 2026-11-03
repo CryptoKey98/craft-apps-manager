@@ -1434,7 +1434,8 @@ fn api_history_pages_compare_only_the_observed_stable_prefix() {
 fn api_observation_cache_is_optional_bounded_and_cleared_with_metadata() {
     let root = Root::new();
     let app = app_fixture();
-    let now = chrono::Utc::now().timestamp();
+    // Account for time passing while the fixture is prepared on a busy runner.
+    let now = chrono::Utc::now().timestamp() - 2;
     let (source, _, _) = bundle(&app, now, 7);
     let state = store::load(&root.0, &source).unwrap();
     let mut old = serde_json::to_value(state).unwrap();
@@ -1444,7 +1445,8 @@ fn api_observation_cache_is_optional_bounded_and_cleared_with_metadata() {
         .api_observations
         .is_empty());
     let body = serde_json::to_value(&app.releases[0]).unwrap();
-    for at in [0, now - 86401, now + 301] {
+    // Stay well outside the 300-second skew allowance as the test clock advances.
+    for at in [0, now - 86401, now + 3600] {
         super::api_observation::observe_with(
             &root.0,
             &source,

@@ -99,7 +99,8 @@ pub struct Manager {
 pub struct Handle {
     manager: Manager,
     record: Arc<Mutex<Operation>>,
-    publication: Arc<Mutex<()>>,
+    // Serialize writes and stop touching disk after the terminal snapshot is saved.
+    publication: Arc<Mutex<bool>>,
 }
 impl Manager {
     fn activity_lock(&self, wait: bool) -> Result<crate::platform::Lock> {
@@ -210,7 +211,7 @@ impl Manager {
     pub fn register(&self, kind: &str, resource: &str, parent: Option<String>) -> Handle {
         let handle = Handle {
             manager: self.clone(),
-            publication: Arc::new(Mutex::new(())),
+            publication: Arc::new(Mutex::new(false)),
             record: Arc::new(Mutex::new(Operation {
                 id: uuid::Uuid::new_v4().to_string(),
                 parent,
@@ -248,7 +249,7 @@ impl Manager {
         Ok(Handle {
             manager: self.clone(),
             record: Arc::new(Mutex::new(record)),
-            publication: Arc::new(Mutex::new(())),
+            publication: Arc::new(Mutex::new(false)),
         })
     }
     pub fn read(&self, id: &str) -> Result<Operation> {
@@ -465,9 +466,14 @@ impl Handle {
     fn publish(&self) {
         // Serialize before taking the snapshot so an older write cannot follow
         // completion. Disk/OS-lock waits must not hold the UI's snapshot mutex.
-        let _publication = self.publication.lock().unwrap();
+        let mut terminal_published = self.publication.lock().unwrap();
+        if *terminal_published {
+            return;
+        }
         let record = self.snapshot();
-        let _ = self.manager.publish_record(&record, false);
+        if self.manager.publish_record(&record, false).is_ok() {
+            *terminal_published = record.lifecycle.terminal();
+        }
     }
     pub fn options(&self, format: &str, architecture: &str) {
         let mut record = self.record.lock().unwrap();
@@ -525,7 +531,7 @@ impl Handle {
             )
             && !(cfg!(target_os = "linux") && state.stage == "Installing package");
         record.heartbeat = now();
-        // Finish must not return while a delayed progress publication is still pending.
+        // Publication serializes with finish and skips disk writes once terminal.
         drop(record);
         self.publish();
     }
@@ -833,6 +839,54 @@ mod tests {
         assert!(finished_receiver.recv().unwrap());
         assert_eq!(completed.lifecycle, Lifecycle::Completed);
         assert_eq!(completed.result.as_deref(), Some("Success"));
+    }
+
+    #[test]
+    fn late_terminal_publication_does_not_recreate_removed_operation_folders() {
+        for lifecycle in [
+            Lifecycle::Completed,
+            Lifecycle::Failed,
+            Lifecycle::Cancelled,
+        ] {
+            let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+            let manager = Manager::new(&root);
+            let handle = manager.register("Build", "fixture", None);
+            let late_progress = handle.clone();
+            assert!(handle.finish(lifecycle, "Finished".into()));
+            assert_eq!(manager.read(&handle.id()).unwrap().lifecycle, lifecycle);
+            std::fs::remove_dir_all(&root).unwrap();
+            // A heartbeat can reach publication after finish has returned.
+            late_progress.publish();
+            let recreated = root.exists();
+            if recreated {
+                std::fs::remove_dir_all(&root).unwrap();
+            }
+            assert!(
+                !recreated,
+                "Late {lifecycle:?} publication recreated its folder"
+            );
+        }
+    }
+
+    #[test]
+    fn failed_terminal_publication_can_retry_after_storage_recovers() {
+        let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+        let manager = Manager::new(&root);
+        let handle = manager.register("Build", "fixture", None);
+        let path = manager.path(&handle.id()).unwrap();
+        let original = std::fs::read(&path).unwrap();
+        std::fs::remove_dir_all(&manager.directory).unwrap();
+        std::fs::write(&manager.directory, b"Blocked directory").unwrap();
+        assert!(handle.finish(Lifecycle::Completed, "Success".into()));
+        std::fs::remove_file(&manager.directory).unwrap();
+        std::fs::create_dir_all(&manager.directory).unwrap();
+        std::fs::write(&path, original).unwrap();
+        handle.publish();
+        assert_eq!(
+            manager.read(&handle.id()).unwrap().lifecycle,
+            Lifecycle::Completed
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
