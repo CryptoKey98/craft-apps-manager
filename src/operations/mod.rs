@@ -944,7 +944,9 @@ mod tests {
         let parent = manager.register("Install", "parent", None);
         parent.finish(Lifecycle::Completed, "ok".into());
         let child = manager.register("Install", "child", Some(parent.id()));
-        child.start();
+        // Model a long history setup without depending on the runner's disk speed.
+        child.record.lock().unwrap().heartbeat = now() - 60_000;
+        child.publish();
         let original = parent.snapshot();
         let exited_owner = exited_owner();
         for index in 0..105 {
@@ -972,6 +974,9 @@ mod tests {
         files::write_bytes(&orphan, b"orphan").unwrap();
         let unrelated = manager.directory.join("keep.notified");
         files::write_bytes(&unrelated, b"user file").unwrap();
+        // This is an active-operation retention test. Start its simulated worker
+        // after fixture writes, which can exceed the real heartbeat timeout.
+        assert!(child.start());
         let reopened = Manager::new(&root);
         let records = reopened.list();
         assert_eq!(records.len(), 102); // 100 finished, plus the protected parent and active child.
