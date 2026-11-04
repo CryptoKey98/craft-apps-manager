@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793824453,
+      "checked_at": 1793825983,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793824454,
+      "checked_at": 1793825983,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -3300,7 +3300,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793824454,
+      "checked_at": 1793825984,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -5609,9 +5609,203 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793824455,
-      "latest_tag": "v0.17.0",
+      "checked_at": 1793825985,
+      "latest_tag": "v0.17.1",
       "releases": [
+        {
+          "tag_name": "v0.17.1",
+          "name": "DesignCraft v0.17.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "designcraft-0.17.1-freebsd-aarch64.tar.gz",
+              "size": 118554644,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:6768c0be50d4dfe3e20c451acc3358251c8f2a8777d4e209131a7abb67dd5385"
+            },
+            {
+              "name": "designcraft-0.17.1-freebsd-x86_64.tar.gz",
+              "size": 123933302,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:cf3e8b80d316b40eac4c34e6e5df3761c3475579f084521a157d9cd40165a6b6"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.AppImage",
+              "size": 113494536,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage",
+              "digest": "sha256:da4d2fc0c49c76ba93c056a32706d9d9f4b8a274ba46728c100bf6f88b5e7980"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+              "size": 194217,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:a49734c988c90de117a8cd26b4fb42cab3635cf4573b6aa513b24327058ff284"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.deb",
+              "size": 122843478,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.deb",
+              "digest": "sha256:ed28f8013656783a1d6e050dc1635c5fc67931cd944a1d2494ccf61cc9342d2a"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.flatpak",
+              "size": 83383704,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.flatpak",
+              "digest": "sha256:aa8c457b0c18f619ffcd6b3ad6b32e16820ff3eac291457ed50d7238d1059d59"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:def5c4d1837e96e9ebbd5e8ac2269e87f4c930d24549080f8e89806258748e50"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+              "size": 90942170,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:e3f01ace1278834f44b5919c8041a0027cc8e77adeff0b3560b152221c3b5e96"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.rpm",
+              "size": 122070572,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.rpm",
+              "digest": "sha256:220678b48dbbd284e477d03b68d4259a0166bdc77fae75cba98c48983105fe18"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-aarch64.tar.gz",
+              "size": 120145708,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.tar.gz",
+              "digest": "sha256:29e681f60f8531db8e20a39102a41cb4ddae92343cc7d1a4c8230819851158ed"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-riscv64.deb",
+              "size": 124229398,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.deb",
+              "digest": "sha256:de2b228abb7c4b05e35d0d459d3f1510dd525549db4f49e99ab474f969a1326e"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-riscv64.rpm",
+              "size": 123829354,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.rpm",
+              "digest": "sha256:46c1b5f03b85cbbd663212107df2e92e1dec4bd114c442eacf834781b62d153a"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-riscv64.tar.gz",
+              "size": 122750105,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.tar.gz",
+              "digest": "sha256:586b5c9ff9830297e24b8fa2a613e54dd1d775eb7104913006f6b792899cbd4f"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.AppImage",
+              "size": 117438968,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage",
+              "digest": "sha256:20f6aeaf0122da89613837eb52b82f16f727d2f6db7a506d71166d6115fa651d"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+              "size": 200956,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:615522a768f54ecac1e1b3bfad2165a001635e2145cde380ddfb4dc5c6035b0c"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.deb",
+              "size": 126009030,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.deb",
+              "digest": "sha256:dca2d789090dcda62a2d404cd38b37430bec9771a6d0cc62f4856610e29408f9"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.flatpak",
+              "size": 88208896,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.flatpak",
+              "digest": "sha256:73bd8674a6a4c5d74799a2addc365318e8d53f221c194c1301383a6220a59066"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:8072746f5a2fe2a758a7f0568179d633525e78d6358bad518c200a94091e3501"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+              "size": 93619860,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:387c53204edddf9ec9dcf64d3d10861d88fb21e9bfcdc180bea9bab75ad28047"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.rpm",
+              "size": 125356828,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.rpm",
+              "digest": "sha256:14fbe4776ad005f258553df8852d6b43a0e56b704e346f14d29932df40736ff4"
+            },
+            {
+              "name": "designcraft-0.17.1-linux-x86_64.tar.gz",
+              "size": 124322265,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.tar.gz",
+              "digest": "sha256:a3d71721025a1b1ec72f3ddcef40904f6dbe4d82503586d03465cc5af1fcb986"
+            },
+            {
+              "name": "designcraft-0.17.1-macos-universal.dmg",
+              "size": 247474456,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-macos-universal.dmg",
+              "digest": "sha256:4e5f58cfbeed70e55cce0ec30f78106092f505d20ca7dc721a1caef819408c86"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-arm64-portable.zip",
+              "size": 120132898,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64-portable.zip",
+              "digest": "sha256:a6d191c2ca5b5e37325a284d5cd1cdad0439b8ab62fdf4c5c503a78112a17258"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-arm64.msi",
+              "size": 94490624,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64.msi",
+              "digest": "sha256:a199047a84ec91a7a2a30899cb7a5db8df5b5d4606f3ace1ff13586379f35a28"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-x64-portable.zip",
+              "size": 124804607,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64-portable.zip",
+              "digest": "sha256:b40c91cabd93459a50a10cb1736ea1eacdc924c0fd12d2d690ca4c7868aa9c34"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-x64.msi",
+              "size": 98988032,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64.msi",
+              "digest": "sha256:660271d09b47ff3bf19ff0676fc8d354be65ece8196f3a41c57f3a3fdc12ac52"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-x86-portable.zip",
+              "size": 120492476,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86-portable.zip",
+              "digest": "sha256:42411a09dcd7c4ef3e54e9a00ffddd67154b13c77e189303c0d8766c78ebaf8e"
+            },
+            {
+              "name": "designcraft-0.17.1-windows-x86.msi",
+              "size": 96899072,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86.msi",
+              "digest": "sha256:b464aff2c6378e37ab5fe2ad1cf44cca7544490a9a7174f70f66d5cb71ead463"
+            },
+            {
+              "name": "designcraft-cli-0.17.1-macos-universal.zip",
+              "size": 110043581,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-cli-0.17.1-macos-universal.zip",
+              "digest": "sha256:07f724d6391f1438cb2d6244e33217a63328a4e71654ccc4257ac79e3a477307"
+            },
+            {
+              "name": "designcraft-web-0.17.1.zip",
+              "size": 26920849,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-web-0.17.1.zip",
+              "digest": "sha256:91fd1a28df28a5156d029cbe867f67b9a95d8032b4b730bd07fb3125d1aaca40"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 3201,
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/SHA256SUMS.txt",
+              "digest": "sha256:f8229b6a25bf373d7e9618fe40137fb3c6505b5a0692cec453cc58fdb36a3c31"
+            }
+          ]
+        },
         {
           "tag_name": "v0.17.0",
           "name": "DesignCraft v0.17.0",
@@ -8412,7 +8606,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793824456,
+      "checked_at": 1793825986,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -11593,7 +11787,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793824457,
+      "checked_at": 1793825987,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -14258,7 +14452,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793824458,
+      "checked_at": 1793825988,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -17043,7 +17237,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793824459,
+      "checked_at": 1793825989,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -19540,7 +19734,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793824460,
+      "checked_at": 1793825989,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -22477,7 +22671,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793824460,
+      "checked_at": 1793825990,
       "latest_tag": "v0.1.1",
       "releases": [
         {
@@ -22986,7 +23180,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793824461,
+      "checked_at": 1793825991,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -26333,7 +26527,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793824462,
+      "checked_at": 1793825992,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29804,7 +29998,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793824463,
+      "checked_at": 1793825992,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -32179,7 +32373,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793824464,
+      "checked_at": 1793825993,
       "latest_tag": "v0.3.1",
       "releases": [
         {
@@ -32890,7 +33084,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793824465,
+      "checked_at": 1793825994,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -36309,7 +36503,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793824466,
+      "checked_at": 1793825995,
       "latest_tag": "v0.15.1",
       "releases": [
         {
@@ -38818,7 +39012,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793824468,
+      "checked_at": 1793825998,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -52087,7 +52281,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"d3f0d41961bb189ca7aff6f059e2768c1071963729110400baa6eea66be77875\"",
+      "etag": "\"f050372e3ae22ba7f06f861ba92461991c80661b441ee45553f1bbf3b05ddd82\"",
       "body": {
         "assets": [
           {
@@ -52122,7 +52316,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"9f1507cdc15ee3f6c5aab0cef42b3339847d468958d5b23cf0c11c0f5d9629ca\"",
+      "etag": "\"b11ee9ad98118d6f16690a34affbcb7fc477970d4b02c7f8d5db6cc470d92ef6\"",
       "body": [
         {
           "assets": [
@@ -52927,7 +53121,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"26593d23046861a81611ac8eec1f9d7880040815b0eab82f070a237d0060e09c\"",
+      "etag": "\"e83bea64c5a1affd46cdffbe8af7e7262cb9c686ecb8797b13c83bb099ce81b1\"",
       "body": {
         "assets": [
           {
@@ -53112,7 +53306,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"6905e28c18c57386ef8cdf3cbd7c016c2daeb064b6b463908e4d43bcfa2dcedd\"",
+      "etag": "\"754f24001620a6f3298bfc85493b7d8bb106c420e14e8532ca7b242109e6f30c\"",
       "body": [
         {
           "assets": [
@@ -55601,7 +55795,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"f770dafc174feaa6fe2e311b19b3b10f519afec07fcfc066af8e81d1c6438650\"",
+      "etag": "\"aa3316dfae4ebabaab44b02a4524294a0caf5aeb6fcd1e5c4c8ee6764ddac7f5\"",
       "body": {
         "assets": [
           {
@@ -55786,7 +55980,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"e1d4b08cbfa07157d84bb23fc979aa75c9e8bc86b56973dfffbdf47ddde72eb5\"",
+      "etag": "\"d52514fcf685415f873262539a27e64d2c4b4e8cfe7782c6f5bc0ff01d42027b\"",
       "body": [
         {
           "assets": [
@@ -58093,193 +58287,399 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"51a1094f35b41c1abd3645981cf41d2db2494876aeb08741e5028f420277c6fb\"",
+      "etag": "\"263ccfa191341672e46a7bcf155bf306b7975b70dc2be6488af28aff68c5624c\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:46e1534b571b4362a0767f51592149e6398e26fb096433ac3d47ebb762b07afd",
-            "name": "designcraft-0.17.0-freebsd-aarch64.tar.gz",
-            "size": 118198192
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:6768c0be50d4dfe3e20c451acc3358251c8f2a8777d4e209131a7abb67dd5385",
+            "name": "designcraft-0.17.1-freebsd-aarch64.tar.gz",
+            "size": 118554644
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:957dab70283842f6e2e1934528c56db2b1c129b413a1109bb349c8056fe179d8",
-            "name": "designcraft-0.17.0-freebsd-x86_64.tar.gz",
-            "size": 123429635
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:cf3e8b80d316b40eac4c34e6e5df3761c3475579f084521a157d9cd40165a6b6",
+            "name": "designcraft-0.17.1-freebsd-x86_64.tar.gz",
+            "size": 123933302
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.AppImage",
-            "digest": "sha256:8d7f41d66ba0d17618e450e8b2580ede922cdfda4fa92f9d4239a57da5f561bc",
-            "name": "designcraft-0.17.0-linux-aarch64.AppImage",
-            "size": 113220104
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage",
+            "digest": "sha256:da4d2fc0c49c76ba93c056a32706d9d9f4b8a274ba46728c100bf6f88b5e7980",
+            "name": "designcraft-0.17.1-linux-aarch64.AppImage",
+            "size": 113494536
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:26bfc0ad7078efcdb79d4a9d60a9e24da789899556684c372663b4260f85d212",
-            "name": "designcraft-0.17.0-linux-aarch64.AppImage.zsync",
-            "size": 193748
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:a49734c988c90de117a8cd26b4fb42cab3635cf4573b6aa513b24327058ff284",
+            "name": "designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+            "size": 194217
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.deb",
-            "digest": "sha256:378b677e20cb78619ecc287af5d379b7bc43d39b2015f1d443540ac7e0328e7d",
-            "name": "designcraft-0.17.0-linux-aarch64.deb",
-            "size": 122386784
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.deb",
+            "digest": "sha256:ed28f8013656783a1d6e050dc1635c5fc67931cd944a1d2494ccf61cc9342d2a",
+            "name": "designcraft-0.17.1-linux-aarch64.deb",
+            "size": 122843478
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.flatpak",
-            "digest": "sha256:1fdbed69144cef6bbcfb23207d37882beea7b641a485969dd38e83a02335a158",
-            "name": "designcraft-0.17.0-linux-aarch64.flatpak",
-            "size": 83201416
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.flatpak",
+            "digest": "sha256:aa8c457b0c18f619ffcd6b3ad6b32e16820ff3eac291457ed50d7238d1059d59",
+            "name": "designcraft-0.17.1-linux-aarch64.flatpak",
+            "size": 83383704
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:8ed50ad2848bcf0f7f73a060660c254a40965b79cf441fc1b5ff98212676d0b2",
-            "name": "designcraft-0.17.0-linux-aarch64.pkg.tar.zst",
-            "size": 116173654
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:def5c4d1837e96e9ebbd5e8ac2269e87f4c930d24549080f8e89806258748e50",
+            "name": "designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.rpm",
-            "digest": "sha256:e8a130d2e59bddc67531470cace83c3663b8bbbe9e4a23711a35dbb5920450ff",
-            "name": "designcraft-0.17.0-linux-aarch64.rpm",
-            "size": 121622565
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:e3f01ace1278834f44b5919c8041a0027cc8e77adeff0b3560b152221c3b5e96",
+            "name": "designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+            "size": 90942170
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-aarch64.tar.gz",
-            "digest": "sha256:1bb183f2e3a3b2a0748fa657f1677c82986a766669379d4f3239dc3c98e2a905",
-            "name": "designcraft-0.17.0-linux-aarch64.tar.gz",
-            "size": 119714375
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.rpm",
+            "digest": "sha256:220678b48dbbd284e477d03b68d4259a0166bdc77fae75cba98c48983105fe18",
+            "name": "designcraft-0.17.1-linux-aarch64.rpm",
+            "size": 122070572
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-riscv64.deb",
-            "digest": "sha256:1fd2af2d267a135b858ab0fe00e6b10f2195420aeae898872a632f7ba678bcf3",
-            "name": "designcraft-0.17.0-linux-riscv64.deb",
-            "size": 123437206
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.tar.gz",
+            "digest": "sha256:29e681f60f8531db8e20a39102a41cb4ddae92343cc7d1a4c8230819851158ed",
+            "name": "designcraft-0.17.1-linux-aarch64.tar.gz",
+            "size": 120145708
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-riscv64.rpm",
-            "digest": "sha256:4fe83892c7ac06522512716179bf7ed496a87976100923482b8c88f80d4bb717",
-            "name": "designcraft-0.17.0-linux-riscv64.rpm",
-            "size": 123039690
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.deb",
+            "digest": "sha256:de2b228abb7c4b05e35d0d459d3f1510dd525549db4f49e99ab474f969a1326e",
+            "name": "designcraft-0.17.1-linux-riscv64.deb",
+            "size": 124229398
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-riscv64.tar.gz",
-            "digest": "sha256:75511143e38a866cd1ee3553cf7e72bdc9dcd9330d73963de167023527804d20",
-            "name": "designcraft-0.17.0-linux-riscv64.tar.gz",
-            "size": 121981662
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.rpm",
+            "digest": "sha256:46c1b5f03b85cbbd663212107df2e92e1dec4bd114c442eacf834781b62d153a",
+            "name": "designcraft-0.17.1-linux-riscv64.rpm",
+            "size": 123829354
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.AppImage",
-            "digest": "sha256:4451904013117f7ff2060a9710b0ce397d1016451e4b984cc955dc0547eb5621",
-            "name": "designcraft-0.17.0-linux-x86_64.AppImage",
-            "size": 117021176
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.tar.gz",
+            "digest": "sha256:586b5c9ff9830297e24b8fa2a613e54dd1d775eb7104913006f6b792899cbd4f",
+            "name": "designcraft-0.17.1-linux-riscv64.tar.gz",
+            "size": 122750105
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:fa1bf4891c4ee0c059f79ac5ea086d0543b42939ca31369894eaa4fbeac477ef",
-            "name": "designcraft-0.17.0-linux-x86_64.AppImage.zsync",
-            "size": 200242
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage",
+            "digest": "sha256:20f6aeaf0122da89613837eb52b82f16f727d2f6db7a506d71166d6115fa651d",
+            "name": "designcraft-0.17.1-linux-x86_64.AppImage",
+            "size": 117438968
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.deb",
-            "digest": "sha256:dc204ec4c93718a2b7ac3a6b69127b61f58f87d9f5947f64a1d40931e1407b5a",
-            "name": "designcraft-0.17.0-linux-x86_64.deb",
-            "size": 125470316
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:615522a768f54ecac1e1b3bfad2165a001635e2145cde380ddfb4dc5c6035b0c",
+            "name": "designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+            "size": 200956
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.flatpak",
-            "digest": "sha256:43d66f8797e242314e05cf78fbcdc9cbb365a8c6619003421ac6efa8129420da",
-            "name": "designcraft-0.17.0-linux-x86_64.flatpak",
-            "size": 87664760
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.deb",
+            "digest": "sha256:dca2d789090dcda62a2d404cd38b37430bec9771a6d0cc62f4856610e29408f9",
+            "name": "designcraft-0.17.1-linux-x86_64.deb",
+            "size": 126009030
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:03cc1cb9cabe34ee12de56c372ed6dc40cc87b3dc1dfb42a385120b36d2d4838",
-            "name": "designcraft-0.17.0-linux-x86_64.pkg.tar.zst",
-            "size": 120072065
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.flatpak",
+            "digest": "sha256:73bd8674a6a4c5d74799a2addc365318e8d53f221c194c1301383a6220a59066",
+            "name": "designcraft-0.17.1-linux-x86_64.flatpak",
+            "size": 88208896
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.rpm",
-            "digest": "sha256:41cf28a1da11e3d5bd917717c54a314c525aa31f2f06912d79ec98ec1b3e582b",
-            "name": "designcraft-0.17.0-linux-x86_64.rpm",
-            "size": 124829665
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:8072746f5a2fe2a758a7f0568179d633525e78d6358bad518c200a94091e3501",
+            "name": "designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-linux-x86_64.tar.gz",
-            "digest": "sha256:bb6f9cec404655350266e98ee10d9b5a154507ed998ad7af47b25335afad1872",
-            "name": "designcraft-0.17.0-linux-x86_64.tar.gz",
-            "size": 123796510
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:387c53204edddf9ec9dcf64d3d10861d88fb21e9bfcdc180bea9bab75ad28047",
+            "name": "designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+            "size": 93619860
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-macos-universal.dmg",
-            "digest": "sha256:d89d1bb101b477cb521fd13551f7bac2a90662ed83e5ccf45571e967834e4327",
-            "name": "designcraft-0.17.0-macos-universal.dmg",
-            "size": 137411698
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.rpm",
+            "digest": "sha256:14fbe4776ad005f258553df8852d6b43a0e56b704e346f14d29932df40736ff4",
+            "name": "designcraft-0.17.1-linux-x86_64.rpm",
+            "size": 125356828
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-arm64-portable.zip",
-            "digest": "sha256:a86538828f06b88813c747da31a3afbc9355442336373c18b24ce6b8a749029b",
-            "name": "designcraft-0.17.0-windows-arm64-portable.zip",
-            "size": 119713574
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.tar.gz",
+            "digest": "sha256:a3d71721025a1b1ec72f3ddcef40904f6dbe4d82503586d03465cc5af1fcb986",
+            "name": "designcraft-0.17.1-linux-x86_64.tar.gz",
+            "size": 124322265
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-arm64.msi",
-            "digest": "sha256:d46abb22f2ec29b7a313bae7fb8afc57d0ca0d80c30c5824de931bedde62d22e",
-            "name": "designcraft-0.17.0-windows-arm64.msi",
-            "size": 94199808
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-macos-universal.dmg",
+            "digest": "sha256:4e5f58cfbeed70e55cce0ec30f78106092f505d20ca7dc721a1caef819408c86",
+            "name": "designcraft-0.17.1-macos-universal.dmg",
+            "size": 247474456
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-x64-portable.zip",
-            "digest": "sha256:37dd157b7af22864e4d2693e60411c5e5cce492d69042bf03af8728f8b7f8134",
-            "name": "designcraft-0.17.0-windows-x64-portable.zip",
-            "size": 124340370
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64-portable.zip",
+            "digest": "sha256:a6d191c2ca5b5e37325a284d5cd1cdad0439b8ab62fdf4c5c503a78112a17258",
+            "name": "designcraft-0.17.1-windows-arm64-portable.zip",
+            "size": 120132898
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-x64.msi",
-            "digest": "sha256:236719d6f4ab823f8b090257149af7369b948fce1769188f5617c6fc20877775",
-            "name": "designcraft-0.17.0-windows-x64.msi",
-            "size": 98615296
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64.msi",
+            "digest": "sha256:a199047a84ec91a7a2a30899cb7a5db8df5b5d4606f3ace1ff13586379f35a28",
+            "name": "designcraft-0.17.1-windows-arm64.msi",
+            "size": 94490624
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-x86-portable.zip",
-            "digest": "sha256:bf3c95c922de4a07da115f6c1d11295443f7b892a8359b800956c09b1d36379a",
-            "name": "designcraft-0.17.0-windows-x86-portable.zip",
-            "size": 120041278
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64-portable.zip",
+            "digest": "sha256:b40c91cabd93459a50a10cb1736ea1eacdc924c0fd12d2d690ca4c7868aa9c34",
+            "name": "designcraft-0.17.1-windows-x64-portable.zip",
+            "size": 124804607
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-0.17.0-windows-x86.msi",
-            "digest": "sha256:ee2e3026fab96594ea6f03f6e17bad232fb53198e0c993381e2ed7d451863e75",
-            "name": "designcraft-0.17.0-windows-x86.msi",
-            "size": 96559104
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64.msi",
+            "digest": "sha256:660271d09b47ff3bf19ff0676fc8d354be65ece8196f3a41c57f3a3fdc12ac52",
+            "name": "designcraft-0.17.1-windows-x64.msi",
+            "size": 98988032
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-cli-0.17.0-macos-universal.zip",
-            "digest": "sha256:5c7f71f5602f90f2e7334933d2c6ea443f998161828b7992ecce9de84d2008f8",
-            "name": "designcraft-cli-0.17.0-macos-universal.zip",
-            "size": 109223125
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86-portable.zip",
+            "digest": "sha256:42411a09dcd7c4ef3e54e9a00ffddd67154b13c77e189303c0d8766c78ebaf8e",
+            "name": "designcraft-0.17.1-windows-x86-portable.zip",
+            "size": 120492476
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/designcraft-web-0.17.0.zip",
-            "digest": "sha256:b8d81cccf9778c4fff22111bce915b33c3ff6dc7de40a51e4cba7f4b62a0875f",
-            "name": "designcraft-web-0.17.0.zip",
-            "size": 26853162
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86.msi",
+            "digest": "sha256:b464aff2c6378e37ab5fe2ad1cf44cca7544490a9a7174f70f66d5cb71ead463",
+            "name": "designcraft-0.17.1-windows-x86.msi",
+            "size": 96899072
           },
           {
-            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.0/SHA256SUMS.txt",
-            "digest": "sha256:c65b6c415bc920fe78b4ea128d278baac7fb942813710a976d744e417238dff6",
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-cli-0.17.1-macos-universal.zip",
+            "digest": "sha256:07f724d6391f1438cb2d6244e33217a63328a4e71654ccc4257ac79e3a477307",
+            "name": "designcraft-cli-0.17.1-macos-universal.zip",
+            "size": 110043581
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-web-0.17.1.zip",
+            "digest": "sha256:91fd1a28df28a5156d029cbe867f67b9a95d8032b4b730bd07fb3125d1aaca40",
+            "name": "designcraft-web-0.17.1.zip",
+            "size": 26920849
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/SHA256SUMS.txt",
+            "digest": "sha256:f8229b6a25bf373d7e9618fe40137fb3c6505b5a0692cec453cc58fdb36a3c31",
             "name": "SHA256SUMS.txt",
-            "size": 2968
+            "size": 3201
           }
         ],
         "draft": false,
-        "name": "DesignCraft v0.17.0",
+        "name": "DesignCraft v0.17.1",
         "prerelease": false,
-        "tag_name": "v0.17.0"
+        "tag_name": "v0.17.1"
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"1e5c8933593eaf0a35d70b95dbdaf1bdb8c601efe175941d1a806ad84dbc2fbc\"",
+      "etag": "\"07b41b71ba20e7c22f62d3fb0291d376cfbd18722107eff37df4cd5bcf878aae\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:6768c0be50d4dfe3e20c451acc3358251c8f2a8777d4e209131a7abb67dd5385",
+              "name": "designcraft-0.17.1-freebsd-aarch64.tar.gz",
+              "size": 118554644
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:cf3e8b80d316b40eac4c34e6e5df3761c3475579f084521a157d9cd40165a6b6",
+              "name": "designcraft-0.17.1-freebsd-x86_64.tar.gz",
+              "size": 123933302
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage",
+              "digest": "sha256:da4d2fc0c49c76ba93c056a32706d9d9f4b8a274ba46728c100bf6f88b5e7980",
+              "name": "designcraft-0.17.1-linux-aarch64.AppImage",
+              "size": 113494536
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:a49734c988c90de117a8cd26b4fb42cab3635cf4573b6aa513b24327058ff284",
+              "name": "designcraft-0.17.1-linux-aarch64.AppImage.zsync",
+              "size": 194217
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.deb",
+              "digest": "sha256:ed28f8013656783a1d6e050dc1635c5fc67931cd944a1d2494ccf61cc9342d2a",
+              "name": "designcraft-0.17.1-linux-aarch64.deb",
+              "size": 122843478
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.flatpak",
+              "digest": "sha256:aa8c457b0c18f619ffcd6b3ad6b32e16820ff3eac291457ed50d7238d1059d59",
+              "name": "designcraft-0.17.1-linux-aarch64.flatpak",
+              "size": 83383704
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:def5c4d1837e96e9ebbd5e8ac2269e87f4c930d24549080f8e89806258748e50",
+              "name": "designcraft-0.17.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:e3f01ace1278834f44b5919c8041a0027cc8e77adeff0b3560b152221c3b5e96",
+              "name": "designcraft-0.17.1-linux-aarch64.pkg.tar.zst",
+              "size": 90942170
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.rpm",
+              "digest": "sha256:220678b48dbbd284e477d03b68d4259a0166bdc77fae75cba98c48983105fe18",
+              "name": "designcraft-0.17.1-linux-aarch64.rpm",
+              "size": 122070572
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-aarch64.tar.gz",
+              "digest": "sha256:29e681f60f8531db8e20a39102a41cb4ddae92343cc7d1a4c8230819851158ed",
+              "name": "designcraft-0.17.1-linux-aarch64.tar.gz",
+              "size": 120145708
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.deb",
+              "digest": "sha256:de2b228abb7c4b05e35d0d459d3f1510dd525549db4f49e99ab474f969a1326e",
+              "name": "designcraft-0.17.1-linux-riscv64.deb",
+              "size": 124229398
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.rpm",
+              "digest": "sha256:46c1b5f03b85cbbd663212107df2e92e1dec4bd114c442eacf834781b62d153a",
+              "name": "designcraft-0.17.1-linux-riscv64.rpm",
+              "size": 123829354
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-riscv64.tar.gz",
+              "digest": "sha256:586b5c9ff9830297e24b8fa2a613e54dd1d775eb7104913006f6b792899cbd4f",
+              "name": "designcraft-0.17.1-linux-riscv64.tar.gz",
+              "size": 122750105
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage",
+              "digest": "sha256:20f6aeaf0122da89613837eb52b82f16f727d2f6db7a506d71166d6115fa651d",
+              "name": "designcraft-0.17.1-linux-x86_64.AppImage",
+              "size": 117438968
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:615522a768f54ecac1e1b3bfad2165a001635e2145cde380ddfb4dc5c6035b0c",
+              "name": "designcraft-0.17.1-linux-x86_64.AppImage.zsync",
+              "size": 200956
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.deb",
+              "digest": "sha256:dca2d789090dcda62a2d404cd38b37430bec9771a6d0cc62f4856610e29408f9",
+              "name": "designcraft-0.17.1-linux-x86_64.deb",
+              "size": 126009030
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.flatpak",
+              "digest": "sha256:73bd8674a6a4c5d74799a2addc365318e8d53f221c194c1301383a6220a59066",
+              "name": "designcraft-0.17.1-linux-x86_64.flatpak",
+              "size": 88208896
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:8072746f5a2fe2a758a7f0568179d633525e78d6358bad518c200a94091e3501",
+              "name": "designcraft-0.17.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:387c53204edddf9ec9dcf64d3d10861d88fb21e9bfcdc180bea9bab75ad28047",
+              "name": "designcraft-0.17.1-linux-x86_64.pkg.tar.zst",
+              "size": 93619860
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.rpm",
+              "digest": "sha256:14fbe4776ad005f258553df8852d6b43a0e56b704e346f14d29932df40736ff4",
+              "name": "designcraft-0.17.1-linux-x86_64.rpm",
+              "size": 125356828
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-linux-x86_64.tar.gz",
+              "digest": "sha256:a3d71721025a1b1ec72f3ddcef40904f6dbe4d82503586d03465cc5af1fcb986",
+              "name": "designcraft-0.17.1-linux-x86_64.tar.gz",
+              "size": 124322265
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-macos-universal.dmg",
+              "digest": "sha256:4e5f58cfbeed70e55cce0ec30f78106092f505d20ca7dc721a1caef819408c86",
+              "name": "designcraft-0.17.1-macos-universal.dmg",
+              "size": 247474456
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64-portable.zip",
+              "digest": "sha256:a6d191c2ca5b5e37325a284d5cd1cdad0439b8ab62fdf4c5c503a78112a17258",
+              "name": "designcraft-0.17.1-windows-arm64-portable.zip",
+              "size": 120132898
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-arm64.msi",
+              "digest": "sha256:a199047a84ec91a7a2a30899cb7a5db8df5b5d4606f3ace1ff13586379f35a28",
+              "name": "designcraft-0.17.1-windows-arm64.msi",
+              "size": 94490624
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64-portable.zip",
+              "digest": "sha256:b40c91cabd93459a50a10cb1736ea1eacdc924c0fd12d2d690ca4c7868aa9c34",
+              "name": "designcraft-0.17.1-windows-x64-portable.zip",
+              "size": 124804607
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x64.msi",
+              "digest": "sha256:660271d09b47ff3bf19ff0676fc8d354be65ece8196f3a41c57f3a3fdc12ac52",
+              "name": "designcraft-0.17.1-windows-x64.msi",
+              "size": 98988032
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86-portable.zip",
+              "digest": "sha256:42411a09dcd7c4ef3e54e9a00ffddd67154b13c77e189303c0d8766c78ebaf8e",
+              "name": "designcraft-0.17.1-windows-x86-portable.zip",
+              "size": 120492476
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-0.17.1-windows-x86.msi",
+              "digest": "sha256:b464aff2c6378e37ab5fe2ad1cf44cca7544490a9a7174f70f66d5cb71ead463",
+              "name": "designcraft-0.17.1-windows-x86.msi",
+              "size": 96899072
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-cli-0.17.1-macos-universal.zip",
+              "digest": "sha256:07f724d6391f1438cb2d6244e33217a63328a4e71654ccc4257ac79e3a477307",
+              "name": "designcraft-cli-0.17.1-macos-universal.zip",
+              "size": 110043581
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/designcraft-web-0.17.1.zip",
+              "digest": "sha256:91fd1a28df28a5156d029cbe867f67b9a95d8032b4b730bd07fb3125d1aaca40",
+              "name": "designcraft-web-0.17.1.zip",
+              "size": 26920849
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/designcraft/releases/download/v0.17.1/SHA256SUMS.txt",
+              "digest": "sha256:f8229b6a25bf373d7e9618fe40137fb3c6505b5a0692cec453cc58fdb36a3c31",
+              "name": "SHA256SUMS.txt",
+              "size": 3201
+            }
+          ],
+          "draft": false,
+          "name": "DesignCraft v0.17.1",
+          "prerelease": false,
+          "tag_name": "v0.17.1"
+        },
         {
           "assets": [
             {
@@ -61079,7 +61479,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"9a847cb3b201cd55dd49a62cf73d9eb7b9f4ab804c3c175d6d8334149ea96961\"",
+      "etag": "\"715b989c235175901cc918fcb8ad453d236b0fb75a175a249b3ed0a967d598d0\"",
       "body": {
         "assets": [
           {
@@ -61264,7 +61664,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"743c7681e98da9b44ff41635c441b74a2c5e6274af503566bbb425ce10ade0aa\"",
+      "etag": "\"04ca7a69fa551350af717fa9d90999a048c225e1120c8bbd031d67a49823cf11\"",
       "body": [
         {
           "assets": [
@@ -64443,7 +64843,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"ce21c66fee310e6fe2f262e47cbf6fa3be138ff07a5324587db1f824c15a1ed6\"",
+      "etag": "\"2949dbf1375e36f7bdaf4d10237c78a92a6a20b6b5afa7124dfcf2e7cf3ef421\"",
       "body": {
         "assets": [
           {
@@ -64640,7 +65040,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"8fbecf877862158245ef71c3f183088e38915f593b251fda2d0317df9e263aa4\"",
+      "etag": "\"e20f2322c2b3312ac036d3bd2a3e94a804f28d3977db7fd96c94155032f6cef3\"",
       "body": [
         {
           "assets": [
@@ -67303,7 +67703,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"edac81ef2f553919aafd40f4611754aa8ab967ce2fb7e1c47ef7e4382573dff2\"",
+      "etag": "\"c3f154db6759cbc620e337ca5d592667727073d422fa2466aeb236028394da22\"",
       "body": {
         "assets": [
           {
@@ -67488,7 +67888,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"3186a818b01e6ac7f5b47d1c6fcbfe1ecce701a42b49f49731d68207d4d9b62a\"",
+      "etag": "\"4b9be62db864234cc21a1fa2d58412ba9036a5e0f573cc7fcbd694223046e2fd\"",
       "body": [
         {
           "assets": [
@@ -70271,7 +70671,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"a0641a0c2e29be861a4e106af70ebffb7e0a4d2a5d21991cd2d01f6f80837cc1\"",
+      "etag": "\"e21c158a1cc66e8757f9a6b163fe6fc0906209ae482cee5e525b82f626c52da4\"",
       "body": {
         "assets": [
           {
@@ -70456,7 +70856,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"45c798b725eb5adf4b99f502ae41d67d42dc3c6be458a2bf7b6a5d8d2db3d0b1\"",
+      "etag": "\"5df2b1f0ec4a858ca115d8f4c29db72f41dca5b6af8da87c8df89fc8a386d9aa\"",
       "body": [
         {
           "assets": [
@@ -72951,7 +73351,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"4aa27abe522d6bcc3756d564421d895a798aa19b8280b04b4ab8b8a43174f890\"",
+      "etag": "\"369dac9b936ecf62d4fb559ae6b18dc6188530e73554a6d0db641be7a625da8b\"",
       "body": {
         "assets": [
           {
@@ -73136,7 +73536,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"8470f1fe6ed92cc3647dc3c0cd6349d9f31656d6ec10072ea595c1207b4e93bc\"",
+      "etag": "\"7f2c9c379ea89577847ff83580a4b306089d6ecfd37d2bf370e0aaa57b297d1d\"",
       "body": [
         {
           "assets": [
@@ -76071,7 +76471,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"16405487f7e56089619f179d586235a4e2ee9060932151caf18cb0bba3eccea1\"",
+      "etag": "\"d6a14174a181f0f36571580c7ad76332f85d0a527b7648175cbd98352844adec\"",
       "body": {
         "assets": [
           {
@@ -76394,7 +76794,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"6e8a38cef7cc2ab39845ed4c70b8fad847de46bbab2528c7c0f48cba18614774\"",
+      "etag": "\"f047b5578c61c064fcaf5b57d8a10e8943410f40dfa2c087c7bdbba6d3e7fdaa\"",
       "body": [
         {
           "assets": [
@@ -76901,7 +77301,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"6b4d71d9d27a6c2a703d24325e6107e41304c9af2b632f6ab352ed85d383c072\"",
+      "etag": "\"d76e50d1517fe26873b21e77fad05bc2f1c8ed45d9f8eab9ca9457c8fabeb6bf\"",
       "body": {
         "assets": [
           {
@@ -77110,7 +77510,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"7e84a455b41de637a041e2d92a2a67e85cdb0950137ba0619ad8707d3b4a1298\"",
+      "etag": "\"fdb7d9762ce0a9b2fb3dfa325adcc6ff9f84a2c5713e1df9cc1751b1e2a05247\"",
       "body": [
         {
           "assets": [
@@ -80455,7 +80855,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"7d95a494835e18d14d5488ef53133caa3ca7bf9a62f70b4001503ebc7b99afac\"",
+      "etag": "\"8c7ce0672e8c4a4fc10fae03a8267b4033c333cc79029e255e8bc43898677f7f\"",
       "body": {
         "assets": [
           {
@@ -80658,7 +81058,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"23aaa5839a0ead0fd59b78090e0b08d5f685fddb9784525152b3a24e45cffc22\"",
+      "etag": "\"de2ec36357baa03f59a6e43f03223b7fd95727d9aee68fb44b1ae35795cba987\"",
       "body": [
         {
           "assets": [
@@ -84127,7 +84527,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"6792b314cd6b39b76c3fd89627c9fd40e9bc66f6b8107d4a2bcca93f0317015c\"",
+      "etag": "\"cf59b93af5c5cb902471f0e4e50c8c34d1342d6b08ca1548ed2a0f47159c3b8f\"",
       "body": {
         "assets": [
           {
@@ -84312,7 +84712,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"36c6facbb8691bbe908546c25b37aa4e4b14b1482c16b8494a1922743cc98252\"",
+      "etag": "\"0381e85360f447918470016c07624ecf15049f2bd133fbb2bbe86f776669b696\"",
       "body": [
         {
           "assets": [
@@ -86685,7 +87085,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"f0aec9a5d2558cf9e158c9cc4ed6ca12d54dc30bfcacd1a91ecfe4c6454dfdf9\"",
+      "etag": "\"541ac3682c6335d5f9c92f1266e2741be6c94000e6192e6167a7f3e573ca49ab\"",
       "body": {
         "assets": [
           {
@@ -86882,7 +87282,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"f27b2ccbd89805ab6f8d2b9b8cffa58d510ef9d127652df677224c86f8859116\"",
+      "etag": "\"6d136947da60222021cb9c469309ff3c7d50c50220b74b4014454fd138ad03dd\"",
       "body": [
         {
           "assets": [
@@ -87591,7 +87991,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"d768164a8da8f3653c748d6bd49f5ee7f6fd24f4b08a978684e0e2fd8072d6a9\"",
+      "etag": "\"9248da6a2b88bace59af3635aec20a0fe79d4ef4b27d169e3c4ef0427fc1fe54\"",
       "body": {
         "assets": [
           {
@@ -87776,7 +88176,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"bcc8972059badbcd74d2a31242567bb4bb65bf0f2fd551d76a5871194241021d\"",
+      "etag": "\"0acf8e59a5ed1c28bf24b005143dfb1322a27185cda196ec87e6f6331d37ea5b\"",
       "body": [
         {
           "assets": [
@@ -91193,7 +91593,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"334e39c02136bd84f0969ad458985680a6224f4a65bb1092cf6982cebb48cde4\"",
+      "etag": "\"2e4feacfc4956518e4e2a1c540373ec417c0cb0f1fafd9c75b8c20f4cae81d1e\"",
       "body": {
         "assets": [
           {
@@ -91390,7 +91790,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"5691f86ad3d4fbe58da5bab44cd1203f87f8ac7ff7abcf6c3c95d42f76e59c73\"",
+      "etag": "\"e6127ca800e8103798c4d29eac7a908c89dc55771a3701152c7cafe390e9fe4f\"",
       "body": [
         {
           "assets": [
@@ -93897,7 +94297,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"42ab3322212d4c03db8b0fcc26709ec8161d168b8dcef4477ded4acf651b0c01\"",
+      "etag": "\"0dbb2fd824a002491740b1d1c4af2159e2c6617be4e6f08f5bd103be39aba901\"",
       "body": {
         "assets": [
           {
@@ -94202,7 +94602,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"c11e54e63cf34d752164b68707c88ab9a32b74736c897489863aaac7f6f225d5\"",
+      "etag": "\"1c3c7d3d4923ebe50f5b2ee79bb421f673c382bd127ce6ec752b6988711b4886\"",
       "body": [
         {
           "assets": [
