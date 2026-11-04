@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793815403,
+      "checked_at": 1793817043,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793815404,
+      "checked_at": 1793817044,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -3300,7 +3300,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793815405,
+      "checked_at": 1793817045,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -5609,7 +5609,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793815406,
+      "checked_at": 1793817046,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -8412,7 +8412,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793815407,
+      "checked_at": 1793817047,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -11593,7 +11593,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793815408,
+      "checked_at": 1793817048,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -14258,7 +14258,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793815409,
+      "checked_at": 1793817049,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -17043,7 +17043,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793815410,
+      "checked_at": 1793817050,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -19540,7 +19540,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793815411,
+      "checked_at": 1793817051,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -22477,9 +22477,329 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793815412,
-      "latest_tag": "v0.1.0",
+      "checked_at": 1793817051,
+      "latest_tag": "v0.1.1",
       "releases": [
+        {
+          "tag_name": "v0.1.1",
+          "name": "MaterialCraft v0.1.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+              "size": 15427894,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:b2b5618949737b774cbf665200df642c0fc3d24f7afea5c8ef665a8f687cf615"
+            },
+            {
+              "name": "materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+              "size": 16854866,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:440526c28a9fa111f42f991162c5f170063f05bc6cb620723c49113c51a9b36d"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage",
+              "size": 15264264,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage",
+              "digest": "sha256:6ec1e82adfcd1acad7ee542c0faaec32a4551081454da90603d3931955b72282"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:e9a9e0081267fc0e2ce7f67480fb6e9008ba72ee1a23abd72ea50375709961a1"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+              "size": 52433,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:5251045d7098fe5a23cd009a426fbc3a03d75a55fdc337b4006c4c2fd41fd76b"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:5e220ca960635b0d3e874223c22ffed6724354c869384680c42a575756499896"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.deb",
+              "size": 16512980,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb",
+              "digest": "sha256:4628b1f86df4e596ea73be50cf5c099b39a3502c365f27781283f82307e66e53"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb.asc",
+              "digest": "sha256:a3225ff6ec54c35176da6c2901c26be61ef6dab60678400450fd1ae38a5faf3e"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.flatpak",
+              "size": 10239744,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak",
+              "digest": "sha256:a64280ed7c9aba2261847605a9c3591aa23b44c023056056357fc6a232b65aa2"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:0d7349193ad1dec1a915f25ddc48ef49b852e4d134c2a53ee90f67775f06938e"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:29203a79dd63388085c3b01f1f520ee860a99e83aa0f7fb828deb896d6617990"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.oci.sig",
+              "size": 385,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci.sig",
+              "digest": "sha256:c6cd77711720c82c05d085036f1af4c685d46120b56839b781146860e2b0a602"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+              "size": 9962019,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:831ac85eca847a7842cd9220da6c0ce5d96220f461ec3c8f64659792b1812ee7"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:fb2a61f30304d68c09b0d2c8d4c06c572c3bc115ef437701a55d78be108969b0"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.rpm",
+              "size": 16349882,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm",
+              "digest": "sha256:1d0b74452eda365c31670c814821522f73821566004f244717fb5cd38412e7a3"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:8d56edcb42ecd5dae527e3926e524c4e79669e5cb849757fe1f93fc79847ece6"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.tar.gz",
+              "size": 15739613,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz",
+              "digest": "sha256:2e1fca076943a9229060bd08ab2f6c74d137b56a64505c5cecf4b977365732f8"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:5546933289c2216501365d59d210787db108386ccae7f5f185ecc24c03a03c50"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.deb",
+              "size": 17048568,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb",
+              "digest": "sha256:0bf6504ef5df744d02208e9cd0fe026e99afe2f79ab486b0ddd9e22a2f4ced6d"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb.asc",
+              "digest": "sha256:094db2d7611f1df1be616bd72a0165b1cc6bee5d6abaa8ce758627dce7ceca20"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.rpm",
+              "size": 17020082,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm",
+              "digest": "sha256:bd6dd32b6f09a1e370c0182e41457c049c588b8dd0047ce8e6f8413f7cb6d7af"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:82c1a903f7625c360935d6667fe98919628d0b501b06e55b6b77fed7fd72d01a"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.tar.gz",
+              "size": 16677914,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz",
+              "digest": "sha256:d07049057081f53df7ababdf7c93c6be92832ca39e0994872fe7fffd801c3691"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:75bf9946749c786cfff93ec1cda46314739638d1558561fb70b236e9234cfcf0"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage",
+              "size": 16300536,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage",
+              "digest": "sha256:71a2b75e7d2c88cbcbee63e9eb1dec3b460895fe758dd172f066622e6e65b870"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:920309fbb49e08cf5a9e977aa1dd70216d19f7df806588ad99a54342b3f1ba2f"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+              "size": 55973,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:14275f4e5afd2f061fc45d9e2d4be6e5c715361429b2be1e22fd019b81562305"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:2b86c02c10312af1ce38872da86d04848176baa482adf3b5e411a771499b61b2"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.deb",
+              "size": 17297174,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb",
+              "digest": "sha256:5b0af828bd3a6c727bbc56b8d0ceec5af1398cd5770b2d1549dc20dae096b617"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb.asc",
+              "digest": "sha256:37acaab3beec9be153bd67d6842cb1b9e9a28657fd057719868945d23fc0f5ca"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.flatpak",
+              "size": 11603088,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak",
+              "digest": "sha256:cfd03b868bf6950ba9652d1472c7b36f18bfee96d1402c814647c7cff5b0a9db"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:d295285e4e3f16465f6af0da3c32d59ef7f0b28a1b209a761ca38fb32b8e1322"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:cd437ccedf4ca8e7ff36ad821c2948d8983db71e8474ac56ee7d871c8d3d8ffe"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.oci.sig",
+              "size": 382,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci.sig",
+              "digest": "sha256:834f66d7486d723fe08f9148816e7e425db024101b654bea998e8e88293be572"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+              "size": 10558906,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:256007fcf09b322f389a518a8302f2922485883b007de2db28f94e6c9a2551cf"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:6e5ac7896f650cfc327bb57d412aa0eae88b28398911244136aac0de2aeec933"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.rpm",
+              "size": 17194279,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm",
+              "digest": "sha256:ec4da682e91a626f20bb37a57150c187579aece8b363c4dc70e6b7ab53efa480"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:0d339c4daf42feb9be3e0ba2467d49332acea10e38b61eb2425751ed24f693f8"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.tar.gz",
+              "size": 16892219,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz",
+              "digest": "sha256:161b9c4bce09ea15c136fe1bf58bbb0342a90f7470b47101c82cd6f1ba0521b9"
+            },
+            {
+              "name": "materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:814cf2e5f880c7886c67ac42a1c8bb838dc0de6afaa9f1c20b51f328c8c2ae76"
+            },
+            {
+              "name": "materialcraft-0.1.1-macos-universal.dmg",
+              "size": 20277786,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-macos-universal.dmg",
+              "digest": "sha256:5fba4d8222a7e63a1f27b45ded366091be2561b8d6c0bd5b3a2928c29d83d7d4"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-arm64-portable.zip",
+              "size": 15056632,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64-portable.zip",
+              "digest": "sha256:284c89a497f4f3dcaeba1b6bf48fb59781ac789b1395cd37a7a08149edd92a34"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-arm64.msi",
+              "size": 10993664,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64.msi",
+              "digest": "sha256:ff8a6f4715131d885d8fbfccc303f01aef8a5477468531667f988c787c8d3484"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-x64-portable.zip",
+              "size": 16291419,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64-portable.zip",
+              "digest": "sha256:0223618c0be89336ca09c0e8fb13577ddc66462b88fa230e32d41cbdd8420e67"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-x64.msi",
+              "size": 12218368,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64.msi",
+              "digest": "sha256:293cde6453bf66312844d60c727cc7e541907788c651ac3eb8c742e599b5ac85"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-x86-portable.zip",
+              "size": 15135473,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86-portable.zip",
+              "digest": "sha256:010425e261ad218b53e7f1733beca2cde32b0fd423ce2f87a09a6ec9b2391237"
+            },
+            {
+              "name": "materialcraft-0.1.1-windows-x86.msi",
+              "size": 11644928,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86.msi",
+              "digest": "sha256:c3473149a565917c96332b47fe1c3ba10a60169e8ff9e82f51377f64b935f429"
+            },
+            {
+              "name": "materialcraft-cli-0.1.1-macos-universal.zip",
+              "size": 9392388,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-cli-0.1.1-macos-universal.zip",
+              "digest": "sha256:abe56dc6d74658e009750676d69323449d5d7a9b9fcc9641ac6bc4b9f9df9d33"
+            },
+            {
+              "name": "materialcraft-web-0.1.1.zip",
+              "size": 4317249,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-web-0.1.1.zip",
+              "digest": "sha256:b534e17e722ed54a50e433d7f781bfc9957fd09432d29401c2dffe77de977eb9"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5430,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt",
+              "digest": "sha256:4b252884ad7c08f206729fd4b7184f716bda62966f2b4fb8c5691ee2296cded9"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:a58ff1a423d5380f8fe925cdbe62ec274c2ed6a768919734c243ae7a28731700"
+            }
+          ]
+        },
         {
           "tag_name": "v0.1.0",
           "name": "MaterialCraft v0.1.0",
@@ -22666,7 +22986,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793815413,
+      "checked_at": 1793817052,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -26013,7 +26333,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793815414,
+      "checked_at": 1793817053,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29484,7 +29804,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793815415,
+      "checked_at": 1793817054,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -31859,9 +32179,203 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793815416,
-      "latest_tag": "v0.3.0",
+      "checked_at": 1793817055,
+      "latest_tag": "v0.3.1",
       "releases": [
+        {
+          "tag_name": "v0.3.1",
+          "name": "TextureCraft v0.3.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 3201,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/SHA256SUMS.txt",
+              "digest": "sha256:d78cccdda3d4dc99f8f21a51ddd2ca8c2fb82a4816caf9122c28166486e70dfa"
+            },
+            {
+              "name": "texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+              "size": 38121942,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:129d00cba6e6bcbd63d57c8c9dcc8f018f3ee13e0a4ed6481a1351b4e4bc6b2b"
+            },
+            {
+              "name": "texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+              "size": 40060745,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:e5b053da654d2e96c30a20441b74bfa4838637da3e525a5efb3b0283d94eb4da"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.AppImage",
+              "size": 37181960,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage",
+              "digest": "sha256:7ecf138077abbd2f92dcfaf68dae2375e800f59b726012994a54adcc6617ba25"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+              "size": 127345,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:f57c8d869fc988e64c24d3b11a1d3095bd0f9fa1d16651efb5e5bf6c7356682f"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.deb",
+              "size": 39727134,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.deb",
+              "digest": "sha256:126b5853ab261cfdc32f88e242f8ffa5b5cc7bdfbb456f1f91f612f19aa3825d"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.flatpak",
+              "size": 27578296,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.flatpak",
+              "digest": "sha256:77b2d08bc7a468f9b3e7b9e61e557d23a214a1474b89da728be602181414aacb"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:2df6f73ff3e343c693e381e96e2aaca7fcb742435d378b3cabe7a0ad7c872ebc"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+              "size": 30667303,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:f351a41c379afc60296128fe1904b8f13922b6ca1bace136b4144c21708f5e0c"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.rpm",
+              "size": 39398015,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.rpm",
+              "digest": "sha256:d8f04338d5c8247d0bc466acb4482916cbd03db9e6f046966b7e6414f2b68eb3"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-aarch64.tar.gz",
+              "size": 38564857,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.tar.gz",
+              "digest": "sha256:812676459f11fdfc38a1bd6d7f4ec0721768a8443d581d94782b302898e607cc"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-riscv64.deb",
+              "size": 40450828,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.deb",
+              "digest": "sha256:57dcada1f69d2b3d50f2f1d668bfccf7344fcfb171457fd273923899d8eaeb9a"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-riscv64.rpm",
+              "size": 40298498,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.rpm",
+              "digest": "sha256:892fd8fecd2c5ee7effd1ad713932642162761b83400032661de849a123f2b83"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-riscv64.tar.gz",
+              "size": 39806135,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.tar.gz",
+              "digest": "sha256:c89d898a2190287c30072155f5ae73fa65e780a8cf55c021049ca5d27d8077a2"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.AppImage",
+              "size": 38603256,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage",
+              "digest": "sha256:ec8dd97154fb0c339c73b279f1abcc9bd7f5bcb628837a801611b082c0aaae7b"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+              "size": 132201,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:204f4e0577a0f487f037bce262ad482cef5c21dded582cfaa1de2d48f5a0f752"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.deb",
+              "size": 40833562,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.deb",
+              "digest": "sha256:01eb297a287f7417d623407915f796a51e07d3508f358054192b9f55e25d7740"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.flatpak",
+              "size": 29448328,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.flatpak",
+              "digest": "sha256:061167166ebf015bfef1bf2307eb963e8cd0fae3f6e56ca90dbfc8476b238a11"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6c919eb1674885aa4989de7803af6cee6bebc0ebcf4182bde813a3c269193ef9"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+              "size": 28099988,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:bec1bc46198b5558bc208100cf3b5c48548a8e4d384677e57b9a84af20a3def0"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.rpm",
+              "size": 40573765,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.rpm",
+              "digest": "sha256:da739209379f4915d12701059ff60ca3f7a6ffca31dd348c82c2bfa29a028e7f"
+            },
+            {
+              "name": "texturecraft-0.3.1-linux-x86_64.tar.gz",
+              "size": 40136457,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.tar.gz",
+              "digest": "sha256:7fcff64a6d8fe3e4c12ca2556ee96b072a402f224248feafe30e2bc8f275f57c"
+            },
+            {
+              "name": "texturecraft-0.3.1-macos-universal.dmg",
+              "size": 59512152,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-macos-universal.dmg",
+              "digest": "sha256:846d88dfe3084943664f5c6f0ee8afaa499346046c8f96d04efd1580b484cc98"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-arm64-portable.zip",
+              "size": 38551702,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64-portable.zip",
+              "digest": "sha256:9d84b7171dbe4a604a358b908f30673b7b2c60a07d36a9934bbf8372f23d9b9a"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-arm64.msi",
+              "size": 31141888,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64.msi",
+              "digest": "sha256:b6b3364ba9f3a225d9d9ad097435556adbabd10d0b62d0f82aec7f61fd6bf8ae"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-x64-portable.zip",
+              "size": 40197428,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64-portable.zip",
+              "digest": "sha256:92f3d71b9457c232dfa0552205920a387ff6ba1a63f5c7c8bdbb21807b6e6101"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-x64.msi",
+              "size": 32976896,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64.msi",
+              "digest": "sha256:b32abcdbcef2fff3a52a4f99202c55eb19e0673b5514578870eb9dbb8f671bb0"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-x86-portable.zip",
+              "size": 38791556,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86-portable.zip",
+              "digest": "sha256:02fd017d9002649af385f5f9520755b6791d716eadc282559306eac5ecdf0e94"
+            },
+            {
+              "name": "texturecraft-0.3.1-windows-x86.msi",
+              "size": 32370688,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86.msi",
+              "digest": "sha256:57794fb14c52ff7e6ac30d0923181a3d5481f6de6455f2a73f421028f80b0c74"
+            },
+            {
+              "name": "texturecraft-cli-0.3.1-macos-universal.zip",
+              "size": 16409932,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-cli-0.3.1-macos-universal.zip",
+              "digest": "sha256:2a9fc69314d21256507dce06a4a68d5e3762d19065e21344c752a582dfe36d2a"
+            },
+            {
+              "name": "texturecraft-web-0.3.1.zip",
+              "size": 9051742,
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-web-0.3.1.zip",
+              "digest": "sha256:26c017858cb28c3765a49b30ff5ff1ba5f20e11391cfb9a8efcde14850ac6de3"
+            }
+          ]
+        },
         {
           "tag_name": "v0.3.0",
           "name": "TextureCraft v0.3.0",
@@ -32376,7 +32890,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793815417,
+      "checked_at": 1793817056,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -35795,7 +36309,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793815418,
+      "checked_at": 1793817057,
       "latest_tag": "v0.15.1",
       "releases": [
         {
@@ -38304,7 +38818,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793815420,
+      "checked_at": 1793817059,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -51573,7 +52087,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"ced5ffcd60dcb7400845a114411a7f82d752bb65294241f33922e0b3dd77b7f3\"",
+      "etag": "\"25b52e80cbd86f26312999f378c694186bdd0e80faf79b8ee927c62243c577dd\"",
       "body": {
         "assets": [
           {
@@ -51608,7 +52122,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"fe134054aea2cdcd14fcef1988c4091735bb75b51a9faee1dc03149300816fbe\"",
+      "etag": "\"701eb3193647a50306bd6daf2c538a1b5409c32459bdfcbd7cf5f3811bab9d47\"",
       "body": [
         {
           "assets": [
@@ -52413,7 +52927,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"b72c4af37007954f047a64691d4c10d7e82d5c0abc3785b019ae079fa204ec40\"",
+      "etag": "\"d8270b73568aed514517aec6d5aabc3f82fb5564505e12708ae1d9584082c280\"",
       "body": {
         "assets": [
           {
@@ -52598,7 +53112,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"2c3c3452ee1fca9ab318a8356347d325d0d33b20f98689585575125f57a35a42\"",
+      "etag": "\"fa97653652572268940ad20d8c412e879e351735f8a039bd5b26084601f24499\"",
       "body": [
         {
           "assets": [
@@ -55087,7 +55601,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"bb11bdaababbe54491a7c23baa98dde45ec5ee1903d1debd2aea0f50c2f3374b\"",
+      "etag": "\"cfbe30946101e7affa8d2a0b9f7cb7022a5946d271e6350481a1a511ca4e07ac\"",
       "body": {
         "assets": [
           {
@@ -55272,7 +55786,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"8578db87ae1d3130db0156dd520f2768606c0876e468780d84e58db19032283c\"",
+      "etag": "\"9f58ceeb38521b3721b4589503f3d83ae610a0aadf5b6d102e1c768020e69844\"",
       "body": [
         {
           "assets": [
@@ -57579,7 +58093,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"4e2fed75d6b7480509ef89debf6f3ea4772e0a379120a5a210e1c945adb71edd\"",
+      "etag": "\"e6a80aca569a02f50132c10d062bc396e899ea9e8cc0b16d53e6441de3066bc2\"",
       "body": {
         "assets": [
           {
@@ -57764,7 +58278,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"f4a7bf015af5a2069787c7a81f47de169242a02a37e6d22e609234011d8524dd\"",
+      "etag": "\"aa0ec490a6cabc59bbeb535c20d68a394ebfd999a0551f2f17b6bb89f7a19eac\"",
       "body": [
         {
           "assets": [
@@ -60565,7 +61079,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"d19fe7d3618f6610449a6c2132dbb1cfbca923297a7409b2e1728de83b9dabc2\"",
+      "etag": "\"1f0386df1bac5c077c545656b53a536168a543cc1d66455f8408e5628825f2fc\"",
       "body": {
         "assets": [
           {
@@ -60750,7 +61264,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"2a9f847a1f4cbeee74c4ede989a2aa2cbb622e27300cbe1dd37c1fd78a3df67e\"",
+      "etag": "\"7e146a25947a7bcd03b57031fe5776e927733c195c5ac05ada8d56f554388c58\"",
       "body": [
         {
           "assets": [
@@ -63929,7 +64443,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"46cc1e41719c064f53343ed655fa665e2e33b8a17ff1e615fe1214e7923faa00\"",
+      "etag": "\"dd3a0d3d6d2257473312281f754ee177a7d59c354dfa3cc698c054bb49208ed4\"",
       "body": {
         "assets": [
           {
@@ -64126,7 +64640,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"1b3a937cbe849b543cc3213da5aab73392ec33c9e426d113a8c98028271157c6\"",
+      "etag": "\"975b5b56fb2464af098935f8ddeda829e1e0671d97d263cd11654773232eaf16\"",
       "body": [
         {
           "assets": [
@@ -66789,7 +67303,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"270681c7bc17b83fca6077ee8d54b538d1c44599674461d47b57e4a6bbad7f36\"",
+      "etag": "\"f2a3840df30e159aba99c2258013bb8c63db73df2cb23d4ac63dd1d769ef3301\"",
       "body": {
         "assets": [
           {
@@ -66974,7 +67488,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"0c6c8031a2ffe36da4cfed44568196001963c28ea616efd992ec8f046153ca82\"",
+      "etag": "\"da84d0711920bf29e0be131b099f8c307a1014e2981e927e3f2701c65d57b1c7\"",
       "body": [
         {
           "assets": [
@@ -69757,7 +70271,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"90942a46c9e51d5f1f6e7851cd4e7a03c47d2891b454c688bfce2b508dd65aae\"",
+      "etag": "\"ed62ecc55bdd6a68686a2a97c30f2e8698ad1b101a310bd92560e7f99abe4763\"",
       "body": {
         "assets": [
           {
@@ -69942,7 +70456,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"824bd7f84dd692dcfeda1ed03943553a6cde92200fa7446e1b80b4300e07b3af\"",
+      "etag": "\"44bef9169c21493dc747165d0be07d41f1a5eae7f75df6b0c209a00661d3e350\"",
       "body": [
         {
           "assets": [
@@ -72437,7 +72951,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"fcc73d93da0b3dbd35509a624123035d08378bd840bc4d3560819f3df8bd1c41\"",
+      "etag": "\"ebc3ce238822ae396fc8d784497e4723dc7e398e002c08681301d11b21f680c9\"",
       "body": {
         "assets": [
           {
@@ -72622,7 +73136,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"844690ddb422e054fe668869c7df618a62b1b94f2698f052a3db40bc8bd4ef82\"",
+      "etag": "\"26f99d6c489d670dce7a5ca2a5ad1b6c67614ce1c634475b9e06bc16cb85d8a1\"",
       "body": [
         {
           "assets": [
@@ -75557,193 +76071,651 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"8ca533aa564001e00dd8fca1bdbb0e767680a7f1ed9e8764894ef33424c97cd8\"",
+      "etag": "\"e5afc1d65ea2a7f9202306c3c02f33f5a7c80649225a1d98d239db09fdc8e868\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:4751c2b4de54bfd68d05f68d794f93e86dfacac6cfa6febe9760ef149c08a89e",
-            "name": "materialcraft-0.1.0-freebsd-aarch64.tar.gz",
-            "size": 15105051
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:b2b5618949737b774cbf665200df642c0fc3d24f7afea5c8ef665a8f687cf615",
+            "name": "materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+            "size": 15427894
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:1a9908145aa799662edc637f45d519bf67dadec8a927c8ecc6956090cafa515d",
-            "name": "materialcraft-0.1.0-freebsd-x86_64.tar.gz",
-            "size": 16504464
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:440526c28a9fa111f42f991162c5f170063f05bc6cb620723c49113c51a9b36d",
+            "name": "materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+            "size": 16854866
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.AppImage",
-            "digest": "sha256:faaec0787586ff3cce4244719088fc981d5ad197cad2049c948b358a196fcde0",
-            "name": "materialcraft-0.1.0-linux-aarch64.AppImage",
-            "size": 14961160
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage",
+            "digest": "sha256:6ec1e82adfcd1acad7ee542c0faaec32a4551081454da90603d3931955b72282",
+            "name": "materialcraft-0.1.1-linux-aarch64.AppImage",
+            "size": 15264264
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:07f207d38a941cfe3f19d9c3d037fbf137fe7673afa2522e2a452727d66b6480",
-            "name": "materialcraft-0.1.0-linux-aarch64.AppImage.zsync",
-            "size": 51397
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:e9a9e0081267fc0e2ce7f67480fb6e9008ba72ee1a23abd72ea50375709961a1",
+            "name": "materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.deb",
-            "digest": "sha256:46d6ec5ec3ee3309c515b6afb327af5e69f7aa8a2bdb7e8e76c4413576bc3cb6",
-            "name": "materialcraft-0.1.0-linux-aarch64.deb",
-            "size": 16179216
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:5251045d7098fe5a23cd009a426fbc3a03d75a55fdc337b4006c4c2fd41fd76b",
+            "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+            "size": 52433
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.flatpak",
-            "digest": "sha256:5aaab412d10c902394404bd80bcd84be7c1831842146e14ed001988264310333",
-            "name": "materialcraft-0.1.0-linux-aarch64.flatpak",
-            "size": 9980720
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:5e220ca960635b0d3e874223c22ffed6724354c869384680c42a575756499896",
+            "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:403d53f5ba454b5a45b7f4dd8bc32eac9cc677e73fa2b0c0f4f17fff62c28aa4",
-            "name": "materialcraft-0.1.0-linux-aarch64.pkg.tar.zst",
-            "size": 9808436
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb",
+            "digest": "sha256:4628b1f86df4e596ea73be50cf5c099b39a3502c365f27781283f82307e66e53",
+            "name": "materialcraft-0.1.1-linux-aarch64.deb",
+            "size": 16512980
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.rpm",
-            "digest": "sha256:2d70cb32a150539fbfe99f2a3a8b2e19c3932c639563be6072e3a3cb0ea053e6",
-            "name": "materialcraft-0.1.0-linux-aarch64.rpm",
-            "size": 16019918
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb.asc",
+            "digest": "sha256:a3225ff6ec54c35176da6c2901c26be61ef6dab60678400450fd1ae38a5faf3e",
+            "name": "materialcraft-0.1.1-linux-aarch64.deb.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-aarch64.tar.gz",
-            "digest": "sha256:0bd602258cf507246baaf4a2377853238c99d9949aba4b66d7f93848eb4addb1",
-            "name": "materialcraft-0.1.0-linux-aarch64.tar.gz",
-            "size": 15421818
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak",
+            "digest": "sha256:a64280ed7c9aba2261847605a9c3591aa23b44c023056056357fc6a232b65aa2",
+            "name": "materialcraft-0.1.1-linux-aarch64.flatpak",
+            "size": 10239744
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-riscv64.deb",
-            "digest": "sha256:a5a3f5bf301a137018555f9747b7f4a4655be9883abac2915fce657401d342b5",
-            "name": "materialcraft-0.1.0-linux-riscv64.deb",
-            "size": 16712730
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:0d7349193ad1dec1a915f25ddc48ef49b852e4d134c2a53ee90f67775f06938e",
+            "name": "materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-riscv64.rpm",
-            "digest": "sha256:4530ccb89c9781d8eaacca36fa578f023527c9d4195ac6db9604af8e82c760c4",
-            "name": "materialcraft-0.1.0-linux-riscv64.rpm",
-            "size": 16687393
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:29203a79dd63388085c3b01f1f520ee860a99e83aa0f7fb828deb896d6617990",
+            "name": "materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+            "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-riscv64.tar.gz",
-            "digest": "sha256:c84435d04b2e00743127b3121c24bd4b2f6ef2aae9306153291763b2631a2e89",
-            "name": "materialcraft-0.1.0-linux-riscv64.tar.gz",
-            "size": 16347387
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci.sig",
+            "digest": "sha256:c6cd77711720c82c05d085036f1af4c685d46120b56839b781146860e2b0a602",
+            "name": "materialcraft-0.1.1-linux-aarch64.oci.sig",
+            "size": 385
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.AppImage",
-            "digest": "sha256:583cb97df491ad280e725ff67b2a07a88324f27390fc101a578b2682ce94e352",
-            "name": "materialcraft-0.1.0-linux-x86_64.AppImage",
-            "size": 15968760
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:831ac85eca847a7842cd9220da6c0ce5d96220f461ec3c8f64659792b1812ee7",
+            "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+            "size": 9962019
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:ac0ee7d4cd10f848df0ec625fde83d4ea95892752d193f0bb6c37163bf063750",
-            "name": "materialcraft-0.1.0-linux-x86_64.AppImage.zsync",
-            "size": 54839
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:fb2a61f30304d68c09b0d2c8d4c06c572c3bc115ef437701a55d78be108969b0",
+            "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+            "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.deb",
-            "digest": "sha256:5b55b9c5a18f4addfbf8b895e32553f54a34b35fff40cf7035af92e2a81138bf",
-            "name": "materialcraft-0.1.0-linux-x86_64.deb",
-            "size": 16937254
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm",
+            "digest": "sha256:1d0b74452eda365c31670c814821522f73821566004f244717fb5cd38412e7a3",
+            "name": "materialcraft-0.1.1-linux-aarch64.rpm",
+            "size": 16349882
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.flatpak",
-            "digest": "sha256:c74f1df1efbee501c96823c9df429799def655f97dc618b33759874f3a372358",
-            "name": "materialcraft-0.1.0-linux-x86_64.flatpak",
-            "size": 11300936
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:8d56edcb42ecd5dae527e3926e524c4e79669e5cb849757fe1f93fc79847ece6",
+            "name": "materialcraft-0.1.1-linux-aarch64.rpm.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:407cc073876137f699a5c82d00931e52a4e2a6dad1664de835c43ecca9dad559",
-            "name": "materialcraft-0.1.0-linux-x86_64.pkg.tar.zst",
-            "size": 10393180
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz",
+            "digest": "sha256:2e1fca076943a9229060bd08ab2f6c74d137b56a64505c5cecf4b977365732f8",
+            "name": "materialcraft-0.1.1-linux-aarch64.tar.gz",
+            "size": 15739613
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.rpm",
-            "digest": "sha256:271c97c33a1fba616e09b6f53934cd31c26baa3d03481b2d89402b3c75a1b4a3",
-            "name": "materialcraft-0.1.0-linux-x86_64.rpm",
-            "size": 16836100
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:5546933289c2216501365d59d210787db108386ccae7f5f185ecc24c03a03c50",
+            "name": "materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-linux-x86_64.tar.gz",
-            "digest": "sha256:67d051eeb2477021b3a4ed7c66b8fcb6312bcadbcaf44c9d643ab379e6740091",
-            "name": "materialcraft-0.1.0-linux-x86_64.tar.gz",
-            "size": 16544243
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb",
+            "digest": "sha256:0bf6504ef5df744d02208e9cd0fe026e99afe2f79ab486b0ddd9e22a2f4ced6d",
+            "name": "materialcraft-0.1.1-linux-riscv64.deb",
+            "size": 17048568
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-macos-universal.dmg",
-            "digest": "sha256:ee8e7ff35c9443b207d6cc359ae6b5fe495e9a9201c56dd4374c1fb8288bb2a2",
-            "name": "materialcraft-0.1.0-macos-universal.dmg",
-            "size": 19893640
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb.asc",
+            "digest": "sha256:094db2d7611f1df1be616bd72a0165b1cc6bee5d6abaa8ce758627dce7ceca20",
+            "name": "materialcraft-0.1.1-linux-riscv64.deb.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-arm64-portable.zip",
-            "digest": "sha256:c8fd650c17db3f618b8d20307da8ae49464647dde25e3191f8e4155eacac9859",
-            "name": "materialcraft-0.1.0-windows-arm64-portable.zip",
-            "size": 14720229
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm",
+            "digest": "sha256:bd6dd32b6f09a1e370c0182e41457c049c588b8dd0047ce8e6f8413f7cb6d7af",
+            "name": "materialcraft-0.1.1-linux-riscv64.rpm",
+            "size": 17020082
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-arm64.msi",
-            "digest": "sha256:ad84826d9fc4e3c0058e59df3f17bc178ff6edca60628b02805f7e6ac5886657",
-            "name": "materialcraft-0.1.0-windows-arm64.msi",
-            "size": 10743808
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:82c1a903f7625c360935d6667fe98919628d0b501b06e55b6b77fed7fd72d01a",
+            "name": "materialcraft-0.1.1-linux-riscv64.rpm.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-x64-portable.zip",
-            "digest": "sha256:38709dd7d1e6e4af639637dcac2514add40a8522e1187711b65271e1b5ddf23b",
-            "name": "materialcraft-0.1.0-windows-x64-portable.zip",
-            "size": 15914198
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz",
+            "digest": "sha256:d07049057081f53df7ababdf7c93c6be92832ca39e0994872fe7fffd801c3691",
+            "name": "materialcraft-0.1.1-linux-riscv64.tar.gz",
+            "size": 16677914
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-x64.msi",
-            "digest": "sha256:3dca9a43e12315f7030b586b6862c5e89e4d31279809b348939ee449b6ad1b82",
-            "name": "materialcraft-0.1.0-windows-x64.msi",
-            "size": 11939840
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:75bf9946749c786cfff93ec1cda46314739638d1558561fb70b236e9234cfcf0",
+            "name": "materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-x86-portable.zip",
-            "digest": "sha256:dc2172279ed90fac055118fa0ac0f32a2907738825a7222546ce28f42780e84d",
-            "name": "materialcraft-0.1.0-windows-x86-portable.zip",
-            "size": 14788906
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage",
+            "digest": "sha256:71a2b75e7d2c88cbcbee63e9eb1dec3b460895fe758dd172f066622e6e65b870",
+            "name": "materialcraft-0.1.1-linux-x86_64.AppImage",
+            "size": 16300536
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-0.1.0-windows-x86.msi",
-            "digest": "sha256:651d343919d821d1ddcf88dc09e71a26c84cd702f9842dc2be0197ec7e399704",
-            "name": "materialcraft-0.1.0-windows-x86.msi",
-            "size": 11366400
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:920309fbb49e08cf5a9e977aa1dd70216d19f7df806588ad99a54342b3f1ba2f",
+            "name": "materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-cli-0.1.0-macos-universal.zip",
-            "digest": "sha256:ee04f95f70e0e00137f1cdf680131a69720a4c5696755c383430acaba5e6a9ae",
-            "name": "materialcraft-cli-0.1.0-macos-universal.zip",
-            "size": 9069185
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:14275f4e5afd2f061fc45d9e2d4be6e5c715361429b2be1e22fd019b81562305",
+            "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+            "size": 55973
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/materialcraft-web-0.1.0.zip",
-            "digest": "sha256:b9362c39f0d5523aa5c7d34eac49dd314a5ca19c21722b49f953b909bc766b38",
-            "name": "materialcraft-web-0.1.0.zip",
-            "size": 4233021
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:2b86c02c10312af1ce38872da86d04848176baa482adf3b5e411a771499b61b2",
+            "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.0/SHA256SUMS.txt",
-            "digest": "sha256:f978d5882def19023d9c0818a8a05782f8ffe19081a8719223ee5d2df358caeb",
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb",
+            "digest": "sha256:5b0af828bd3a6c727bbc56b8d0ceec5af1398cd5770b2d1549dc20dae096b617",
+            "name": "materialcraft-0.1.1-linux-x86_64.deb",
+            "size": 17297174
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb.asc",
+            "digest": "sha256:37acaab3beec9be153bd67d6842cb1b9e9a28657fd057719868945d23fc0f5ca",
+            "name": "materialcraft-0.1.1-linux-x86_64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak",
+            "digest": "sha256:cfd03b868bf6950ba9652d1472c7b36f18bfee96d1402c814647c7cff5b0a9db",
+            "name": "materialcraft-0.1.1-linux-x86_64.flatpak",
+            "size": 11603088
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:d295285e4e3f16465f6af0da3c32d59ef7f0b28a1b209a761ca38fb32b8e1322",
+            "name": "materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:cd437ccedf4ca8e7ff36ad821c2948d8983db71e8474ac56ee7d871c8d3d8ffe",
+            "name": "materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+            "size": 493
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci.sig",
+            "digest": "sha256:834f66d7486d723fe08f9148816e7e425db024101b654bea998e8e88293be572",
+            "name": "materialcraft-0.1.1-linux-x86_64.oci.sig",
+            "size": 382
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:256007fcf09b322f389a518a8302f2922485883b007de2db28f94e6c9a2551cf",
+            "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+            "size": 10558906
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:6e5ac7896f650cfc327bb57d412aa0eae88b28398911244136aac0de2aeec933",
+            "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+            "size": 119
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm",
+            "digest": "sha256:ec4da682e91a626f20bb37a57150c187579aece8b363c4dc70e6b7ab53efa480",
+            "name": "materialcraft-0.1.1-linux-x86_64.rpm",
+            "size": 17194279
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:0d339c4daf42feb9be3e0ba2467d49332acea10e38b61eb2425751ed24f693f8",
+            "name": "materialcraft-0.1.1-linux-x86_64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz",
+            "digest": "sha256:161b9c4bce09ea15c136fe1bf58bbb0342a90f7470b47101c82cd6f1ba0521b9",
+            "name": "materialcraft-0.1.1-linux-x86_64.tar.gz",
+            "size": 16892219
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:814cf2e5f880c7886c67ac42a1c8bb838dc0de6afaa9f1c20b51f328c8c2ae76",
+            "name": "materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-macos-universal.dmg",
+            "digest": "sha256:5fba4d8222a7e63a1f27b45ded366091be2561b8d6c0bd5b3a2928c29d83d7d4",
+            "name": "materialcraft-0.1.1-macos-universal.dmg",
+            "size": 20277786
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64-portable.zip",
+            "digest": "sha256:284c89a497f4f3dcaeba1b6bf48fb59781ac789b1395cd37a7a08149edd92a34",
+            "name": "materialcraft-0.1.1-windows-arm64-portable.zip",
+            "size": 15056632
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64.msi",
+            "digest": "sha256:ff8a6f4715131d885d8fbfccc303f01aef8a5477468531667f988c787c8d3484",
+            "name": "materialcraft-0.1.1-windows-arm64.msi",
+            "size": 10993664
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64-portable.zip",
+            "digest": "sha256:0223618c0be89336ca09c0e8fb13577ddc66462b88fa230e32d41cbdd8420e67",
+            "name": "materialcraft-0.1.1-windows-x64-portable.zip",
+            "size": 16291419
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64.msi",
+            "digest": "sha256:293cde6453bf66312844d60c727cc7e541907788c651ac3eb8c742e599b5ac85",
+            "name": "materialcraft-0.1.1-windows-x64.msi",
+            "size": 12218368
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86-portable.zip",
+            "digest": "sha256:010425e261ad218b53e7f1733beca2cde32b0fd423ce2f87a09a6ec9b2391237",
+            "name": "materialcraft-0.1.1-windows-x86-portable.zip",
+            "size": 15135473
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86.msi",
+            "digest": "sha256:c3473149a565917c96332b47fe1c3ba10a60169e8ff9e82f51377f64b935f429",
+            "name": "materialcraft-0.1.1-windows-x86.msi",
+            "size": 11644928
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-cli-0.1.1-macos-universal.zip",
+            "digest": "sha256:abe56dc6d74658e009750676d69323449d5d7a9b9fcc9641ac6bc4b9f9df9d33",
+            "name": "materialcraft-cli-0.1.1-macos-universal.zip",
+            "size": 9392388
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-web-0.1.1.zip",
+            "digest": "sha256:b534e17e722ed54a50e433d7f781bfc9957fd09432d29401c2dffe77de977eb9",
+            "name": "materialcraft-web-0.1.1.zip",
+            "size": 4317249
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/release-signing-key.asc",
+            "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+            "name": "release-signing-key.asc",
+            "size": 803
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt",
+            "digest": "sha256:4b252884ad7c08f206729fd4b7184f716bda62966f2b4fb8c5691ee2296cded9",
             "name": "SHA256SUMS.txt",
-            "size": 2996
+            "size": 5430
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:a58ff1a423d5380f8fe925cdbe62ec274c2ed6a768919734c243ae7a28731700",
+            "name": "SHA256SUMS.txt.asc",
+            "size": 228
           }
         ],
         "draft": false,
-        "name": "MaterialCraft v0.1.0",
+        "name": "MaterialCraft v0.1.1",
         "prerelease": false,
-        "tag_name": "v0.1.0"
+        "tag_name": "v0.1.1"
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"a0e54ab6601619baff2b3e8059ed650716b0eff461a707596b3ab2551464cdee\"",
+      "etag": "\"e643730f71208785b9f3d5caa54a061bf16d6c84c4e60d2b9326a90d9228d80c\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:b2b5618949737b774cbf665200df642c0fc3d24f7afea5c8ef665a8f687cf615",
+              "name": "materialcraft-0.1.1-freebsd-aarch64.tar.gz",
+              "size": 15427894
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:440526c28a9fa111f42f991162c5f170063f05bc6cb620723c49113c51a9b36d",
+              "name": "materialcraft-0.1.1-freebsd-x86_64.tar.gz",
+              "size": 16854866
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage",
+              "digest": "sha256:6ec1e82adfcd1acad7ee542c0faaec32a4551081454da90603d3931955b72282",
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage",
+              "size": 15264264
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:e9a9e0081267fc0e2ce7f67480fb6e9008ba72ee1a23abd72ea50375709961a1",
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:5251045d7098fe5a23cd009a426fbc3a03d75a55fdc337b4006c4c2fd41fd76b",
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync",
+              "size": 52433
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:5e220ca960635b0d3e874223c22ffed6724354c869384680c42a575756499896",
+              "name": "materialcraft-0.1.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb",
+              "digest": "sha256:4628b1f86df4e596ea73be50cf5c099b39a3502c365f27781283f82307e66e53",
+              "name": "materialcraft-0.1.1-linux-aarch64.deb",
+              "size": 16512980
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.deb.asc",
+              "digest": "sha256:a3225ff6ec54c35176da6c2901c26be61ef6dab60678400450fd1ae38a5faf3e",
+              "name": "materialcraft-0.1.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak",
+              "digest": "sha256:a64280ed7c9aba2261847605a9c3591aa23b44c023056056357fc6a232b65aa2",
+              "name": "materialcraft-0.1.1-linux-aarch64.flatpak",
+              "size": 10239744
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:0d7349193ad1dec1a915f25ddc48ef49b852e4d134c2a53ee90f67775f06938e",
+              "name": "materialcraft-0.1.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:29203a79dd63388085c3b01f1f520ee860a99e83aa0f7fb828deb896d6617990",
+              "name": "materialcraft-0.1.1-linux-aarch64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.oci.sig",
+              "digest": "sha256:c6cd77711720c82c05d085036f1af4c685d46120b56839b781146860e2b0a602",
+              "name": "materialcraft-0.1.1-linux-aarch64.oci.sig",
+              "size": 385
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:831ac85eca847a7842cd9220da6c0ce5d96220f461ec3c8f64659792b1812ee7",
+              "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst",
+              "size": 9962019
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:fb2a61f30304d68c09b0d2c8d4c06c572c3bc115ef437701a55d78be108969b0",
+              "name": "materialcraft-0.1.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm",
+              "digest": "sha256:1d0b74452eda365c31670c814821522f73821566004f244717fb5cd38412e7a3",
+              "name": "materialcraft-0.1.1-linux-aarch64.rpm",
+              "size": 16349882
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:8d56edcb42ecd5dae527e3926e524c4e79669e5cb849757fe1f93fc79847ece6",
+              "name": "materialcraft-0.1.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz",
+              "digest": "sha256:2e1fca076943a9229060bd08ab2f6c74d137b56a64505c5cecf4b977365732f8",
+              "name": "materialcraft-0.1.1-linux-aarch64.tar.gz",
+              "size": 15739613
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:5546933289c2216501365d59d210787db108386ccae7f5f185ecc24c03a03c50",
+              "name": "materialcraft-0.1.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb",
+              "digest": "sha256:0bf6504ef5df744d02208e9cd0fe026e99afe2f79ab486b0ddd9e22a2f4ced6d",
+              "name": "materialcraft-0.1.1-linux-riscv64.deb",
+              "size": 17048568
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.deb.asc",
+              "digest": "sha256:094db2d7611f1df1be616bd72a0165b1cc6bee5d6abaa8ce758627dce7ceca20",
+              "name": "materialcraft-0.1.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm",
+              "digest": "sha256:bd6dd32b6f09a1e370c0182e41457c049c588b8dd0047ce8e6f8413f7cb6d7af",
+              "name": "materialcraft-0.1.1-linux-riscv64.rpm",
+              "size": 17020082
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:82c1a903f7625c360935d6667fe98919628d0b501b06e55b6b77fed7fd72d01a",
+              "name": "materialcraft-0.1.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz",
+              "digest": "sha256:d07049057081f53df7ababdf7c93c6be92832ca39e0994872fe7fffd801c3691",
+              "name": "materialcraft-0.1.1-linux-riscv64.tar.gz",
+              "size": 16677914
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:75bf9946749c786cfff93ec1cda46314739638d1558561fb70b236e9234cfcf0",
+              "name": "materialcraft-0.1.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage",
+              "digest": "sha256:71a2b75e7d2c88cbcbee63e9eb1dec3b460895fe758dd172f066622e6e65b870",
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage",
+              "size": 16300536
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:920309fbb49e08cf5a9e977aa1dd70216d19f7df806588ad99a54342b3f1ba2f",
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:14275f4e5afd2f061fc45d9e2d4be6e5c715361429b2be1e22fd019b81562305",
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync",
+              "size": 55973
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:2b86c02c10312af1ce38872da86d04848176baa482adf3b5e411a771499b61b2",
+              "name": "materialcraft-0.1.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb",
+              "digest": "sha256:5b0af828bd3a6c727bbc56b8d0ceec5af1398cd5770b2d1549dc20dae096b617",
+              "name": "materialcraft-0.1.1-linux-x86_64.deb",
+              "size": 17297174
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.deb.asc",
+              "digest": "sha256:37acaab3beec9be153bd67d6842cb1b9e9a28657fd057719868945d23fc0f5ca",
+              "name": "materialcraft-0.1.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak",
+              "digest": "sha256:cfd03b868bf6950ba9652d1472c7b36f18bfee96d1402c814647c7cff5b0a9db",
+              "name": "materialcraft-0.1.1-linux-x86_64.flatpak",
+              "size": 11603088
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:d295285e4e3f16465f6af0da3c32d59ef7f0b28a1b209a761ca38fb32b8e1322",
+              "name": "materialcraft-0.1.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:cd437ccedf4ca8e7ff36ad821c2948d8983db71e8474ac56ee7d871c8d3d8ffe",
+              "name": "materialcraft-0.1.1-linux-x86_64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.oci.sig",
+              "digest": "sha256:834f66d7486d723fe08f9148816e7e425db024101b654bea998e8e88293be572",
+              "name": "materialcraft-0.1.1-linux-x86_64.oci.sig",
+              "size": 382
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:256007fcf09b322f389a518a8302f2922485883b007de2db28f94e6c9a2551cf",
+              "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst",
+              "size": 10558906
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:6e5ac7896f650cfc327bb57d412aa0eae88b28398911244136aac0de2aeec933",
+              "name": "materialcraft-0.1.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm",
+              "digest": "sha256:ec4da682e91a626f20bb37a57150c187579aece8b363c4dc70e6b7ab53efa480",
+              "name": "materialcraft-0.1.1-linux-x86_64.rpm",
+              "size": 17194279
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:0d339c4daf42feb9be3e0ba2467d49332acea10e38b61eb2425751ed24f693f8",
+              "name": "materialcraft-0.1.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz",
+              "digest": "sha256:161b9c4bce09ea15c136fe1bf58bbb0342a90f7470b47101c82cd6f1ba0521b9",
+              "name": "materialcraft-0.1.1-linux-x86_64.tar.gz",
+              "size": 16892219
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:814cf2e5f880c7886c67ac42a1c8bb838dc0de6afaa9f1c20b51f328c8c2ae76",
+              "name": "materialcraft-0.1.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-macos-universal.dmg",
+              "digest": "sha256:5fba4d8222a7e63a1f27b45ded366091be2561b8d6c0bd5b3a2928c29d83d7d4",
+              "name": "materialcraft-0.1.1-macos-universal.dmg",
+              "size": 20277786
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64-portable.zip",
+              "digest": "sha256:284c89a497f4f3dcaeba1b6bf48fb59781ac789b1395cd37a7a08149edd92a34",
+              "name": "materialcraft-0.1.1-windows-arm64-portable.zip",
+              "size": 15056632
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-arm64.msi",
+              "digest": "sha256:ff8a6f4715131d885d8fbfccc303f01aef8a5477468531667f988c787c8d3484",
+              "name": "materialcraft-0.1.1-windows-arm64.msi",
+              "size": 10993664
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64-portable.zip",
+              "digest": "sha256:0223618c0be89336ca09c0e8fb13577ddc66462b88fa230e32d41cbdd8420e67",
+              "name": "materialcraft-0.1.1-windows-x64-portable.zip",
+              "size": 16291419
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x64.msi",
+              "digest": "sha256:293cde6453bf66312844d60c727cc7e541907788c651ac3eb8c742e599b5ac85",
+              "name": "materialcraft-0.1.1-windows-x64.msi",
+              "size": 12218368
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86-portable.zip",
+              "digest": "sha256:010425e261ad218b53e7f1733beca2cde32b0fd423ce2f87a09a6ec9b2391237",
+              "name": "materialcraft-0.1.1-windows-x86-portable.zip",
+              "size": 15135473
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-0.1.1-windows-x86.msi",
+              "digest": "sha256:c3473149a565917c96332b47fe1c3ba10a60169e8ff9e82f51377f64b935f429",
+              "name": "materialcraft-0.1.1-windows-x86.msi",
+              "size": 11644928
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-cli-0.1.1-macos-universal.zip",
+              "digest": "sha256:abe56dc6d74658e009750676d69323449d5d7a9b9fcc9641ac6bc4b9f9df9d33",
+              "name": "materialcraft-cli-0.1.1-macos-universal.zip",
+              "size": 9392388
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/materialcraft-web-0.1.1.zip",
+              "digest": "sha256:b534e17e722ed54a50e433d7f781bfc9957fd09432d29401c2dffe77de977eb9",
+              "name": "materialcraft-web-0.1.1.zip",
+              "size": 4317249
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt",
+              "digest": "sha256:4b252884ad7c08f206729fd4b7184f716bda62966f2b4fb8c5691ee2296cded9",
+              "name": "SHA256SUMS.txt",
+              "size": 5430
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/materialcraft/releases/download/v0.1.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:a58ff1a423d5380f8fe925cdbe62ec274c2ed6a768919734c243ae7a28731700",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "MaterialCraft v0.1.1",
+          "prerelease": false,
+          "tag_name": "v0.1.1"
+        },
         {
           "assets": [
             {
@@ -75929,7 +76901,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"c1592d1c25637f5f5f01c9589326ae8b99794c59731854114023366dfa6a82a4\"",
+      "etag": "\"39a5f04abb75aba74401fe24de1ae8ca7682e45cdf0532ed4c4658f1f31cc29f\"",
       "body": {
         "assets": [
           {
@@ -76138,7 +77110,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"61a7808bec98f36edc844f635f63c9ff7087748e32c5c84d8f17e4a6376b4c96\"",
+      "etag": "\"f0357a8dc3eea6e6194b6211252b14df080c8660197586a191afc95c77cceecb\"",
       "body": [
         {
           "assets": [
@@ -79483,7 +80455,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"0331cff35249e5fdbb1d5d900e1038c8646e207f4590cdd717bdcc21b13824e1\"",
+      "etag": "\"91360c6138af22658af822ab6fb95191c483fa6a7f075b7f0614b76c4e79ff2c\"",
       "body": {
         "assets": [
           {
@@ -79686,7 +80658,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"3589b59ffdc1e7ef0c0f240ba9d148a8134a1cbe0455ffb2d0c1c669c970b561\"",
+      "etag": "\"e15a008381a50a8a9834660f0a8c55541577dd1dd4d62a3dcdd6a8912582b1f5\"",
       "body": [
         {
           "assets": [
@@ -83155,7 +84127,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"29d1e55976c92c829941c8899abd884e941b3f015614f9ac3a1815f9172b79ae\"",
+      "etag": "\"b7a8a3b4c7ae1efa2b5474ce271b60504e808d7617959e44f8d8b45d37eff5cf\"",
       "body": {
         "assets": [
           {
@@ -83340,7 +84312,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"8e0b920ba4fbab1c6278b2b0e60573db0e76a61bb518bab0535b847160f83ce9\"",
+      "etag": "\"db4daf0b3294aa6e7506e89f1bfc9361c7cb0958c92163012a6150201e68dc0d\"",
       "body": [
         {
           "assets": [
@@ -85713,193 +86685,399 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"2317c3194086adbd26b58fbf1aacdbd623e2ef1c86e66a82fef7984ecfe7b060\"",
+      "etag": "\"b802b6b57264461171e5f18ac330516d20333de6e4171930cb6cab48419e85bf\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/SHA256SUMS.txt",
-            "digest": "sha256:cf3a85444a0b907320a942b72798e73afbcb8cd875c3ff9d6700c933dcf47045",
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/SHA256SUMS.txt",
+            "digest": "sha256:d78cccdda3d4dc99f8f21a51ddd2ca8c2fb82a4816caf9122c28166486e70dfa",
             "name": "SHA256SUMS.txt",
-            "size": 2968
+            "size": 3201
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:ecbb773a69b4e4b9c3c87f5b42dd21b5829445422acc2415bbf509d89b9e5329",
-            "name": "texturecraft-0.3.0-freebsd-aarch64.tar.gz",
-            "size": 37806191
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:129d00cba6e6bcbd63d57c8c9dcc8f018f3ee13e0a4ed6481a1351b4e4bc6b2b",
+            "name": "texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+            "size": 38121942
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:e7dad0cb96cf432254543dce8154f44e1690ea38f03cf7ca69af802325219528",
-            "name": "texturecraft-0.3.0-freebsd-x86_64.tar.gz",
-            "size": 39717030
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:e5b053da654d2e96c30a20441b74bfa4838637da3e525a5efb3b0283d94eb4da",
+            "name": "texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+            "size": 40060745
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.AppImage",
-            "digest": "sha256:15de4099d46d95fbcb18bf3ee8969795b2ee9efecfacd5b828bf1cb435830ff4",
-            "name": "texturecraft-0.3.0-linux-aarch64.AppImage",
-            "size": 36870664
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage",
+            "digest": "sha256:7ecf138077abbd2f92dcfaf68dae2375e800f59b726012994a54adcc6617ba25",
+            "name": "texturecraft-0.3.1-linux-aarch64.AppImage",
+            "size": 37181960
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:8a3a592ec7592c05e8d43d37766da66af73b06d0531265b86bcd89c0403fc2a1",
-            "name": "texturecraft-0.3.0-linux-aarch64.AppImage.zsync",
-            "size": 126281
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:f57c8d869fc988e64c24d3b11a1d3095bd0f9fa1d16651efb5e5bf6c7356682f",
+            "name": "texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+            "size": 127345
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.deb",
-            "digest": "sha256:6b716dcb88d070028802d09a942611db5602dbeb76bda1ec9ebecfe761b525c9",
-            "name": "texturecraft-0.3.0-linux-aarch64.deb",
-            "size": 39391456
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.deb",
+            "digest": "sha256:126b5853ab261cfdc32f88e242f8ffa5b5cc7bdfbb456f1f91f612f19aa3825d",
+            "name": "texturecraft-0.3.1-linux-aarch64.deb",
+            "size": 39727134
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.flatpak",
-            "digest": "sha256:730cdbeebfc0db2f5ddedc4c6eb9112180761051054bdb8dc5fe1826c133766f",
-            "name": "texturecraft-0.3.0-linux-aarch64.flatpak",
-            "size": 27371504
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.flatpak",
+            "digest": "sha256:77b2d08bc7a468f9b3e7b9e61e557d23a214a1474b89da728be602181414aacb",
+            "name": "texturecraft-0.3.1-linux-aarch64.flatpak",
+            "size": 27578296
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:7921d326b71fc254ce6754d864c4eda88735c925f7beaee80e8666f34ed9454a",
-            "name": "texturecraft-0.3.0-linux-aarch64.pkg.tar.zst",
-            "size": 30431267
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:2df6f73ff3e343c693e381e96e2aaca7fcb742435d378b3cabe7a0ad7c872ebc",
+            "name": "texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+            "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.rpm",
-            "digest": "sha256:7645c32ecdcc321f7f58876188ddd873507ccaf8f36423f8918a9ece9beafaaa",
-            "name": "texturecraft-0.3.0-linux-aarch64.rpm",
-            "size": 39061515
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:f351a41c379afc60296128fe1904b8f13922b6ca1bace136b4144c21708f5e0c",
+            "name": "texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+            "size": 30667303
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-aarch64.tar.gz",
-            "digest": "sha256:97c22520f760a53292d4f0c285259f49a042a9fbd642fe100fafa983c4136656",
-            "name": "texturecraft-0.3.0-linux-aarch64.tar.gz",
-            "size": 38247989
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.rpm",
+            "digest": "sha256:d8f04338d5c8247d0bc466acb4482916cbd03db9e6f046966b7e6414f2b68eb3",
+            "name": "texturecraft-0.3.1-linux-aarch64.rpm",
+            "size": 39398015
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-riscv64.deb",
-            "digest": "sha256:a1b48a2dbe13a31525f7e2e86f35009c57a2414eda397696b17c0f908a54e5d5",
-            "name": "texturecraft-0.3.0-linux-riscv64.deb",
-            "size": 40101056
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.tar.gz",
+            "digest": "sha256:812676459f11fdfc38a1bd6d7f4ec0721768a8443d581d94782b302898e607cc",
+            "name": "texturecraft-0.3.1-linux-aarch64.tar.gz",
+            "size": 38564857
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-riscv64.rpm",
-            "digest": "sha256:2c48632cefe7221e2b07cb6d645e6781e520daed8f414d197204910dac1243f0",
-            "name": "texturecraft-0.3.0-linux-riscv64.rpm",
-            "size": 39947943
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.deb",
+            "digest": "sha256:57dcada1f69d2b3d50f2f1d668bfccf7344fcfb171457fd273923899d8eaeb9a",
+            "name": "texturecraft-0.3.1-linux-riscv64.deb",
+            "size": 40450828
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-riscv64.tar.gz",
-            "digest": "sha256:fdc0b1c45ad9c7076f0c5acb5304ff165838b5b5549aecb170781ee489397c1b",
-            "name": "texturecraft-0.3.0-linux-riscv64.tar.gz",
-            "size": 39467964
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.rpm",
+            "digest": "sha256:892fd8fecd2c5ee7effd1ad713932642162761b83400032661de849a123f2b83",
+            "name": "texturecraft-0.3.1-linux-riscv64.rpm",
+            "size": 40298498
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.AppImage",
-            "digest": "sha256:6a6b3efbec8c33954682f5af9e79ab5ca4040ba8d89a84c425099ec202946543",
-            "name": "texturecraft-0.3.0-linux-x86_64.AppImage",
-            "size": 38312440
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.tar.gz",
+            "digest": "sha256:c89d898a2190287c30072155f5ae73fa65e780a8cf55c021049ca5d27d8077a2",
+            "name": "texturecraft-0.3.1-linux-riscv64.tar.gz",
+            "size": 39806135
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:ad783d23151fc0eaf62181abf4dc9178c26b0c4762d9317b303d85703a6c1f6c",
-            "name": "texturecraft-0.3.0-linux-x86_64.AppImage.zsync",
-            "size": 131207
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage",
+            "digest": "sha256:ec8dd97154fb0c339c73b279f1abcc9bd7f5bcb628837a801611b082c0aaae7b",
+            "name": "texturecraft-0.3.1-linux-x86_64.AppImage",
+            "size": 38603256
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.deb",
-            "digest": "sha256:6f0d262cd081d1a94b16a646a1180773a26c0cf4d8281550a06b3119bc3bbc26",
-            "name": "texturecraft-0.3.0-linux-x86_64.deb",
-            "size": 40479892
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:204f4e0577a0f487f037bce262ad482cef5c21dded582cfaa1de2d48f5a0f752",
+            "name": "texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+            "size": 132201
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.flatpak",
-            "digest": "sha256:5278b5f6267cfd8fe40b3bc0d7421e8a0b952cc2013260e0c56e50972c0b4c1a",
-            "name": "texturecraft-0.3.0-linux-x86_64.flatpak",
-            "size": 29207096
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.deb",
+            "digest": "sha256:01eb297a287f7417d623407915f796a51e07d3508f358054192b9f55e25d7740",
+            "name": "texturecraft-0.3.1-linux-x86_64.deb",
+            "size": 40833562
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:c3fed1c1ea5a1e569fb29b3e0e453a0b2900029c5a20fe72d9cd629bb2d50d9f",
-            "name": "texturecraft-0.3.0-linux-x86_64.pkg.tar.zst",
-            "size": 27926155
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.flatpak",
+            "digest": "sha256:061167166ebf015bfef1bf2307eb963e8cd0fae3f6e56ca90dbfc8476b238a11",
+            "name": "texturecraft-0.3.1-linux-x86_64.flatpak",
+            "size": 29448328
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.rpm",
-            "digest": "sha256:47557a82bf5778a1e1e05edcd743f7cba0288dc2affcb613b83705ea7c159b3e",
-            "name": "texturecraft-0.3.0-linux-x86_64.rpm",
-            "size": 40231300
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:6c919eb1674885aa4989de7803af6cee6bebc0ebcf4182bde813a3c269193ef9",
+            "name": "texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+            "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-linux-x86_64.tar.gz",
-            "digest": "sha256:c5537d2910af8dd79410c7f6afcd9c2865f72a3252154c2e12a613acc60bc63d",
-            "name": "texturecraft-0.3.0-linux-x86_64.tar.gz",
-            "size": 39787889
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:bec1bc46198b5558bc208100cf3b5c48548a8e4d384677e57b9a84af20a3def0",
+            "name": "texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+            "size": 28099988
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-macos-universal.dmg",
-            "digest": "sha256:eb575f1dae6e7374276b9cd4002286121278398a1ac84e267ed0205c761f6fcd",
-            "name": "texturecraft-0.3.0-macos-universal.dmg",
-            "size": 59106737
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.rpm",
+            "digest": "sha256:da739209379f4915d12701059ff60ca3f7a6ffca31dd348c82c2bfa29a028e7f",
+            "name": "texturecraft-0.3.1-linux-x86_64.rpm",
+            "size": 40573765
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-arm64-portable.zip",
-            "digest": "sha256:c9ecb04be3f9f8fd24f4d953c6a239346c1c0ee0cca4f4b555175b65de37d742",
-            "name": "texturecraft-0.3.0-windows-arm64-portable.zip",
-            "size": 38213818
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.tar.gz",
+            "digest": "sha256:7fcff64a6d8fe3e4c12ca2556ee96b072a402f224248feafe30e2bc8f275f57c",
+            "name": "texturecraft-0.3.1-linux-x86_64.tar.gz",
+            "size": 40136457
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-arm64.msi",
-            "digest": "sha256:1098882afde890e0d1c0dc9cc20c01c3f056ae88aa05c593be79b89d1c11503d",
-            "name": "texturecraft-0.3.0-windows-arm64.msi",
-            "size": 30879744
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-macos-universal.dmg",
+            "digest": "sha256:846d88dfe3084943664f5c6f0ee8afaa499346046c8f96d04efd1580b484cc98",
+            "name": "texturecraft-0.3.1-macos-universal.dmg",
+            "size": 59512152
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-x64-portable.zip",
-            "digest": "sha256:c2148e772ff16d5af1f7aa49d85acdbe6306a478a0dc17ff4330dc9ede1ddde4",
-            "name": "texturecraft-0.3.0-windows-x64-portable.zip",
-            "size": 39838860
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64-portable.zip",
+            "digest": "sha256:9d84b7171dbe4a604a358b908f30673b7b2c60a07d36a9934bbf8372f23d9b9a",
+            "name": "texturecraft-0.3.1-windows-arm64-portable.zip",
+            "size": 38551702
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-x64.msi",
-            "digest": "sha256:f9b064ee24228cea27d6ab1a5f7203308f3a53715b3564457ac1e34736f4cbf3",
-            "name": "texturecraft-0.3.0-windows-x64.msi",
-            "size": 32698368
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64.msi",
+            "digest": "sha256:b6b3364ba9f3a225d9d9ad097435556adbabd10d0b62d0f82aec7f61fd6bf8ae",
+            "name": "texturecraft-0.3.1-windows-arm64.msi",
+            "size": 31141888
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-x86-portable.zip",
-            "digest": "sha256:858c0e489d69f06590d940fa748b9b70f271aa7f6e3bd2826c5c84b8398fe8c5",
-            "name": "texturecraft-0.3.0-windows-x86-portable.zip",
-            "size": 38455066
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64-portable.zip",
+            "digest": "sha256:92f3d71b9457c232dfa0552205920a387ff6ba1a63f5c7c8bdbb21807b6e6101",
+            "name": "texturecraft-0.3.1-windows-x64-portable.zip",
+            "size": 40197428
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-0.3.0-windows-x86.msi",
-            "digest": "sha256:b8a5daae26d42b6eac192b7475f1a0568023ac9d10ee5cad4d4e09770a63e849",
-            "name": "texturecraft-0.3.0-windows-x86.msi",
-            "size": 32092160
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64.msi",
+            "digest": "sha256:b32abcdbcef2fff3a52a4f99202c55eb19e0673b5514578870eb9dbb8f671bb0",
+            "name": "texturecraft-0.3.1-windows-x64.msi",
+            "size": 32976896
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-cli-0.3.0-macos-universal.zip",
-            "digest": "sha256:9f35ffaf01c1a09388fc9eecd0c9fd72a701c1edee45c5effbbea8acc334df6e",
-            "name": "texturecraft-cli-0.3.0-macos-universal.zip",
-            "size": 16086286
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86-portable.zip",
+            "digest": "sha256:02fd017d9002649af385f5f9520755b6791d716eadc282559306eac5ecdf0e94",
+            "name": "texturecraft-0.3.1-windows-x86-portable.zip",
+            "size": 38791556
           },
           {
-            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.0/texturecraft-web-0.3.0.zip",
-            "digest": "sha256:b6229b1b75c2d007f1c817e2b2d3850e625f74c4b19bb6324fbc9ccf1346a048",
-            "name": "texturecraft-web-0.3.0.zip",
-            "size": 8949483
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86.msi",
+            "digest": "sha256:57794fb14c52ff7e6ac30d0923181a3d5481f6de6455f2a73f421028f80b0c74",
+            "name": "texturecraft-0.3.1-windows-x86.msi",
+            "size": 32370688
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-cli-0.3.1-macos-universal.zip",
+            "digest": "sha256:2a9fc69314d21256507dce06a4a68d5e3762d19065e21344c752a582dfe36d2a",
+            "name": "texturecraft-cli-0.3.1-macos-universal.zip",
+            "size": 16409932
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-web-0.3.1.zip",
+            "digest": "sha256:26c017858cb28c3765a49b30ff5ff1ba5f20e11391cfb9a8efcde14850ac6de3",
+            "name": "texturecraft-web-0.3.1.zip",
+            "size": 9051742
           }
         ],
         "draft": false,
-        "name": "TextureCraft v0.3.0",
+        "name": "TextureCraft v0.3.1",
         "prerelease": false,
-        "tag_name": "v0.3.0"
+        "tag_name": "v0.3.1"
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"42149f605e8ad2659406b9ee38f7a1a0e9796aeaf2c62fc492d478fdeacb2cfd\"",
+      "etag": "\"4232541d7fbacc86a649f8e73318dc92662ea0b652d237b9184e906929229f22\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/SHA256SUMS.txt",
+              "digest": "sha256:d78cccdda3d4dc99f8f21a51ddd2ca8c2fb82a4816caf9122c28166486e70dfa",
+              "name": "SHA256SUMS.txt",
+              "size": 3201
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:129d00cba6e6bcbd63d57c8c9dcc8f018f3ee13e0a4ed6481a1351b4e4bc6b2b",
+              "name": "texturecraft-0.3.1-freebsd-aarch64.tar.gz",
+              "size": 38121942
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:e5b053da654d2e96c30a20441b74bfa4838637da3e525a5efb3b0283d94eb4da",
+              "name": "texturecraft-0.3.1-freebsd-x86_64.tar.gz",
+              "size": 40060745
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage",
+              "digest": "sha256:7ecf138077abbd2f92dcfaf68dae2375e800f59b726012994a54adcc6617ba25",
+              "name": "texturecraft-0.3.1-linux-aarch64.AppImage",
+              "size": 37181960
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:f57c8d869fc988e64c24d3b11a1d3095bd0f9fa1d16651efb5e5bf6c7356682f",
+              "name": "texturecraft-0.3.1-linux-aarch64.AppImage.zsync",
+              "size": 127345
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.deb",
+              "digest": "sha256:126b5853ab261cfdc32f88e242f8ffa5b5cc7bdfbb456f1f91f612f19aa3825d",
+              "name": "texturecraft-0.3.1-linux-aarch64.deb",
+              "size": 39727134
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.flatpak",
+              "digest": "sha256:77b2d08bc7a468f9b3e7b9e61e557d23a214a1474b89da728be602181414aacb",
+              "name": "texturecraft-0.3.1-linux-aarch64.flatpak",
+              "size": 27578296
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:2df6f73ff3e343c693e381e96e2aaca7fcb742435d378b3cabe7a0ad7c872ebc",
+              "name": "texturecraft-0.3.1-linux-aarch64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:f351a41c379afc60296128fe1904b8f13922b6ca1bace136b4144c21708f5e0c",
+              "name": "texturecraft-0.3.1-linux-aarch64.pkg.tar.zst",
+              "size": 30667303
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.rpm",
+              "digest": "sha256:d8f04338d5c8247d0bc466acb4482916cbd03db9e6f046966b7e6414f2b68eb3",
+              "name": "texturecraft-0.3.1-linux-aarch64.rpm",
+              "size": 39398015
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-aarch64.tar.gz",
+              "digest": "sha256:812676459f11fdfc38a1bd6d7f4ec0721768a8443d581d94782b302898e607cc",
+              "name": "texturecraft-0.3.1-linux-aarch64.tar.gz",
+              "size": 38564857
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.deb",
+              "digest": "sha256:57dcada1f69d2b3d50f2f1d668bfccf7344fcfb171457fd273923899d8eaeb9a",
+              "name": "texturecraft-0.3.1-linux-riscv64.deb",
+              "size": 40450828
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.rpm",
+              "digest": "sha256:892fd8fecd2c5ee7effd1ad713932642162761b83400032661de849a123f2b83",
+              "name": "texturecraft-0.3.1-linux-riscv64.rpm",
+              "size": 40298498
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-riscv64.tar.gz",
+              "digest": "sha256:c89d898a2190287c30072155f5ae73fa65e780a8cf55c021049ca5d27d8077a2",
+              "name": "texturecraft-0.3.1-linux-riscv64.tar.gz",
+              "size": 39806135
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage",
+              "digest": "sha256:ec8dd97154fb0c339c73b279f1abcc9bd7f5bcb628837a801611b082c0aaae7b",
+              "name": "texturecraft-0.3.1-linux-x86_64.AppImage",
+              "size": 38603256
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:204f4e0577a0f487f037bce262ad482cef5c21dded582cfaa1de2d48f5a0f752",
+              "name": "texturecraft-0.3.1-linux-x86_64.AppImage.zsync",
+              "size": 132201
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.deb",
+              "digest": "sha256:01eb297a287f7417d623407915f796a51e07d3508f358054192b9f55e25d7740",
+              "name": "texturecraft-0.3.1-linux-x86_64.deb",
+              "size": 40833562
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.flatpak",
+              "digest": "sha256:061167166ebf015bfef1bf2307eb963e8cd0fae3f6e56ca90dbfc8476b238a11",
+              "name": "texturecraft-0.3.1-linux-x86_64.flatpak",
+              "size": 29448328
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6c919eb1674885aa4989de7803af6cee6bebc0ebcf4182bde813a3c269193ef9",
+              "name": "texturecraft-0.3.1-linux-x86_64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:bec1bc46198b5558bc208100cf3b5c48548a8e4d384677e57b9a84af20a3def0",
+              "name": "texturecraft-0.3.1-linux-x86_64.pkg.tar.zst",
+              "size": 28099988
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.rpm",
+              "digest": "sha256:da739209379f4915d12701059ff60ca3f7a6ffca31dd348c82c2bfa29a028e7f",
+              "name": "texturecraft-0.3.1-linux-x86_64.rpm",
+              "size": 40573765
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-linux-x86_64.tar.gz",
+              "digest": "sha256:7fcff64a6d8fe3e4c12ca2556ee96b072a402f224248feafe30e2bc8f275f57c",
+              "name": "texturecraft-0.3.1-linux-x86_64.tar.gz",
+              "size": 40136457
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-macos-universal.dmg",
+              "digest": "sha256:846d88dfe3084943664f5c6f0ee8afaa499346046c8f96d04efd1580b484cc98",
+              "name": "texturecraft-0.3.1-macos-universal.dmg",
+              "size": 59512152
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64-portable.zip",
+              "digest": "sha256:9d84b7171dbe4a604a358b908f30673b7b2c60a07d36a9934bbf8372f23d9b9a",
+              "name": "texturecraft-0.3.1-windows-arm64-portable.zip",
+              "size": 38551702
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-arm64.msi",
+              "digest": "sha256:b6b3364ba9f3a225d9d9ad097435556adbabd10d0b62d0f82aec7f61fd6bf8ae",
+              "name": "texturecraft-0.3.1-windows-arm64.msi",
+              "size": 31141888
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64-portable.zip",
+              "digest": "sha256:92f3d71b9457c232dfa0552205920a387ff6ba1a63f5c7c8bdbb21807b6e6101",
+              "name": "texturecraft-0.3.1-windows-x64-portable.zip",
+              "size": 40197428
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x64.msi",
+              "digest": "sha256:b32abcdbcef2fff3a52a4f99202c55eb19e0673b5514578870eb9dbb8f671bb0",
+              "name": "texturecraft-0.3.1-windows-x64.msi",
+              "size": 32976896
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86-portable.zip",
+              "digest": "sha256:02fd017d9002649af385f5f9520755b6791d716eadc282559306eac5ecdf0e94",
+              "name": "texturecraft-0.3.1-windows-x86-portable.zip",
+              "size": 38791556
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-0.3.1-windows-x86.msi",
+              "digest": "sha256:57794fb14c52ff7e6ac30d0923181a3d5481f6de6455f2a73f421028f80b0c74",
+              "name": "texturecraft-0.3.1-windows-x86.msi",
+              "size": 32370688
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-cli-0.3.1-macos-universal.zip",
+              "digest": "sha256:2a9fc69314d21256507dce06a4a68d5e3762d19065e21344c752a582dfe36d2a",
+              "name": "texturecraft-cli-0.3.1-macos-universal.zip",
+              "size": 16409932
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/texturecraft/releases/download/v0.3.1/texturecraft-web-0.3.1.zip",
+              "digest": "sha256:26c017858cb28c3765a49b30ff5ff1ba5f20e11391cfb9a8efcde14850ac6de3",
+              "name": "texturecraft-web-0.3.1.zip",
+              "size": 9051742
+            }
+          ],
+          "draft": false,
+          "name": "TextureCraft v0.3.1",
+          "prerelease": false,
+          "tag_name": "v0.3.1"
+        },
         {
           "assets": [
             {
@@ -86413,7 +87591,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"c4e2873219fcd645fd04572a9c9ef74a70105abf1c05daed8e3c58ec1bd0cc7c\"",
+      "etag": "\"43b32bad2f6d37fd99a866fd631206f0f68afcf0338e27b65f1a8449c6503ad6\"",
       "body": {
         "assets": [
           {
@@ -86598,7 +87776,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"5781841bc32b02c79ca5f89b6d355d0378d2d4e27bb1f0049356332ca618370b\"",
+      "etag": "\"336872bf17cf9a01c2f423f6449c8ed26b67b234e7daad02f086361e6ef5d8e2\"",
       "body": [
         {
           "assets": [
@@ -90015,7 +91193,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"e3305fc888bdf053dfb51f4162372187553ffa06bc0868abc97a8d7beca7dc98\"",
+      "etag": "\"93cf8911ab8dcae54fb8b387a2533b4154f7d81563531dd72b34154c7ace3cff\"",
       "body": {
         "assets": [
           {
@@ -90212,7 +91390,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"544da67c49c0b5a94fd55d06a4636d132b383b323110878c37ebd87f07308e4b\"",
+      "etag": "\"0ed35dbb9c35ee40ba656700d7a5cb5b8925a8ea50fae4ec140a4009f9b714c2\"",
       "body": [
         {
           "assets": [
@@ -92719,7 +93897,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"4b2c773ac423228fe7cc67398d364bac7f2360502ac57ea29e98b68caf60ed5e\"",
+      "etag": "\"95ecdfd189ce0f4ae819f7edd36813458e356faa88fa07bc83842bb45c4605fa\"",
       "body": {
         "assets": [
           {
@@ -93024,7 +94202,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"575bc25377651a36d77792ef2db4f427c9feffc4460fdff299bc4149500f67c6\"",
+      "etag": "\"009e9cd515463121c4e0661cc6a088a65e5e817c586c9e8640cc4eee428efef1\"",
       "body": [
         {
           "assets": [
