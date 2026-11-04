@@ -104,7 +104,13 @@ impl App {
                         ui.spacing_mut().item_spacing.x = 6.0;
                         theme::text(
                             ui,
-                            format!("Version {}", env!("CARGO_PKG_VERSION")),
+                            format!(
+                                "Version {}",
+                                craft_apps_manager::update_revisions::display_version(
+                                    env!("CARGO_PKG_VERSION"),
+                                    craft_apps_manager::update_revisions::BUILD_REVISION
+                                )
+                            ),
                             12.0,
                             theme::palette().muted,
                         );
@@ -749,12 +755,16 @@ impl App {
     ) {
         let status = self.status(name);
         let install_available = self.install_available(name, ui.ctx());
-        let unavailable_message = self.unavailable_download_message(name);
+        let unavailable_message = if install_available {
+            String::new()
+        } else {
+            self.unavailable_download_message(name)
+        };
         let selected = self.page == Page::App && self.app == name;
         let response = ui.interact(rect, ui.id().with(("sidebar-row", name)), Sense::click());
         let operation = super::super::sidebar_install_operation(&self.operation_records, name);
         let installing = operation.is_some();
-        let app_preferences = self.app_preferences(name);
+        let app_preferences = self.app_install_options(name);
         let format = status
             .installed
             .as_ref()
@@ -991,7 +1001,7 @@ impl App {
                 format!(
                     "Installed {} · selected {}",
                     copy.architecture,
-                    self.app_preferences(name).architecture
+                    self.app_install_options(name).architecture
                 ),
                 theme::palette().muted,
             )

@@ -25,7 +25,13 @@ impl App {
                     );
                     theme::text(
                         ui,
-                        format!("Version {}", env!("CARGO_PKG_VERSION")),
+                        format!(
+                            "Version {}",
+                            craft_apps_manager::update_revisions::display_version(
+                                env!("CARGO_PKG_VERSION"),
+                                craft_apps_manager::update_revisions::BUILD_REVISION
+                            )
+                        ),
                         12.0,
                         theme::palette().muted,
                     );

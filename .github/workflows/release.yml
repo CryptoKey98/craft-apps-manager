@@ -365,6 +365,7 @@ jobs:
               gh release upload "$CRAFT_RELEASE_TAG" "$package" --clobber
             done
             gh release upload "$CRAFT_RELEASE_TAG" "$manifest" --clobber
+            gh release edit "$CRAFT_RELEASE_TAG" --notes-file notes.md
           elif [ -n "$existing" ]; then
             test "$(printf '%s' "$existing" | jq -r .draft)" = true || { echo "Refusing to replace a published baseline release" >&2; exit 1; }
             if [ -d immutable-assets ]; then

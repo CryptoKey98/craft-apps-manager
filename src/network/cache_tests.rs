@@ -24,6 +24,12 @@ pub(crate) fn seed(root: &Path, url: &str, at: i64, value: serde_json::Value) {
     cache::forget(root);
 }
 
+/// Finish tracked cache work before another module removes its isolated fixture.
+#[cfg(target_os = "windows")]
+pub(crate) fn finish_background_work(root: &Path) {
+    cache::forget(root);
+}
+
 #[test]
 fn cache_write_failure_does_not_fail_successful_response() {
     let root = root();

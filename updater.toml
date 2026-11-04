@@ -15,9 +15,9 @@ mirror_url = ""
 check_url = ""
 
 [revisions]
-windows = 1
-linux = 1
-macos = 1
+windows = 2
+linux = 2
+macos = 2
 
 [network]
 connect_timeout_seconds = 10

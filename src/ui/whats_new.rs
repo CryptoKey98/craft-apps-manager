@@ -38,15 +38,40 @@ fn remember(root: &Path, version: &str, revision: u32) -> anyhow::Result<()> {
 }
 
 /// The changelog is also the source of the current in-app patch notes.
-fn release_notes(version: &str) -> Vec<&'static str> {
+struct NotesSection {
+    title: Option<&'static str>,
+    notes: Vec<&'static str>,
+}
+
+fn release_notes(version: &str) -> Vec<NotesSection> {
     let heading = format!("## {version}");
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/CHANGELOG.md"))
+    let mut sections = Vec::new();
+    let mut section = NotesSection {
+        title: None,
+        notes: Vec::new(),
+    };
+    for line in include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/CHANGELOG.md"))
         .lines()
         .skip_while(|line| line.trim() != heading)
         .skip(1)
         .take_while(|line| !line.starts_with("## "))
-        .filter_map(|line| line.strip_prefix("- "))
-        .collect()
+    {
+        if let Some(title) = line.strip_prefix("### ") {
+            if !section.notes.is_empty() {
+                sections.push(section);
+            }
+            section = NotesSection {
+                title: Some(title),
+                notes: Vec::new(),
+            };
+        } else if let Some(note) = line.strip_prefix("- ") {
+            section.notes.push(note);
+        }
+    }
+    if !section.notes.is_empty() {
+        sections.push(section);
+    }
+    sections
 }
 
 fn body_text(ui: &mut egui::Ui, text: &str) {
@@ -135,7 +160,13 @@ impl App {
                         theme::heading(ui, "What's new", 19.0);
                         body_text(
                             ui,
-                            &format!("Craft Apps Manager · Version {}", env!("CARGO_PKG_VERSION")),
+                            &format!(
+                                "Craft Apps Manager · Version {}",
+                                craft_apps_manager::update_revisions::display_version(
+                                    env!("CARGO_PKG_VERSION"),
+                                    craft_apps_manager::update_revisions::BUILD_REVISION
+                                )
+                            ),
                         );
                     });
                 });
@@ -150,12 +181,16 @@ impl App {
                         feature(ui, theme::Icon::Gear, "Settings that save together", "Review your changes, then apply them with Save. Your existing preferences move over safely.");
                         feature(ui, theme::Icon::Activity, "Clearer GitHub activity", "See connection and token status, with help when GitHub limits requests.");
                         feature(ui, theme::Icon::Trash, "Less clutter, more space", "Unused cache clears automatically, with better cleanup after installs and removals.");
-                        let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", env!("CARGO_PKG_VERSION"))).size(13.0).color(p.link))
+                        let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", craft_apps_manager::update_revisions::display_version(env!("CARGO_PKG_VERSION"), craft_apps_manager::update_revisions::BUILD_REVISION))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
-                                theme::heading(ui, "New in 1.1.0", 13.0);
-                                ui.add_space(10.0);
-                                for note in release_notes(env!("CARGO_PKG_VERSION")) {
-                                    body_text(ui, &format!("• {note}"));
+                                for section in release_notes(env!("CARGO_PKG_VERSION")) {
+                                    let fallback = format!("New in {}", env!("CARGO_PKG_VERSION"));
+                                    theme::heading(ui, section.title.unwrap_or(&fallback), 13.0);
+                                    ui.add_space(10.0);
+                                    for note in section.notes {
+                                        body_text(ui, &format!("• {note}"));
+                                        ui.add_space(8.0);
+                                    }
                                     ui.add_space(8.0);
                                 }
                                 ui.add_space(16.0);
@@ -320,7 +355,22 @@ mod tests {
     use super::*;
     #[test]
     fn current_patch_notes_include_the_full_release_without_older_sections() {
-        let current = release_notes("1.1.0");
+        let sections = release_notes("1.1.0");
+        assert_eq!(sections[0].title, Some("Rev. 2 · All platforms"));
+        assert_eq!(sections[0].notes.len(), 2);
+        assert!(sections[0]
+            .notes
+            .iter()
+            .any(|note| note.contains("memory copying")));
+        assert!(sections[0]
+            .notes
+            .iter()
+            .any(|note| note.contains("upgrading from older Managers")));
+        assert_eq!(sections[1].title, Some("Initial release"));
+        let current: Vec<_> = sections
+            .into_iter()
+            .flat_map(|section| section.notes)
+            .collect();
         assert!(current.iter().any(|note| note.contains("SolidCraft")));
         assert!(current
             .iter()
@@ -332,7 +382,8 @@ mod tests {
             .iter()
             .any(|note| note.contains("Add Linux tar.gz and macOS DMG downloads")));
         assert!(release_notes("1.0.0")
-            .iter()
+            .into_iter()
+            .flat_map(|section| section.notes)
             .any(|note| note.contains("Add Linux tar.gz and macOS DMG downloads")));
         assert!(release_notes("unknown-version").is_empty());
     }

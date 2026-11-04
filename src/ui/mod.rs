@@ -1364,39 +1364,26 @@ impl App {
         self.app = app.into();
         self.page = Page::App;
     }
-    fn app_preferences(&self, app: &str) -> model::Preferences {
-        let preferred = craft_apps_manager::install_options::preferred(&self.preferences, app);
-        if !self.additional_installation && self.confirm_install.as_deref() != Some(app) {
-            if let Some(actual) = self
-                .display_config
-                .as_ref()
-                .and_then(|config| {
-                    config
-                        .apps
-                        .iter()
-                        .find(|copy| copy.name == app && !copy.path.is_empty())
-                })
-                .and_then(|copy| {
-                    craft_apps_manager::install_options::for_installed(&self.preferences, copy).ok()
-                })
-            {
-                return actual;
-            }
-        }
-        if self
-            .preferences
-            .app_install_options
-            .contains_key(&craft_apps_manager::install_options::identity(app))
-        {
-            return preferred;
-        }
-        self.display_config
+    fn app_install_options(
+        &self,
+        app: &str,
+    ) -> craft_apps_manager::install_options::InstallOptions {
+        let installed = self
+            .display_config
             .as_ref()
-            .and_then(|config| config.apps.iter().find(|copy| copy.name == app))
-            .and_then(|copy| {
-                craft_apps_manager::install_options::for_installed(&self.preferences, copy).ok()
-            })
-            .unwrap_or(preferred)
+            .and_then(|config| config.apps.iter().find(|copy| copy.name == app));
+        craft_apps_manager::install_options::for_selection(
+            &self.preferences,
+            app,
+            installed,
+            self.additional_installation || self.confirm_install.as_deref() == Some(app),
+        )
+    }
+    fn app_preferences(&self, app: &str) -> model::Preferences {
+        craft_apps_manager::install_options::apply(
+            &self.preferences,
+            &self.app_install_options(app),
+        )
     }
     fn use_installed_version_options(&mut self, app: &str) -> anyhow::Result<()> {
         let installed = self.display_config.as_ref().and_then(|config| {
@@ -1408,7 +1395,8 @@ impl App {
         if let Some(installed) = installed {
             let options = craft_apps_manager::install_options::InstallOptions::installed(installed)
                 .ok_or_else(|| anyhow::anyhow!("Installation format or architecture is unknown. Confirm the existing installation before changing versions."))?;
-            let preferred = craft_apps_manager::install_options::preferred(&self.preferences, app);
+            let preferred =
+                craft_apps_manager::install_options::preferred_options(&self.preferences, app);
             if preferred.release_format != options.release_format
                 || preferred.architecture != options.architecture
             {
@@ -1440,15 +1428,16 @@ impl App {
         })
     }
     fn install_available(&mut self, app: &str, ctx: &egui::Context) -> bool {
+        let options = self.app_install_options(app);
         let key = (
             app.to_string(),
-            self.app_preferences(app).release_format.clone(),
-            self.app_preferences(app).architecture.clone(),
+            options.release_format.clone(),
+            options.architecture.clone(),
         );
-        let preferences = self.app_preferences(app);
         if let Some(Some(available)) = self.download_availability.get(&key) {
             return *available;
         }
+        let preferences = craft_apps_manager::install_options::apply(&self.preferences, &options);
         let ctx = ctx.clone();
         let available =
             updates::cached_download_available_ready(&self.paths, app, &preferences, move || {
@@ -1467,10 +1456,11 @@ impl App {
                 &self.app_preferences(app),
             );
         }
+        let options = self.app_install_options(app);
         format!(
             "No {} download is available for {}.",
-            self.app_preferences(app).release_format,
-            model::architecture_label(&self.app_preferences(app).architecture)
+            options.release_format,
+            model::architecture_label(&options.architecture)
         )
     }
     fn refresh_changed_installations(&mut self, config: &model::Config, ctx: &egui::Context) {

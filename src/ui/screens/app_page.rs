@@ -155,7 +155,7 @@ impl App {
         let app = self.app.clone();
         let title = model::title(&app);
         let status = self.status(&app);
-        let format = self.app_preferences(&self.app).release_format.clone();
+        let format = self.app_install_options(&self.app).release_format.clone();
         let installation_state = crate::ui::app_installation_state(
             &self.operation_records,
             &app,
@@ -486,7 +486,7 @@ impl App {
                 format!(
                     "Installed: {} · Selected: {}",
                     model::architecture_label(&copy.architecture),
-                    model::architecture_label(&self.app_preferences(&self.app).architecture)
+                    model::architecture_label(&self.app_install_options(&self.app).architecture)
                 ),
                 13.0,
                 theme::palette().text_3,
@@ -838,8 +838,8 @@ impl App {
         let popup_id = ui.make_persistent_id((
             "app-version-menu",
             &app,
-            &self.app_preferences(&self.app).release_format,
-            &self.app_preferences(&self.app).architecture,
+            &self.app_install_options(&self.app).release_format,
+            &self.app_install_options(&self.app).architecture,
         ));
         let (main, arrow) = button.split(ui, &format!("Choose {} version", model::title(&app)));
         if arrow.clicked() {
@@ -961,8 +961,10 @@ impl App {
                     format!(
                         "{} · {} · {}",
                         model::release_os(),
-                        release_format_label(&self.app_preferences(&self.app).release_format),
-                        model::architecture_label(&self.app_preferences(&self.app).architecture)
+                        release_format_label(&self.app_install_options(&self.app).release_format),
+                        model::architecture_label(
+                            &self.app_install_options(&self.app).architecture
+                        )
                     ),
                     12.0,
                     theme::palette().muted,
@@ -979,7 +981,7 @@ impl App {
         // Only an installed copy in the active format can be updated in place.
         let matching_format = installed.as_ref().is_some_and(|i| {
             (i.install_kind == "installer")
-                == (self.app_preferences(&self.app).release_format == "installer")
+                == (self.app_install_options(&self.app).release_format == "installer")
         });
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
@@ -1159,7 +1161,7 @@ impl App {
 
     /// Four facts about the app: installed copy, latest release, package and location.
     fn facts(&mut self, ui: &mut Ui, status: &crate::ui::AppStatus) {
-        let fact_preferences = self.app_preferences(&self.app);
+        let fact_preferences = self.app_install_options(&self.app);
         let app = self.app.clone();
         let installed = status.installed.clone();
         let package = installed

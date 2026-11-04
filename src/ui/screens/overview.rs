@@ -525,7 +525,7 @@ impl App {
             _ if status.alternate_architecture.is_some() => format!(
                 "Installed {} · selected {}",
                 status.alternate_architecture.as_ref().unwrap().architecture,
-                self.app_preferences(name).architecture
+                self.app_install_options(name).architecture
             ),
             _ => "Available to install".into(),
         };
