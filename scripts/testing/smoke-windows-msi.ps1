@@ -5,6 +5,10 @@ param(
     [string]$CustomBaselineMsi = $BaselineMsi
 )
 $ErrorActionPreference = 'Stop'
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$expectedRevision = & python (Join-Path $projectRoot 'scripts/lib/updater_config.py') revision --view packaging --target-os windows
+if ($LASTEXITCODE -ne 0) { throw 'Invalid updater packaging configuration' }
+$expectedRevision = [int]$expectedRevision
 $installer = New-Object -ComObject WindowsInstaller.Installer
 function Read-Property([string]$Path, [string]$Name) {
     $db = $installer.OpenDatabase((Resolve-Path -LiteralPath $Path).Path, 0)
@@ -63,7 +67,6 @@ try {
     $identityProcess = Start-Process -FilePath $exe -ArgumentList '--build-identity' -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $identityFile
     if ($identityProcess.ExitCode -ne 0) { throw 'Installed build identity query failed' }
     $identity = Get-Content -LiteralPath $identityFile -Raw | ConvertFrom-Json
-    $expectedRevision = if ($env:CRAFT_BUILD_REVISION) { [int]$env:CRAFT_BUILD_REVISION } else { 1 }
     if ($identity.version -ne $version -or $identity.revision -ne $expectedRevision) { throw 'MSI upgrade left an old executable revision installed' }
     if ((Get-FileHash -LiteralPath $marker).Hash -ne $markerHash) { throw 'MSI upgrade changed unowned app data' }
     foreach ($file in @('installation-msi.json')) {
