@@ -11,7 +11,7 @@ import time
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[2]
-RETENTION_SECONDS = 30 * 86400
+RETENTION_SECONDS = 86400
 
 
 def read_json(path, limit=128 * 1024 * 1024):
