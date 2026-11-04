@@ -11,6 +11,11 @@ catalog_url = "https://craft-apps-manager-updates.cryptokeyofficial.workers.dev/
 mirror_url = "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/updates-v2.json"
 check_url = ""
 
+[revisions]
+windows = 2
+linux = 2
+macos = 2
+
 [publishing]
 enabled = true
 profiles_file = "update-service/catalog/supported-clients.json"

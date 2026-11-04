@@ -65,6 +65,8 @@ A revision is a platform-specific rebuild of the same application version. Revis
 
 Use the Release workflow with the existing version tag, an advancing revision, the affected platform, and the exact source commit. Keep `prepare_draft` off. The baseline release must already be public. Native package versions and the candidate catalog must describe the new build.
 
+For a revision on every platform, set all three `[revisions]` entries in the selected build configuration to the new revision and choose `platform=all` with that revision in the workflow. Official service builds use `updater.production.toml`; GitHub-only builds use `updater.toml`. Each configuration has its own revision values. Keep the application version and existing release tag unchanged. Group the fixes under a revision heading in the current changelog section; What's New uses the same groups and opens once for the new revision. Revision publication updates the existing release notes.
+
 Service-enabled revisions use distinct `-Rev-N` package names. Both signed v1 and v2 metadata can reference them; baseline URLs stay unchanged. Older manifest-aware clients can select the signed revision asset. Pre-manifest clients can first reach the compatible baseline, then update through the newer updater. GitHub-only publishing retains its separate compatibility-refresh behavior.
 
 Retain compatible downloads while older clients still need them. A signed catalog can change filenames or choose another already-supported format for service clients; it cannot teach an old binary a new handler. Keep any package required by a supported bridge route.

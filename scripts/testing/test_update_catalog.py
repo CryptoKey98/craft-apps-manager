@@ -34,21 +34,53 @@ class CatalogTests(unittest.TestCase):
         self.assertTrue(packages)
         self.assertTrue(all('/v' + version + '/' in p['url'] for p in packages))
 
+    def test_latest_revision_matches_notes_and_every_platform_build(self):
+        config = (ROOT / 'updater.toml').read_text()
+        publisher = (ROOT / 'updater.production.toml').read_text()
+        version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / 'Cargo.toml').read_text(), re.M)[1]
+        notes = (ROOT / 'CHANGELOG.md').read_text().split('## ' + version + '\n', 1)[1].split('\n## ', 1)[0]
+        match = re.search(r'^### Rev\. (\d+)', notes, re.M)
+        revision = int(match[1]) if match else 1
+        policy = json.loads((ROOT / re.search(r'^next_catalog_file\s*=\s*"([^"]+)"', publisher, re.M)[1]).read_text())
+        release = next(r for r in policy['releases'] if r['version'] == version)
+        packages = [p for p in policy['packages'] if p['release'] == release['id']]
+        for platform in ('windows', 'linux', 'macos'):
+            with self.subTest(platform=platform):
+                self.assertEqual(int(re.search(r'^' + platform + r'\s*=\s*(\d+)', config, re.M)[1]), revision)
+                production = re.search(r'^' + platform + r'\s*=\s*(\d+)', publisher, re.M)
+                self.assertEqual(int(production[1]) if production else 1, revision)
+                self.assertEqual(max(p['revision'] for p in packages if p['platform'] == platform), revision)
+        if revision > 1:
+            latest = [p for p in packages if p['revision'] == revision]
+            self.assertTrue(latest)
+            for package in latest:
+                self.assertIn('-Rev-' + str(revision) + '.', package['asset'])
+                if package['installation'] in ('deb', 'arch'):
+                    self.assertEqual(package['native_version'], f'{version}-{revision}')
+                elif package['installation'] == 'rpm':
+                    self.assertEqual(package['native_version'], f'{version}-0.2.{revision}')
+                elif package['installation'] == 'msi':
+                    self.assertEqual(package['native_version'], version)
+
     def test_next_manager_release_binds_new_assets_and_preserves_signed_history(self):
         version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / 'Cargo.toml').read_text(), re.M)[1]
         path = re.search(r'^next_catalog_file\s*=\s*"([^"]+)"', (ROOT / 'updater.production.toml').read_text(), re.M)[1]
         policy = json.loads((ROOT / path).read_text())
         release = next((r for r in policy['releases'] if r['version'] == version), None)
         self.assertIsNotNone(release, 'The next release policy must exist before binding its packages')
+        revision = max(p['revision'] for p in policy['packages'] if p['release'] == release['id'])
+        fresh = [p for p in policy['packages'] if p['release'] == release['id'] and p['revision'] == revision]
+        fresh_ids = {p['id'] for p in fresh}
         previous = copy.deepcopy(policy)
-        previous['packages'] = [p for p in previous['packages'] if p['release'] != release['id']]
-        fresh = [p for p in policy['packages'] if p['release'] == release['id']]
+        previous['packages'] = [p for p in previous['packages'] if p['id'] not in fresh_ids]
+        previous['routes'] = [r for r in previous['routes'] if r['target'] not in fresh_ids]
+        module.validate_shape(previous)
         assets = {p['asset']:dict(name=p['asset'], state='uploaded', browser_download_url=p['url'], size=4096, digest='sha256:' + 'ab' * 32) for p in fresh}
         fetch = mock.Mock(return_value=dict(tag_name=release['tag'], draft=False, prerelease=False, assets=list(assets.values())))
         bound = module.bind_release_assets(policy, previous, fetch_release=fetch)
         fetch.assert_called_once_with(policy['repository'], release['tag'])
-        self.assertEqual([p for p in bound['packages'] if p['release'] != release['id']], previous['packages'])
-        for package in [p for p in bound['packages'] if p['release'] == release['id']]:
+        self.assertEqual([p for p in bound['packages'] if p['id'] not in fresh_ids], previous['packages'])
+        for package in [p for p in bound['packages'] if p['id'] in fresh_ids]:
             self.assertEqual((package['size'], package['sha256']), (4096, 'ab' * 32))
         module.retain_bridges(bound, previous)
 

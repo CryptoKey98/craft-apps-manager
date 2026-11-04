@@ -206,7 +206,17 @@ pub fn known_entries() -> Vec<Entry> {
     }
 }
 pub fn get(key: &str) -> Option<Entry> {
-    all().into_iter().find(|e| e.key == key)
+    let current = CURRENT.read().unwrap();
+    if current.is_empty() {
+        static FALLBACK: std::sync::OnceLock<Vec<Entry>> = std::sync::OnceLock::new();
+        FALLBACK
+            .get_or_init(builtin)
+            .iter()
+            .find(|e| e.key == key)
+            .cloned()
+    } else {
+        current.iter().find(|e| e.key == key).cloned()
+    }
 }
 /// Apps with installable releases, in a stable order.
 pub fn release_keys() -> Vec<String> {

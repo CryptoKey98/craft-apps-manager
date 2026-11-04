@@ -93,16 +93,43 @@ fn manager_default_format() -> &'static str {
         }
     })
 }
+fn default_options() -> InstallOptions {
+    InstallOptions {
+        release_format: manager_default_format().into(),
+        architecture: host_architecture(),
+    }
+}
+/// Lightweight intent for rendering; does not copy unrelated manager settings.
+pub fn preferred_options(base: &Preferences, app: &str) -> InstallOptions {
+    base.app_install_options
+        .get(&identity(app))
+        .cloned()
+        .unwrap_or_else(default_options)
+}
 pub fn preferred(base: &Preferences, app: &str) -> Preferences {
-    match base.app_install_options.get(&identity(app)) {
-        Some(options) => apply(base, options),
-        None => {
-            let mut prefs = base.clone();
-            prefs.architecture = host_architecture();
-            prefs.release_format = manager_default_format().into();
-            prefs
+    apply(base, &preferred_options(base, app))
+}
+/// Existing copies govern their display. While choosing a new installation,
+/// explicit intent wins, with verified installed options as the legacy fallback.
+pub fn for_selection(
+    base: &Preferences,
+    app: &str,
+    installed: Option<&Installed>,
+    editing: bool,
+) -> InstallOptions {
+    let actual = installed
+        .filter(|copy| copy.name == app)
+        .and_then(InstallOptions::installed);
+    if !editing {
+        if let Some(actual) = actual {
+            return actual;
         }
     }
+    base.app_install_options
+        .get(&identity(app))
+        .cloned()
+        .or(actual)
+        .unwrap_or_else(default_options)
 }
 pub fn for_installed(base: &Preferences, app: &Installed) -> anyhow::Result<Preferences> {
     let options = InstallOptions::installed(app).ok_or_else(|| anyhow::anyhow!("Installation format or architecture is unknown for {}. Confirm its installation options before updating.", app.name))?;

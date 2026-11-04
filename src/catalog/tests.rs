@@ -730,6 +730,7 @@ fn rejected_architecture_does_not_block_retry_with_compatible_preferences() {
     );
     assert!(get("exampletool").is_some());
     load(&root.join("unused"));
+    crate::network::cache_tests::finish_background_work(&root);
     std::fs::remove_dir_all(root).unwrap();
 }
 #[cfg(target_os = "windows")]

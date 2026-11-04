@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.1.0
+
+### Rev. 2 · All platforms
 
 - Move newly discovered apps to the top once when upgrading from older Managers, while preserving later sidebar and Home sorting.
+- Reduce unnecessary memory copying when switching app pages and displaying installation choices.
 
-## 1.1.0
+### Initial release
 
 - Keep one previous version per installation for rollback after supported updates and downgrades.
 - Restore portable apps and verified Windows MSI, Linux DEB/RPM/Arch, and macOS DMG installations only after recovery checks pass.

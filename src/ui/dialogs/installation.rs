@@ -471,11 +471,7 @@ impl App {
                     // Retain the chosen labels while the new release is being
                     // fetched; their disabled state makes availability explicit.
                     plan?.entries.iter().find(|entry| entry.app == app)?;
-                    let preferences = self.app_preferences(app);
-                    Some(InstallOptions {
-                        release_format: preferences.release_format,
-                        architecture: preferences.architecture,
-                    })
+                    Some(self.app_install_options(app))
                 });
             ui.add_enabled_ui(false, |ui| {
                 ui.columns(2, |columns| {

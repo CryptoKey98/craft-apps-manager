@@ -73,6 +73,31 @@ class RevisionManifestTests(unittest.TestCase):
             self.assertTrue((folder / package["asset"]).exists())
         self.assertTrue((folder / "Craft-Apps-Manager-0.8.3-linux-x64.zip").exists())
 
+    def test_all_platform_revision_advances_together_and_preserves_baseline(self):
+        baseline = self.baseline()
+        folder = self.root / 'all-platform-hotfix'
+        folder.mkdir()
+        names = ['Craft-Apps-Manager-0.8.3-windows-x64.zip',
+                 'Craft-Apps-Manager-0.8.3-linux-x64.zip',
+                 'Craft-Apps-Manager-0.8.3-macos-universal.zip',
+                 'Craft-Apps-Manager-0.8.3-linux-x64.tar.gz',
+                 'Craft-Apps-Manager-0.8.3-macos-universal.dmg']
+        for name in names:
+            (folder / name).write_bytes(b'revision two fixture')
+        result = self.run_manifest(folder, 2, 'all', baseline / 'updates-v1.json', immutable=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        packages = self.read_manifest(folder)['packages']
+        self.assertEqual({p['platform'] for p in packages}, {'windows', 'linux', 'macos'})
+        self.assertTrue(all(p['revision'] == 2 and '-Rev-2.' in p['asset'] for p in packages))
+        self.assertEqual(len(list(folder.glob('*.zip'))), 3)
+        for name in names:
+            suffix = '.tar.gz' if name.endswith('.tar.gz') else Path(name).suffix
+            updated = name[:-len(suffix)] + '-Rev-2' + suffix
+            self.assertEqual((folder / updated).read_bytes(), b'revision two fixture')
+            self.assertFalse((folder / name).exists())
+        for file in baseline.glob('*.zip'):
+            self.assertEqual(file.read_bytes(), b'revision 1 fixture')
+
     def test_linux_hotfix_preserves_other_targets_and_refreshes_legacy_download(self):
         baseline = self.baseline()
         folder = self.root / "hotfix"
