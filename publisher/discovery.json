@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793777722,
+      "checked_at": 1793779230,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793777723,
+      "checked_at": 1793779231,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -3300,7 +3300,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793777724,
+      "checked_at": 1793779232,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -5609,7 +5609,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793777725,
+      "checked_at": 1793779233,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -8412,7 +8412,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793777726,
+      "checked_at": 1793779234,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -11593,7 +11593,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793777727,
+      "checked_at": 1793779234,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -14258,7 +14258,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793777728,
+      "checked_at": 1793779235,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -17043,7 +17043,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793777729,
+      "checked_at": 1793779236,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -19540,7 +19540,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793777729,
+      "checked_at": 1793779237,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -22477,7 +22477,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793777730,
+      "checked_at": 1793779238,
       "latest_tag": "v0.1.0",
       "releases": [
         {
@@ -22666,7 +22666,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793777731,
+      "checked_at": 1793779238,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -26013,7 +26013,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793777732,
+      "checked_at": 1793779239,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29484,7 +29484,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793777733,
+      "checked_at": 1793779240,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -31859,7 +31859,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793777733,
+      "checked_at": 1793779241,
       "latest_tag": "v0.3.0",
       "releases": [
         {
@@ -32376,7 +32376,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793777735,
+      "checked_at": 1793779242,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -35795,7 +35795,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793777736,
+      "checked_at": 1793779243,
       "latest_tag": "v0.15.1",
       "releases": [
         {
@@ -38304,7 +38304,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793777738,
+      "checked_at": 1793779245,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -51573,7 +51573,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"ec5a3090b841bd9b5e0ff043454757ff47d4656e0f31ad26e885c8a66c42cbb4\"",
+      "etag": "\"7ddd389500a25de2b7427d55adb57479e9f44a38cb440595cb16f3843ea6dfb6\"",
       "body": {
         "assets": [
           {
@@ -51608,7 +51608,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"42a75b7fd32e559d8ddb785b73350253f74e4c45a78496e6bbe92942a09b18a1\"",
+      "etag": "\"29551230fa50f1c17b0014930a62fe7c0f22502c5cf82c2777a9038150d9b00c\"",
       "body": [
         {
           "assets": [
@@ -52413,7 +52413,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"6f8fa3b2db7faca524741bd04efc994ef10919f0a203394994109907a0f5bdb7\"",
+      "etag": "\"6dd40bee37a3e9f67deb8926fec1860ac60197464d3dd5f50c5c62806717483d\"",
       "body": {
         "assets": [
           {
@@ -52598,7 +52598,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"44d92bded58b76741ac809df23c6bb9ffd9c2fbb7d22f5fdf32161cfad317c82\"",
+      "etag": "\"7a3817870dafcbd16fc92e6d42afd865026eac8efbb938c2ecde97ed44966e7b\"",
       "body": [
         {
           "assets": [
@@ -55087,7 +55087,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"6473d92b0a4b9beeb614a1cc78fed966fd75eabf1550f19a4ee5c7d3ec8c08ce\"",
+      "etag": "\"18203aebbc5a24ada76d2b4c007629b0b40851ab3c342835e5fec5068442b02b\"",
       "body": {
         "assets": [
           {
@@ -55272,7 +55272,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"50aebaa1f0e172a2a5eed134c4fd3fb7df80689461e9f916e37b84c8a6e84a59\"",
+      "etag": "\"1cb89216d9e52b8b6549f05271216cd27e446a6f471cfd3d761c84d49a95a32c\"",
       "body": [
         {
           "assets": [
@@ -57579,7 +57579,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"512009ebb4f100e17846bbbd7f8aafe2f675c7d93307a36af99dc7385beefd09\"",
+      "etag": "\"c2d7c470fcad6304a5a8760de648a5595b02b0e76a287733adfd84c972ff39f7\"",
       "body": {
         "assets": [
           {
@@ -57764,7 +57764,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"a671b7c18bcb0fdc1a3b1a00c2a510630cfdd42735be81bd3e95c89f8b4238e4\"",
+      "etag": "\"b3b19e9654283202a02318321bcf85a728b4040fe821f9bddc39de7779a60d43\"",
       "body": [
         {
           "assets": [
@@ -60565,7 +60565,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"0092a4642ff2149e8290b6e066ae2191b1e01af3e791e1739ad5373ded45417d\"",
+      "etag": "\"7dacc512dd3c709c31cee8ed1606406d0424d66aed83839155bacc2b3e471d8b\"",
       "body": {
         "assets": [
           {
@@ -60750,7 +60750,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"3d10bbc8ec495718c02c6e9a48ae47a6e4b253390475354534532f73fa06879b\"",
+      "etag": "\"82b81e5cd26073a4a98c43443e0c80289abf1bf8db59edd62067e369f5c63884\"",
       "body": [
         {
           "assets": [
@@ -63929,7 +63929,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"72d7d594525ed09fbb466d5def57a9a81051bbb960a0d41b975c501e1362068c\"",
+      "etag": "\"d659eb2df50891624f1c24249694ec61eaf2981c85ce2e859625de1f3f47a3d2\"",
       "body": {
         "assets": [
           {
@@ -64126,7 +64126,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"43a48c394c01986176c4bde0b02e8e447fe904277fe67333d1ab1404dcac1616\"",
+      "etag": "\"56c25ab79d88c69723f48eb3bc5eac488195841810459aad65baaa9a9e255854\"",
       "body": [
         {
           "assets": [
@@ -66789,7 +66789,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"51ae8c0cdd98101f4cd4d9a0a1c17d62a01d60e1b8ce77366d4468e3ce917dac\"",
+      "etag": "\"fff57094bfd218833e9bd90f3930b0ae201d0be7ef540e533826bf283d771d86\"",
       "body": {
         "assets": [
           {
@@ -66974,7 +66974,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"692b0f74d8f8dfbeb4b9bd239f984329ee95427fbca12e85f870e097790eff4f\"",
+      "etag": "\"c017126f398422815d642007c8b52504c36a73617ada129a2d016f7a0f4e9e34\"",
       "body": [
         {
           "assets": [
@@ -69757,7 +69757,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"48cf40f0e1243aa24cd6598f8cc03f5bc8005264833ac9b352114c4d93cd5d7f\"",
+      "etag": "\"c27929357e44fde7e76414feee3db0ec30545365fb8be95fc2f88df598cfbcc4\"",
       "body": {
         "assets": [
           {
@@ -69942,7 +69942,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"539da75b5f9c1a395133347838d82a259bdf789046c3b5be9fdbeea51de00fe7\"",
+      "etag": "\"3b8a36313df6ca337c4decb9346d4594f238a5ebda3ad04a19c9c1869aca64ba\"",
       "body": [
         {
           "assets": [
@@ -72437,7 +72437,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"5400ffdbff3f49e4f6d79da874053dac92e2fe67bdf3e857267fdaf80e4f90b2\"",
+      "etag": "\"9e372c6be0552be7ad6e7c31986ff15f151542021590f8cbcdbca37ed036e10e\"",
       "body": {
         "assets": [
           {
@@ -72622,7 +72622,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"6a24cbebff19cd70c9d02d9174b0c9985a42243b0f6b51a37dd89b26da089d1d\"",
+      "etag": "\"88d02772bc0609f2901c255bd9e0e233cf035b25f5a72a14fce89192e167984b\"",
       "body": [
         {
           "assets": [
@@ -75557,7 +75557,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"8853f349aa355d5515b1c4b93f2c5dc892bba65accf5c67599c4a7a2f3d7a51a\"",
+      "etag": "\"1bb8c6b8bd4ca5a787e70e9ea28490f422f8e61fc0d234659597f8625802ce63\"",
       "body": {
         "assets": [
           {
@@ -75742,7 +75742,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"4a47ccb0f070e51cd25aa3b3e5626a366f2a189146eab28913ad083b92f77690\"",
+      "etag": "\"c1cd3ba9fa964135253d04d83cfa41e8756782b86918cf0ff312067f70d261ec\"",
       "body": [
         {
           "assets": [
@@ -75929,7 +75929,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"d41c1d4af84990f6c6ed5faef8a04c17cdf669156db385db7376c6718b1e3a45\"",
+      "etag": "\"8edf46c22d1f25e62d7c97d3bee949b833f4340b71689b93eff27a4b8e6924de\"",
       "body": {
         "assets": [
           {
@@ -76138,7 +76138,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"21acb997eabf36bdaaea1b6554babe154c392a1aa835e05622dd049457f42b62\"",
+      "etag": "\"166d54373e91c0e97dbb9895bed977ef8d7887023fc8da32685b7a5a3bae0838\"",
       "body": [
         {
           "assets": [
@@ -79483,7 +79483,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"c2bb2a989a76652171d8b61a0f0a870027a1d9858dfec1e105b3995312d24603\"",
+      "etag": "\"68fd319a64c05e579c46aa4aa2f9acfdc4fb2ee6df41adda0261b90cbd171263\"",
       "body": {
         "assets": [
           {
@@ -79686,7 +79686,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"965c8d5483631df2af45089d24a0c8b9f0374e1ca4954a5ff950141aaef53ffb\"",
+      "etag": "\"c3947cac29097680ad093f7bed0cb340a005237a576756ca1a2b1a874df4f913\"",
       "body": [
         {
           "assets": [
@@ -83155,7 +83155,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"5a0d1fdf94a822725ea15f45f3ab14733498cde40dc4b2ef79666d7bee1feb88\"",
+      "etag": "\"62e9cc0e3762bfe77d54fbf96181aa65d05f9d969a07fd740dfecb38763ea0ef\"",
       "body": {
         "assets": [
           {
@@ -83340,7 +83340,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"26861a25a8fecac6971a9c847cd0483aa802cd3cf7147c60b8d35092ec8cb515\"",
+      "etag": "\"004aea0a928c320e95feb4b6643d32c174a900f2bef33423b294da0700aa1b48\"",
       "body": [
         {
           "assets": [
@@ -85713,7 +85713,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"39f8b944405515cf75ca66eddc56fe146e124d9edefd4211d88dbefe7c5cf125\"",
+      "etag": "\"3d640d36fea12e5dc51d253555a14d6246e6d21b5e7bb6768cfbdcba5a203466\"",
       "body": {
         "assets": [
           {
@@ -85898,7 +85898,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"2ab97449d200a81017792a08ccc382d49db1b5e928163dd56e9417dca608497c\"",
+      "etag": "\"68d54ae051984f57ca2ad4586193b84fb46d806cd35d497a2f9da209cc43ab0c\"",
       "body": [
         {
           "assets": [
@@ -86413,7 +86413,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"a705962511d15f52e7d668aff0655645dfcd088a4eb68d61417f570814a09f67\"",
+      "etag": "\"4242b0a151c9f955cc8788f489f7d95c1e5f8840208a529caf8b556e2bbe9344\"",
       "body": {
         "assets": [
           {
@@ -86598,7 +86598,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"6d1306f0a3184c88c32d7411534b71204065f9e06009c9067993a95aa2c10f07\"",
+      "etag": "\"64ecf403f49ab0c673968cbaebde28703c8eaf56cd2436b910001f6574839f35\"",
       "body": [
         {
           "assets": [
@@ -90015,7 +90015,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"d8f0f1ae83ecd48ae2213de7545c3c8f2325eb90919d16590c56034244c76f86\"",
+      "etag": "\"cd088c27bdf080fea331469324981b46422ef3c8f83639243cd623c4502431e7\"",
       "body": {
         "assets": [
           {
@@ -90212,7 +90212,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"74644c758ab78cfaf5704dacabbb4ed3a40a3da6a7ea43de2e2a80550b997db0\"",
+      "etag": "\"29a452782fb749123e6ba32a2045f1661b608b3e250656821b011f692d7ab389\"",
       "body": [
         {
           "assets": [
@@ -92719,7 +92719,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"e5183c8b303e65465a22ebacb736209edb95e5a7997c428cfa007b842ccb340b\"",
+      "etag": "\"75a8858b1aacef6256ec1b0d0ead083f88f1a1a1420e464e98fc168a7051ec0c\"",
       "body": {
         "assets": [
           {
@@ -93024,7 +93024,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"240abe30d9490c18dfac4e62ed1b24972b15c18de146e3b809a2095ca50b179c\"",
+      "etag": "\"4040fc9e4656f0ed45748871fbd9ee12fa9b72d6b54edd320e7342e04fc727d4\"",
       "body": [
         {
           "assets": [
