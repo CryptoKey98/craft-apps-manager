@@ -127,6 +127,20 @@ class PublicationTests(unittest.TestCase):
         self.assertTrue((self.feed/'v1/apps'/f'{unknown}.json').exists())
         self.assertTrue((self.feed/'v1/roots/2.json').is_file(),'Previous root remains available regardless of age')
 
+    def test_history_expires_after_one_day_but_not_before(self):
+        _,_,digest=self.publish(1,'v1.0.0',self.now-86401)
+        self.publish(2,'v2.0.0',self.now-86400)
+        self.publish(3,'v3.0.0',self.now-2)
+        archived=self.feed/'v1/roots/1.json'
+        body=self.feed/'v1/apps'/f'{digest}.json'
+        self.assertTrue(archived.exists())
+        self.assertTrue(body.exists())
+        self.publish(4,'v4.0.0',self.now)
+        self.assertFalse(archived.exists())
+        self.assertFalse(body.exists())
+        self.assertTrue((self.feed/'v1/roots/3.json').exists())
+        self.assertTrue((self.feed/'v1/index.json').exists())
+
     def test_invalid_retention_paths_do_not_delete_unrelated_files(self):
         self.publish(1,'v1.0.0')
         ledger=self.feed/'publisher/retention.json'
