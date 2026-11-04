@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793764181,
+      "checked_at": 1793765700,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793764183,
+      "checked_at": 1793765701,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -3300,7 +3300,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793764184,
+      "checked_at": 1793765701,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -5609,7 +5609,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793764185,
+      "checked_at": 1793765702,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -8412,7 +8412,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793764186,
+      "checked_at": 1793765704,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -11593,7 +11593,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793764189,
+      "checked_at": 1793765705,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -14258,7 +14258,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793764190,
+      "checked_at": 1793765706,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -17043,7 +17043,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793764191,
+      "checked_at": 1793765706,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -19540,7 +19540,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793764193,
+      "checked_at": 1793765707,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -22477,7 +22477,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793764193,
+      "checked_at": 1793765708,
       "latest_tag": "v0.1.0",
       "releases": [
         {
@@ -22666,9 +22666,215 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793764194,
-      "latest_tag": "v0.18.0",
+      "checked_at": 1793765709,
+      "latest_tag": "v0.18.1",
       "releases": [
+        {
+          "tag_name": "v0.18.1",
+          "name": "PdfCraft v0.18.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+              "size": 108445936,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:c0d7784cf824e313642bdd51fcd099353e4301793371e7c2d2e5068a390a36dd"
+            },
+            {
+              "name": "pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+              "size": 113141277,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:c6819e3e096758c391ad4c43d6d7afa8688ad97f29fa08c990d7d6574d01716b"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.AppImage",
+              "size": 104294920,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage",
+              "digest": "sha256:8f30be4362ba5119f6388f948b0b88386977568736ffc8961cf2ceee0b41b2d4"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+              "size": 178489,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:7eb2d558a934bf4cf29ef5dcca8590c420f3a11f574c8605aaeb758f13a01944"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.deb",
+              "size": 111863998,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.deb",
+              "digest": "sha256:b61611fa9096d8f1c0e05064bcf55b60017185eaf1ae5b5ea849be7c5c26c168"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.flatpak",
+              "size": 80734352,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.flatpak",
+              "digest": "sha256:c62ae6f275dc961da7e5f9dd1c7ce5944e511b928269fbf924df048d5e727f07"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:9a362fb4119fe5f8b0efc7e9e69eabffad173b2d3a5562542f18a02a5c63ee88"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+              "size": 85613151,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:2c3c0fbe78d40552d5fb40989fc9d4f7bc1a0e5a3a1b47e7e00d0239a13f5fd7"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.rpm",
+              "size": 111169860,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.rpm",
+              "digest": "sha256:f41d2ae0be1dc2168972342780ccedc1ec6234b42aae1a9489adbf548a1d3a87"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-aarch64.tar.gz",
+              "size": 109835028,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.tar.gz",
+              "digest": "sha256:7b9920b9d8c4ccbc362cd7e8cc6f939feaf23fac78b1a8b88791d8d4c93ff01c"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-riscv64.deb",
+              "size": 112194096,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.deb",
+              "digest": "sha256:fa7ca21202cdc82fa51632e729b5f2db4bf0af196bf380d9841372576ce291de"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-riscv64.rpm",
+              "size": 111842887,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.rpm",
+              "digest": "sha256:60b6aee9e6f3c7b103e9aff847359c8f843068f1ecc0f9f06d1959c8ffdcaad4"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-riscv64.tar.gz",
+              "size": 111275869,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.tar.gz",
+              "digest": "sha256:46ada834c0d047829c2dc5802de98b5caa4759c04f54f16b4940351cbb4f2af5"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.AppImage",
+              "size": 108083704,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage",
+              "digest": "sha256:4ce61a8f4f1374591e7468f07a47be542594c1e31d660d9a5d539ddbe85010c6"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+              "size": 184962,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:ce1e3a4d3bfd31838e3fad98e14b881abaeb3c18fc52e327666812114eb661c4"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.deb",
+              "size": 114877520,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.deb",
+              "digest": "sha256:43ef034fbf3f2c5178ef487986d34c03c447bf5e8cae2b100c6596f0a44905f4"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.flatpak",
+              "size": 85034152,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.flatpak",
+              "digest": "sha256:d75c77113013e8698eededf0c7ffb739502b5c3fc05d63a5061224b5bd468520"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:f3779be0f30b5b9ab0c5987f1cf86b8dab00ae8a1f135986f3348a207ec90644"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+              "size": 88190107,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:35038263bdbf7754d0e0de76b76dd8ddac115b87b271f182dae76e8d08cfa558"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.rpm",
+              "size": 114326862,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.rpm",
+              "digest": "sha256:776305fd01b25469d1fbb14ea51b5fc57d7df58b5a824f1e9b494efbad93cd30"
+            },
+            {
+              "name": "pdfcraft-0.18.1-linux-x86_64.tar.gz",
+              "size": 113766955,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.tar.gz",
+              "digest": "sha256:41a6b9fb16970cd3610d05d985997002e419bf5278f86af6ab480783f89bf1fc"
+            },
+            {
+              "name": "pdfcraft-0.18.1-macos-universal.dmg",
+              "size": 128005424,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-macos-universal.dmg",
+              "digest": "sha256:55f84be56388d69f24df22522f6d424f8d8e69529db669ce08ea198455e08ceb"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-arm64-portable.zip",
+              "size": 110412739,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64-portable.zip",
+              "digest": "sha256:5a1e8bb2e961277c29c9f1ccfe371fd00a30c7045e5e5e8fd81a6e127ba8c751"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-arm64.msi",
+              "size": 89407488,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64.msi",
+              "digest": "sha256:7ca8edeaeb7ea73cc5a016fec2c37f6e2af983b1eeb163e3356c5f39f18f1426"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-x64-portable.zip",
+              "size": 115114465,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64-portable.zip",
+              "digest": "sha256:d837a49ecb66ba0afc0b4937f919d74b36a9eff691c1c6167d7f52e1dd3f9ffd"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-x64.msi",
+              "size": 93761536,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64.msi",
+              "digest": "sha256:13640a9ee7e7d741085935db2f4c626850122a300fe23c00492d21f973728e0f"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-x86-portable.zip",
+              "size": 110109310,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86-portable.zip",
+              "digest": "sha256:9df3307d5c98cb2691783ada1aa81bb9ea952169943d51a641a43a71fafa13e8"
+            },
+            {
+              "name": "pdfcraft-0.18.1-windows-x86.msi",
+              "size": 91758592,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86.msi",
+              "digest": "sha256:9ee2a9ef7d1d9433aff352f11fb624100dd9454b9c74c1aca9d695cfbf64b46b"
+            },
+            {
+              "name": "pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+              "size": 40528996,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+              "digest": "sha256:b2cd7bcc3b095c09fbf8ad2abc20b4f44742f3789495fd2fc31d7c24f7a40862"
+            },
+            {
+              "name": "pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+              "size": 42119871,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+              "digest": "sha256:dc9d2644975ef2efc94b855b0839d34fdcba299a944f7a392bda61a730dc0f5d"
+            },
+            {
+              "name": "pdfcraft-cli-0.18.1-macos-universal.zip",
+              "size": 84757072,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-macos-universal.zip",
+              "digest": "sha256:086b233ad7c2bdc172bf8c0e359855fde7c6bdd69a5bd19efb47f08920cfeb7d"
+            },
+            {
+              "name": "pdfcraft-web-0.18.1.zip",
+              "size": 19594206,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-web-0.18.1.zip",
+              "digest": "sha256:91c9d5ad71bf3a4c28df16a7912fe5d4113575f995edbad42928f1f1ad3b42dd"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 3324,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/SHA256SUMS.txt",
+              "digest": "sha256:18bbac803e20e975d41bc5ac4a24bba5017999df66ef5240ef4904c43d6799f4"
+            }
+          ]
+        },
         {
           "tag_name": "v0.18.0",
           "name": "PdfCraft v0.18.0",
@@ -25807,7 +26013,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793764196,
+      "checked_at": 1793765710,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29278,7 +29484,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793764197,
+      "checked_at": 1793765711,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -31653,7 +31859,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793764198,
+      "checked_at": 1793765711,
       "latest_tag": "v0.3.0",
       "releases": [
         {
@@ -32170,7 +32376,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793764199,
+      "checked_at": 1793765713,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -35589,9 +35795,203 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793764200,
-      "latest_tag": "v0.15.0",
+      "checked_at": 1793765713,
+      "latest_tag": "v0.15.1",
       "releases": [
+        {
+          "tag_name": "v0.15.1",
+          "name": "WordCraft v0.15.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 3141,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/SHA256SUMS.txt",
+              "digest": "sha256:7031840d9c46d9b4f90f76dd7b25b9f3e2812089e12cf7b44e452d1827a542e9"
+            },
+            {
+              "name": "wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+              "size": 110798018,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:d91ebbf5a4c9d433c0696e758eb4722b442879f3db0209b99f5891ce6b4e1bc6"
+            },
+            {
+              "name": "wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+              "size": 114963517,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:f224fa03df96e41d9ba1db637ba58a035e9f11ded4c7a6419b1affad9f2b27a4"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.AppImage",
+              "size": 106064392,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage",
+              "digest": "sha256:489bec9ac0c441bcfc30c14a7f5c713d971545e8bb5b30afd25d9b8164779aae"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+              "size": 181515,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:b283a70f04c283c8e34a11c20e462ca53d971ff7e64877a7f749f1e135d9ba6a"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.deb",
+              "size": 114374424,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.deb",
+              "digest": "sha256:651d3a85da229cf3ccbf1077f75ee16d21825058cf3213bdf2547d9d3fbae173"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.flatpak",
+              "size": 78443992,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.flatpak",
+              "digest": "sha256:1de60341a3b3d76f5d7e370b5e8126243e855c190b86ec528aeb0fa7cab113db"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:1f8acdc24d971c7f174cf389e363a2b87a8d92f3c1fb2d84c704777813399dd2"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+              "size": 85209485,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:20b13b09f9af98083a8a014aeac33c6c35433d04ac8019da172e94a66dc45d25"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.rpm",
+              "size": 113596583,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.rpm",
+              "digest": "sha256:22071b35f5c527491e47adb775834d32b9c2f3b06d86f0e7cb46fe219cb8d393"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-aarch64.tar.gz",
+              "size": 111933975,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.tar.gz",
+              "digest": "sha256:1d114f7b670178a1e5bf027980dab0d4f9c1295a2eeffd0b7adb1458cea409a8"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-riscv64.deb",
+              "size": 115179436,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.deb",
+              "digest": "sha256:281f08a39631b49ff37be772a5a5cd9db68cd9c40746f583ba055480a91486f5"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-riscv64.rpm",
+              "size": 114731259,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.rpm",
+              "digest": "sha256:cb1ed216ef4f2d8983ec090afefc0fb3864d1a117d7a343a6a721a7393f31da6"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-riscv64.tar.gz",
+              "size": 113778534,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.tar.gz",
+              "digest": "sha256:5a0b1864029ad1c976123783f5e2d1769410558ace35c2274dcf02890f4c1b80"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.AppImage",
+              "size": 109246968,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage",
+              "digest": "sha256:e8f44fbbf059f12f5cd4f69d7812529729d85d36dd4fe74a6c37f6932632f2fa"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+              "size": 186952,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:d4391cbf073756a52b5ad65015908953ea08602e3c96a93af57c8dd79035c872"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.deb",
+              "size": 116877664,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.deb",
+              "digest": "sha256:7c340982ab7b83763b25342fc40432732eb6eaeca5be4ad53496825436729d8f"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.flatpak",
+              "size": 82159720,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.flatpak",
+              "digest": "sha256:24327d52d29651862e6d5877e6225a0e84185d2c5c6119ff8eeedf0c94a5b8dd"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6aee7c111e329ddba1e0ce017772de8b240ccb8f7557bf3c860ab4fd20fbee03"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+              "size": 87361199,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:13e20a1f00acf22149102084c97c86a494e73543fd68ed38ce0f712dac6ba623"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.rpm",
+              "size": 116226443,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.rpm",
+              "digest": "sha256:e88e4f1aa936b6f00c8af6ed5b22c759f0866a57a2412b98fa59a7610275ce27"
+            },
+            {
+              "name": "wordcraft-0.15.1-linux-x86_64.tar.gz",
+              "size": 115265419,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.tar.gz",
+              "digest": "sha256:8c6fca3809ea1ac8168c4d7d9392cade84a50f54018be1f88121ba4ecc04a552"
+            },
+            {
+              "name": "wordcraft-0.15.1-macos-universal.dmg",
+              "size": 128335727,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-macos-universal.dmg",
+              "digest": "sha256:8ee59436328e24518386c6cf1407f7c6c081fcaca703ce5e5310938af7dab12f"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-arm64-portable.zip",
+              "size": 111369111,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64-portable.zip",
+              "digest": "sha256:b806754740c6c56f3821a6f3ccdcfae3101eb005c71918594c34d2ac759f0599"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-arm64.msi",
+              "size": 89047040,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64.msi",
+              "digest": "sha256:040f73ca46d2ea1bbacf50a28cff5cf09363b2a0020910fd7087ec97f8e08e03"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-x64-portable.zip",
+              "size": 114684769,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64-portable.zip",
+              "digest": "sha256:bac0813a7652526d0a17ff4fd1fcb88d4671277786ee6f27806baa329929f903"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-x64.msi",
+              "size": 92377088,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64.msi",
+              "digest": "sha256:f4b2bed40acc31ae81db7f163f2820425eaa0611adc6ce64a73d7b61e4d59be4"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-x86-portable.zip",
+              "size": 110570173,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86-portable.zip",
+              "digest": "sha256:230df2cf18f6ae2c207b9393e0b7ff9c3975642ca828aa281358b435bb531e27"
+            },
+            {
+              "name": "wordcraft-0.15.1-windows-x86.msi",
+              "size": 90169344,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86.msi",
+              "digest": "sha256:c838f16599ddc449c9c8fed981f2d3c3f454cfc1c58b6f0bf2241764c5ad2f43"
+            },
+            {
+              "name": "wordcraft-cli-0.15.1-macos-universal.zip",
+              "size": 100320244,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-cli-0.15.1-macos-universal.zip",
+              "digest": "sha256:885749231387a8e8212b5c6747d432cf83c49b227d7021ff97f32b4740102174"
+            },
+            {
+              "name": "wordcraft-web-0.15.1.zip",
+              "size": 21264932,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-web-0.15.1.zip",
+              "digest": "sha256:da24ee317eececc6d41f20cfb46f5c4a7c281a5b34374b291ea4b4c63e4951a9"
+            }
+          ]
+        },
         {
           "tag_name": "v0.15.0",
           "name": "WordCraft v0.15.0",
@@ -37904,7 +38304,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793764203,
+      "checked_at": 1793765716,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -51173,7 +51573,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"3d8c1ff564ca249ecf271fcd56e4d2d619289211852c8683e84496f6e0769ffb\"",
+      "etag": "\"d7e4760e2d1cf8c543743274279aec8adcb17f4c1d57845f705b1e1486b2dd0b\"",
       "body": {
         "assets": [
           {
@@ -51208,7 +51608,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"61b7b413e6103b78a2ec128423e148a890345ac2230133e2d8cb8509b0cc0082\"",
+      "etag": "\"122e3c99a62cd29ba5a112eb522bd14050c5ae49e11ca41e18a19ba3e7d5c911\"",
       "body": [
         {
           "assets": [
@@ -52013,7 +52413,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"bc84a278774c6bb285011c9593ee266913810860e3653ee97d92fe1376357f7f\"",
+      "etag": "\"1ef7403d0765d1444683ed9403e5a36ff93e0fd9cca97a76c06ed9f8533c506f\"",
       "body": {
         "assets": [
           {
@@ -52198,7 +52598,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"61fa745c26445368943ce05728dbbcc239cdc841da52b08ad4ae3f9420c519f4\"",
+      "etag": "\"2c827143b5db6d27da5952fff6512b1b4f2e6675e561845d17340f9859bd058b\"",
       "body": [
         {
           "assets": [
@@ -54687,7 +55087,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"b2d488edae7e3fba388122e1ec66a179b1db008821d77f50ef78caec06bc96c8\"",
+      "etag": "\"628575658b2d9d93fc2044d07569fea6a205ad7e0e2c3b4bff84d1d45f69b0e8\"",
       "body": {
         "assets": [
           {
@@ -54872,7 +55272,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"6dc09f49a14af98e5098e8da1bc69afe30dc62247f328e9957ad9beee270d3c8\"",
+      "etag": "\"e7d4561e34897422407e8a23b853f6fec22cdec08c40406a50431fbd2fbcee6e\"",
       "body": [
         {
           "assets": [
@@ -57179,7 +57579,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"0bdec7bccd696e7d10ecef3279426b0b4368ae0d470b515725aa78bc7741c8f5\"",
+      "etag": "\"54dfaf5911d510503cdad15267d9d11d4ffd6d7dfd941407d621e58945267e81\"",
       "body": {
         "assets": [
           {
@@ -57364,7 +57764,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"5048076f4786930e5999c7545e5d6cd7c8b0854302ef2e560bbe2446d7f2fe83\"",
+      "etag": "\"3d243219a33c58ea7344040541a3f26644c6526500a909b9d928f43681504f16\"",
       "body": [
         {
           "assets": [
@@ -60165,7 +60565,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"a80751025574defe63d9112e79aa6ef800da420ef1b1f12b7396f3b4fb21e7f5\"",
+      "etag": "\"050a0eb0b5e13933a4cfa7582d7bc1aa42615da5b69576fee248266b8d46696b\"",
       "body": {
         "assets": [
           {
@@ -60350,7 +60750,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"1261177cd5a5968ecd00a57bf9e8cfa6861cba9fbe131f351bd4cf75bce73a18\"",
+      "etag": "\"08df033edc777f0e1e6d101205613280ba6567f101174078d9386274064e3092\"",
       "body": [
         {
           "assets": [
@@ -63529,7 +63929,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"cbb66c66f24c4b590ea5bba8e3a7c9ba9d53252b8b31fcb8bf71558941ed42f4\"",
+      "etag": "\"9c066890fc5955033d6e6cf62472df8935e6966967eb16454c993ab64f3d241a\"",
       "body": {
         "assets": [
           {
@@ -63726,7 +64126,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"177cfbe74722f26aace67d2adc76b11fad98dd92cfee867d5f26c13b1177ff3b\"",
+      "etag": "\"b598a4bf8d041661f8461439cfc580a38a68775ac798876ab7f54af7f422b254\"",
       "body": [
         {
           "assets": [
@@ -66389,7 +66789,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"b745bd0b19abf8aa76a3463812a0e9d9caa4397ac90f7b6b0d303bc23e02cd9e\"",
+      "etag": "\"4f3d7216f43dadc31a995601f9725db1cb0cfcf36d1e3897d9a8abd60ae78ff4\"",
       "body": {
         "assets": [
           {
@@ -66574,7 +66974,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"e545ade21fca155ea50dd01f31d7c5e512b129fc30916934c7c3bd0abb5b94e3\"",
+      "etag": "\"a2a268245c3b6a41b446119a4155323890a91abe3f362925a2216f3d3c9e746a\"",
       "body": [
         {
           "assets": [
@@ -69357,7 +69757,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"2ba22835bbfe5d8cfac1f0efe7f052a0f037fcd78363b20abc14e43535828f78\"",
+      "etag": "\"9063d190a71c4fa860fe39233ed9bf9456638021f8c5950bc1321ca798a549dc\"",
       "body": {
         "assets": [
           {
@@ -69542,7 +69942,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"0ebb49402d62e462ebd42b2171cc18f642bcc5054d775cb08d8a725f16de2d9e\"",
+      "etag": "\"18a45cc3555ae93dc7f9028cf06d315c0372b62a2e7ae6d11da18c29ddd69f64\"",
       "body": [
         {
           "assets": [
@@ -72037,7 +72437,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"0970758594249be915f858fbbbe354e2876773d1bee854f33b0d12c6bcd18b0d\"",
+      "etag": "\"1c6fcafd2f954d2d26a900538d65dd6e0ceb0ede7b22af6f374d94070a116fd3\"",
       "body": {
         "assets": [
           {
@@ -72222,7 +72622,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"932bad725445d7046709d74aac086bd9293a291c2c226123d019d2a28fd73ba6\"",
+      "etag": "\"04bbffff721373ab9a2c680954b117ffc3984121df4c6414066ca92319a9b3be\"",
       "body": [
         {
           "assets": [
@@ -75157,7 +75557,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"297e7bb1506da91444f4027e427b311ad57b3f7cd1053e78313ad3a405d1dc45\"",
+      "etag": "\"6f86b1ac07e5f2a85d05dae91c522ab9ff7a90840cc9a12039e13e4f4dcf6fe3\"",
       "body": {
         "assets": [
           {
@@ -75342,7 +75742,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"089911fef3865e0806627d45b6bc3895345f7b57d6e739f5e81fccda8f37976c\"",
+      "etag": "\"76f4bcdac81cd967c5f9af4484bcfe6d2d2f4fdf0025c9382fca668af0c4b827\"",
       "body": [
         {
           "assets": [
@@ -75529,205 +75929,423 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"b385f2d3e34b531ceb84cd2b44ef32b25bf0e3c9fedc93e18465befad7e5587e\"",
+      "etag": "\"e67deec72d30d69b245335f56751e9502dbf45f55d36213c5865c0d1d021901a\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:16ce08567fa763051dfa8942f2483cf516e7aac684abffa2a6a766ddb9dec1c9",
-            "name": "pdfcraft-0.18.0-freebsd-aarch64.tar.gz",
-            "size": 106236732
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:c0d7784cf824e313642bdd51fcd099353e4301793371e7c2d2e5068a390a36dd",
+            "name": "pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+            "size": 108445936
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:2130f622cc2cfc6220d24c56c9e0bc172fbf1095c75b9f82cbda7057fb3313a5",
-            "name": "pdfcraft-0.18.0-freebsd-x86_64.tar.gz",
-            "size": 110866744
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:c6819e3e096758c391ad4c43d6d7afa8688ad97f29fa08c990d7d6574d01716b",
+            "name": "pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+            "size": 113141277
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.AppImage",
-            "digest": "sha256:35dea042a84a0818de2e7611cf24b937d96b64604c0cd7688c0e1841ab34b338",
-            "name": "pdfcraft-0.18.0-linux-aarch64.AppImage",
-            "size": 102296072
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage",
+            "digest": "sha256:8f30be4362ba5119f6388f948b0b88386977568736ffc8961cf2ceee0b41b2d4",
+            "name": "pdfcraft-0.18.1-linux-aarch64.AppImage",
+            "size": 104294920
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:7cf1a379fcee43ece9664387f8f56768b2f34bda94882df733a5d2eaf5da2014",
-            "name": "pdfcraft-0.18.0-linux-aarch64.AppImage.zsync",
-            "size": 175073
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:7eb2d558a934bf4cf29ef5dcca8590c420f3a11f574c8605aaeb758f13a01944",
+            "name": "pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+            "size": 178489
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.deb",
-            "digest": "sha256:7556e4d3ffb5e27c1568f4e0814381f54217f2a61cafd72b6083d30e665ece07",
-            "name": "pdfcraft-0.18.0-linux-aarch64.deb",
-            "size": 109658574
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.deb",
+            "digest": "sha256:b61611fa9096d8f1c0e05064bcf55b60017185eaf1ae5b5ea849be7c5c26c168",
+            "name": "pdfcraft-0.18.1-linux-aarch64.deb",
+            "size": 111863998
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.flatpak",
-            "digest": "sha256:25d3f8e82b6cf40974f5663bd4bbb162c7a5af6a714d8055e769dbde963c7779",
-            "name": "pdfcraft-0.18.0-linux-aarch64.flatpak",
-            "size": 79535256
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.flatpak",
+            "digest": "sha256:c62ae6f275dc961da7e5f9dd1c7ce5944e511b928269fbf924df048d5e727f07",
+            "name": "pdfcraft-0.18.1-linux-aarch64.flatpak",
+            "size": 80734352
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:56f785b56efa1ff67378460ff05a4fe3f68a35ac97e297c7560017d152078508",
-            "name": "pdfcraft-0.18.0-linux-aarch64.pkg.tar.zst",
-            "size": 84386185
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:9a362fb4119fe5f8b0efc7e9e69eabffad173b2d3a5562542f18a02a5c63ee88",
+            "name": "pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.rpm",
-            "digest": "sha256:98cddce347965fbf73e8987150004d2e0df51225c1ae3e636969808245629f23",
-            "name": "pdfcraft-0.18.0-linux-aarch64.rpm",
-            "size": 108994043
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:2c3c0fbe78d40552d5fb40989fc9d4f7bc1a0e5a3a1b47e7e00d0239a13f5fd7",
+            "name": "pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+            "size": 85613151
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-aarch64.tar.gz",
-            "digest": "sha256:66c3420841371861fc38c2e8c92660585d0fe3fb782d080090c9c08bfa177ef2",
-            "name": "pdfcraft-0.18.0-linux-aarch64.tar.gz",
-            "size": 107624454
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.rpm",
+            "digest": "sha256:f41d2ae0be1dc2168972342780ccedc1ec6234b42aae1a9489adbf548a1d3a87",
+            "name": "pdfcraft-0.18.1-linux-aarch64.rpm",
+            "size": 111169860
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-riscv64.deb",
-            "digest": "sha256:fa42870b2431643481edbf22d591c95c778204ce33c8a17214cfecfdbd408909",
-            "name": "pdfcraft-0.18.0-linux-riscv64.deb",
-            "size": 109938398
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.tar.gz",
+            "digest": "sha256:7b9920b9d8c4ccbc362cd7e8cc6f939feaf23fac78b1a8b88791d8d4c93ff01c",
+            "name": "pdfcraft-0.18.1-linux-aarch64.tar.gz",
+            "size": 109835028
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-riscv64.rpm",
-            "digest": "sha256:aae2e51902b61a7a694901fe4a83fc641cfb9a002aabc6bf011142b460a5d644",
-            "name": "pdfcraft-0.18.0-linux-riscv64.rpm",
-            "size": 109614701
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.deb",
+            "digest": "sha256:fa7ca21202cdc82fa51632e729b5f2db4bf0af196bf380d9841372576ce291de",
+            "name": "pdfcraft-0.18.1-linux-riscv64.deb",
+            "size": 112194096
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-riscv64.tar.gz",
-            "digest": "sha256:82ce959cbba6adb100400ca54e77d350324e8dd000f25fe3255e062b842277f3",
-            "name": "pdfcraft-0.18.0-linux-riscv64.tar.gz",
-            "size": 109019176
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.rpm",
+            "digest": "sha256:60b6aee9e6f3c7b103e9aff847359c8f843068f1ecc0f9f06d1959c8ffdcaad4",
+            "name": "pdfcraft-0.18.1-linux-riscv64.rpm",
+            "size": 111842887
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.AppImage",
-            "digest": "sha256:3fd477e32f20680cf0c2d986425f783a171788869be90be556e5878b5b2318bf",
-            "name": "pdfcraft-0.18.0-linux-x86_64.AppImage",
-            "size": 105986552
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.tar.gz",
+            "digest": "sha256:46ada834c0d047829c2dc5802de98b5caa4759c04f54f16b4940351cbb4f2af5",
+            "name": "pdfcraft-0.18.1-linux-riscv64.tar.gz",
+            "size": 111275869
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:8fcc0819b8a4a5e22a0333a2aca092f114a7043884adb2c3a69b131c80dbe275",
-            "name": "pdfcraft-0.18.0-linux-x86_64.AppImage.zsync",
-            "size": 181378
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage",
+            "digest": "sha256:4ce61a8f4f1374591e7468f07a47be542594c1e31d660d9a5d539ddbe85010c6",
+            "name": "pdfcraft-0.18.1-linux-x86_64.AppImage",
+            "size": 108083704
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.deb",
-            "digest": "sha256:25c6d318693f65913fe1102082b9b60354b5b7f503ad789e4d6ef1fc506eb5c5",
-            "name": "pdfcraft-0.18.0-linux-x86_64.deb",
-            "size": 112577106
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:ce1e3a4d3bfd31838e3fad98e14b881abaeb3c18fc52e327666812114eb661c4",
+            "name": "pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+            "size": 184962
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.flatpak",
-            "digest": "sha256:a088456459fde50cc59878dbfda3e72e30c42b757bec445d07f83ff025afec47",
-            "name": "pdfcraft-0.18.0-linux-x86_64.flatpak",
-            "size": 83417536
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.deb",
+            "digest": "sha256:43ef034fbf3f2c5178ef487986d34c03c447bf5e8cae2b100c6596f0a44905f4",
+            "name": "pdfcraft-0.18.1-linux-x86_64.deb",
+            "size": 114877520
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:5a2d2c73b1a91a8c7011a983874b14011cb89f64e2eb9d7c553520a47ce4d1c2",
-            "name": "pdfcraft-0.18.0-linux-x86_64.pkg.tar.zst",
-            "size": 86909927
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.flatpak",
+            "digest": "sha256:d75c77113013e8698eededf0c7ffb739502b5c3fc05d63a5061224b5bd468520",
+            "name": "pdfcraft-0.18.1-linux-x86_64.flatpak",
+            "size": 85034152
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.rpm",
-            "digest": "sha256:d7f73de70bbae9b27be9db8871a83f12ba31e08e7059638d25919e88dcee45e9",
-            "name": "pdfcraft-0.18.0-linux-x86_64.rpm",
-            "size": 112047464
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:f3779be0f30b5b9ab0c5987f1cf86b8dab00ae8a1f135986f3348a207ec90644",
+            "name": "pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-linux-x86_64.tar.gz",
-            "digest": "sha256:cb3665cc45cc7aa6ba01c868b9f7c69dc4d800bef52d41cffea8bf5037c4eb6d",
-            "name": "pdfcraft-0.18.0-linux-x86_64.tar.gz",
-            "size": 111482356
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:35038263bdbf7754d0e0de76b76dd8ddac115b87b271f182dae76e8d08cfa558",
+            "name": "pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+            "size": 88190107
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-macos-universal.dmg",
-            "digest": "sha256:2c7be0e8300e3bad93ccd390eae16ec342bcd935b12dc282fda3f0589bc7ce72",
-            "name": "pdfcraft-0.18.0-macos-universal.dmg",
-            "size": 123491344
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.rpm",
+            "digest": "sha256:776305fd01b25469d1fbb14ea51b5fc57d7df58b5a824f1e9b494efbad93cd30",
+            "name": "pdfcraft-0.18.1-linux-x86_64.rpm",
+            "size": 114326862
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-arm64-portable.zip",
-            "digest": "sha256:f6c3e1569ca60c8742a53c3f605ead2ca4a8b3c3281e926ad677342735376140",
-            "name": "pdfcraft-0.18.0-windows-arm64-portable.zip",
-            "size": 108192996
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.tar.gz",
+            "digest": "sha256:41a6b9fb16970cd3610d05d985997002e419bf5278f86af6ab480783f89bf1fc",
+            "name": "pdfcraft-0.18.1-linux-x86_64.tar.gz",
+            "size": 113766955
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-arm64.msi",
-            "digest": "sha256:83c9676c6dcce2d7d1bb9f03d2c46ef73cc6f4cd4247006238a4a3a63c862b69",
-            "name": "pdfcraft-0.18.0-windows-arm64.msi",
-            "size": 88125440
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-macos-universal.dmg",
+            "digest": "sha256:55f84be56388d69f24df22522f6d424f8d8e69529db669ce08ea198455e08ceb",
+            "name": "pdfcraft-0.18.1-macos-universal.dmg",
+            "size": 128005424
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-x64-portable.zip",
-            "digest": "sha256:1def8bf7960016dab1499e629d5cf0907846c74d01f453aadb2f622690e6c750",
-            "name": "pdfcraft-0.18.0-windows-x64-portable.zip",
-            "size": 112809410
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64-portable.zip",
+            "digest": "sha256:5a1e8bb2e961277c29c9f1ccfe371fd00a30c7045e5e5e8fd81a6e127ba8c751",
+            "name": "pdfcraft-0.18.1-windows-arm64-portable.zip",
+            "size": 110412739
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-x64.msi",
-            "digest": "sha256:f6a3b00d5c38c1b9c71fbef6ce0ecceb356d471789a6e4541df6f90c18b5afaf",
-            "name": "pdfcraft-0.18.0-windows-x64.msi",
-            "size": 92430336
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64.msi",
+            "digest": "sha256:7ca8edeaeb7ea73cc5a016fec2c37f6e2af983b1eeb163e3356c5f39f18f1426",
+            "name": "pdfcraft-0.18.1-windows-arm64.msi",
+            "size": 89407488
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-x86-portable.zip",
-            "digest": "sha256:e20e777735b9d04c6655ee9a3b69144c972db4b8d7095c0a48a7b30a0d6ccfab",
-            "name": "pdfcraft-0.18.0-windows-x86-portable.zip",
-            "size": 107875651
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64-portable.zip",
+            "digest": "sha256:d837a49ecb66ba0afc0b4937f919d74b36a9eff691c1c6167d7f52e1dd3f9ffd",
+            "name": "pdfcraft-0.18.1-windows-x64-portable.zip",
+            "size": 115114465
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-0.18.0-windows-x86.msi",
-            "digest": "sha256:f82e5ef6f570b34c7c77e4769fca70ffcd4261252b350188b40030d7c05de867",
-            "name": "pdfcraft-0.18.0-windows-x86.msi",
-            "size": 90472448
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64.msi",
+            "digest": "sha256:13640a9ee7e7d741085935db2f4c626850122a300fe23c00492d21f973728e0f",
+            "name": "pdfcraft-0.18.1-windows-x64.msi",
+            "size": 93761536
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-cli-0.18.0-linux-aarch64.tar.gz",
-            "digest": "sha256:444f172cd95f4d9d4d08c206d6655642899631c7f1391c7a79eb8fcbc1505459",
-            "name": "pdfcraft-cli-0.18.0-linux-aarch64.tar.gz",
-            "size": 40502013
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86-portable.zip",
+            "digest": "sha256:9df3307d5c98cb2691783ada1aa81bb9ea952169943d51a641a43a71fafa13e8",
+            "name": "pdfcraft-0.18.1-windows-x86-portable.zip",
+            "size": 110109310
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-cli-0.18.0-linux-x86_64.tar.gz",
-            "digest": "sha256:4d581640d8dc34bdef56918569c2df797fb403828b623cb7b048a7cb624a9011",
-            "name": "pdfcraft-cli-0.18.0-linux-x86_64.tar.gz",
-            "size": 42093922
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86.msi",
+            "digest": "sha256:9ee2a9ef7d1d9433aff352f11fb624100dd9454b9c74c1aca9d695cfbf64b46b",
+            "name": "pdfcraft-0.18.1-windows-x86.msi",
+            "size": 91758592
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-cli-0.18.0-macos-universal.zip",
-            "digest": "sha256:b5a9d4fc25116309de3613fdf39d26133b9a7cc75e35c1fa53db8308d3b3ff77",
-            "name": "pdfcraft-cli-0.18.0-macos-universal.zip",
-            "size": 84699673
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+            "digest": "sha256:b2cd7bcc3b095c09fbf8ad2abc20b4f44742f3789495fd2fc31d7c24f7a40862",
+            "name": "pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+            "size": 40528996
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/pdfcraft-web-0.18.0.zip",
-            "digest": "sha256:f33ff865fcde66328360edd135622eb214b4b84e2292455d826aac69a7e07ead",
-            "name": "pdfcraft-web-0.18.0.zip",
-            "size": 17486432
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+            "digest": "sha256:dc9d2644975ef2efc94b855b0839d34fdcba299a944f7a392bda61a730dc0f5d",
+            "name": "pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+            "size": 42119871
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.0/SHA256SUMS.txt",
-            "digest": "sha256:1784cd92a302c83c2fed7729c76fcd40164940955dd0e48b2bf43dd0fb9b7469",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-macos-universal.zip",
+            "digest": "sha256:086b233ad7c2bdc172bf8c0e359855fde7c6bdd69a5bd19efb47f08920cfeb7d",
+            "name": "pdfcraft-cli-0.18.1-macos-universal.zip",
+            "size": 84757072
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-web-0.18.1.zip",
+            "digest": "sha256:91c9d5ad71bf3a4c28df16a7912fe5d4113575f995edbad42928f1f1ad3b42dd",
+            "name": "pdfcraft-web-0.18.1.zip",
+            "size": 19594206
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/SHA256SUMS.txt",
+            "digest": "sha256:18bbac803e20e975d41bc5ac4a24bba5017999df66ef5240ef4904c43d6799f4",
             "name": "SHA256SUMS.txt",
-            "size": 3097
+            "size": 3324
           }
         ],
         "draft": false,
-        "name": "PdfCraft v0.18.0",
+        "name": "PdfCraft v0.18.1",
         "prerelease": false,
-        "tag_name": "v0.18.0"
+        "tag_name": "v0.18.1"
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"185032476c1d74230ce3f6ba70596298a178063c4e6a4db968daf7f0bb00d351\"",
+      "etag": "\"52d50bb1a3655595f8be92cc8cbfd939ebc223509bb720073bf92fa0e441bb09\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:c0d7784cf824e313642bdd51fcd099353e4301793371e7c2d2e5068a390a36dd",
+              "name": "pdfcraft-0.18.1-freebsd-aarch64.tar.gz",
+              "size": 108445936
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:c6819e3e096758c391ad4c43d6d7afa8688ad97f29fa08c990d7d6574d01716b",
+              "name": "pdfcraft-0.18.1-freebsd-x86_64.tar.gz",
+              "size": 113141277
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage",
+              "digest": "sha256:8f30be4362ba5119f6388f948b0b88386977568736ffc8961cf2ceee0b41b2d4",
+              "name": "pdfcraft-0.18.1-linux-aarch64.AppImage",
+              "size": 104294920
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:7eb2d558a934bf4cf29ef5dcca8590c420f3a11f574c8605aaeb758f13a01944",
+              "name": "pdfcraft-0.18.1-linux-aarch64.AppImage.zsync",
+              "size": 178489
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.deb",
+              "digest": "sha256:b61611fa9096d8f1c0e05064bcf55b60017185eaf1ae5b5ea849be7c5c26c168",
+              "name": "pdfcraft-0.18.1-linux-aarch64.deb",
+              "size": 111863998
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.flatpak",
+              "digest": "sha256:c62ae6f275dc961da7e5f9dd1c7ce5944e511b928269fbf924df048d5e727f07",
+              "name": "pdfcraft-0.18.1-linux-aarch64.flatpak",
+              "size": 80734352
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:9a362fb4119fe5f8b0efc7e9e69eabffad173b2d3a5562542f18a02a5c63ee88",
+              "name": "pdfcraft-0.18.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:2c3c0fbe78d40552d5fb40989fc9d4f7bc1a0e5a3a1b47e7e00d0239a13f5fd7",
+              "name": "pdfcraft-0.18.1-linux-aarch64.pkg.tar.zst",
+              "size": 85613151
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.rpm",
+              "digest": "sha256:f41d2ae0be1dc2168972342780ccedc1ec6234b42aae1a9489adbf548a1d3a87",
+              "name": "pdfcraft-0.18.1-linux-aarch64.rpm",
+              "size": 111169860
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-aarch64.tar.gz",
+              "digest": "sha256:7b9920b9d8c4ccbc362cd7e8cc6f939feaf23fac78b1a8b88791d8d4c93ff01c",
+              "name": "pdfcraft-0.18.1-linux-aarch64.tar.gz",
+              "size": 109835028
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.deb",
+              "digest": "sha256:fa7ca21202cdc82fa51632e729b5f2db4bf0af196bf380d9841372576ce291de",
+              "name": "pdfcraft-0.18.1-linux-riscv64.deb",
+              "size": 112194096
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.rpm",
+              "digest": "sha256:60b6aee9e6f3c7b103e9aff847359c8f843068f1ecc0f9f06d1959c8ffdcaad4",
+              "name": "pdfcraft-0.18.1-linux-riscv64.rpm",
+              "size": 111842887
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-riscv64.tar.gz",
+              "digest": "sha256:46ada834c0d047829c2dc5802de98b5caa4759c04f54f16b4940351cbb4f2af5",
+              "name": "pdfcraft-0.18.1-linux-riscv64.tar.gz",
+              "size": 111275869
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage",
+              "digest": "sha256:4ce61a8f4f1374591e7468f07a47be542594c1e31d660d9a5d539ddbe85010c6",
+              "name": "pdfcraft-0.18.1-linux-x86_64.AppImage",
+              "size": 108083704
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:ce1e3a4d3bfd31838e3fad98e14b881abaeb3c18fc52e327666812114eb661c4",
+              "name": "pdfcraft-0.18.1-linux-x86_64.AppImage.zsync",
+              "size": 184962
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.deb",
+              "digest": "sha256:43ef034fbf3f2c5178ef487986d34c03c447bf5e8cae2b100c6596f0a44905f4",
+              "name": "pdfcraft-0.18.1-linux-x86_64.deb",
+              "size": 114877520
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.flatpak",
+              "digest": "sha256:d75c77113013e8698eededf0c7ffb739502b5c3fc05d63a5061224b5bd468520",
+              "name": "pdfcraft-0.18.1-linux-x86_64.flatpak",
+              "size": 85034152
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:f3779be0f30b5b9ab0c5987f1cf86b8dab00ae8a1f135986f3348a207ec90644",
+              "name": "pdfcraft-0.18.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:35038263bdbf7754d0e0de76b76dd8ddac115b87b271f182dae76e8d08cfa558",
+              "name": "pdfcraft-0.18.1-linux-x86_64.pkg.tar.zst",
+              "size": 88190107
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.rpm",
+              "digest": "sha256:776305fd01b25469d1fbb14ea51b5fc57d7df58b5a824f1e9b494efbad93cd30",
+              "name": "pdfcraft-0.18.1-linux-x86_64.rpm",
+              "size": 114326862
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-linux-x86_64.tar.gz",
+              "digest": "sha256:41a6b9fb16970cd3610d05d985997002e419bf5278f86af6ab480783f89bf1fc",
+              "name": "pdfcraft-0.18.1-linux-x86_64.tar.gz",
+              "size": 113766955
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-macos-universal.dmg",
+              "digest": "sha256:55f84be56388d69f24df22522f6d424f8d8e69529db669ce08ea198455e08ceb",
+              "name": "pdfcraft-0.18.1-macos-universal.dmg",
+              "size": 128005424
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64-portable.zip",
+              "digest": "sha256:5a1e8bb2e961277c29c9f1ccfe371fd00a30c7045e5e5e8fd81a6e127ba8c751",
+              "name": "pdfcraft-0.18.1-windows-arm64-portable.zip",
+              "size": 110412739
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-arm64.msi",
+              "digest": "sha256:7ca8edeaeb7ea73cc5a016fec2c37f6e2af983b1eeb163e3356c5f39f18f1426",
+              "name": "pdfcraft-0.18.1-windows-arm64.msi",
+              "size": 89407488
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64-portable.zip",
+              "digest": "sha256:d837a49ecb66ba0afc0b4937f919d74b36a9eff691c1c6167d7f52e1dd3f9ffd",
+              "name": "pdfcraft-0.18.1-windows-x64-portable.zip",
+              "size": 115114465
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x64.msi",
+              "digest": "sha256:13640a9ee7e7d741085935db2f4c626850122a300fe23c00492d21f973728e0f",
+              "name": "pdfcraft-0.18.1-windows-x64.msi",
+              "size": 93761536
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86-portable.zip",
+              "digest": "sha256:9df3307d5c98cb2691783ada1aa81bb9ea952169943d51a641a43a71fafa13e8",
+              "name": "pdfcraft-0.18.1-windows-x86-portable.zip",
+              "size": 110109310
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-0.18.1-windows-x86.msi",
+              "digest": "sha256:9ee2a9ef7d1d9433aff352f11fb624100dd9454b9c74c1aca9d695cfbf64b46b",
+              "name": "pdfcraft-0.18.1-windows-x86.msi",
+              "size": 91758592
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+              "digest": "sha256:b2cd7bcc3b095c09fbf8ad2abc20b4f44742f3789495fd2fc31d7c24f7a40862",
+              "name": "pdfcraft-cli-0.18.1-linux-aarch64.tar.gz",
+              "size": 40528996
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+              "digest": "sha256:dc9d2644975ef2efc94b855b0839d34fdcba299a944f7a392bda61a730dc0f5d",
+              "name": "pdfcraft-cli-0.18.1-linux-x86_64.tar.gz",
+              "size": 42119871
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-cli-0.18.1-macos-universal.zip",
+              "digest": "sha256:086b233ad7c2bdc172bf8c0e359855fde7c6bdd69a5bd19efb47f08920cfeb7d",
+              "name": "pdfcraft-cli-0.18.1-macos-universal.zip",
+              "size": 84757072
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/pdfcraft-web-0.18.1.zip",
+              "digest": "sha256:91c9d5ad71bf3a4c28df16a7912fe5d4113575f995edbad42928f1f1ad3b42dd",
+              "name": "pdfcraft-web-0.18.1.zip",
+              "size": 19594206
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.18.1/SHA256SUMS.txt",
+              "digest": "sha256:18bbac803e20e975d41bc5ac4a24bba5017999df66ef5240ef4904c43d6799f4",
+              "name": "SHA256SUMS.txt",
+              "size": 3324
+            }
+          ],
+          "draft": false,
+          "name": "PdfCraft v0.18.1",
+          "prerelease": false,
+          "tag_name": "v0.18.1"
+        },
         {
           "assets": [
             {
@@ -78865,7 +79483,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"ee58ef554302f7c0c4f3ad39da99eb7691bbf0a732dcd20413af448429bf4288\"",
+      "etag": "\"e049b986df64a74606da117de340e1bd30598ba31fa873e97d548d10ad321830\"",
       "body": {
         "assets": [
           {
@@ -79068,7 +79686,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"6709de6c6dc80d39ab22886d3191f08a0b44ea9756c4dd130bcdda87f3b0ccd8\"",
+      "etag": "\"8c69b6c86bffd6440b333078c279f20e427cb460595d126abbef9678431b8668\"",
       "body": [
         {
           "assets": [
@@ -82537,7 +83155,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"f5cd7a83e2142f193c4426a7ea170b49e34a7e24735a55e43463c952484378aa\"",
+      "etag": "\"40c5457c43184a6e7f94dfe01f3f92e1da3203c3781fa4e245186e5939903361\"",
       "body": {
         "assets": [
           {
@@ -82722,7 +83340,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"2ecad3bcef7e697987aedb25804e54dd7a7c0df1806d1b572e190034eca9741f\"",
+      "etag": "\"30b6cbc5a9d5117044d9e03866fd14d8a03c4ec0c51712da9cacc6d36e84bcb3\"",
       "body": [
         {
           "assets": [
@@ -85095,7 +85713,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"29a1abcbf6f5cc69d03cb3035101ab9c0e3aaab2650392ec6ab89f4c77e70ddf\"",
+      "etag": "\"43f18b29af059af2b5590d4f90495d01f36ce52048e9737ad5e729a0ab53d12c\"",
       "body": {
         "assets": [
           {
@@ -85280,7 +85898,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"700a95486f132b381de8a09e4771e67e741516b2ab0ce4c5bbc06f614117e623\"",
+      "etag": "\"813a060599522a2789a0d4fa4cb33615b04dba253ee14abe1438c7baffa04841\"",
       "body": [
         {
           "assets": [
@@ -85795,7 +86413,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"0ee0f9c19c2911c1f97b3b185e1de9fe72f9c615d68bb7f3dda280731830192d\"",
+      "etag": "\"3ca9de8fb24c3c371defd68d9df34e7da5d93104977e892199a7e46eaf0449bf\"",
       "body": {
         "assets": [
           {
@@ -85980,7 +86598,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"8f61db20bbbf869cf6b8205df94ddf55cce1fd8e5879a778c882a72e54596b94\"",
+      "etag": "\"11aea6672f69d6c9f335fdcbcd235d379b07f1f4c369a75bfc62659272edcb3a\"",
       "body": [
         {
           "assets": [
@@ -89397,193 +90015,399 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"ca8244d13961d1c18edbd34bd29df9ddd5c2c96ab0750e19d7b45442870006f8\"",
+      "etag": "\"00491f51042ac018035540f55426d376d5d962ba4083c34cbfd97581b802e32e\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/SHA256SUMS.txt",
-            "digest": "sha256:921acbe7129590c36683bbe112e51670be9f898a178dead1625e764ec57111fc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/SHA256SUMS.txt",
+            "digest": "sha256:7031840d9c46d9b4f90f76dd7b25b9f3e2812089e12cf7b44e452d1827a542e9",
             "name": "SHA256SUMS.txt",
-            "size": 2912
+            "size": 3141
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:253a6a068af259d0a9e2426105555e2d663daff7481b40f1d8b9aaedaaedf518",
-            "name": "wordcraft-0.15.0-freebsd-aarch64.tar.gz",
-            "size": 109996182
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:d91ebbf5a4c9d433c0696e758eb4722b442879f3db0209b99f5891ce6b4e1bc6",
+            "name": "wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+            "size": 110798018
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:1771370bc2f7f3144557e12b380d1d11c93d3761ad556809c97b9bc0ae44c035",
-            "name": "wordcraft-0.15.0-freebsd-x86_64.tar.gz",
-            "size": 114042470
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:f224fa03df96e41d9ba1db637ba58a035e9f11ded4c7a6419b1affad9f2b27a4",
+            "name": "wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+            "size": 114963517
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.AppImage",
-            "digest": "sha256:35098ecabbd4591d86ffa74ceb618e82d976fe47a8eb8177dcd3940088a36eb3",
-            "name": "wordcraft-0.15.0-linux-aarch64.AppImage",
-            "size": 105400840
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage",
+            "digest": "sha256:489bec9ac0c441bcfc30c14a7f5c713d971545e8bb5b30afd25d9b8164779aae",
+            "name": "wordcraft-0.15.1-linux-aarch64.AppImage",
+            "size": 106064392
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:a6d11665a5db2ad092855d54fa790699460b1445ce066fad070669e4289e39e3",
-            "name": "wordcraft-0.15.0-linux-aarch64.AppImage.zsync",
-            "size": 180381
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:b283a70f04c283c8e34a11c20e462ca53d971ff7e64877a7f749f1e135d9ba6a",
+            "name": "wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+            "size": 181515
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.deb",
-            "digest": "sha256:1350ac117a375edec245ce8564e921af0bb92243810de326471eae99e10c4080",
-            "name": "wordcraft-0.15.0-linux-aarch64.deb",
-            "size": 113514910
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.deb",
+            "digest": "sha256:651d3a85da229cf3ccbf1077f75ee16d21825058cf3213bdf2547d9d3fbae173",
+            "name": "wordcraft-0.15.1-linux-aarch64.deb",
+            "size": 114374424
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.flatpak",
-            "digest": "sha256:6a2ee506083097fe51f27a88dff5fb3ab53fcebcbfa56f667abb3857e8ec068a",
-            "name": "wordcraft-0.15.0-linux-aarch64.flatpak",
-            "size": 78346832
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.flatpak",
+            "digest": "sha256:1de60341a3b3d76f5d7e370b5e8126243e855c190b86ec528aeb0fa7cab113db",
+            "name": "wordcraft-0.15.1-linux-aarch64.flatpak",
+            "size": 78443992
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:59e359cb9c00ef99ee530e5ebbf0fc5523513ae3ef1c9b687e17d1019eff1c25",
-            "name": "wordcraft-0.15.0-linux-aarch64.pkg.tar.zst",
-            "size": 85474224
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:1f8acdc24d971c7f174cf389e363a2b87a8d92f3c1fb2d84c704777813399dd2",
+            "name": "wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.rpm",
-            "digest": "sha256:5f407a27ac463f361886a11686e6f2797a1dd8696548379fd4560569fc6e6722",
-            "name": "wordcraft-0.15.0-linux-aarch64.rpm",
-            "size": 112750630
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:20b13b09f9af98083a8a014aeac33c6c35433d04ac8019da172e94a66dc45d25",
+            "name": "wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+            "size": 85209485
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-aarch64.tar.gz",
-            "digest": "sha256:1a60f0a1a6e569bea37014157deac0c404e9fa580df7dd66599bc886928b9a06",
-            "name": "wordcraft-0.15.0-linux-aarch64.tar.gz",
-            "size": 111087989
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.rpm",
+            "digest": "sha256:22071b35f5c527491e47adb775834d32b9c2f3b06d86f0e7cb46fe219cb8d393",
+            "name": "wordcraft-0.15.1-linux-aarch64.rpm",
+            "size": 113596583
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-riscv64.deb",
-            "digest": "sha256:f83119fd477ff08921026d1451a60ce1895870831f5521539d94bd652cd2ea8b",
-            "name": "wordcraft-0.15.0-linux-riscv64.deb",
-            "size": 114180934
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.tar.gz",
+            "digest": "sha256:1d114f7b670178a1e5bf027980dab0d4f9c1295a2eeffd0b7adb1458cea409a8",
+            "name": "wordcraft-0.15.1-linux-aarch64.tar.gz",
+            "size": 111933975
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-riscv64.rpm",
-            "digest": "sha256:3980cc4a68b6c86205b183b66659c881fc458abbffd538c220a19c23fa939216",
-            "name": "wordcraft-0.15.0-linux-riscv64.rpm",
-            "size": 113731828
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.deb",
+            "digest": "sha256:281f08a39631b49ff37be772a5a5cd9db68cd9c40746f583ba055480a91486f5",
+            "name": "wordcraft-0.15.1-linux-riscv64.deb",
+            "size": 115179436
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-riscv64.tar.gz",
-            "digest": "sha256:e51fe1486c075a106205e857bd36dce87fb6f001e131c0ec83f7d15a38ac5ba1",
-            "name": "wordcraft-0.15.0-linux-riscv64.tar.gz",
-            "size": 112784298
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.rpm",
+            "digest": "sha256:cb1ed216ef4f2d8983ec090afefc0fb3864d1a117d7a343a6a721a7393f31da6",
+            "name": "wordcraft-0.15.1-linux-riscv64.rpm",
+            "size": 114731259
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.AppImage",
-            "digest": "sha256:f7a955d2c51b036bfe5a033f4a4ec4ff0c2b11ec8dfcbb252087b9ad3aa2ecad",
-            "name": "wordcraft-0.15.0-linux-x86_64.AppImage",
-            "size": 108354040
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.tar.gz",
+            "digest": "sha256:5a0b1864029ad1c976123783f5e2d1769410558ace35c2274dcf02890f4c1b80",
+            "name": "wordcraft-0.15.1-linux-riscv64.tar.gz",
+            "size": 113778534
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:4be64fc565fb6bc7a691247fbc986324f8efee43c31457b0693f0c050d76d457",
-            "name": "wordcraft-0.15.0-linux-x86_64.AppImage.zsync",
-            "size": 185426
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage",
+            "digest": "sha256:e8f44fbbf059f12f5cd4f69d7812529729d85d36dd4fe74a6c37f6932632f2fa",
+            "name": "wordcraft-0.15.1-linux-x86_64.AppImage",
+            "size": 109246968
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.deb",
-            "digest": "sha256:9b97d48a4e775a10962f24f6fce5e8048b8e58ab4531503b6f01aeb634eb29f0",
-            "name": "wordcraft-0.15.0-linux-x86_64.deb",
-            "size": 115872008
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:d4391cbf073756a52b5ad65015908953ea08602e3c96a93af57c8dd79035c872",
+            "name": "wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+            "size": 186952
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.flatpak",
-            "digest": "sha256:d23d698aa1db0b694d44faad9185fa9a32788a18b2ddec657a260ae7ae91ee65",
-            "name": "wordcraft-0.15.0-linux-x86_64.flatpak",
-            "size": 81384384
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.deb",
+            "digest": "sha256:7c340982ab7b83763b25342fc40432732eb6eaeca5be4ad53496825436729d8f",
+            "name": "wordcraft-0.15.1-linux-x86_64.deb",
+            "size": 116877664
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:4ba7b16740f7860205ad2d17d2082783f5ed1795a4880c3d91838f14ab763e4a",
-            "name": "wordcraft-0.15.0-linux-x86_64.pkg.tar.zst",
-            "size": 86866995
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.flatpak",
+            "digest": "sha256:24327d52d29651862e6d5877e6225a0e84185d2c5c6119ff8eeedf0c94a5b8dd",
+            "name": "wordcraft-0.15.1-linux-x86_64.flatpak",
+            "size": 82159720
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.rpm",
-            "digest": "sha256:f0825db0f32635692afa76f593617abe0a1ded54fd78ba22ab89f7dba06fd3f2",
-            "name": "wordcraft-0.15.0-linux-x86_64.rpm",
-            "size": 115231311
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:6aee7c111e329ddba1e0ce017772de8b240ccb8f7557bf3c860ab4fd20fbee03",
+            "name": "wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-linux-x86_64.tar.gz",
-            "digest": "sha256:baacf18158124abc3d45dc4485bfc77a5d717f80ac50b80693b6501c26698e5d",
-            "name": "wordcraft-0.15.0-linux-x86_64.tar.gz",
-            "size": 114272874
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:13e20a1f00acf22149102084c97c86a494e73543fd68ed38ce0f712dac6ba623",
+            "name": "wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+            "size": 87361199
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-macos-universal.dmg",
-            "digest": "sha256:e07c3f58383ed1e3455b0b81e95f4d124b6bd395365074280686918d04478815",
-            "name": "wordcraft-0.15.0-macos-universal.dmg",
-            "size": 127102949
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.rpm",
+            "digest": "sha256:e88e4f1aa936b6f00c8af6ed5b22c759f0866a57a2412b98fa59a7610275ce27",
+            "name": "wordcraft-0.15.1-linux-x86_64.rpm",
+            "size": 116226443
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-arm64-portable.zip",
-            "digest": "sha256:a600d1c5a073375a858d095cc9a76380ab8e82e902df48be080558a80953419d",
-            "name": "wordcraft-0.15.0-windows-arm64-portable.zip",
-            "size": 110405352
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.tar.gz",
+            "digest": "sha256:8c6fca3809ea1ac8168c4d7d9392cade84a50f54018be1f88121ba4ecc04a552",
+            "name": "wordcraft-0.15.1-linux-x86_64.tar.gz",
+            "size": 115265419
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-arm64.msi",
-            "digest": "sha256:4a6ec01a8087813af5d916591f5e6d704dec6d89ca02c95da2f28226983205b1",
-            "name": "wordcraft-0.15.0-windows-arm64.msi",
-            "size": 88608768
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-macos-universal.dmg",
+            "digest": "sha256:8ee59436328e24518386c6cf1407f7c6c081fcaca703ce5e5310938af7dab12f",
+            "name": "wordcraft-0.15.1-macos-universal.dmg",
+            "size": 128335727
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-x64-portable.zip",
-            "digest": "sha256:2d16f589fe4f8448cd6a8124ef92cfa61e075b9c02c401e6c1f67172aa9495a8",
-            "name": "wordcraft-0.15.0-windows-x64-portable.zip",
-            "size": 113698134
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64-portable.zip",
+            "digest": "sha256:b806754740c6c56f3821a6f3ccdcfae3101eb005c71918594c34d2ac759f0599",
+            "name": "wordcraft-0.15.1-windows-arm64-portable.zip",
+            "size": 111369111
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-x64.msi",
-            "digest": "sha256:a2ca3ef922ec99b759f4c2bf9ddfeca2521b86def12a64c4807acdafdb76a004",
-            "name": "wordcraft-0.15.0-windows-x64.msi",
-            "size": 91947008
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64.msi",
+            "digest": "sha256:040f73ca46d2ea1bbacf50a28cff5cf09363b2a0020910fd7087ec97f8e08e03",
+            "name": "wordcraft-0.15.1-windows-arm64.msi",
+            "size": 89047040
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-x86-portable.zip",
-            "digest": "sha256:49d09fbf53c9ef49866f36cf556422579df24a80144c33bdae0868be95f5ce2d",
-            "name": "wordcraft-0.15.0-windows-x86-portable.zip",
-            "size": 109738031
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64-portable.zip",
+            "digest": "sha256:bac0813a7652526d0a17ff4fd1fcb88d4671277786ee6f27806baa329929f903",
+            "name": "wordcraft-0.15.1-windows-x64-portable.zip",
+            "size": 114684769
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-0.15.0-windows-x86.msi",
-            "digest": "sha256:33f0b2175eed7c70b0174389fc69563778dd08d708eb6d1d123425542e88df0f",
-            "name": "wordcraft-0.15.0-windows-x86.msi",
-            "size": 90198016
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64.msi",
+            "digest": "sha256:f4b2bed40acc31ae81db7f163f2820425eaa0611adc6ce64a73d7b61e4d59be4",
+            "name": "wordcraft-0.15.1-windows-x64.msi",
+            "size": 92377088
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-cli-0.15.0-macos-universal.zip",
-            "digest": "sha256:92feb2a4e970b614bd8c70c2bbab02a1d621bcf4c72ea2ad8744f905fdf87ad8",
-            "name": "wordcraft-cli-0.15.0-macos-universal.zip",
-            "size": 99661028
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86-portable.zip",
+            "digest": "sha256:230df2cf18f6ae2c207b9393e0b7ff9c3975642ca828aa281358b435bb531e27",
+            "name": "wordcraft-0.15.1-windows-x86-portable.zip",
+            "size": 110570173
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.0/wordcraft-web-0.15.0.zip",
-            "digest": "sha256:c5a02d4e4f1d3e59288da4647d2d734296fd31e39ccd060a83ac2d2faa12a79a",
-            "name": "wordcraft-web-0.15.0.zip",
-            "size": 20205395
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86.msi",
+            "digest": "sha256:c838f16599ddc449c9c8fed981f2d3c3f454cfc1c58b6f0bf2241764c5ad2f43",
+            "name": "wordcraft-0.15.1-windows-x86.msi",
+            "size": 90169344
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-cli-0.15.1-macos-universal.zip",
+            "digest": "sha256:885749231387a8e8212b5c6747d432cf83c49b227d7021ff97f32b4740102174",
+            "name": "wordcraft-cli-0.15.1-macos-universal.zip",
+            "size": 100320244
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-web-0.15.1.zip",
+            "digest": "sha256:da24ee317eececc6d41f20cfb46f5c4a7c281a5b34374b291ea4b4c63e4951a9",
+            "name": "wordcraft-web-0.15.1.zip",
+            "size": 21264932
           }
         ],
         "draft": false,
-        "name": "WordCraft v0.15.0",
+        "name": "WordCraft v0.15.1",
         "prerelease": false,
-        "tag_name": "v0.15.0"
+        "tag_name": "v0.15.1"
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"27621fb552858cb4e86baef3d8370e90585b3f982fdad50a5ada5b6505650b89\"",
+      "etag": "\"d4bd7d6f0b97927cb7ef56bb8ebe08b210ca8977781b3b38cf6ae1e4a7126a98\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/SHA256SUMS.txt",
+              "digest": "sha256:7031840d9c46d9b4f90f76dd7b25b9f3e2812089e12cf7b44e452d1827a542e9",
+              "name": "SHA256SUMS.txt",
+              "size": 3141
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:d91ebbf5a4c9d433c0696e758eb4722b442879f3db0209b99f5891ce6b4e1bc6",
+              "name": "wordcraft-0.15.1-freebsd-aarch64.tar.gz",
+              "size": 110798018
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:f224fa03df96e41d9ba1db637ba58a035e9f11ded4c7a6419b1affad9f2b27a4",
+              "name": "wordcraft-0.15.1-freebsd-x86_64.tar.gz",
+              "size": 114963517
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage",
+              "digest": "sha256:489bec9ac0c441bcfc30c14a7f5c713d971545e8bb5b30afd25d9b8164779aae",
+              "name": "wordcraft-0.15.1-linux-aarch64.AppImage",
+              "size": 106064392
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:b283a70f04c283c8e34a11c20e462ca53d971ff7e64877a7f749f1e135d9ba6a",
+              "name": "wordcraft-0.15.1-linux-aarch64.AppImage.zsync",
+              "size": 181515
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.deb",
+              "digest": "sha256:651d3a85da229cf3ccbf1077f75ee16d21825058cf3213bdf2547d9d3fbae173",
+              "name": "wordcraft-0.15.1-linux-aarch64.deb",
+              "size": 114374424
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.flatpak",
+              "digest": "sha256:1de60341a3b3d76f5d7e370b5e8126243e855c190b86ec528aeb0fa7cab113db",
+              "name": "wordcraft-0.15.1-linux-aarch64.flatpak",
+              "size": 78443992
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:1f8acdc24d971c7f174cf389e363a2b87a8d92f3c1fb2d84c704777813399dd2",
+              "name": "wordcraft-0.15.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:20b13b09f9af98083a8a014aeac33c6c35433d04ac8019da172e94a66dc45d25",
+              "name": "wordcraft-0.15.1-linux-aarch64.pkg.tar.zst",
+              "size": 85209485
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.rpm",
+              "digest": "sha256:22071b35f5c527491e47adb775834d32b9c2f3b06d86f0e7cb46fe219cb8d393",
+              "name": "wordcraft-0.15.1-linux-aarch64.rpm",
+              "size": 113596583
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-aarch64.tar.gz",
+              "digest": "sha256:1d114f7b670178a1e5bf027980dab0d4f9c1295a2eeffd0b7adb1458cea409a8",
+              "name": "wordcraft-0.15.1-linux-aarch64.tar.gz",
+              "size": 111933975
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.deb",
+              "digest": "sha256:281f08a39631b49ff37be772a5a5cd9db68cd9c40746f583ba055480a91486f5",
+              "name": "wordcraft-0.15.1-linux-riscv64.deb",
+              "size": 115179436
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.rpm",
+              "digest": "sha256:cb1ed216ef4f2d8983ec090afefc0fb3864d1a117d7a343a6a721a7393f31da6",
+              "name": "wordcraft-0.15.1-linux-riscv64.rpm",
+              "size": 114731259
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-riscv64.tar.gz",
+              "digest": "sha256:5a0b1864029ad1c976123783f5e2d1769410558ace35c2274dcf02890f4c1b80",
+              "name": "wordcraft-0.15.1-linux-riscv64.tar.gz",
+              "size": 113778534
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage",
+              "digest": "sha256:e8f44fbbf059f12f5cd4f69d7812529729d85d36dd4fe74a6c37f6932632f2fa",
+              "name": "wordcraft-0.15.1-linux-x86_64.AppImage",
+              "size": 109246968
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:d4391cbf073756a52b5ad65015908953ea08602e3c96a93af57c8dd79035c872",
+              "name": "wordcraft-0.15.1-linux-x86_64.AppImage.zsync",
+              "size": 186952
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.deb",
+              "digest": "sha256:7c340982ab7b83763b25342fc40432732eb6eaeca5be4ad53496825436729d8f",
+              "name": "wordcraft-0.15.1-linux-x86_64.deb",
+              "size": 116877664
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.flatpak",
+              "digest": "sha256:24327d52d29651862e6d5877e6225a0e84185d2c5c6119ff8eeedf0c94a5b8dd",
+              "name": "wordcraft-0.15.1-linux-x86_64.flatpak",
+              "size": 82159720
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6aee7c111e329ddba1e0ce017772de8b240ccb8f7557bf3c860ab4fd20fbee03",
+              "name": "wordcraft-0.15.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:13e20a1f00acf22149102084c97c86a494e73543fd68ed38ce0f712dac6ba623",
+              "name": "wordcraft-0.15.1-linux-x86_64.pkg.tar.zst",
+              "size": 87361199
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.rpm",
+              "digest": "sha256:e88e4f1aa936b6f00c8af6ed5b22c759f0866a57a2412b98fa59a7610275ce27",
+              "name": "wordcraft-0.15.1-linux-x86_64.rpm",
+              "size": 116226443
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-linux-x86_64.tar.gz",
+              "digest": "sha256:8c6fca3809ea1ac8168c4d7d9392cade84a50f54018be1f88121ba4ecc04a552",
+              "name": "wordcraft-0.15.1-linux-x86_64.tar.gz",
+              "size": 115265419
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-macos-universal.dmg",
+              "digest": "sha256:8ee59436328e24518386c6cf1407f7c6c081fcaca703ce5e5310938af7dab12f",
+              "name": "wordcraft-0.15.1-macos-universal.dmg",
+              "size": 128335727
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64-portable.zip",
+              "digest": "sha256:b806754740c6c56f3821a6f3ccdcfae3101eb005c71918594c34d2ac759f0599",
+              "name": "wordcraft-0.15.1-windows-arm64-portable.zip",
+              "size": 111369111
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-arm64.msi",
+              "digest": "sha256:040f73ca46d2ea1bbacf50a28cff5cf09363b2a0020910fd7087ec97f8e08e03",
+              "name": "wordcraft-0.15.1-windows-arm64.msi",
+              "size": 89047040
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64-portable.zip",
+              "digest": "sha256:bac0813a7652526d0a17ff4fd1fcb88d4671277786ee6f27806baa329929f903",
+              "name": "wordcraft-0.15.1-windows-x64-portable.zip",
+              "size": 114684769
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x64.msi",
+              "digest": "sha256:f4b2bed40acc31ae81db7f163f2820425eaa0611adc6ce64a73d7b61e4d59be4",
+              "name": "wordcraft-0.15.1-windows-x64.msi",
+              "size": 92377088
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86-portable.zip",
+              "digest": "sha256:230df2cf18f6ae2c207b9393e0b7ff9c3975642ca828aa281358b435bb531e27",
+              "name": "wordcraft-0.15.1-windows-x86-portable.zip",
+              "size": 110570173
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-0.15.1-windows-x86.msi",
+              "digest": "sha256:c838f16599ddc449c9c8fed981f2d3c3f454cfc1c58b6f0bf2241764c5ad2f43",
+              "name": "wordcraft-0.15.1-windows-x86.msi",
+              "size": 90169344
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-cli-0.15.1-macos-universal.zip",
+              "digest": "sha256:885749231387a8e8212b5c6747d432cf83c49b227d7021ff97f32b4740102174",
+              "name": "wordcraft-cli-0.15.1-macos-universal.zip",
+              "size": 100320244
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.15.1/wordcraft-web-0.15.1.zip",
+              "digest": "sha256:da24ee317eececc6d41f20cfb46f5c4a7c281a5b34374b291ea4b4c63e4951a9",
+              "name": "wordcraft-web-0.15.1.zip",
+              "size": 21264932
+            }
+          ],
+          "draft": false,
+          "name": "WordCraft v0.15.1",
+          "prerelease": false,
+          "tag_name": "v0.15.1"
+        },
         {
           "assets": [
             {
@@ -91895,7 +92719,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"b5618735844dfd686c18d8f4f434835b6deea9df586bc8494455d45bf698d26f\"",
+      "etag": "\"40c09ddc09bb4de5f81a9ab96a490d0db500d4ca06196d0ce5cea5b500478833\"",
       "body": {
         "assets": [
           {
@@ -92200,7 +93024,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"aad564201102f0ea7f5f4591d901975429c5a9171f710f87645832503ebb0150\"",
+      "etag": "\"95f3b57d204d89f80336e602feefc19107df9801f87773a5ea411c42f2a3efe6\"",
       "body": [
         {
           "assets": [
