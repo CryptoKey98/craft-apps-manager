@@ -1,4 +1,8 @@
-# <img src="assets/icon.png" width="70" alt="Craft Apps Manager icon"> Craft Apps Manager 
+<h1>
+  <img src="assets/icon.png" width="75" alt="Craft Apps Manager icon" align="absmiddle">
+  Craft Apps Manager
+</h1>
+
 
 Install, update, launch, and build Storytold Craft apps in one place. Manage multiple installations, follow progress in Activity, and add supported desktop apps from GitHub.
 
