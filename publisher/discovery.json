@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1793844012,
+      "checked_at": 1793845512,
       "latest_tag": "artcraft-v0.41.0",
       "releases": [
         {
@@ -809,7 +809,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1793844013,
+      "checked_at": 1793845512,
       "latest_tag": "v0.17.1",
       "releases": [
         {
@@ -3620,7 +3620,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1793844014,
+      "checked_at": 1793845513,
       "latest_tag": "v0.15.1",
       "releases": [
         {
@@ -6249,7 +6249,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1793844014,
+      "checked_at": 1793845514,
       "latest_tag": "v0.17.2",
       "releases": [
         {
@@ -9566,7 +9566,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1793844016,
+      "checked_at": 1793845515,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -13067,7 +13067,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1793844017,
+      "checked_at": 1793845516,
       "latest_tag": "v0.15.1",
       "releases": [
         {
@@ -16076,7 +16076,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1793844017,
+      "checked_at": 1793845517,
       "latest_tag": "v0.17.1",
       "releases": [
         {
@@ -19181,7 +19181,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1793844018,
+      "checked_at": 1793845518,
       "latest_tag": "v0.16.1",
       "releases": [
         {
@@ -21998,7 +21998,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1793844019,
+      "checked_at": 1793845518,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -25255,7 +25255,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1793844020,
+      "checked_at": 1793845519,
       "latest_tag": "v0.1.2",
       "releases": [
         {
@@ -26084,7 +26084,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1793844021,
+      "checked_at": 1793845520,
       "latest_tag": "v0.18.2",
       "releases": [
         {
@@ -29775,7 +29775,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1793844022,
+      "checked_at": 1793845521,
       "latest_tag": "v0.20.2",
       "releases": [
         {
@@ -33584,7 +33584,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1793844023,
+      "checked_at": 1793845522,
       "latest_tag": "v0.17.1",
       "releases": [
         {
@@ -36279,7 +36279,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1793844023,
+      "checked_at": 1793845522,
       "latest_tag": "v0.3.2",
       "releases": [
         {
@@ -37310,9 +37310,329 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1793844024,
-      "latest_tag": "v0.21.0",
+      "checked_at": 1793845523,
+      "latest_tag": "v0.21.1",
       "releases": [
+        {
+          "tag_name": "v0.21.1",
+          "name": "VectorCraft v0.21.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5381,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt",
+              "digest": "sha256:1cc1be179b3e58bfd3915b9ae8c9bbb4d2616b9a5b58462beb27e70f2c22b8e8"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:39e845eff30b468120541c4ba5494bc522b638b805a1411df6e1ac40b931c2bf"
+            },
+            {
+              "name": "vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+              "size": 135270715,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:08c3304837308474d2432dd9ef93ddd913f1ed873221159cfdffa269ff61fa7b"
+            },
+            {
+              "name": "vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+              "size": 142749444,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4eeed91af858c406f6b7d790437e520af5b4818c254957edb7edf6dd8c48d334"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage",
+              "size": 129296904,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage",
+              "digest": "sha256:42c9aaf9578454a5a42eea1a8746c3b2a150193c51de9cf1b12e7c289e693be2"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:d18b115b14e2add1d62422930386092f5f387fae725375fd4c092c7f490e232b"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+              "size": 221223,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:837399340a10cf1f095d38bba121596497a79a10eabef58b93ebd3b96112953f"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:eb3ed7a436c0fa5e4540c492ed794b3faa2fb638e742359878b92d9c42aa3e02"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.deb",
+              "size": 140956880,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb",
+              "digest": "sha256:5b94d9ed2414fc67f4221bddafcdc04580b2d4e7ff6b4abaa89763f52dba3f58"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb.asc",
+              "digest": "sha256:322be057cb00bea022429e4cb395009df8518962ac9ef2aa73d42f236e3d0d4a"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.flatpak",
+              "size": 93412960,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak",
+              "digest": "sha256:1ad30ce2d297d5df866972d9f782e93c99d61e325db0692c793dbaa4c80a6c9c"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:73a12f4ba55e7e392b45a962597044a1b0830d43b1e224f78b934a9a74a2d378"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:dedb9178ab4fa493098c03e83b141d214b603803e9d548904041d61d043032e9"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.oci.sig",
+              "size": 379,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci.sig",
+              "digest": "sha256:b4c71b595269c200ad686adc3cfb098fe4141de73971e0afa8d1325b13f64c23"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+              "size": 102522214,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:189a8a72abfd54bea7f556d920be54b63fea7bac8c14ef169de63a6ff58fdd73"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:eca37cb72ec11fdd3decf650c6b30b107ddc5eec1dfe21490aae172cf8badfe4"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.rpm",
+              "size": 139675133,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm",
+              "digest": "sha256:7280e2d02c82d05594f190cfc953de00c566b6c5f6ef4ddf816729a7e1e31e1a"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:3d3d7283a59a5832d2dea79bdd44a14dba0f571f2ad6024c9916b4f97ad8add6"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz",
+              "size": 137139235,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz",
+              "digest": "sha256:2e6f3026856b0f9609acb1529bb138dcda7bee2e34a285e06549937696ac3604"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:7c46f7368f2ff7df00e9e4510f6ba817f77ec9c38f364de8a1b3bfed52a44161"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.deb",
+              "size": 142622648,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb",
+              "digest": "sha256:7bd705881195a93593dbfd8a0cc16b8f330dd262f10781a714f61c05766742d9"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb.asc",
+              "digest": "sha256:1f17329ae0ce023732a79f2f506fbe45bff9428b13b39a7cb34f6abd476ec923"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.rpm",
+              "size": 141976812,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm",
+              "digest": "sha256:6c5b8ec3e3d283388c23d0bde84a2d3ff5ba3d4ecc43097976f0963d0ae60afc"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:994dff516c46314dbfa3e748a8e81655ac431bad5ede192efd79e107087d304c"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz",
+              "size": 140655281,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz",
+              "digest": "sha256:e8cd3a23880510b6b505b59afeecfbcb88091226035706e1ab340f4acbe20a70"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:bc5ea52f39939e98a4a137aa4a637e6a7c44f6f835dc73a55c99f634c43950a1"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage",
+              "size": 135039480,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage",
+              "digest": "sha256:7865429846119772dbd5dd9395cba88c7190cff5b92b17b141103ae7285c99e0"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:0917cf52bb3f37d800c819988fc5ab7852abb7d297eafd7a9b1396609351c359"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+              "size": 231035,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:2144e8e0273719dbd05bb85ab64959df0fa5ae908c6e16fde8ee6b7a7835df79"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:af898fc45d522c81487b8f4d23aa4c8f56906a9cb71abc359df034dc6947c355"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.deb",
+              "size": 145406650,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb",
+              "digest": "sha256:6272eab06c722d2af31fab1ba96ef6331d9c2551b1584d8f5aff6089bcd7d562"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb.asc",
+              "digest": "sha256:197e3aaf71745bfce53618d00af1b3b5feec7c785a40d3b8a1662342a506eb44"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.flatpak",
+              "size": 99821024,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak",
+              "digest": "sha256:16286f20bd1687e9af3a17f106446bdac80f3947089e5d102bb1a08f41d229f2"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:c942039da0b75c35a64358bb285bd63f8136a3cd27476c2ca60738b75ea2172c"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:5e0c7dd6a89e9c746b8a48248655c0a1c7d4104c1827f5d28288180a272e7b6f"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.oci.sig",
+              "size": 388,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci.sig",
+              "digest": "sha256:c061ed484923647fb9420c6625ba9c37615f6b06aacd30f89f33a7ab4a1817d4"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+              "size": 106543534,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:1e6a0a9c1b36596afffb12cdd38f22a820724b16a8f8d33660f8aa34fde03ee4"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:2ab979d310f56033fb6b9a31152b83995cd143b9e9ac4a046785dea0df2a9c7f"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.rpm",
+              "size": 144399969,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm",
+              "digest": "sha256:4d0e13a6fe6959c28f6ea0ae8c79cfc864773be62de3dec261b60b0cd3a9efe9"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:780eb6b5316b663947ca81d4f3a8bf5528e0b6e949b945776c1efbcb353b988b"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz",
+              "size": 143222440,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz",
+              "digest": "sha256:383bba06fbde7cb87c7e137937ad516a9a585491c5a927d8631ee54bbf1d4e93"
+            },
+            {
+              "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:c063381255391d942810e09200c710a4c482e447a6f3aedeef707f58a0cd18db"
+            },
+            {
+              "name": "vectorcraft-0.21.1-macos-universal.dmg",
+              "size": 162503679,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-macos-universal.dmg",
+              "digest": "sha256:27fd4d3ed472d92eb68154ca75cf25cb856682626715632b2abac2551f3c08bf"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-arm64-portable.zip",
+              "size": 140268666,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64-portable.zip",
+              "digest": "sha256:8d531f5778c64db1d85fdbfafd7063e0d99dd84d6a11b823ac71ebc992542a2d"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-arm64.msi",
+              "size": 110940160,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64.msi",
+              "digest": "sha256:cb701bd504a10e1617e146ede1facca5e0b86cadd3c3be2c6fc23731ae131c24"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-x64-portable.zip",
+              "size": 147640888,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64-portable.zip",
+              "digest": "sha256:0548a576f866f44b43cde975d4b13805be328dc05f7d975ebe37daf6d4577a94"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-x64.msi",
+              "size": 118407168,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64.msi",
+              "digest": "sha256:6c639490afc96de0d0a726f5daf8cc412bae51158e4914da91f92ca7c6bdf285"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-x86-portable.zip",
+              "size": 141102170,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86-portable.zip",
+              "digest": "sha256:fa9b447bab88a4d475b4efbf309a230b116a20cd51fa5318a26b7b09fd2a518f"
+            },
+            {
+              "name": "vectorcraft-0.21.1-windows-x86.msi",
+              "size": 114827264,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86.msi",
+              "digest": "sha256:a9acfcf4de353422e3f909b87544d8295ee6b345d97cde8317e67b29abb25b06"
+            },
+            {
+              "name": "vectorcraft-cli-0.21.1-macos-universal.zip",
+              "size": 121059409,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-cli-0.21.1-macos-universal.zip",
+              "digest": "sha256:1812e57498785d39485865d8fc7d9f6990f313217a2411c3d303ad17fe6e9181"
+            },
+            {
+              "name": "vectorcraft-web-0.21.1.zip",
+              "size": 33641930,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-web-0.21.1.zip",
+              "digest": "sha256:0ee84174aed234771294a0fdedf89a4f3467b34d66238d1dcf9c69d763604a80"
+            }
+          ]
+        },
         {
           "tag_name": "v0.21.0",
           "name": "VectorCraft v0.21.0",
@@ -40729,7 +41049,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1793844025,
+      "checked_at": 1793845524,
       "latest_tag": "v0.15.2",
       "releases": [
         {
@@ -43558,7 +43878,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1793844028,
+      "checked_at": 1793845526,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -56827,7 +57147,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"9ad28c96f6b32abdec64503c619b34587c585e1c4df08f6f6cb4c4a184455f2e\"",
+      "etag": "\"b7b914b86703963f6d4299c68d37535a9b449960068bb0a6caf3663617c2d37f\"",
       "body": {
         "assets": [
           {
@@ -56862,7 +57182,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"8c036141dd1643087cdf41c988f0811f6c84d47f6e0bf94bc3398767311cc9ff\"",
+      "etag": "\"caa6a375709f2c4beb2259cfb4617bc4c52cbc6c69e7e525b13dfe7796468db3\"",
       "body": [
         {
           "assets": [
@@ -57667,7 +57987,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"05bbf24209ee91292742036b2b73c545822bf37271e65dd0aea0938e70f75282\"",
+      "etag": "\"9311732f33cbb9257d3e18eb8370a9dda80e4a89df6e5e63c0175118974f1379\"",
       "body": {
         "assets": [
           {
@@ -57990,7 +58310,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"a10a039e031901c1cb029c7016ffe29b3d356907b1dd6a13999cfed6d21bd75a\"",
+      "etag": "\"4d81095441056c2eb4771e3afb1e909a5de69e9be2937d49f837e0939ce58900\"",
       "body": [
         {
           "assets": [
@@ -60799,7 +61119,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"a4cb664ba5c01601307e8714aee467f921f22123ebff935794b24b89dca494c8\"",
+      "etag": "\"7e64c59e918e7fd9b326811738b1a2f380e8c9575e203f793181aae48183eb76\"",
       "body": {
         "assets": [
           {
@@ -61122,7 +61442,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"19056c4d5824a1f92f8762220d3384a5f39c04b3bd91270fcd59dc2c54d29d9c\"",
+      "etag": "\"3dde39437b0a23ef6dfa68ba7059dffae1e68a3b108fee5e45190f85aa640053\"",
       "body": [
         {
           "assets": [
@@ -63749,7 +64069,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"845a919c62203465470d7b33d29248066ddf2452a29c9df24d48fb4dfee308c4\"",
+      "etag": "\"f38de212b3e0468af482b93033d84203b64e4544b509ec8d13dae6df8b2fad7e\"",
       "body": {
         "assets": [
           {
@@ -64072,7 +64392,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"36057056d4bb18167862d50bcb7b149af64fe12b0b6529c9ee0fe34b32d831b6\"",
+      "etag": "\"01d11f50b0d07ddae01714efb9cd987fd1acbb7ada7cf74bc6287bcf1d8ddd87\"",
       "body": [
         {
           "assets": [
@@ -67387,7 +67707,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"d88bb310594cc201c29fcf6b52eca4e7a1798bc4fbd421a828fc05647592a33d\"",
+      "etag": "\"b62e9c31555abafcc82aff12c91152afd7469ffb369d29ce289281f93fa92766\"",
       "body": {
         "assets": [
           {
@@ -67710,7 +68030,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"afe81215c3ffe3d73055005686ae529cf042eeaeacf6cdfb4734dd10319195f2\"",
+      "etag": "\"cfa40ca20a575dcdb9b3a8896d2d2b7b240b77797be80b206981a11f0729285f\"",
       "body": [
         {
           "assets": [
@@ -71209,7 +71529,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"e349d5b426748338a072689dcdc3d36d6494714eda555328f5d410a51bdee638\"",
+      "etag": "\"7c1db5154b58822c2d9646c3aa08b5bf7a016ab3b552130e350d016ca7667379\"",
       "body": {
         "assets": [
           {
@@ -71556,7 +71876,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"953731e088a4bfc2546ffb4f9acb758f47498944f77d2ebda8e169aa37c70170\"",
+      "etag": "\"7e18fce4edc7803e28c687f136cab1645e1c80d682bbcf1dbce47ff9b6edefcc\"",
       "body": [
         {
           "assets": [
@@ -74563,7 +74883,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"5aa56d1d0aab4e603dd94e3ff530a4234422fb19be87e7efedd7d51807794150\"",
+      "etag": "\"c1afdaa51ca291ced62ce53f16d2c0b59564ea989689d375f12d501911f8f794\"",
       "body": {
         "assets": [
           {
@@ -74886,7 +75206,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"7cdcd489156ef75c7e10960865c654d673c2fa2008337e52e667a25304610292\"",
+      "etag": "\"f0f537d836d0acc3d406848d091548d1537545fb6ebc7338bd9720de38984235\"",
       "body": [
         {
           "assets": [
@@ -77989,7 +78309,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"28395f7d299d99b1dffa7f13387c838ee40c34c6b9d2606c5c28eb64816efb94\"",
+      "etag": "\"32f5521e803adbfc6ff3c7b7b80eaff6df0ecbbcb47c38cf623e1a44b67f8722\"",
       "body": {
         "assets": [
           {
@@ -78312,7 +78632,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"8cfab288592024b0f81f73a1f378bb7de4f1570d83ee2522b8943bb54f7ce2da\"",
+      "etag": "\"67e027c71d419681ac9d8c6e7bed78a1223f4642e23c4249ede4f034f71af4bd\"",
       "body": [
         {
           "assets": [
@@ -81127,7 +81447,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"2ecc828913b41ae299392517ed2724d939c91ed6d4f39c4d737efc301587e1bf\"",
+      "etag": "\"c2a78579b0f9dd5d78e921b4fcfcb5ba76ffa1b1ed1a4c505574aa958a50bf4f\"",
       "body": {
         "assets": [
           {
@@ -81450,7 +81770,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"ce6dd1c1f1b78e0494d87d73e8fb89a496cf153bbd6d6f43cf81ba6be49f494c\"",
+      "etag": "\"4f4fee0b01013244ab940363329788edd6065623e587ea87a05db957115cdeac\"",
       "body": [
         {
           "assets": [
@@ -84705,7 +85025,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"18876a105168cada60eac609cd98eafc0da9ccdf39591b888346106ca3582ca3\"",
+      "etag": "\"1e9ce3d8650faeb2be39cfd5ef62ed3d30cd4b5c94baa0aed59e9ef57dfac55f\"",
       "body": {
         "assets": [
           {
@@ -85028,7 +85348,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"961d2d1af962a3c093641d386704c45d6a133a2e602b1e4e1cdfc3426f182cea\"",
+      "etag": "\"3d5e54acb168713903df798dad579bb43b232b17d2f8f8930654472cf3f2e5d8\"",
       "body": [
         {
           "assets": [
@@ -85855,7 +86175,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"c01104df8fd913eb15fa3a6befb885ae91a6851868ac038133752d6ab844ac9c\"",
+      "etag": "\"e5de9827e7b548c8b9a55be743929cd595bcf350cdff9049859d9ec029427e86\"",
       "body": {
         "assets": [
           {
@@ -86202,7 +86522,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"3cb0516e9e4bd7ef3ad0d36111e6b6de38ec45c6f6d34e1fa1676aaf20e04279\"",
+      "etag": "\"8e041278303a0ca079193b4d812bd28e5a4eca9256f8c32711d3aee2f252adea\"",
       "body": [
         {
           "assets": [
@@ -89891,7 +90211,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"958c3c4d1f90dcbe1b37e256f5e77d323ebb696c8a2846c6a10602ce56c0114d\"",
+      "etag": "\"6f3abb537fc2d7251d01daf166f4f0b8771d1b5172d322af8c6a89dc68687717\"",
       "body": {
         "assets": [
           {
@@ -90232,7 +90552,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"b52150e22eb36f1d8f4de97e6342f89911df127d8623d6caa5e4018e9e617976\"",
+      "etag": "\"de2276b0aae14e4293cb2d3d43a26c6d8d8755a374e9fe2a361719445418c140\"",
       "body": [
         {
           "assets": [
@@ -94039,7 +94359,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"657ade21f0ff7bc4eda90d12ff505c3e51e3f32d16828d0979c1a556da2701fe\"",
+      "etag": "\"8a190f36d85ac68e624854c3d430322da67666c952afe2a2209658d3a68f2ffe\"",
       "body": {
         "assets": [
           {
@@ -94362,7 +94682,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"efa01e0893e376fce9d1c6b26164c34b32250c8fc4ed9a993df51fb93a293c97\"",
+      "etag": "\"9e4a149b7538178b0a26c3345c5046c9b3154df1dde5bd677fca74a5b80730e1\"",
       "body": [
         {
           "assets": [
@@ -97055,7 +97375,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"ec4029fb79d60ca25c5330fc4e264f8b5d01b4d4cfc57297d5eaab45d62c7db1\"",
+      "etag": "\"c63b1aec9d663491b468696e353ae8abcd63c62e290faba787d0ecc3b602e742\"",
       "body": {
         "assets": [
           {
@@ -97378,7 +97698,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"1cd766e52604f9997182e92f7b1ee0774722f2fcd29ef54aec276ada469f2867\"",
+      "etag": "\"9206eef3f004cada6ab386be88241c111248e2fe3f32b5933b0c73858e6aad78\"",
       "body": [
         {
           "assets": [
@@ -98407,193 +98727,651 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"5dbcf1e9350e71e4cc365724c1d2fa2bb447d3d45f6162e8aa33fdfb6587090e\"",
+      "etag": "\"4d01623fe454e4022c4c3b260254286da286b89aceb2a48f7e0141b4409a513c\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/SHA256SUMS.txt",
-            "digest": "sha256:c2ad8e7faa2e3e768d915182c3663c887efde3d110ef9e56603b5619a2e2e073",
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/release-signing-key.asc",
+            "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+            "name": "release-signing-key.asc",
+            "size": 803
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt",
+            "digest": "sha256:1cc1be179b3e58bfd3915b9ae8c9bbb4d2616b9a5b58462beb27e70f2c22b8e8",
             "name": "SHA256SUMS.txt",
-            "size": 2968
+            "size": 5381
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:6978763f18405b9da57b9ee6f5d2aa307d1cf9832f45338cf5b25b3665369591",
-            "name": "vectorcraft-0.21.0-freebsd-aarch64.tar.gz",
-            "size": 133834212
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:39e845eff30b468120541c4ba5494bc522b638b805a1411df6e1ac40b931c2bf",
+            "name": "SHA256SUMS.txt.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:cd4e85ae734e838c36a9e29f0e3714ab0119074c948ded3964b8c3b26f2b1f1c",
-            "name": "vectorcraft-0.21.0-freebsd-x86_64.tar.gz",
-            "size": 141163806
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:08c3304837308474d2432dd9ef93ddd913f1ed873221159cfdffa269ff61fa7b",
+            "name": "vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+            "size": 135270715
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.AppImage",
-            "digest": "sha256:80c48decc4eab641766199d0a1dc87b7948c3776e4d31ad7f5c7ba9338b0da97",
-            "name": "vectorcraft-0.21.0-linux-aarch64.AppImage",
-            "size": 128006664
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:4eeed91af858c406f6b7d790437e520af5b4818c254957edb7edf6dd8c48d334",
+            "name": "vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+            "size": 142749444
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:b29241eca7c0994776d5db879a2e767c147bbc4aa89af4a864da65679f9d95c1",
-            "name": "vectorcraft-0.21.0-linux-aarch64.AppImage.zsync",
-            "size": 219018
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage",
+            "digest": "sha256:42c9aaf9578454a5a42eea1a8746c3b2a150193c51de9cf1b12e7c289e693be2",
+            "name": "vectorcraft-0.21.1-linux-aarch64.AppImage",
+            "size": 129296904
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.deb",
-            "digest": "sha256:da97164c874b8cde221e606aad1ca0778e50ec789a038bb2b1661152466a3510",
-            "name": "vectorcraft-0.21.0-linux-aarch64.deb",
-            "size": 139426636
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:d18b115b14e2add1d62422930386092f5f387fae725375fd4c092c7f490e232b",
+            "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.flatpak",
-            "digest": "sha256:7d888f4b04614206a596b35ecc387473d4b6fb019858d529ec9cba27d81d665e",
-            "name": "vectorcraft-0.21.0-linux-aarch64.flatpak",
-            "size": 92495832
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:837399340a10cf1f095d38bba121596497a79a10eabef58b93ebd3b96112953f",
+            "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+            "size": 221223
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:7817503e33aed93738561b4cb2dfb9f625fd072beb73685ab3bd93ed5f4dd9cd",
-            "name": "vectorcraft-0.21.0-linux-aarch64.pkg.tar.zst",
-            "size": 101476003
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:eb3ed7a436c0fa5e4540c492ed794b3faa2fb638e742359878b92d9c42aa3e02",
+            "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.rpm",
-            "digest": "sha256:dc180d2ab598f8039c591f8902cb7d09f4f03276083660c9e2a300ab515eb5c7",
-            "name": "vectorcraft-0.21.0-linux-aarch64.rpm",
-            "size": 138179059
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb",
+            "digest": "sha256:5b94d9ed2414fc67f4221bddafcdc04580b2d4e7ff6b4abaa89763f52dba3f58",
+            "name": "vectorcraft-0.21.1-linux-aarch64.deb",
+            "size": 140956880
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-aarch64.tar.gz",
-            "digest": "sha256:64c9127683a7e97c7fa48f2ecc61e1bd40e3ec7db177926d34c9facd7e350c02",
-            "name": "vectorcraft-0.21.0-linux-aarch64.tar.gz",
-            "size": 135692511
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb.asc",
+            "digest": "sha256:322be057cb00bea022429e4cb395009df8518962ac9ef2aa73d42f236e3d0d4a",
+            "name": "vectorcraft-0.21.1-linux-aarch64.deb.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-riscv64.deb",
-            "digest": "sha256:8724980936c8280cf29d6b0f25374857e002fa89e67dc8b8b90e6f8a9307fb7e",
-            "name": "vectorcraft-0.21.0-linux-riscv64.deb",
-            "size": 140992474
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak",
+            "digest": "sha256:1ad30ce2d297d5df866972d9f782e93c99d61e325db0692c793dbaa4c80a6c9c",
+            "name": "vectorcraft-0.21.1-linux-aarch64.flatpak",
+            "size": 93412960
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-riscv64.rpm",
-            "digest": "sha256:629fe5800c21e6d5898f8a5bd4a795d3973e8853afa3e95e227f80761b997b1e",
-            "name": "vectorcraft-0.21.0-linux-riscv64.rpm",
-            "size": 140361272
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:73a12f4ba55e7e392b45a962597044a1b0830d43b1e224f78b934a9a74a2d378",
+            "name": "vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-riscv64.tar.gz",
-            "digest": "sha256:63e4a4807e6ae67151394f8d55230d167f10946347e26adc82b4a49d5f83a1b5",
-            "name": "vectorcraft-0.21.0-linux-riscv64.tar.gz",
-            "size": 139054790
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:dedb9178ab4fa493098c03e83b141d214b603803e9d548904041d61d043032e9",
+            "name": "vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+            "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.AppImage",
-            "digest": "sha256:94444a0970f495e2251435e60fe3dbead77f7b136bf334547426a920cf2e9858",
-            "name": "vectorcraft-0.21.0-linux-x86_64.AppImage",
-            "size": 133388792
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci.sig",
+            "digest": "sha256:b4c71b595269c200ad686adc3cfb098fe4141de73971e0afa8d1325b13f64c23",
+            "name": "vectorcraft-0.21.1-linux-aarch64.oci.sig",
+            "size": 379
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:4681bafd9314bcf65b4a93a7384af1a7910fe328b8b31091b810d67c199b87ad",
-            "name": "vectorcraft-0.21.0-linux-x86_64.AppImage.zsync",
-            "size": 228214
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:189a8a72abfd54bea7f556d920be54b63fea7bac8c14ef169de63a6ff58fdd73",
+            "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+            "size": 102522214
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.deb",
-            "digest": "sha256:7b9496a8f4a91f36a5aa222ec99a38c0bece6e5ce571b895cb3e1117d0c3b2d3",
-            "name": "vectorcraft-0.21.0-linux-x86_64.deb",
-            "size": 143784886
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:eca37cb72ec11fdd3decf650c6b30b107ddc5eec1dfe21490aae172cf8badfe4",
+            "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+            "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.flatpak",
-            "digest": "sha256:ab48d40eb59881318f442f0573beec82f9f94995683e156f2a56927c3bbd3e4f",
-            "name": "vectorcraft-0.21.0-linux-x86_64.flatpak",
-            "size": 98754152
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm",
+            "digest": "sha256:7280e2d02c82d05594f190cfc953de00c566b6c5f6ef4ddf816729a7e1e31e1a",
+            "name": "vectorcraft-0.21.1-linux-aarch64.rpm",
+            "size": 139675133
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:f38ae17b5010dee021ddde996c0089cd03d577b1698a1420d30fcd59b952bf61",
-            "name": "vectorcraft-0.21.0-linux-x86_64.pkg.tar.zst",
-            "size": 105401015
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:3d3d7283a59a5832d2dea79bdd44a14dba0f571f2ad6024c9916b4f97ad8add6",
+            "name": "vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.rpm",
-            "digest": "sha256:8190e2dc814bace560eae0db09843df0fcf7505e5f7f9448b43965c2b6da80b3",
-            "name": "vectorcraft-0.21.0-linux-x86_64.rpm",
-            "size": 142800172
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz",
+            "digest": "sha256:2e6f3026856b0f9609acb1529bb138dcda7bee2e34a285e06549937696ac3604",
+            "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz",
+            "size": 137139235
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-linux-x86_64.tar.gz",
-            "digest": "sha256:2ffd00fb349318e7e92e97af377cffd818f1726451b7f2189e92f2267eb34c21",
-            "name": "vectorcraft-0.21.0-linux-x86_64.tar.gz",
-            "size": 141633039
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:7c46f7368f2ff7df00e9e4510f6ba817f77ec9c38f364de8a1b3bfed52a44161",
+            "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-macos-universal.dmg",
-            "digest": "sha256:cee7434dd52d7e783d3f9810ee008f3a93b873da5a5ec7801a670ea93787c7e2",
-            "name": "vectorcraft-0.21.0-macos-universal.dmg",
-            "size": 160467175
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb",
+            "digest": "sha256:7bd705881195a93593dbfd8a0cc16b8f330dd262f10781a714f61c05766742d9",
+            "name": "vectorcraft-0.21.1-linux-riscv64.deb",
+            "size": 142622648
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-arm64-portable.zip",
-            "digest": "sha256:49768ab14ad1d6776e563c3ed962002616ea0bc15634a1a35e3c74974fb0b693",
-            "name": "vectorcraft-0.21.0-windows-arm64-portable.zip",
-            "size": 138648631
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb.asc",
+            "digest": "sha256:1f17329ae0ce023732a79f2f506fbe45bff9428b13b39a7cb34f6abd476ec923",
+            "name": "vectorcraft-0.21.1-linux-riscv64.deb.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-arm64.msi",
-            "digest": "sha256:2b62de1105d9f0e9a6da573b3e6ab98ed11fafc5e9660d731631caeeb07b0b3f",
-            "name": "vectorcraft-0.21.0-windows-arm64.msi",
-            "size": 109764608
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm",
+            "digest": "sha256:6c5b8ec3e3d283388c23d0bde84a2d3ff5ba3d4ecc43097976f0963d0ae60afc",
+            "name": "vectorcraft-0.21.1-linux-riscv64.rpm",
+            "size": 141976812
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-x64-portable.zip",
-            "digest": "sha256:611227768f067e31788156aa3fd76220febe6fcf66be349f27a399c88de200d8",
-            "name": "vectorcraft-0.21.0-windows-x64-portable.zip",
-            "size": 145817499
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:994dff516c46314dbfa3e748a8e81655ac431bad5ede192efd79e107087d304c",
+            "name": "vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-x64.msi",
-            "digest": "sha256:b14eeedfa4601e94802f6e1ebc28c247253ef86761764d7ed92a6c68c883f25b",
-            "name": "vectorcraft-0.21.0-windows-x64.msi",
-            "size": 117018624
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz",
+            "digest": "sha256:e8cd3a23880510b6b505b59afeecfbcb88091226035706e1ab340f4acbe20a70",
+            "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz",
+            "size": 140655281
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-x86-portable.zip",
-            "digest": "sha256:1913289778f38593cd8df28d0336f28978f6f48cebb5cd3c2553ab03a517143c",
-            "name": "vectorcraft-0.21.0-windows-x86-portable.zip",
-            "size": 139396026
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:bc5ea52f39939e98a4a137aa4a637e6a7c44f6f835dc73a55c99f634c43950a1",
+            "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-0.21.0-windows-x86.msi",
-            "digest": "sha256:c54a960e677dda322bac9fed3536ee59b4a3d2c12fbec0cca3b44f456ce4b5ee",
-            "name": "vectorcraft-0.21.0-windows-x86.msi",
-            "size": 113479680
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage",
+            "digest": "sha256:7865429846119772dbd5dd9395cba88c7190cff5b92b17b141103ae7285c99e0",
+            "name": "vectorcraft-0.21.1-linux-x86_64.AppImage",
+            "size": 135039480
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-cli-0.21.0-macos-universal.zip",
-            "digest": "sha256:1c645c749759654223136f9a4c0c6ea73867e79a3969b17844e3cdabaec07429",
-            "name": "vectorcraft-cli-0.21.0-macos-universal.zip",
-            "size": 119900644
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:0917cf52bb3f37d800c819988fc5ab7852abb7d297eafd7a9b1396609351c359",
+            "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.0/vectorcraft-web-0.21.0.zip",
-            "digest": "sha256:8a45fc01de4b4b58124c6fc1fde003563da10605a6388f43365aa5de14a0c956",
-            "name": "vectorcraft-web-0.21.0.zip",
-            "size": 32946202
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:2144e8e0273719dbd05bb85ab64959df0fa5ae908c6e16fde8ee6b7a7835df79",
+            "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+            "size": 231035
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:af898fc45d522c81487b8f4d23aa4c8f56906a9cb71abc359df034dc6947c355",
+            "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb",
+            "digest": "sha256:6272eab06c722d2af31fab1ba96ef6331d9c2551b1584d8f5aff6089bcd7d562",
+            "name": "vectorcraft-0.21.1-linux-x86_64.deb",
+            "size": 145406650
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb.asc",
+            "digest": "sha256:197e3aaf71745bfce53618d00af1b3b5feec7c785a40d3b8a1662342a506eb44",
+            "name": "vectorcraft-0.21.1-linux-x86_64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak",
+            "digest": "sha256:16286f20bd1687e9af3a17f106446bdac80f3947089e5d102bb1a08f41d229f2",
+            "name": "vectorcraft-0.21.1-linux-x86_64.flatpak",
+            "size": 99821024
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:c942039da0b75c35a64358bb285bd63f8136a3cd27476c2ca60738b75ea2172c",
+            "name": "vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:5e0c7dd6a89e9c746b8a48248655c0a1c7d4104c1827f5d28288180a272e7b6f",
+            "name": "vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+            "size": 494
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci.sig",
+            "digest": "sha256:c061ed484923647fb9420c6625ba9c37615f6b06aacd30f89f33a7ab4a1817d4",
+            "name": "vectorcraft-0.21.1-linux-x86_64.oci.sig",
+            "size": 388
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:1e6a0a9c1b36596afffb12cdd38f22a820724b16a8f8d33660f8aa34fde03ee4",
+            "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+            "size": 106543534
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:2ab979d310f56033fb6b9a31152b83995cd143b9e9ac4a046785dea0df2a9c7f",
+            "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+            "size": 119
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm",
+            "digest": "sha256:4d0e13a6fe6959c28f6ea0ae8c79cfc864773be62de3dec261b60b0cd3a9efe9",
+            "name": "vectorcraft-0.21.1-linux-x86_64.rpm",
+            "size": 144399969
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:780eb6b5316b663947ca81d4f3a8bf5528e0b6e949b945776c1efbcb353b988b",
+            "name": "vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz",
+            "digest": "sha256:383bba06fbde7cb87c7e137937ad516a9a585491c5a927d8631ee54bbf1d4e93",
+            "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz",
+            "size": 143222440
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:c063381255391d942810e09200c710a4c482e447a6f3aedeef707f58a0cd18db",
+            "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-macos-universal.dmg",
+            "digest": "sha256:27fd4d3ed472d92eb68154ca75cf25cb856682626715632b2abac2551f3c08bf",
+            "name": "vectorcraft-0.21.1-macos-universal.dmg",
+            "size": 162503679
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64-portable.zip",
+            "digest": "sha256:8d531f5778c64db1d85fdbfafd7063e0d99dd84d6a11b823ac71ebc992542a2d",
+            "name": "vectorcraft-0.21.1-windows-arm64-portable.zip",
+            "size": 140268666
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64.msi",
+            "digest": "sha256:cb701bd504a10e1617e146ede1facca5e0b86cadd3c3be2c6fc23731ae131c24",
+            "name": "vectorcraft-0.21.1-windows-arm64.msi",
+            "size": 110940160
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64-portable.zip",
+            "digest": "sha256:0548a576f866f44b43cde975d4b13805be328dc05f7d975ebe37daf6d4577a94",
+            "name": "vectorcraft-0.21.1-windows-x64-portable.zip",
+            "size": 147640888
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64.msi",
+            "digest": "sha256:6c639490afc96de0d0a726f5daf8cc412bae51158e4914da91f92ca7c6bdf285",
+            "name": "vectorcraft-0.21.1-windows-x64.msi",
+            "size": 118407168
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86-portable.zip",
+            "digest": "sha256:fa9b447bab88a4d475b4efbf309a230b116a20cd51fa5318a26b7b09fd2a518f",
+            "name": "vectorcraft-0.21.1-windows-x86-portable.zip",
+            "size": 141102170
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86.msi",
+            "digest": "sha256:a9acfcf4de353422e3f909b87544d8295ee6b345d97cde8317e67b29abb25b06",
+            "name": "vectorcraft-0.21.1-windows-x86.msi",
+            "size": 114827264
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-cli-0.21.1-macos-universal.zip",
+            "digest": "sha256:1812e57498785d39485865d8fc7d9f6990f313217a2411c3d303ad17fe6e9181",
+            "name": "vectorcraft-cli-0.21.1-macos-universal.zip",
+            "size": 121059409
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-web-0.21.1.zip",
+            "digest": "sha256:0ee84174aed234771294a0fdedf89a4f3467b34d66238d1dcf9c69d763604a80",
+            "name": "vectorcraft-web-0.21.1.zip",
+            "size": 33641930
           }
         ],
         "draft": false,
-        "name": "VectorCraft v0.21.0",
+        "name": "VectorCraft v0.21.1",
         "prerelease": false,
-        "tag_name": "v0.21.0"
+        "tag_name": "v0.21.1"
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"803237ae86ad7bf00e002c9d5490eddccb073d034ceab6d3dde5a57abe09a470\"",
+      "etag": "\"4f49d6b1be233aa7b9afffdff6e817388d4db5bc302d0c33747893d631cf3e4b\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt",
+              "digest": "sha256:1cc1be179b3e58bfd3915b9ae8c9bbb4d2616b9a5b58462beb27e70f2c22b8e8",
+              "name": "SHA256SUMS.txt",
+              "size": 5381
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:39e845eff30b468120541c4ba5494bc522b638b805a1411df6e1ac40b931c2bf",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:08c3304837308474d2432dd9ef93ddd913f1ed873221159cfdffa269ff61fa7b",
+              "name": "vectorcraft-0.21.1-freebsd-aarch64.tar.gz",
+              "size": 135270715
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4eeed91af858c406f6b7d790437e520af5b4818c254957edb7edf6dd8c48d334",
+              "name": "vectorcraft-0.21.1-freebsd-x86_64.tar.gz",
+              "size": 142749444
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage",
+              "digest": "sha256:42c9aaf9578454a5a42eea1a8746c3b2a150193c51de9cf1b12e7c289e693be2",
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage",
+              "size": 129296904
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:d18b115b14e2add1d62422930386092f5f387fae725375fd4c092c7f490e232b",
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:837399340a10cf1f095d38bba121596497a79a10eabef58b93ebd3b96112953f",
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync",
+              "size": 221223
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:eb3ed7a436c0fa5e4540c492ed794b3faa2fb638e742359878b92d9c42aa3e02",
+              "name": "vectorcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb",
+              "digest": "sha256:5b94d9ed2414fc67f4221bddafcdc04580b2d4e7ff6b4abaa89763f52dba3f58",
+              "name": "vectorcraft-0.21.1-linux-aarch64.deb",
+              "size": 140956880
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.deb.asc",
+              "digest": "sha256:322be057cb00bea022429e4cb395009df8518962ac9ef2aa73d42f236e3d0d4a",
+              "name": "vectorcraft-0.21.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak",
+              "digest": "sha256:1ad30ce2d297d5df866972d9f782e93c99d61e325db0692c793dbaa4c80a6c9c",
+              "name": "vectorcraft-0.21.1-linux-aarch64.flatpak",
+              "size": 93412960
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:73a12f4ba55e7e392b45a962597044a1b0830d43b1e224f78b934a9a74a2d378",
+              "name": "vectorcraft-0.21.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:dedb9178ab4fa493098c03e83b141d214b603803e9d548904041d61d043032e9",
+              "name": "vectorcraft-0.21.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.oci.sig",
+              "digest": "sha256:b4c71b595269c200ad686adc3cfb098fe4141de73971e0afa8d1325b13f64c23",
+              "name": "vectorcraft-0.21.1-linux-aarch64.oci.sig",
+              "size": 379
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:189a8a72abfd54bea7f556d920be54b63fea7bac8c14ef169de63a6ff58fdd73",
+              "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst",
+              "size": 102522214
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:eca37cb72ec11fdd3decf650c6b30b107ddc5eec1dfe21490aae172cf8badfe4",
+              "name": "vectorcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm",
+              "digest": "sha256:7280e2d02c82d05594f190cfc953de00c566b6c5f6ef4ddf816729a7e1e31e1a",
+              "name": "vectorcraft-0.21.1-linux-aarch64.rpm",
+              "size": 139675133
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:3d3d7283a59a5832d2dea79bdd44a14dba0f571f2ad6024c9916b4f97ad8add6",
+              "name": "vectorcraft-0.21.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz",
+              "digest": "sha256:2e6f3026856b0f9609acb1529bb138dcda7bee2e34a285e06549937696ac3604",
+              "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz",
+              "size": 137139235
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:7c46f7368f2ff7df00e9e4510f6ba817f77ec9c38f364de8a1b3bfed52a44161",
+              "name": "vectorcraft-0.21.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb",
+              "digest": "sha256:7bd705881195a93593dbfd8a0cc16b8f330dd262f10781a714f61c05766742d9",
+              "name": "vectorcraft-0.21.1-linux-riscv64.deb",
+              "size": 142622648
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.deb.asc",
+              "digest": "sha256:1f17329ae0ce023732a79f2f506fbe45bff9428b13b39a7cb34f6abd476ec923",
+              "name": "vectorcraft-0.21.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm",
+              "digest": "sha256:6c5b8ec3e3d283388c23d0bde84a2d3ff5ba3d4ecc43097976f0963d0ae60afc",
+              "name": "vectorcraft-0.21.1-linux-riscv64.rpm",
+              "size": 141976812
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:994dff516c46314dbfa3e748a8e81655ac431bad5ede192efd79e107087d304c",
+              "name": "vectorcraft-0.21.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz",
+              "digest": "sha256:e8cd3a23880510b6b505b59afeecfbcb88091226035706e1ab340f4acbe20a70",
+              "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz",
+              "size": 140655281
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:bc5ea52f39939e98a4a137aa4a637e6a7c44f6f835dc73a55c99f634c43950a1",
+              "name": "vectorcraft-0.21.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage",
+              "digest": "sha256:7865429846119772dbd5dd9395cba88c7190cff5b92b17b141103ae7285c99e0",
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage",
+              "size": 135039480
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:0917cf52bb3f37d800c819988fc5ab7852abb7d297eafd7a9b1396609351c359",
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:2144e8e0273719dbd05bb85ab64959df0fa5ae908c6e16fde8ee6b7a7835df79",
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync",
+              "size": 231035
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:af898fc45d522c81487b8f4d23aa4c8f56906a9cb71abc359df034dc6947c355",
+              "name": "vectorcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb",
+              "digest": "sha256:6272eab06c722d2af31fab1ba96ef6331d9c2551b1584d8f5aff6089bcd7d562",
+              "name": "vectorcraft-0.21.1-linux-x86_64.deb",
+              "size": 145406650
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.deb.asc",
+              "digest": "sha256:197e3aaf71745bfce53618d00af1b3b5feec7c785a40d3b8a1662342a506eb44",
+              "name": "vectorcraft-0.21.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak",
+              "digest": "sha256:16286f20bd1687e9af3a17f106446bdac80f3947089e5d102bb1a08f41d229f2",
+              "name": "vectorcraft-0.21.1-linux-x86_64.flatpak",
+              "size": 99821024
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:c942039da0b75c35a64358bb285bd63f8136a3cd27476c2ca60738b75ea2172c",
+              "name": "vectorcraft-0.21.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:5e0c7dd6a89e9c746b8a48248655c0a1c7d4104c1827f5d28288180a272e7b6f",
+              "name": "vectorcraft-0.21.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.oci.sig",
+              "digest": "sha256:c061ed484923647fb9420c6625ba9c37615f6b06aacd30f89f33a7ab4a1817d4",
+              "name": "vectorcraft-0.21.1-linux-x86_64.oci.sig",
+              "size": 388
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:1e6a0a9c1b36596afffb12cdd38f22a820724b16a8f8d33660f8aa34fde03ee4",
+              "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst",
+              "size": 106543534
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:2ab979d310f56033fb6b9a31152b83995cd143b9e9ac4a046785dea0df2a9c7f",
+              "name": "vectorcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm",
+              "digest": "sha256:4d0e13a6fe6959c28f6ea0ae8c79cfc864773be62de3dec261b60b0cd3a9efe9",
+              "name": "vectorcraft-0.21.1-linux-x86_64.rpm",
+              "size": 144399969
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:780eb6b5316b663947ca81d4f3a8bf5528e0b6e949b945776c1efbcb353b988b",
+              "name": "vectorcraft-0.21.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz",
+              "digest": "sha256:383bba06fbde7cb87c7e137937ad516a9a585491c5a927d8631ee54bbf1d4e93",
+              "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz",
+              "size": 143222440
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:c063381255391d942810e09200c710a4c482e447a6f3aedeef707f58a0cd18db",
+              "name": "vectorcraft-0.21.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-macos-universal.dmg",
+              "digest": "sha256:27fd4d3ed472d92eb68154ca75cf25cb856682626715632b2abac2551f3c08bf",
+              "name": "vectorcraft-0.21.1-macos-universal.dmg",
+              "size": 162503679
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64-portable.zip",
+              "digest": "sha256:8d531f5778c64db1d85fdbfafd7063e0d99dd84d6a11b823ac71ebc992542a2d",
+              "name": "vectorcraft-0.21.1-windows-arm64-portable.zip",
+              "size": 140268666
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-arm64.msi",
+              "digest": "sha256:cb701bd504a10e1617e146ede1facca5e0b86cadd3c3be2c6fc23731ae131c24",
+              "name": "vectorcraft-0.21.1-windows-arm64.msi",
+              "size": 110940160
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64-portable.zip",
+              "digest": "sha256:0548a576f866f44b43cde975d4b13805be328dc05f7d975ebe37daf6d4577a94",
+              "name": "vectorcraft-0.21.1-windows-x64-portable.zip",
+              "size": 147640888
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x64.msi",
+              "digest": "sha256:6c639490afc96de0d0a726f5daf8cc412bae51158e4914da91f92ca7c6bdf285",
+              "name": "vectorcraft-0.21.1-windows-x64.msi",
+              "size": 118407168
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86-portable.zip",
+              "digest": "sha256:fa9b447bab88a4d475b4efbf309a230b116a20cd51fa5318a26b7b09fd2a518f",
+              "name": "vectorcraft-0.21.1-windows-x86-portable.zip",
+              "size": 141102170
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-0.21.1-windows-x86.msi",
+              "digest": "sha256:a9acfcf4de353422e3f909b87544d8295ee6b345d97cde8317e67b29abb25b06",
+              "name": "vectorcraft-0.21.1-windows-x86.msi",
+              "size": 114827264
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-cli-0.21.1-macos-universal.zip",
+              "digest": "sha256:1812e57498785d39485865d8fc7d9f6990f313217a2411c3d303ad17fe6e9181",
+              "name": "vectorcraft-cli-0.21.1-macos-universal.zip",
+              "size": 121059409
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.21.1/vectorcraft-web-0.21.1.zip",
+              "digest": "sha256:0ee84174aed234771294a0fdedf89a4f3467b34d66238d1dcf9c69d763604a80",
+              "name": "vectorcraft-web-0.21.1.zip",
+              "size": 33641930
+            }
+          ],
+          "draft": false,
+          "name": "VectorCraft v0.21.1",
+          "prerelease": false,
+          "tag_name": "v0.21.1"
+        },
         {
           "assets": [
             {
@@ -102009,7 +102787,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"afe74dfac01a67f21f22d5bf8a5cbf27a5fdc1f44d6f790b56057c7b56099be0\"",
+      "etag": "\"da979213b0de7440423337a9e073278ff8ca8798f2803c5b30e8a5aab25a37c5\"",
       "body": {
         "assets": [
           {
@@ -102332,7 +103110,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"5b32ae08e17503d083e9f6a6c00dd4d2ec21807487fe4fbd35870db5a290e9bb\"",
+      "etag": "\"ea51e0db6a7f327017c918f9dc3571f7ef9c595fb1eafd1fde233044cadaf084\"",
       "body": [
         {
           "assets": [
@@ -105159,7 +105937,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"90517245279446afc21c018382bb018a266e590705f51941f2cff298ae022a71\"",
+      "etag": "\"30fe5c5eaf4ef7f71291f206d513ffa9613063b814fcb24a723fd20e6e55cc73\"",
       "body": {
         "assets": [
           {
@@ -105464,7 +106242,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"8cf5ae2a2f1c6f4a07357ae686beec518beb7ba7bbbaa50bdb2c306851499bf9\"",
+      "etag": "\"ac71f4fbaa4d063e1f01a45d47c5ea8844556428e9d7cde3f6e67599615a68fb\"",
       "body": [
         {
           "assets": [
