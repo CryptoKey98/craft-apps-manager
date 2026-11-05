@@ -2,95 +2,95 @@
   "index": {
     "schema": 1,
     "purpose": "app-release-catalog",
-    "sequence": 119,
-    "generated_at": 1793868133,
+    "sequence": 120,
+    "generated_at": 1793869645,
     "repositories": {
       "storytold/artcraft": {
         "sha256": "3677ef65240717ec48454ad8ecbe5fa3b9567c426102fd820a58b346674c6863",
         "size": 35070,
-        "checked_at": 1793868117
+        "checked_at": 1793869629
       },
       "storytold/cadcraft": {
         "sha256": "1e654c9df4e66aff48dc80dacfb2d4caabd774cc110a92224bb8328bc0d028f6",
         "size": 133562,
-        "checked_at": 1793868118
+        "checked_at": 1793869629
       },
       "storytold/deckcraft": {
         "sha256": "95411af856698e72548b06be3f69637bf49e3aa0c6001148a8624489004a2504",
         "size": 125891,
-        "checked_at": 1793868119
+        "checked_at": 1793869630
       },
       "storytold/designcraft": {
         "sha256": "1c52587f51ec5557fb26b0590e87b1dd82bc8cfa96cf5cde4034b14f3bbf8935",
         "size": 161969,
-        "checked_at": 1793868120
+        "checked_at": 1793869631
       },
       "storytold/effectcraft": {
         "sha256": "bd86d526b65dc55bafbbab7e949282d1009f9b2ebb389f839ce7b34a8b21de06",
         "size": 170998,
-        "checked_at": 1793868121
+        "checked_at": 1793869632
       },
       "storytold/figcraft": {
         "sha256": "bf0cafab99c9c5d9480bcb791faaf81c6b999b1acc66d4a366d1a56b62170c07",
         "size": 142806,
-        "checked_at": 1793868122
+        "checked_at": 1793869633
       },
       "storytold/filmcraft": {
         "sha256": "71527f7d3ea1235986dac1bf1b84dc77d35908f247b46ff2d23699654ae89e7d",
         "size": 148507,
-        "checked_at": 1793868122
+        "checked_at": 1793869634
       },
       "storytold/gridcraft": {
         "sha256": "179673c82ea7135413fb6603c75d81e44029ddab26ab3314194414572f8dda27",
         "size": 135091,
-        "checked_at": 1793868123
+        "checked_at": 1793869635
       },
       "storytold/lightcraft": {
         "sha256": "6d0bb3b20e692904643ee64b25f3ca4752c3f9994ab06236b26d2b3f439c7b9c",
         "size": 157659,
-        "checked_at": 1793868124
+        "checked_at": 1793869636
       },
       "storytold/materialcraft": {
         "sha256": "5debef2ec8b32a78f004eea6684afa9a429d22977d75b84103588542b5db2b12",
         "size": 40349,
-        "checked_at": 1793868125,
+        "checked_at": 1793869637,
         "discovery_added_at": 1793675300
       },
       "storytold/pdfcraft": {
         "sha256": "dc38db43a13427de5f6b576bdce3f3b6df084f943ed683af4e4275d5e0ce328b",
         "size": 175013,
-        "checked_at": 1793868126
+        "checked_at": 1793869637
       },
       "storytold/photocraft": {
         "sha256": "bd97fae4a0f4a02c04aa6501e294344eddb079826bf45339fb81225a9d99722b",
         "size": 184674,
-        "checked_at": 1793868127
+        "checked_at": 1793869639
       },
       "storytold/soundcraft": {
         "sha256": "66771a4bc9ac05fc9ef8afabbc14312c312505aefb73aef8508c9df3405090e5",
         "size": 130527,
-        "checked_at": 1793868128
+        "checked_at": 1793869639
       },
       "storytold/texturecraft": {
         "sha256": "5e219eee5ce4f9b814e4391466121f2883ed6564b7d42a30495425445d9d3700",
         "size": 50291,
-        "checked_at": 1793868128,
+        "checked_at": 1793869640,
         "discovery_added_at": 1793516400
       },
       "storytold/vectorcraft": {
         "sha256": "61d676c42cee56a0faf432698484c9608837d4fffcec8b48f9cd17d3e761b399",
         "size": 183196,
-        "checked_at": 1793868129
+        "checked_at": 1793869641
       },
       "storytold/wordcraft": {
         "sha256": "47f28c9d22e3e9ed722168ac4092c9cdfff5ff88d92bf21040950c7796be3f4a",
         "size": 135838,
-        "checked_at": 1793868130
+        "checked_at": 1793869642
       },
       "tangency-labs/solidcraft": {
         "sha256": "cb1675742790599834caaeac531292ce0b1212989b42c72a225ea2ec0622e2d6",
         "size": 662440,
-        "checked_at": 1793868132,
+        "checked_at": 1793869644,
         "discovery_added_at": 1793516400
       }
     }
