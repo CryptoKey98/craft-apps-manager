@@ -14406,6 +14406,118 @@
         "inspector_version": 1
       },
       "used": 1793997803
+    },
+    {
+      "repository": "storytold/designcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "designcraft-0.18.0-windows-x86.msi",
+        "digest": "sha256:7b901291e9467b6578058ffd1351230ca50fa309aad441a115ce3e01ee3b0f56",
+        "size": 97128448,
+        "os": "windows",
+        "architecture": "x86",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999302
+    },
+    {
+      "repository": "storytold/effectcraft",
+      "evidence": {
+        "tag": "v0.22.0",
+        "asset_name": "effectcraft-0.22.0-windows-arm64.msi",
+        "digest": "sha256:e758195a83c8244ad11b36754741625cb67ecc3019bff2cb0340139094b69397",
+        "size": 56512512,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999303
+    },
+    {
+      "repository": "storytold/effectcraft",
+      "evidence": {
+        "tag": "v0.22.0",
+        "asset_name": "effectcraft-0.22.0-windows-x64.msi",
+        "digest": "sha256:6196d09d923ffe5177e3abacb48498552b820f3cb103c93fef1f3e478082c652",
+        "size": 63361024,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999303
+    },
+    {
+      "repository": "storytold/effectcraft",
+      "evidence": {
+        "tag": "v0.22.0",
+        "asset_name": "effectcraft-0.22.0-windows-x86.msi",
+        "digest": "sha256:92fb10c32fd252da5353ded8c58d07132a28d9134feafb1e62c72d13d1f3be93",
+        "size": 61796352,
+        "os": "windows",
+        "architecture": "x86",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999304
+    },
+    {
+      "repository": "storytold/figcraft",
+      "evidence": {
+        "tag": "v0.16.0",
+        "asset_name": "figcraft-0.16.0-windows-arm64.msi",
+        "digest": "sha256:b38294a1ced650c7ebc640699f84275b459c4a2cb66a06f6e376de1ac43b127c",
+        "size": 77242368,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999306
+    },
+    {
+      "repository": "storytold/figcraft",
+      "evidence": {
+        "tag": "v0.16.0",
+        "asset_name": "figcraft-0.16.0-windows-x64.msi",
+        "digest": "sha256:cf4ae028b7cc6f6b32e16d561bb3de2c8b3d9e8b4608ea9a7b7cd62bddffff69",
+        "size": 80826368,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999306
+    },
+    {
+      "repository": "storytold/figcraft",
+      "evidence": {
+        "tag": "v0.16.0",
+        "asset_name": "figcraft-0.16.0-windows-x86.msi",
+        "digest": "sha256:ab92fa218d5b30004500d64ba9c44f12cd22d6db6a4f3cb34385c97136473020",
+        "size": 79331328,
+        "os": "windows",
+        "architecture": "x86",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999307
+    },
+    {
+      "repository": "storytold/filmcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "filmcraft-0.18.0-windows-arm64.msi",
+        "digest": "sha256:85ba8a98b1e2e5fee2319649fd90b101adc4abad5993812d8ca8a3dd961892a2",
+        "size": 86638592,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1793999308
     }
   ],
   "attempts": {
@@ -14567,6 +14679,7 @@
     "storytold/designcraft:v0.17.2:designcraft-0.17.2-windows-x86.msi:sha256:21ab40a79c3d2e21ba3b7e89f07ecb09f256ce748b74a0e75edab979a41c9434": 1793844031,
     "storytold/designcraft:v0.18.0:designcraft-0.18.0-windows-arm64.msi:sha256:8679937c0ca7309826ef321963aad60ed8db09e2a46474913bb89bd962a837f3": 1793997799,
     "storytold/designcraft:v0.18.0:designcraft-0.18.0-windows-x64.msi:sha256:8d4e23939067a9a15b6232aae1f2c8c8acf9537741c550c8e8b34b12b2f28f71": 1793997802,
+    "storytold/designcraft:v0.18.0:designcraft-0.18.0-windows-x86.msi:sha256:7b901291e9467b6578058ffd1351230ca50fa309aad441a115ce3e01ee3b0f56": 1793999300,
     "storytold/designcraft:v0.2.0:designcraft-0.2.0-windows-x64.msi:sha256:147069888ae9b1e63605f54516c1bd8906f8e3ae8607ba8a40e11198c5184888": 1793536187,
     "storytold/designcraft:v0.2.0:designcraft-0.2.0-windows-x86.msi:sha256:57190f1490a8a38aa6ff73735267bbb7c3492110becfca3d2528b4d8f90e4bd4": 1793536188,
     "storytold/designcraft:v0.2.1:designcraft-0.2.1-windows-x64.msi:sha256:d320310c33b9e887ab5a68b76b67e63e426e909ab92e3e3f39d06c2d49697d2c": 1793536186,
@@ -14631,6 +14744,9 @@
     "storytold/effectcraft:v0.21.1:effectcraft-0.21.1-windows-arm64.msi:sha256:d43f0474ba9d84f13e329d4a6b7237acc06f25a20462512fe21f9b4ef48581b7": 1793844034,
     "storytold/effectcraft:v0.21.1:effectcraft-0.21.1-windows-x64.msi:sha256:5e499653dd189ed37b78ce0cc579d89f03ab7cdd076f4364fdc86437d96f6df8": 1793844035,
     "storytold/effectcraft:v0.21.1:effectcraft-0.21.1-windows-x86.msi:sha256:3860028ce7396cff4d8e3cc3ab3b53cdfb1145c5db54ac923b6c3f7cffcb2763": 1793844035,
+    "storytold/effectcraft:v0.22.0:effectcraft-0.22.0-windows-arm64.msi:sha256:e758195a83c8244ad11b36754741625cb67ecc3019bff2cb0340139094b69397": 1793999302,
+    "storytold/effectcraft:v0.22.0:effectcraft-0.22.0-windows-x64.msi:sha256:6196d09d923ffe5177e3abacb48498552b820f3cb103c93fef1f3e478082c652": 1793999303,
+    "storytold/effectcraft:v0.22.0:effectcraft-0.22.0-windows-x86.msi:sha256:92fb10c32fd252da5353ded8c58d07132a28d9134feafb1e62c72d13d1f3be93": 1793999303,
     "storytold/effectcraft:v0.3.0:effectcraft-0.3.0-windows-x64.msi:sha256:15542568ddfb8882a1eeda86da164171da04eb75f1095de0cc5b1ff1799f8fcb": 1793536245,
     "storytold/effectcraft:v0.3.0:effectcraft-0.3.0-windows-x86.msi:sha256:917b030c87828deb2232371bd4517f92b45fff2fecce20be252ab608e92c0074": 1793536247,
     "storytold/effectcraft:v0.3.1:effectcraft-0.3.1-windows-x64.msi:sha256:81005165a5f6143f5e655a7554d6f0de565c06025ffebab7953d04bf54b1b99b": 1793536243,
@@ -14671,6 +14787,9 @@
     "storytold/figcraft:v0.15.1:figcraft-0.15.1-windows-arm64.msi:sha256:1d8fae73612890efb51037e7d8e1ddecda40875431791f59cc4228ce286ac973": 1793844036,
     "storytold/figcraft:v0.15.1:figcraft-0.15.1-windows-x64.msi:sha256:d5acb5217da71682030393b1c99964fd3c90d7a50191b14fbf4824257c00fe66": 1793844037,
     "storytold/figcraft:v0.15.1:figcraft-0.15.1-windows-x86.msi:sha256:59200c3748072a79828e2bdfa420cb56854b78a40caa0d881cea6a34f16c5fb0": 1793845526,
+    "storytold/figcraft:v0.16.0:figcraft-0.16.0-windows-arm64.msi:sha256:b38294a1ced650c7ebc640699f84275b459c4a2cb66a06f6e376de1ac43b127c": 1793999304,
+    "storytold/figcraft:v0.16.0:figcraft-0.16.0-windows-x64.msi:sha256:cf4ae028b7cc6f6b32e16d561bb3de2c8b3d9e8b4608ea9a7b7cd62bddffff69": 1793999306,
+    "storytold/figcraft:v0.16.0:figcraft-0.16.0-windows-x86.msi:sha256:ab92fa218d5b30004500d64ba9c44f12cd22d6db6a4f3cb34385c97136473020": 1793999306,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-arm64.msi:sha256:379eba5fed8abe5f796cff5737702930b2b37b4447bda8093384d520744069d6": 1793539908,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-x64.msi:sha256:c8f2495950fe7abbe3f0f7b93e2f25133e532004e5a9dbef7876bbe1345dfdc3": 1793536313,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-x86.msi:sha256:ff47cb69dc7293f789bd406fefd27299d9a58ff5490d2947319a3d7c4b7ff165": 1793536315,
@@ -14727,6 +14846,7 @@
     "storytold/filmcraft:v0.17.1:filmcraft-0.17.1-windows-arm64.msi:sha256:05fe2ff9d42076521c05d3caaf553730fb7c7a5083b53c91d46a62e1fb14ee0b": 1793845528,
     "storytold/filmcraft:v0.17.1:filmcraft-0.17.1-windows-x64.msi:sha256:d0181054dd8e5f438f475a37c2b9d8443cb75e3adbd4d90b41690b0e5cc74be8": 1793845528,
     "storytold/filmcraft:v0.17.1:filmcraft-0.17.1-windows-x86.msi:sha256:3e4d68f91f537e6353ca72c089d335f3159fc0ce4d6c77ea41a990111c57ca42": 1793845529,
+    "storytold/filmcraft:v0.18.0:filmcraft-0.18.0-windows-arm64.msi:sha256:85ba8a98b1e2e5fee2319649fd90b101adc4abad5993812d8ca8a3dd961892a2": 1793999307,
     "storytold/filmcraft:v0.2.0:filmcraft-0.2.0-windows-x64.msi:sha256:91df5ffe8bf2e65517bed950973f650190d87e12d19ea3a12f33704b22250c4c": 1793536364,
     "storytold/filmcraft:v0.2.0:filmcraft-0.2.0-windows-x86.msi:sha256:9316b82461273da995d570181491986a99c0124aeefa45298920b1ac2eff45ea": 1793536365,
     "storytold/filmcraft:v0.2.1:filmcraft-0.2.1-windows-x64.msi:sha256:cfe73eea4523a8ee896b4888a7208158b22506a73bd08f811c2880596bbad503": 1793536360,
