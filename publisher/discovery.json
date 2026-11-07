@@ -2,9 +2,287 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1794018870,
-      "latest_tag": "artcraft-v0.41.0",
+      "checked_at": 1794020374,
+      "latest_tag": "artcraft-v0.41.1",
       "releases": [
+        {
+          "tag_name": "artcraft-v0.41.1",
+          "name": "ArtCraft v0.41.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage",
+              "size": 177187336,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage",
+              "digest": "sha256:31a4071758ce7989c6548e3976839aaf6010be414d0a1b5cc9a913537bbc88de"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:b31e7b76cbf22e70d1ec1bd69ecee99882d84db5799d501c996bec12b9e8aaf1"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "size": 303134,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:c30d74cb558652168c1a0fcbedfe8aeab22d9a31e4ac30026778f6d7a5a129f8"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:6019e98c27e8c718791ad01f289f112ce9ddf5d497c589c2b6472421c0cead09"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.deb",
+              "size": 50359372,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb",
+              "digest": "sha256:86e732287afeb640f6ef77d823f4291dc9b8cd045de6ae1137cd3729156291dd"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb.asc",
+              "digest": "sha256:99dcac63788e00b8e29b33371dc3f2392248f992cbc666833aaecdd222407941"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak",
+              "size": 40561288,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak",
+              "digest": "sha256:8f899c94f0c41fb1553c66fc6b4d3ac0763f4c034bfb06fe9f0d60426c153f7b"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:2e4ba0c04b08f105079abf0c105d596c459197e14666d40ecf6718d9a29692a7"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:7f98a1663bb25745f3733a7bb53ae82c11abc22793a07fa98bcd0548a76324f5"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.oci.sig",
+              "size": 387,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci.sig",
+              "digest": "sha256:284289ee7ca2b64eb91a7daa0dc8de6610f709d29b6780b6ac522cad8b500e75"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "size": 43824067,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:d435e7f7fd8c6a0cf60acd535558ed507ca0bdf8ce2b9d1ff6c992a751d352d8"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:6b5489b3b545c7232d53c690b5943eda3a62ef5744c84dfee1069dc1c88fdc04"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.rpm",
+              "size": 50362331,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm",
+              "digest": "sha256:3701481f6193770f97f45eacff84dc2ff1e3df92c2c526d918d2f31e6b315205"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:5839d7e88b151c310d7284e558b72539eb2064e9e5349bba7ebb5d22cbaddfdc"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz",
+              "size": 49710171,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz",
+              "digest": "sha256:cb780e02e87234927d339c87dee03b224e1641320758be813d31d442d9a691ae"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:b83ddda68ab7a6cddfcdccdc38cb5cc0827a42e85056fb9add30cbaede9cb26d"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.deb",
+              "size": 48852800,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb",
+              "digest": "sha256:7ffdf1ec4c99401cff821b0998cb4e7cd0644b39befa418f5adb4a2749352ff0"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb.asc",
+              "digest": "sha256:2e1ccfe26d7b5d6f0a39616628385629b8ae8894231447e47425f789ee16e9b7"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.rpm",
+              "size": 48857171,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm",
+              "digest": "sha256:72f11bfc6f0bee941226ce00808fcf427b12be626ee9c28512bcf4498dab1eae"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:aa3da34c710d8ff07110b656b434b37436e0dbd30b7c7bade61ee0dbf2d2f7b2"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz",
+              "size": 48491446,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz",
+              "digest": "sha256:d32edc5ac3320f6789154fcd89552f0650d6d396c8cb576d1197d1e11bbc0745"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:e45fa0cae51309ee524322d1b65ba49b4f01225e2057cf18928803d7453da843"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage",
+              "size": 182495736,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage",
+              "digest": "sha256:bb32657b6e81e8e47da44ca4e764b1af14d77d8690b248a263a4acd1218b7d2d"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:770a5e86dd56a3822adb8385ad80534f039983361bc0abc5f9a9ccc81fc2974b"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "size": 312204,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:8b1d9e3806b0a63e4149d7b899c35dafcdd2d76828a2960c971eb00eddc5db06"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:d524fb0943a2338e9c288a5a275d14002b1d1e07fd27a19b0bc5de304979ba05"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.deb",
+              "size": 49873314,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb",
+              "digest": "sha256:91b3d69c2e707b60c4cad6c14eca6b3dc8bf62570738cdf10f0acbe3570b74a2"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb.asc",
+              "digest": "sha256:e3786418d32622cbead96ce19917fa2c8e38d82082f2fdc91fbb499f68cb1887"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak",
+              "size": 41755576,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak",
+              "digest": "sha256:7351e1bad48006b251ab943372fa15f1829d8b92ca944adb7f312b4e5c7e9912"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:cf9e4cd7bd120a6591f6f13b82d4d9c03b067dbbb58d0fb123e4cf2ccf9bd40e"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:39576e754b702bba58c5af983ea5c07042f30a71dcd6a64d0e3916eaccb9e8a4"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.oci.sig",
+              "size": 387,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci.sig",
+              "digest": "sha256:7c6bfc47603bb835b44c706b52b475e4eb116ff0390ea4f1f2dec713562b4df9"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "size": 43960303,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:8f7b1b0d7069ec1143102ab5c9d3cb639d7e833fca5b210c705cfe7e5d1f9db1"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:764a24249ad2fafd1d7e982a74fa2649311feb6ecc65938455f9331e9bcc3b31"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.rpm",
+              "size": 49875206,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm",
+              "digest": "sha256:f408402ea008adae7077f3e8a8e8799e63a6baa4f2fec138226f309e1de32dfc"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:d7eec47d390afbf53daf5cc123c396c6805ef4b3a560f5d502b15316b0b5ba61"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz",
+              "size": 49365185,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz",
+              "digest": "sha256:149f9748ea33553177c021e1ade47a195fad25b881129d4178fe5bd922a94eb4"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:967fb6dcdcc86636e0c2825af43d58525b4b07dc3d5f1ff553c9c819b0d9cc30"
+            },
+            {
+              "name": "ArtCraft_0.41.1_universal.dmg",
+              "size": 94884865,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_universal.dmg",
+              "digest": "sha256:89009b8983d88919481ac936e2ada0409dff0e0fc73f487cce3e7324699866a6"
+            },
+            {
+              "name": "ArtCraft_0.41.1_x64-setup.exe",
+              "size": 41991072,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64-setup.exe",
+              "digest": "sha256:fb80cad705a182fdd7bbc17bb2bd34f1bd74561c539d97e69ba6143b616ab038"
+            },
+            {
+              "name": "ArtCraft_0.41.1_x64_en-US.msi",
+              "size": 47058944,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64_en-US.msi",
+              "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 94791060,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:d1e4e9623ebf506fbc8d7476b69b2db957125761e7908624b3eb031ce044413e"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 4108,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt",
+              "digest": "sha256:5450801c2342f8ea05d9aa71cd31cb4b02462cebd9cab7abbe8884e17de6f075"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:11d6e4c827592c407c5fb85b774fa196698e7b42e2bc791b6caa38825b13ef9f"
+            }
+          ]
+        },
         {
           "tag_name": "artcraft-v0.41.0",
           "name": "ArtCraft v0.41.0",
@@ -809,7 +1087,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1794018871,
+      "checked_at": 1794020375,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -3940,7 +4218,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1794018872,
+      "checked_at": 1794020376,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -6889,7 +7167,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1794018873,
+      "checked_at": 1794020376,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -10526,7 +10804,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1794018873,
+      "checked_at": 1794020377,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -14347,7 +14625,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1794018874,
+      "checked_at": 1794020378,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -17700,7 +17978,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1794018875,
+      "checked_at": 1794020379,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -21125,7 +21403,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1794018876,
+      "checked_at": 1794020380,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -24262,7 +24540,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1794018877,
+      "checked_at": 1794020381,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -27839,7 +28117,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1794018877,
+      "checked_at": 1794020381,
       "latest_tag": "v0.2.0",
       "releases": [
         {
@@ -28988,7 +29266,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1794018878,
+      "checked_at": 1794020382,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -33023,7 +33301,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1794018879,
+      "checked_at": 1794020383,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -37170,7 +37448,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1794018880,
+      "checked_at": 1794020384,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -40185,7 +40463,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1794018881,
+      "checked_at": 1794020384,
       "latest_tag": "v0.4.0",
       "releases": [
         {
@@ -41536,7 +41814,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1794018882,
+      "checked_at": 1794020385,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -45595,7 +45873,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1794018883,
+      "checked_at": 1794020386,
       "latest_tag": "v0.16.0",
       "releases": [
         {
@@ -48744,7 +49022,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1794018885,
+      "checked_at": 1794020388,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -62013,43 +62291,567 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"5a681e10c3593f15def1bd91aef09d8669a897fd1462d305869eb1eb471453fb\"",
+      "etag": "\"60b45efb1f2f5e1165a388d036c17e36871893f6c935d445179626f70058cb58\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_universal.dmg",
-            "digest": "sha256:3cf1df2e56345e603c5d0180e5b563dd5eca25d9e3c3959d9554012f510916c1",
-            "name": "ArtCraft_0.41.0_universal.dmg",
-            "size": 94852055
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage",
+            "digest": "sha256:31a4071758ce7989c6548e3976839aaf6010be414d0a1b5cc9a913537bbc88de",
+            "name": "artcraft-0.41.1-linux-aarch64.AppImage",
+            "size": 177187336
           },
           {
-            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64-setup.exe",
-            "digest": "sha256:cb15da474ae36a7a7f930a6e9916be2794e7cc84c3340b531c38eabc82f4363e",
-            "name": "ArtCraft_0.41.0_x64-setup.exe",
-            "size": 41791713
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:b31e7b76cbf22e70d1ec1bd69ecee99882d84db5799d501c996bec12b9e8aaf1",
+            "name": "artcraft-0.41.1-linux-aarch64.AppImage.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64_en-US.msi",
-            "digest": "sha256:255f963ba8acb799b231ac23a5ef04ca157a8d26f9b9b279b3e55a59db29be77",
-            "name": "ArtCraft_0.41.0_x64_en-US.msi",
-            "size": 46837760
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:c30d74cb558652168c1a0fcbedfe8aeab22d9a31e4ac30026778f6d7a5a129f8",
+            "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+            "size": 303134
           },
           {
-            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_universal.app.tar.gz",
-            "digest": "sha256:812d7b4e570df95dee769761b6afc53d82cbb1e4911aed360d9bd23fc830d673",
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:6019e98c27e8c718791ad01f289f112ce9ddf5d497c589c2b6472421c0cead09",
+            "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb",
+            "digest": "sha256:86e732287afeb640f6ef77d823f4291dc9b8cd045de6ae1137cd3729156291dd",
+            "name": "artcraft-0.41.1-linux-aarch64.deb",
+            "size": 50359372
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb.asc",
+            "digest": "sha256:99dcac63788e00b8e29b33371dc3f2392248f992cbc666833aaecdd222407941",
+            "name": "artcraft-0.41.1-linux-aarch64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak",
+            "digest": "sha256:8f899c94f0c41fb1553c66fc6b4d3ac0763f4c034bfb06fe9f0d60426c153f7b",
+            "name": "artcraft-0.41.1-linux-aarch64.flatpak",
+            "size": 40561288
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:2e4ba0c04b08f105079abf0c105d596c459197e14666d40ecf6718d9a29692a7",
+            "name": "artcraft-0.41.1-linux-aarch64.flatpak.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:7f98a1663bb25745f3733a7bb53ae82c11abc22793a07fa98bcd0548a76324f5",
+            "name": "artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+            "size": 493
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci.sig",
+            "digest": "sha256:284289ee7ca2b64eb91a7daa0dc8de6610f709d29b6780b6ac522cad8b500e75",
+            "name": "artcraft-0.41.1-linux-aarch64.oci.sig",
+            "size": 387
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:d435e7f7fd8c6a0cf60acd535558ed507ca0bdf8ce2b9d1ff6c992a751d352d8",
+            "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+            "size": 43824067
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:6b5489b3b545c7232d53c690b5943eda3a62ef5744c84dfee1069dc1c88fdc04",
+            "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+            "size": 119
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm",
+            "digest": "sha256:3701481f6193770f97f45eacff84dc2ff1e3df92c2c526d918d2f31e6b315205",
+            "name": "artcraft-0.41.1-linux-aarch64.rpm",
+            "size": 50362331
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:5839d7e88b151c310d7284e558b72539eb2064e9e5349bba7ebb5d22cbaddfdc",
+            "name": "artcraft-0.41.1-linux-aarch64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz",
+            "digest": "sha256:cb780e02e87234927d339c87dee03b224e1641320758be813d31d442d9a691ae",
+            "name": "artcraft-0.41.1-linux-aarch64.tar.gz",
+            "size": 49710171
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:b83ddda68ab7a6cddfcdccdc38cb5cc0827a42e85056fb9add30cbaede9cb26d",
+            "name": "artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb",
+            "digest": "sha256:7ffdf1ec4c99401cff821b0998cb4e7cd0644b39befa418f5adb4a2749352ff0",
+            "name": "artcraft-0.41.1-linux-riscv64.deb",
+            "size": 48852800
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb.asc",
+            "digest": "sha256:2e1ccfe26d7b5d6f0a39616628385629b8ae8894231447e47425f789ee16e9b7",
+            "name": "artcraft-0.41.1-linux-riscv64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm",
+            "digest": "sha256:72f11bfc6f0bee941226ce00808fcf427b12be626ee9c28512bcf4498dab1eae",
+            "name": "artcraft-0.41.1-linux-riscv64.rpm",
+            "size": 48857171
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:aa3da34c710d8ff07110b656b434b37436e0dbd30b7c7bade61ee0dbf2d2f7b2",
+            "name": "artcraft-0.41.1-linux-riscv64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz",
+            "digest": "sha256:d32edc5ac3320f6789154fcd89552f0650d6d396c8cb576d1197d1e11bbc0745",
+            "name": "artcraft-0.41.1-linux-riscv64.tar.gz",
+            "size": 48491446
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:e45fa0cae51309ee524322d1b65ba49b4f01225e2057cf18928803d7453da843",
+            "name": "artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage",
+            "digest": "sha256:bb32657b6e81e8e47da44ca4e764b1af14d77d8690b248a263a4acd1218b7d2d",
+            "name": "artcraft-0.41.1-linux-x86_64.AppImage",
+            "size": 182495736
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:770a5e86dd56a3822adb8385ad80534f039983361bc0abc5f9a9ccc81fc2974b",
+            "name": "artcraft-0.41.1-linux-x86_64.AppImage.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:8b1d9e3806b0a63e4149d7b899c35dafcdd2d76828a2960c971eb00eddc5db06",
+            "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+            "size": 312204
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:d524fb0943a2338e9c288a5a275d14002b1d1e07fd27a19b0bc5de304979ba05",
+            "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb",
+            "digest": "sha256:91b3d69c2e707b60c4cad6c14eca6b3dc8bf62570738cdf10f0acbe3570b74a2",
+            "name": "artcraft-0.41.1-linux-x86_64.deb",
+            "size": 49873314
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb.asc",
+            "digest": "sha256:e3786418d32622cbead96ce19917fa2c8e38d82082f2fdc91fbb499f68cb1887",
+            "name": "artcraft-0.41.1-linux-x86_64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak",
+            "digest": "sha256:7351e1bad48006b251ab943372fa15f1829d8b92ca944adb7f312b4e5c7e9912",
+            "name": "artcraft-0.41.1-linux-x86_64.flatpak",
+            "size": 41755576
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:cf9e4cd7bd120a6591f6f13b82d4d9c03b067dbbb58d0fb123e4cf2ccf9bd40e",
+            "name": "artcraft-0.41.1-linux-x86_64.flatpak.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:39576e754b702bba58c5af983ea5c07042f30a71dcd6a64d0e3916eaccb9e8a4",
+            "name": "artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+            "size": 493
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci.sig",
+            "digest": "sha256:7c6bfc47603bb835b44c706b52b475e4eb116ff0390ea4f1f2dec713562b4df9",
+            "name": "artcraft-0.41.1-linux-x86_64.oci.sig",
+            "size": 387
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:8f7b1b0d7069ec1143102ab5c9d3cb639d7e833fca5b210c705cfe7e5d1f9db1",
+            "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+            "size": 43960303
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:764a24249ad2fafd1d7e982a74fa2649311feb6ecc65938455f9331e9bcc3b31",
+            "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+            "size": 119
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm",
+            "digest": "sha256:f408402ea008adae7077f3e8a8e8799e63a6baa4f2fec138226f309e1de32dfc",
+            "name": "artcraft-0.41.1-linux-x86_64.rpm",
+            "size": 49875206
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:d7eec47d390afbf53daf5cc123c396c6805ef4b3a560f5d502b15316b0b5ba61",
+            "name": "artcraft-0.41.1-linux-x86_64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz",
+            "digest": "sha256:149f9748ea33553177c021e1ade47a195fad25b881129d4178fe5bd922a94eb4",
+            "name": "artcraft-0.41.1-linux-x86_64.tar.gz",
+            "size": 49365185
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:967fb6dcdcc86636e0c2825af43d58525b4b07dc3d5f1ff553c9c819b0d9cc30",
+            "name": "artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_universal.dmg",
+            "digest": "sha256:89009b8983d88919481ac936e2ada0409dff0e0fc73f487cce3e7324699866a6",
+            "name": "ArtCraft_0.41.1_universal.dmg",
+            "size": 94884865
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64-setup.exe",
+            "digest": "sha256:fb80cad705a182fdd7bbc17bb2bd34f1bd74561c539d97e69ba6143b616ab038",
+            "name": "ArtCraft_0.41.1_x64-setup.exe",
+            "size": 41991072
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64_en-US.msi",
+            "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d",
+            "name": "ArtCraft_0.41.1_x64_en-US.msi",
+            "size": 47058944
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_universal.app.tar.gz",
+            "digest": "sha256:d1e4e9623ebf506fbc8d7476b69b2db957125761e7908624b3eb031ce044413e",
             "name": "ArtCraft_universal.app.tar.gz",
-            "size": 94658582
+            "size": 94791060
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/release-signing-key.asc",
+            "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+            "name": "release-signing-key.asc",
+            "size": 803
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt",
+            "digest": "sha256:5450801c2342f8ea05d9aa71cd31cb4b02462cebd9cab7abbe8884e17de6f075",
+            "name": "SHA256SUMS.txt",
+            "size": 4108
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:11d6e4c827592c407c5fb85b774fa196698e7b42e2bc791b6caa38825b13ef9f",
+            "name": "SHA256SUMS.txt.asc",
+            "size": 228
           }
         ],
         "draft": false,
-        "name": "ArtCraft v0.41.0",
+        "name": "ArtCraft v0.41.1",
         "prerelease": false,
-        "tag_name": "artcraft-v0.41.0"
+        "tag_name": "artcraft-v0.41.1"
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"6502a1112c08555de8973378fd177aa409596c89bdb6dfe266dd43d25ec7494f\"",
+      "etag": "\"926b180de3ee6e7285d77e11f0950afae996f28168291fdd96b9a7d074292185\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage",
+              "digest": "sha256:31a4071758ce7989c6548e3976839aaf6010be414d0a1b5cc9a913537bbc88de",
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage",
+              "size": 177187336
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:b31e7b76cbf22e70d1ec1bd69ecee99882d84db5799d501c996bec12b9e8aaf1",
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:c30d74cb558652168c1a0fcbedfe8aeab22d9a31e4ac30026778f6d7a5a129f8",
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "size": 303134
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:6019e98c27e8c718791ad01f289f112ce9ddf5d497c589c2b6472421c0cead09",
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb",
+              "digest": "sha256:86e732287afeb640f6ef77d823f4291dc9b8cd045de6ae1137cd3729156291dd",
+              "name": "artcraft-0.41.1-linux-aarch64.deb",
+              "size": 50359372
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb.asc",
+              "digest": "sha256:99dcac63788e00b8e29b33371dc3f2392248f992cbc666833aaecdd222407941",
+              "name": "artcraft-0.41.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak",
+              "digest": "sha256:8f899c94f0c41fb1553c66fc6b4d3ac0763f4c034bfb06fe9f0d60426c153f7b",
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak",
+              "size": 40561288
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:2e4ba0c04b08f105079abf0c105d596c459197e14666d40ecf6718d9a29692a7",
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:7f98a1663bb25745f3733a7bb53ae82c11abc22793a07fa98bcd0548a76324f5",
+              "name": "artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci.sig",
+              "digest": "sha256:284289ee7ca2b64eb91a7daa0dc8de6610f709d29b6780b6ac522cad8b500e75",
+              "name": "artcraft-0.41.1-linux-aarch64.oci.sig",
+              "size": 387
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:d435e7f7fd8c6a0cf60acd535558ed507ca0bdf8ce2b9d1ff6c992a751d352d8",
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "size": 43824067
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:6b5489b3b545c7232d53c690b5943eda3a62ef5744c84dfee1069dc1c88fdc04",
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm",
+              "digest": "sha256:3701481f6193770f97f45eacff84dc2ff1e3df92c2c526d918d2f31e6b315205",
+              "name": "artcraft-0.41.1-linux-aarch64.rpm",
+              "size": 50362331
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:5839d7e88b151c310d7284e558b72539eb2064e9e5349bba7ebb5d22cbaddfdc",
+              "name": "artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz",
+              "digest": "sha256:cb780e02e87234927d339c87dee03b224e1641320758be813d31d442d9a691ae",
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz",
+              "size": 49710171
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:b83ddda68ab7a6cddfcdccdc38cb5cc0827a42e85056fb9add30cbaede9cb26d",
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb",
+              "digest": "sha256:7ffdf1ec4c99401cff821b0998cb4e7cd0644b39befa418f5adb4a2749352ff0",
+              "name": "artcraft-0.41.1-linux-riscv64.deb",
+              "size": 48852800
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb.asc",
+              "digest": "sha256:2e1ccfe26d7b5d6f0a39616628385629b8ae8894231447e47425f789ee16e9b7",
+              "name": "artcraft-0.41.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm",
+              "digest": "sha256:72f11bfc6f0bee941226ce00808fcf427b12be626ee9c28512bcf4498dab1eae",
+              "name": "artcraft-0.41.1-linux-riscv64.rpm",
+              "size": 48857171
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:aa3da34c710d8ff07110b656b434b37436e0dbd30b7c7bade61ee0dbf2d2f7b2",
+              "name": "artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz",
+              "digest": "sha256:d32edc5ac3320f6789154fcd89552f0650d6d396c8cb576d1197d1e11bbc0745",
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz",
+              "size": 48491446
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:e45fa0cae51309ee524322d1b65ba49b4f01225e2057cf18928803d7453da843",
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage",
+              "digest": "sha256:bb32657b6e81e8e47da44ca4e764b1af14d77d8690b248a263a4acd1218b7d2d",
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage",
+              "size": 182495736
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:770a5e86dd56a3822adb8385ad80534f039983361bc0abc5f9a9ccc81fc2974b",
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:8b1d9e3806b0a63e4149d7b899c35dafcdd2d76828a2960c971eb00eddc5db06",
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "size": 312204
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:d524fb0943a2338e9c288a5a275d14002b1d1e07fd27a19b0bc5de304979ba05",
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb",
+              "digest": "sha256:91b3d69c2e707b60c4cad6c14eca6b3dc8bf62570738cdf10f0acbe3570b74a2",
+              "name": "artcraft-0.41.1-linux-x86_64.deb",
+              "size": 49873314
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb.asc",
+              "digest": "sha256:e3786418d32622cbead96ce19917fa2c8e38d82082f2fdc91fbb499f68cb1887",
+              "name": "artcraft-0.41.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak",
+              "digest": "sha256:7351e1bad48006b251ab943372fa15f1829d8b92ca944adb7f312b4e5c7e9912",
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak",
+              "size": 41755576
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:cf9e4cd7bd120a6591f6f13b82d4d9c03b067dbbb58d0fb123e4cf2ccf9bd40e",
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:39576e754b702bba58c5af983ea5c07042f30a71dcd6a64d0e3916eaccb9e8a4",
+              "name": "artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci.sig",
+              "digest": "sha256:7c6bfc47603bb835b44c706b52b475e4eb116ff0390ea4f1f2dec713562b4df9",
+              "name": "artcraft-0.41.1-linux-x86_64.oci.sig",
+              "size": 387
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:8f7b1b0d7069ec1143102ab5c9d3cb639d7e833fca5b210c705cfe7e5d1f9db1",
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "size": 43960303
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:764a24249ad2fafd1d7e982a74fa2649311feb6ecc65938455f9331e9bcc3b31",
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm",
+              "digest": "sha256:f408402ea008adae7077f3e8a8e8799e63a6baa4f2fec138226f309e1de32dfc",
+              "name": "artcraft-0.41.1-linux-x86_64.rpm",
+              "size": 49875206
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:d7eec47d390afbf53daf5cc123c396c6805ef4b3a560f5d502b15316b0b5ba61",
+              "name": "artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz",
+              "digest": "sha256:149f9748ea33553177c021e1ade47a195fad25b881129d4178fe5bd922a94eb4",
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz",
+              "size": 49365185
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:967fb6dcdcc86636e0c2825af43d58525b4b07dc3d5f1ff553c9c819b0d9cc30",
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_universal.dmg",
+              "digest": "sha256:89009b8983d88919481ac936e2ada0409dff0e0fc73f487cce3e7324699866a6",
+              "name": "ArtCraft_0.41.1_universal.dmg",
+              "size": 94884865
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64-setup.exe",
+              "digest": "sha256:fb80cad705a182fdd7bbc17bb2bd34f1bd74561c539d97e69ba6143b616ab038",
+              "name": "ArtCraft_0.41.1_x64-setup.exe",
+              "size": 41991072
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64_en-US.msi",
+              "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d",
+              "name": "ArtCraft_0.41.1_x64_en-US.msi",
+              "size": 47058944
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:d1e4e9623ebf506fbc8d7476b69b2db957125761e7908624b3eb031ce044413e",
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 94791060
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt",
+              "digest": "sha256:5450801c2342f8ea05d9aa71cd31cb4b02462cebd9cab7abbe8884e17de6f075",
+              "name": "SHA256SUMS.txt",
+              "size": 4108
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:11d6e4c827592c407c5fb85b774fa196698e7b42e2bc791b6caa38825b13ef9f",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "ArtCraft v0.41.1",
+          "prerelease": false,
+          "tag_name": "artcraft-v0.41.1"
+        },
         {
           "assets": [
             {
@@ -62853,7 +63655,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"d01e5ce54feeb9dbbb492af04657dc7444a5eaa43783c76a8b8efe1f3b95ed63\"",
+      "etag": "\"96bbdf8f3c7cd7e7df6ca9c98c267c53d109350a4f72b4450a9d790b00ab1d12\"",
       "body": {
         "assets": [
           {
@@ -63176,7 +63978,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"b3079b181c88606dc38850b509c960b70576cd4806d2a7791b02244e81aa322c\"",
+      "etag": "\"c2f7b0c8b9df88a52958a2d3a4ca094fd4ea27143be270d03658f18701082589\"",
       "body": [
         {
           "assets": [
@@ -66305,7 +67107,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"d387844bbb0cb25cfd0d6231cf6dc91713bfaf836b59141b4fc9e3d5b990db19\"",
+      "etag": "\"37caca97c0b94441338847d9808168e230c2dcfd72d268a51e50df564a208773\"",
       "body": {
         "assets": [
           {
@@ -66628,7 +67430,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"90598a14b9421cb24af2dc88fc7c9872e663b818c25249dd4452546380e58355\"",
+      "etag": "\"5817aefbc24236b0c0141f1570d354fff2ef8bc4d66ddef2f9af508a09b5e6cf\"",
       "body": [
         {
           "assets": [
@@ -69575,7 +70377,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"edcb32ce5c7cd10daa2f06948d528f0b2057a1a837885e55a0bfe53616983a7e\"",
+      "etag": "\"fe95512e1512d05f98d709a0e493d1fcf37a693fafc90148738bff04a27d8e17\"",
       "body": {
         "assets": [
           {
@@ -69898,7 +70700,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"838ac40f71940d9de322588f09ce218d71305bc04525b92a3179fb97efd80ec9\"",
+      "etag": "\"bd7fc2344531273519d489db6f128fe146f6e46283759ecbfe1d02bd60710b3d\"",
       "body": [
         {
           "assets": [
@@ -73533,7 +74335,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"f87e7aa80a1a289be380f2f7ff48c6beef46ad7bcadab6f4b9c0bf828a080d89\"",
+      "etag": "\"62fc83e1637951624226dc4660fdb396e91bc668999bae760fdc9233c5c017d3\"",
       "body": {
         "assets": [
           {
@@ -73856,7 +74658,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"3c102454685e02e142d4da578070dd54e7e8891b754ea703ae133676142fb923\"",
+      "etag": "\"370daf5595002cc9e923f0c10e3a8ed1c6fd283f2062276ea69729b83679f7ee\"",
       "body": [
         {
           "assets": [
@@ -77675,7 +78477,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"fbb1c841f7e271d5872da5a469445905151fbfc6bc0dd1506778754d8bf1e8bc\"",
+      "etag": "\"4ac287c19ff8668df48fbe89b9df5c1920e82358a34d150adabab595d105062a\"",
       "body": {
         "assets": [
           {
@@ -78022,7 +78824,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"3562eac81910cc7ed8cc18bb1272b28db725628f906fc62f0886529d10753a22\"",
+      "etag": "\"b427175bdfdb3e7996434e56a42c0d50652bddddf8b684ade6d7db7107e5a0cf\"",
       "body": [
         {
           "assets": [
@@ -81373,7 +82175,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"7cc475c11e85961c61367046c5e72df434f975bd27e8e48e824b36f6bd2fbd3b\"",
+      "etag": "\"95263443bd901c7d96b5dd2cd94491e2db157334672f2585e380c37239e4d29c\"",
       "body": {
         "assets": [
           {
@@ -81696,7 +82498,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"7964c2093b4f40456c5cb5d66651a64dfa4a9892b1cc0e0ea62c3ac57400874f\"",
+      "etag": "\"d8f6e61c3cabea28104c75c8c8e45910f8bec71cd0aa31794a6ffb089d0d131e\"",
       "body": [
         {
           "assets": [
@@ -85119,7 +85921,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"8c28aa5726f66aa8beb1a1fa6667650195171aec3a6dc0874be4bb018c7585be\"",
+      "etag": "\"6c122fee9097e293ad879b373396e0266062b3d2304b094476d404202c67a0f8\"",
       "body": {
         "assets": [
           {
@@ -85442,7 +86244,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"99a1bb7b9e26706b60dbe3aff8412579cc18816c0a22c57ff1dd2b19efe1c45a\"",
+      "etag": "\"8a43cf70c9cc3691b4da4fd34cfadcb85d6ba731c457967f158acab319fb67a0\"",
       "body": [
         {
           "assets": [
@@ -88577,7 +89379,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"f25acc107f6ceec405009c72a97254637f55537b1275502fcbe5ea4166fab4a5\"",
+      "etag": "\"3609471eccb51c5fb7e9d101c66d5153c7997d3dc0973abd3fe93fe8754162c0\"",
       "body": {
         "assets": [
           {
@@ -88900,7 +89702,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"cf4bb43ee49c611f53b4db99eb797a1ca75ba6f6909cbab5378551af29476eaf\"",
+      "etag": "\"fcb9da2d35cdf7414c5845379943b503ea3ca57f8b281941f2aa11d1214184ee\"",
       "body": [
         {
           "assets": [
@@ -92475,7 +93277,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"401e08fbe70c4abad13deb8f0e6386bb8ecc375b287acd2a2096de96b2a8240d\"",
+      "etag": "\"e2d0cac981382a620e3b5d3e15f52ee35488c6af57a05b824aa9d9a3a848c323\"",
       "body": {
         "assets": [
           {
@@ -92798,7 +93600,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"2a74261224002bc70038e3b556d1f4e76c9f7a367ef1b8142421aead7be2008f\"",
+      "etag": "\"634885985367693e94fb2ecda519023d33d97987a171c125e26ee0636796b38a\"",
       "body": [
         {
           "assets": [
@@ -93945,7 +94747,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"40aeb0be444aac71743f66e4439a2679020edd2351d17e0bd055c08411998adb\"",
+      "etag": "\"ca4db3521c1cdc9145239cda4aba0a861864b9a74de1ec4ea222af227c44c852\"",
       "body": {
         "assets": [
           {
@@ -94292,7 +95094,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"4f0a197479c158d7d3c47eacf3ed4137a030998e17dab8c71f3f8fb1dbd8b027\"",
+      "etag": "\"6262dbfd49209b0b8680920f425c5c2208343feec64e80fe815175a7337d649a\"",
       "body": [
         {
           "assets": [
@@ -98325,7 +99127,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"d24a4c7b246239d50ace55c9ba83e54734021b54ac1e2c4813fa8312b02dde94\"",
+      "etag": "\"71cac6ac8d14f3aebe7cdcdc3f73e977d2807dcf1d8eb1c745b78f27dff06781\"",
       "body": {
         "assets": [
           {
@@ -98666,7 +99468,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"ef48461bd948d956425a2c0be024667ab3ecdfc9b31b4c89da3f3ae2cf9a1cd4\"",
+      "etag": "\"dc5a527942efd019c41b7468a1c701314f5e75c61dfe415ae2227b30a0ff66f0\"",
       "body": [
         {
           "assets": [
@@ -102811,7 +103613,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"bcc86c1e0a6f98cc45b6b9d00ad9c37e8c83ef1149d700e09f25d0faa1ff1c6b\"",
+      "etag": "\"00554f4407708aead331e05cb44bd37a0c4da73bbcb82e005a8c1ce033d3a75f\"",
       "body": {
         "assets": [
           {
@@ -103134,7 +103936,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"ce0f5a91ed4781f17d699532456187ff48f7962e394204153ad41e0f1301f615\"",
+      "etag": "\"920ca31dbe5f492fd8056a2fd50d650cbb06952f785ac1854bb82e9eb624622f\"",
       "body": [
         {
           "assets": [
@@ -106147,7 +106949,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"5d5d28160f0a42b84c332bdc2274a606a4b549e1ad3526fdeb2c8ffa8828055b\"",
+      "etag": "\"1d21711e001bfeb74b94cc3312f859c8da1a6d070b9a50332f2486743363b32b\"",
       "body": {
         "assets": [
           {
@@ -106470,7 +107272,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"81cb5519f6dd256d09906276a86a1d127b04d602af6307e07b70f6023388ce66\"",
+      "etag": "\"285b37e4a3e79a37b87943d41c70b155228a7c500dcaff76cbede016ad60a6b5\"",
       "body": [
         {
           "assets": [
@@ -107819,7 +108621,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"4f1b20be803e3a8f393c66b36524131ac304b97071d52785bd81f4b33af8a7a4\"",
+      "etag": "\"cbe69dddad554004b5ff09af98d8d928060320a7b544ae1f10d0cc7f639d635a\"",
       "body": {
         "assets": [
           {
@@ -108142,7 +108944,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"920ba6b871e84ed2ce74de511f83a12b950dc5a1aac2e00be36f9c8710f0420d\"",
+      "etag": "\"12af3516bf4330d003d201ab1fa78a268da041121d188a52c32d80dd7be4a0f3\"",
       "body": [
         {
           "assets": [
@@ -112199,7 +113001,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"dff1472bb2f5f5be7af177f2a478e020afe9c67fd8b65c9fcc19c71cc3cff92b\"",
+      "etag": "\"6ad9f5667befed8a12e7fffee8a5b548a7f64dbd83a971238ff9050044aa8f96\"",
       "body": {
         "assets": [
           {
@@ -112522,7 +113324,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"7c6981cc48c9acc726821e9aeafeff31f0fc6eb722cad0b87a76ba36835aed73\"",
+      "etag": "\"03d39987b946f4ea5b673bf3381ecef312c90f70a15d6d1909c9f76ee87965b3\"",
       "body": [
         {
           "assets": [
@@ -115669,7 +116471,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"64f339727a45d60b55ca747d96af911fb88b7807d99f53ae91d81caa2f88acd1\"",
+      "etag": "\"80d02d648d43a3fbe0394dcae57eaa1c18477efe7651477367a01a93f936b94a\"",
       "body": {
         "assets": [
           {
@@ -115974,7 +116776,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"8dbd35000c5c7d7e33f42f7da431b74264a171aa87283cb06f21fee42fc99005\"",
+      "etag": "\"af98582e38538399ca95b9e9c41c70957abad85ff5f49f6b29bb3264f5fb76c8\"",
       "body": [
         {
           "assets": [
