@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/artcraft": {
-      "checked_at": 1794270456,
+      "checked_at": 1794271972,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -1087,7 +1087,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1794270457,
+      "checked_at": 1794271973,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -4526,7 +4526,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1794270458,
+      "checked_at": 1794271974,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -7783,7 +7783,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1794270458,
+      "checked_at": 1794271975,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -11728,9 +11728,317 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1794270459,
-      "latest_tag": "v0.23.0",
+      "checked_at": 1794271976,
+      "latest_tag": "v0.23.1",
       "releases": [
+        {
+          "tag_name": "v0.23.1",
+          "name": "EffectCraft v0.23.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+              "size": 77956966,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:ab03d31d8ce3c24887943ca254b724dafb98de8fd3dada149d4a1eb61fb7fe24"
+            },
+            {
+              "name": "effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+              "size": 80731566,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:effe881b9568a22cedf5fa83a556e226bc1d8deebe795f166fbb717d2f938960"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage",
+              "size": 69831176,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage",
+              "digest": "sha256:b1198a6f9d5ecd28a9f5bcf90ce3ee95448f0ea7eaac0792eeb3bcad9a05d6dc"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:bd64f51868bec1ac3e7c8ee86ec23cd757b6d2dc28bb6e4286298e7e165ce9d0"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+              "size": 238939,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:e5a51e1a50cb61e4f1158029f633ee9999af88eb8471cc675780f788410fa5af"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:d693ce66be1cca825b375c3e8c755f64735c20785a6a795988e4124680e3929e"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.deb",
+              "size": 79344396,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb",
+              "digest": "sha256:5922f3e252b63cb262cbb75e26e2ca83d3625223a80027696f1d3614fb622aab"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb.asc",
+              "digest": "sha256:13839b844570f3f90ae20398e0ef9c094f9dffceed363256c157f687b8c74f91"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.flatpak",
+              "size": 46287328,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak",
+              "digest": "sha256:06596d2d2e05b9a54e2576788d170a4c860edfd52c660ebb931e4a6eb89bf7b9"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:62b3866fbbebb3df25dae5abd0586648a2dc467291a72a07b03eb0e1534c6ab4"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:e6561d59791100882f5931a26b7c117b8c492e38bdf6082189126b0b0aa089a2"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.oci.sig",
+              "size": 386,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci.sig",
+              "digest": "sha256:2b3e48b0674c9006c2dd7e8ce222f4ef67aeedd16980fa76be0a5423940bf23b"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+              "size": 53467043,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:6ae23f9a59f5c79d25868f9a042df199bcece302520b9c0440b6c7747ca3caa3"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:32586250e8dd5748461637a54f261c5a9a01a652d0670ee6ecf74b1993cfce97"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.rpm",
+              "size": 78537403,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm",
+              "digest": "sha256:db4dcc7130fb99b381a1322b975c4d6680f5719b11f1943a200cddc56728f40a"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:9d2738a78893d26051c5a362f7b67567f8d0814cdcc3ace3961c70e526a323f0"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.tar.gz",
+              "size": 75739000,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz",
+              "digest": "sha256:fff8ed752b90d63c1e491f6cc6d2700fc7122fc15e1fab674000065052bef3fe"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:a2754b769e8c35b9af8ff5e657c8b4409342c02478747f740064203271c8342c"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.deb",
+              "size": 80629444,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb",
+              "digest": "sha256:6d688e923663894ee7cd74b96d9f732788b6e324f1ba2adb38d2e41d9f5b8a77"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb.asc",
+              "digest": "sha256:c2f150265fc804195f05c59e96c6d95d7072bcc72c7310907737d9d282dd35b9"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.rpm",
+              "size": 80417104,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm",
+              "digest": "sha256:f574784ae95f34fdcac9e214b2b8bb876c75aaec815b62632feb8f7585573c3e"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:14a6f2e0d731cc195136f8111e0243d5be3f86048b23d104c8738fd88905d6a7"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.tar.gz",
+              "size": 78955844,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz",
+              "digest": "sha256:6f1a6481f7a52a0469b521ea667980351572ba9d73c3364055af87d4468581df"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:75b05bed3bc410b33536bc4ceca0461638f31936d3677da06828e99844ffd121"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage",
+              "size": 75024888,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage",
+              "digest": "sha256:7905485d7e91999a0c19ecba447d0dfd11c13bddb132bdf9cca65cd8b60671fb"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:4cddb7a2c9c32c296fdc26e68c16c9009cc55fe74cddbe5160886fd14b204007"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+              "size": 256689,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:7473f9bac1f6fe6484c4e70e397192040013420916ab45033b78dee0fadf6fcf"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:5f22289f4a149f1c0b7735c7ae34f052d5db3d9ec95177a3a35ed18283c04de1"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.deb",
+              "size": 83263308,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb",
+              "digest": "sha256:9cef6ac57ce3d34437762886696a031158f0a5f49120bd90f1ab9c5d4d91c2d2"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb.asc",
+              "digest": "sha256:8d3a9935bbac46b891e1117501e43adb39229fe4d556670745976ea717fdab88"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.flatpak",
+              "size": 52574032,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak",
+              "digest": "sha256:a6015b680578721edad1b73f67a9744219d06038d623fadf5a61b28ee34c7f5a"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:da389335c71fb631e0487fa362a6ffefcfb49460af6091028a8c98540028b0c6"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:19257da46a9d2cf42f0027c0df55acf362a44db299897e4e71479b6c30d3ab76"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.oci.sig",
+              "size": 377,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci.sig",
+              "digest": "sha256:fe18fe8e0373f72afe1dc2538d7b1b9cf377074e6a97197d340ff30170bea0a2"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+              "size": 56853629,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:06923c5ab5d8d6773b1efbe0fc9edad90cbd5c29ae033344aaa7efb0ef9b2adc"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:ab3158f1713ce26bf4e40f83b86b7917fe6421eae74d504b3a9277ce57940cfc"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.rpm",
+              "size": 82732959,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm",
+              "digest": "sha256:7b29373910c98eb8cad576ba9308e587d0fa64a5ef3ee27c5f607c988fd0a8af"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:b21d1c4961b3e5c7a207931cd993453b1d193b2f30d22810e09c307a79b418a6"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.tar.gz",
+              "size": 81374963,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz",
+              "digest": "sha256:a330d1406fde71d07ac55ad37fe81f5de37ec7ea7ca7c3b9fa02aacd04502db1"
+            },
+            {
+              "name": "effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:09c3d1eb08c09abd0d456c5da8656b86939098633dea4f2dcb112a55d56111f7"
+            },
+            {
+              "name": "effectcraft-0.23.1-macos-universal.dmg",
+              "size": 82074483,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-macos-universal.dmg",
+              "digest": "sha256:10703ae0b8b279241e7a87b69bfa5ae0213cc21a67a04ea978e84309f6e8e2f8"
+            },
+            {
+              "name": "effectcraft-0.23.1-windows-arm64-portable.zip",
+              "size": 77850724,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64-portable.zip",
+              "digest": "sha256:9612097232dfbdc95457e6f96706c14f056ac8182f818ece36c43c9665f14ca2"
+            },
+            {
+              "name": "effectcraft-0.23.1-windows-arm64.msi",
+              "size": 56901632,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64.msi",
+              "digest": "sha256:f159e9daf6428d5fa50b42d8c8358710bd1005030cfd60c8fd1301a2adc9a34f"
+            },
+            {
+              "name": "effectcraft-0.23.1-windows-x64-portable.zip",
+              "size": 84658279,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64-portable.zip",
+              "digest": "sha256:9697f99ba8b8c2c36d791a19367ec39ffa0a6f71e849f716e07d1fc69b531310"
+            },
+            {
+              "name": "effectcraft-0.23.1-windows-x64.msi",
+              "size": 63840256,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64.msi",
+              "digest": "sha256:4ccfc6efe361402e64fedaf9c00439b4651d44721b8409ced647a0adf72fe198"
+            },
+            {
+              "name": "effectcraft-cli-0.23.1-macos-universal.zip",
+              "size": 76858216,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-cli-0.23.1-macos-universal.zip",
+              "digest": "sha256:405ea3a2ead24ae4dabfda3bf383fc61baa6c2ad4414666eb419d9594df94721"
+            },
+            {
+              "name": "effectcraft-web-0.23.1.zip",
+              "size": 22438665,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-web-0.23.1.zip",
+              "digest": "sha256:de8bc2116ae87beeabddb756397e825a556939f326ae9907c3bf29c49d8ea2ee"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5170,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt",
+              "digest": "sha256:2eb08cac2c0f107bd66402271de9a026db998cf4e8290942c50b35c72dd5faf6"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:0287aef73e2859e7b56d92bce42e94352bc210610b01e92ab033a00fa0654ce6"
+            }
+          ]
+        },
         {
           "tag_name": "v0.23.0",
           "name": "EffectCraft v0.23.0",
@@ -15857,7 +16165,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1794270460,
+      "checked_at": 1794271977,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -19542,7 +19850,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1794270461,
+      "checked_at": 1794271978,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -23275,7 +23583,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1794270462,
+      "checked_at": 1794271978,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -26720,7 +27028,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1794270463,
+      "checked_at": 1794271979,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -30605,7 +30913,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1794270463,
+      "checked_at": 1794271980,
       "latest_tag": "v0.3.0",
       "releases": [
         {
@@ -32062,7 +32370,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1794270464,
+      "checked_at": 1794271981,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -36429,7 +36737,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1794270465,
+      "checked_at": 1794271982,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -40896,7 +41204,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1794270466,
+      "checked_at": 1794271983,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -44219,7 +44527,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1794270467,
+      "checked_at": 1794271983,
       "latest_tag": "v0.5.0",
       "releases": [
         {
@@ -45878,7 +46186,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1794270468,
+      "checked_at": 1794271984,
       "latest_tag": "v0.23.0",
       "releases": [
         {
@@ -50245,7 +50553,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1794270468,
+      "checked_at": 1794271985,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -53702,7 +54010,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1794270471,
+      "checked_at": 1794271987,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -66971,7 +67279,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"fccc983609c9c584e73946a074d2facf441b82bd9b044dbf10275acb9dcce324\"",
+      "etag": "\"78a438ea069b349ee91532283e98e9e46543e9538bf71c6f2ca510c13256e6d6\"",
       "body": {
         "assets": [
           {
@@ -67252,7 +67560,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"14c46d0a7c00ef293cac697c5791f9c44a397515d883a992d728de5e7d113844\"",
+      "etag": "\"3a38931347084ddd08c75eded30e0a7d742833960e26d1ee6e6e29da23384fc8\"",
       "body": [
         {
           "assets": [
@@ -68335,7 +68643,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"2f67104f688f85a7ce9e57a6581bcf991031d28ea6987132eb6a1a786bbe2c2a\"",
+      "etag": "\"7e20a4daaba31402fa07c26b1fa52643955f91419162890c48525a54f26d5c2a\"",
       "body": {
         "assets": [
           {
@@ -68646,7 +68954,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"ac21a90e104ccbe049915f14724725a89b1194b089b95f0ac34cd6ebd4d297e6\"",
+      "etag": "\"8298c8d3bcdfb173d8be866d24f07d165f0703329e3935833072bffa9421613d\"",
       "body": [
         {
           "assets": [
@@ -72083,7 +72391,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"f92b936bbb075a0a8e3384b36290f80871f360dc1999f01895e84165eca2076c\"",
+      "etag": "\"530f6458270b3e7321a51057bd27c8aa92f4ca0dc80b328e1beacb37f28aa419\"",
       "body": {
         "assets": [
           {
@@ -72394,7 +72702,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"82bc8d68639dc01eb5f15d53e59aec38e861cc848a49b52ff0dc7b2b3385829f\"",
+      "etag": "\"7121dd750a094b091385c81f78aee98bed21b9e447431b9bf228f61f7dc4ee30\"",
       "body": [
         {
           "assets": [
@@ -75649,7 +75957,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"662978aa68b9306de53b0485e024127610b3be7483685611c844b4d3f83d2c05\"",
+      "etag": "\"83ca59474d26ea02e7504c1e573c1e814664e917d29e930f8ae2ce415db5d9cc\"",
       "body": {
         "assets": [
           {
@@ -75960,7 +76268,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"99ec1126dd1c4e011b0530c2916426988d946a499245eef1e0ece225fdee0f7c\"",
+      "etag": "\"efe36b26880d5c2dcc0758f1f5485263d6bae2a2a889215681c7566436874f98\"",
       "body": [
         {
           "assets": [
@@ -79903,319 +80211,627 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"8a9c0b85af66eaf52d77ef9455c4438cd5da461f2e84c8adae37e98d6748b018\"",
+      "etag": "\"06c12cc90a1a94aa51dd873b4600dd658d1f9ef3e9e7860469613af3bd37a83d\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:93006517b2d96a5446aa15f9ba0f3662c3282a1f6046bbccdffd1cff6b704d12",
-            "name": "effectcraft-0.23.0-freebsd-aarch64.tar.gz",
-            "size": 77591860
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:ab03d31d8ce3c24887943ca254b724dafb98de8fd3dada149d4a1eb61fb7fe24",
+            "name": "effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+            "size": 77956966
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:39feb941d21e7d7a225573c5d16cc7fe5fcdc9a9422c48da69d22c9b8fca3ee8",
-            "name": "effectcraft-0.23.0-freebsd-x86_64.tar.gz",
-            "size": 80481741
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:effe881b9568a22cedf5fa83a556e226bc1d8deebe795f166fbb717d2f938960",
+            "name": "effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+            "size": 80731566
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.AppImage",
-            "digest": "sha256:e6400652fdf1329eab5908e6921857ad8b3db793510cd96c291a9a05c2f3cc8c",
-            "name": "effectcraft-0.23.0-linux-aarch64.AppImage",
-            "size": 69757448
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage",
+            "digest": "sha256:b1198a6f9d5ecd28a9f5bcf90ce3ee95448f0ea7eaac0792eeb3bcad9a05d6dc",
+            "name": "effectcraft-0.23.1-linux-aarch64.AppImage",
+            "size": 69831176
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.AppImage.asc",
-            "digest": "sha256:386fa2570d3473c82633f960ff7351d9fffca2dc4a287edd8b228cfe3c9e7299",
-            "name": "effectcraft-0.23.0-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:bd64f51868bec1ac3e7c8ee86ec23cd757b6d2dc28bb6e4286298e7e165ce9d0",
+            "name": "effectcraft-0.23.1-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:0ec7aa906b25ce1bcd913505a12eb68b7ce26d151f37c26788b3448ddd1b62eb",
-            "name": "effectcraft-0.23.0-linux-aarch64.AppImage.zsync",
-            "size": 238687
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:e5a51e1a50cb61e4f1158029f633ee9999af88eb8471cc675780f788410fa5af",
+            "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+            "size": 238939
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:41beef73d8aed6bac3b70c0bda7c390e6f4703d7e59ba83269fce70e0d387716",
-            "name": "effectcraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:d693ce66be1cca825b375c3e8c755f64735c20785a6a795988e4124680e3929e",
+            "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.deb",
-            "digest": "sha256:da2799d24b22ee9ddfbb1542b7fdf2299802690e7be50760d8960fcd111393c5",
-            "name": "effectcraft-0.23.0-linux-aarch64.deb",
-            "size": 79129990
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb",
+            "digest": "sha256:5922f3e252b63cb262cbb75e26e2ca83d3625223a80027696f1d3614fb622aab",
+            "name": "effectcraft-0.23.1-linux-aarch64.deb",
+            "size": 79344396
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.deb.asc",
-            "digest": "sha256:2ab1dbdae297b4a897ffd45161e4968d2cb9135f492b487a28f6857be9cd636f",
-            "name": "effectcraft-0.23.0-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb.asc",
+            "digest": "sha256:13839b844570f3f90ae20398e0ef9c094f9dffceed363256c157f687b8c74f91",
+            "name": "effectcraft-0.23.1-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.flatpak",
-            "digest": "sha256:399902fc1e6476c5b314414787d186a77684501fb66ea67dad969e5d7afb340a",
-            "name": "effectcraft-0.23.0-linux-aarch64.flatpak",
-            "size": 46166608
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak",
+            "digest": "sha256:06596d2d2e05b9a54e2576788d170a4c860edfd52c660ebb931e4a6eb89bf7b9",
+            "name": "effectcraft-0.23.1-linux-aarch64.flatpak",
+            "size": 46287328
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.flatpak.asc",
-            "digest": "sha256:04cef2e6eba5f868fc418aaa676554a542eb496f7a8cc6bb603424a0e648817f",
-            "name": "effectcraft-0.23.0-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:62b3866fbbebb3df25dae5abd0586648a2dc467291a72a07b03eb0e1534c6ab4",
+            "name": "effectcraft-0.23.1-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:2305a257f26e0d2f1afdf3cce9dac5bfc5e92b735bdfc25bbf326e1b2da33041",
-            "name": "effectcraft-0.23.0-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:e6561d59791100882f5931a26b7c117b8c492e38bdf6082189126b0b0aa089a2",
+            "name": "effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
             "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.oci.sig",
-            "digest": "sha256:d5ffd1c0816358dafb5051b41873f44d37816370dfc934b37b83c2b4ad25cee0",
-            "name": "effectcraft-0.23.0-linux-aarch64.oci.sig",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci.sig",
+            "digest": "sha256:2b3e48b0674c9006c2dd7e8ce222f4ef67aeedd16980fa76be0a5423940bf23b",
+            "name": "effectcraft-0.23.1-linux-aarch64.oci.sig",
             "size": 386
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:ecfb7bd869fbe020b2a1c5ebd37d0dcaf7b016a773ec03077e7666737d964ec8",
-            "name": "effectcraft-0.23.0-linux-aarch64.pkg.tar.zst",
-            "size": 53314810
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:6ae23f9a59f5c79d25868f9a042df199bcece302520b9c0440b6c7747ca3caa3",
+            "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+            "size": 53467043
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:929780d68323039c0d4e3c2efad19e1a5524466c03d3da64ae76216c5aad8904",
-            "name": "effectcraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:32586250e8dd5748461637a54f261c5a9a01a652d0670ee6ecf74b1993cfce97",
+            "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.rpm",
-            "digest": "sha256:2afa4bf32b7db825753687dedbe0e71cf9e11b7e053b605ce923bc004f6c299f",
-            "name": "effectcraft-0.23.0-linux-aarch64.rpm",
-            "size": 78338114
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm",
+            "digest": "sha256:db4dcc7130fb99b381a1322b975c4d6680f5719b11f1943a200cddc56728f40a",
+            "name": "effectcraft-0.23.1-linux-aarch64.rpm",
+            "size": 78537403
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.rpm.asc",
-            "digest": "sha256:fd8b75beb30c97af9d5887bf032b015ec73b32cb4cdd5293c5abface4889cd18",
-            "name": "effectcraft-0.23.0-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:9d2738a78893d26051c5a362f7b67567f8d0814cdcc3ace3961c70e526a323f0",
+            "name": "effectcraft-0.23.1-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.tar.gz",
-            "digest": "sha256:b266f4713c8f860dd2bc847930413c0a2fa07f82c3f3752a40ca6d0cf00467b1",
-            "name": "effectcraft-0.23.0-linux-aarch64.tar.gz",
-            "size": 75537966
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz",
+            "digest": "sha256:fff8ed752b90d63c1e491f6cc6d2700fc7122fc15e1fab674000065052bef3fe",
+            "name": "effectcraft-0.23.1-linux-aarch64.tar.gz",
+            "size": 75739000
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:e3a553eca020200663fe862c5dbf1cfbb0abd1f2576dedff4cd561025019616a",
-            "name": "effectcraft-0.23.0-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:a2754b769e8c35b9af8ff5e657c8b4409342c02478747f740064203271c8342c",
+            "name": "effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.deb",
-            "digest": "sha256:95476e1db356bb64ee0f173c4df78e680f5ae930b2f9c37decc158ced026e8c3",
-            "name": "effectcraft-0.23.0-linux-riscv64.deb",
-            "size": 80372602
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb",
+            "digest": "sha256:6d688e923663894ee7cd74b96d9f732788b6e324f1ba2adb38d2e41d9f5b8a77",
+            "name": "effectcraft-0.23.1-linux-riscv64.deb",
+            "size": 80629444
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.deb.asc",
-            "digest": "sha256:18245da140da97bd5b44f463a4bbd2fe82a04102c88b336cdacd84ed5ca54da5",
-            "name": "effectcraft-0.23.0-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb.asc",
+            "digest": "sha256:c2f150265fc804195f05c59e96c6d95d7072bcc72c7310907737d9d282dd35b9",
+            "name": "effectcraft-0.23.1-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.rpm",
-            "digest": "sha256:108eb469355e79be6d107b436291d13d64b3bf153cfe0d6bfec9af2ae56aaf67",
-            "name": "effectcraft-0.23.0-linux-riscv64.rpm",
-            "size": 80162015
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm",
+            "digest": "sha256:f574784ae95f34fdcac9e214b2b8bb876c75aaec815b62632feb8f7585573c3e",
+            "name": "effectcraft-0.23.1-linux-riscv64.rpm",
+            "size": 80417104
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.rpm.asc",
-            "digest": "sha256:ea2ee313767f7ed4c5f768cb04d63c2e7e05c6a1e731a26c5131f6c77e87cc2d",
-            "name": "effectcraft-0.23.0-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:14a6f2e0d731cc195136f8111e0243d5be3f86048b23d104c8738fd88905d6a7",
+            "name": "effectcraft-0.23.1-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.tar.gz",
-            "digest": "sha256:915bfd5c914b52075a960b4bb4679f508393b1cb9979389276d50a06129159f5",
-            "name": "effectcraft-0.23.0-linux-riscv64.tar.gz",
-            "size": 78715729
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz",
+            "digest": "sha256:6f1a6481f7a52a0469b521ea667980351572ba9d73c3364055af87d4468581df",
+            "name": "effectcraft-0.23.1-linux-riscv64.tar.gz",
+            "size": 78955844
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:add70a5b0649d79c87aafa02e5ff593eb9db513230411dd7c3e66433d45c459c",
-            "name": "effectcraft-0.23.0-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:75b05bed3bc410b33536bc4ceca0461638f31936d3677da06828e99844ffd121",
+            "name": "effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.AppImage",
-            "digest": "sha256:8168f27327f2edb051e268475c37631479aa08893f1e88b0add717d5f82a158f",
-            "name": "effectcraft-0.23.0-linux-x86_64.AppImage",
-            "size": 74856952
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage",
+            "digest": "sha256:7905485d7e91999a0c19ecba447d0dfd11c13bddb132bdf9cca65cd8b60671fb",
+            "name": "effectcraft-0.23.1-linux-x86_64.AppImage",
+            "size": 75024888
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.AppImage.asc",
-            "digest": "sha256:97f467638cc933a729bf1e7bc7316325f3d66608cee493ad4d110acb5fa5f257",
-            "name": "effectcraft-0.23.0-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:4cddb7a2c9c32c296fdc26e68c16c9009cc55fe74cddbe5160886fd14b204007",
+            "name": "effectcraft-0.23.1-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:26285896e6651ae855b4b9367ef796f4c587546c64fd180b4db4cadee45f2965",
-            "name": "effectcraft-0.23.0-linux-x86_64.AppImage.zsync",
-            "size": 256115
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:7473f9bac1f6fe6484c4e70e397192040013420916ab45033b78dee0fadf6fcf",
+            "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+            "size": 256689
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:d0940f55bc7e1dbd7189fc3eaf126a89ffcadb4a04536648eb831e3b17fb7b15",
-            "name": "effectcraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:5f22289f4a149f1c0b7735c7ae34f052d5db3d9ec95177a3a35ed18283c04de1",
+            "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.deb",
-            "digest": "sha256:16d726299605ca00b12587c7cd3bceca0fb5e4e0c5533670560a1eeb9de2ce91",
-            "name": "effectcraft-0.23.0-linux-x86_64.deb",
-            "size": 82991038
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb",
+            "digest": "sha256:9cef6ac57ce3d34437762886696a031158f0a5f49120bd90f1ab9c5d4d91c2d2",
+            "name": "effectcraft-0.23.1-linux-x86_64.deb",
+            "size": 83263308
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.deb.asc",
-            "digest": "sha256:4528a40244e161d12eb70da98485d3d05e0ee6eae277a71832d2deec844d2e3b",
-            "name": "effectcraft-0.23.0-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb.asc",
+            "digest": "sha256:8d3a9935bbac46b891e1117501e43adb39229fe4d556670745976ea717fdab88",
+            "name": "effectcraft-0.23.1-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.flatpak",
-            "digest": "sha256:c653aaae8277cc9977d7cc28e2e5e2d50e3df43897624bb230b6e50231f06bed",
-            "name": "effectcraft-0.23.0-linux-x86_64.flatpak",
-            "size": 52404520
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak",
+            "digest": "sha256:a6015b680578721edad1b73f67a9744219d06038d623fadf5a61b28ee34c7f5a",
+            "name": "effectcraft-0.23.1-linux-x86_64.flatpak",
+            "size": 52574032
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.flatpak.asc",
-            "digest": "sha256:6ca76e8fdbf8a8ca6e6eb84f0275b199d88d66addbcf5905f0a989a5a2b53109",
-            "name": "effectcraft-0.23.0-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:da389335c71fb631e0487fa362a6ffefcfb49460af6091028a8c98540028b0c6",
+            "name": "effectcraft-0.23.1-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:7eb8320df277cfbf7293977309926df12cd46762a475914755955c4fc96732ac",
-            "name": "effectcraft-0.23.0-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:19257da46a9d2cf42f0027c0df55acf362a44db299897e4e71479b6c30d3ab76",
+            "name": "effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
             "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.oci.sig",
-            "digest": "sha256:1b133c7c8fb7b2884531e3bf977326f0eca12c1b5258c2825898938cc220385a",
-            "name": "effectcraft-0.23.0-linux-x86_64.oci.sig",
-            "size": 387
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci.sig",
+            "digest": "sha256:fe18fe8e0373f72afe1dc2538d7b1b9cf377074e6a97197d340ff30170bea0a2",
+            "name": "effectcraft-0.23.1-linux-x86_64.oci.sig",
+            "size": 377
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:c380dca154ed01da8c9ac83c3ece7fa449c4602c30f32f7b4f44b5cc5c7a657a",
-            "name": "effectcraft-0.23.0-linux-x86_64.pkg.tar.zst",
-            "size": 56641055
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:06923c5ab5d8d6773b1efbe0fc9edad90cbd5c29ae033344aaa7efb0ef9b2adc",
+            "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+            "size": 56853629
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:faee35e4d53717a98e7a8dad6513e1d4f0bb13172a8195533792c32af5a26b26",
-            "name": "effectcraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:ab3158f1713ce26bf4e40f83b86b7917fe6421eae74d504b3a9277ce57940cfc",
+            "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.rpm",
-            "digest": "sha256:f70591747e9a9e00c077227df9210aa801a69d357fc94547413d8b18e81c5b50",
-            "name": "effectcraft-0.23.0-linux-x86_64.rpm",
-            "size": 82459147
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm",
+            "digest": "sha256:7b29373910c98eb8cad576ba9308e587d0fa64a5ef3ee27c5f607c988fd0a8af",
+            "name": "effectcraft-0.23.1-linux-x86_64.rpm",
+            "size": 82732959
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.rpm.asc",
-            "digest": "sha256:f926c1800dd9bb01e35febb5d3360a626b27c5a7226f32d5d51ca3450c2880c9",
-            "name": "effectcraft-0.23.0-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:b21d1c4961b3e5c7a207931cd993453b1d193b2f30d22810e09c307a79b418a6",
+            "name": "effectcraft-0.23.1-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.tar.gz",
-            "digest": "sha256:13d9ab23b75be7b8a71775cc9402e0f832280b166147467282557e9c6a21d3d2",
-            "name": "effectcraft-0.23.0-linux-x86_64.tar.gz",
-            "size": 81121009
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz",
+            "digest": "sha256:a330d1406fde71d07ac55ad37fe81f5de37ec7ea7ca7c3b9fa02aacd04502db1",
+            "name": "effectcraft-0.23.1-linux-x86_64.tar.gz",
+            "size": 81374963
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:9c37892a0df86e960f9bc4fb0c810422fbde75edfb05381ad061d74b16c968b2",
-            "name": "effectcraft-0.23.0-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:09c3d1eb08c09abd0d456c5da8656b86939098633dea4f2dcb112a55d56111f7",
+            "name": "effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-macos-universal.dmg",
-            "digest": "sha256:434b5d646d874f3743ebdd922cd3540ff6a758baf27ecc9e1ab3455d8f64768c",
-            "name": "effectcraft-0.23.0-macos-universal.dmg",
-            "size": 81776223
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-macos-universal.dmg",
+            "digest": "sha256:10703ae0b8b279241e7a87b69bfa5ae0213cc21a67a04ea978e84309f6e8e2f8",
+            "name": "effectcraft-0.23.1-macos-universal.dmg",
+            "size": 82074483
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-windows-arm64-portable.zip",
-            "digest": "sha256:0172a713d9011bb77c6067cae56f710c028dc40167d7c19275243d636c9bd800",
-            "name": "effectcraft-0.23.0-windows-arm64-portable.zip",
-            "size": 77628668
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64-portable.zip",
+            "digest": "sha256:9612097232dfbdc95457e6f96706c14f056ac8182f818ece36c43c9665f14ca2",
+            "name": "effectcraft-0.23.1-windows-arm64-portable.zip",
+            "size": 77850724
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-windows-arm64.msi",
-            "digest": "sha256:0f2f117702a8978451fc4cfa2e96b7ac5a5b9836e7783fc3be76be4165305802",
-            "name": "effectcraft-0.23.0-windows-arm64.msi",
-            "size": 56741888
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64.msi",
+            "digest": "sha256:f159e9daf6428d5fa50b42d8c8358710bd1005030cfd60c8fd1301a2adc9a34f",
+            "name": "effectcraft-0.23.1-windows-arm64.msi",
+            "size": 56901632
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-windows-x64-portable.zip",
-            "digest": "sha256:421d0c1975488054de29f776bef1eb458a3359023f96f48110862833d6d05c3b",
-            "name": "effectcraft-0.23.0-windows-x64-portable.zip",
-            "size": 84366292
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64-portable.zip",
+            "digest": "sha256:9697f99ba8b8c2c36d791a19367ec39ffa0a6f71e849f716e07d1fc69b531310",
+            "name": "effectcraft-0.23.1-windows-x64-portable.zip",
+            "size": 84658279
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-0.23.0-windows-x64.msi",
-            "digest": "sha256:17c45826a3cc4057f81d4d4c16fe2fc6767dfe0fb759a5d29852f1eb3588cefd",
-            "name": "effectcraft-0.23.0-windows-x64.msi",
-            "size": 63619072
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64.msi",
+            "digest": "sha256:4ccfc6efe361402e64fedaf9c00439b4651d44721b8409ced647a0adf72fe198",
+            "name": "effectcraft-0.23.1-windows-x64.msi",
+            "size": 63840256
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-cli-0.23.0-macos-universal.zip",
-            "digest": "sha256:b0629bcf5cad8292af5c7358462991d9e97f38bf8cc2990c803243bfad4e7de2",
-            "name": "effectcraft-cli-0.23.0-macos-universal.zip",
-            "size": 76592615
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-cli-0.23.1-macos-universal.zip",
+            "digest": "sha256:405ea3a2ead24ae4dabfda3bf383fc61baa6c2ad4414666eb419d9594df94721",
+            "name": "effectcraft-cli-0.23.1-macos-universal.zip",
+            "size": 76858216
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/effectcraft-web-0.23.0.zip",
-            "digest": "sha256:fbde13209ebc2fa3011e54850b8d17b14536eb8a0c0bdf6bd07d38c967714c21",
-            "name": "effectcraft-web-0.23.0.zip",
-            "size": 22346593
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-web-0.23.1.zip",
+            "digest": "sha256:de8bc2116ae87beeabddb756397e825a556939f326ae9907c3bf29c49d8ea2ee",
+            "name": "effectcraft-web-0.23.1.zip",
+            "size": 22438665
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/SHA256SUMS.txt",
-            "digest": "sha256:9866c52c00de359e86676f2566d6f66ec5cd00f25bafe307a37612475129fa46",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt",
+            "digest": "sha256:2eb08cac2c0f107bd66402271de9a026db998cf4e8290942c50b35c72dd5faf6",
             "name": "SHA256SUMS.txt",
             "size": 5170
           },
           {
-            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.0/SHA256SUMS.txt.asc",
-            "digest": "sha256:d338d948406fb5e61dd84f465d1543c5984f97134e6f324df3d7adfc1194f0ef",
+            "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:0287aef73e2859e7b56d92bce42e94352bc210610b01e92ab033a00fa0654ce6",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "EffectCraft v0.23.0",
+        "name": "EffectCraft v0.23.1",
         "prerelease": false,
-        "tag_name": "v0.23.0"
+        "tag_name": "v0.23.1"
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"34791114ec4c76e4fc0c2d99d9fc64273512d98d29677858ecb5c368f0f394ce\"",
+      "etag": "\"2d4c921e8405e38e5c7b47341bf400c597624edf9689b856087001f29e8b55b7\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:ab03d31d8ce3c24887943ca254b724dafb98de8fd3dada149d4a1eb61fb7fe24",
+              "name": "effectcraft-0.23.1-freebsd-aarch64.tar.gz",
+              "size": 77956966
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:effe881b9568a22cedf5fa83a556e226bc1d8deebe795f166fbb717d2f938960",
+              "name": "effectcraft-0.23.1-freebsd-x86_64.tar.gz",
+              "size": 80731566
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage",
+              "digest": "sha256:b1198a6f9d5ecd28a9f5bcf90ce3ee95448f0ea7eaac0792eeb3bcad9a05d6dc",
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage",
+              "size": 69831176
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:bd64f51868bec1ac3e7c8ee86ec23cd757b6d2dc28bb6e4286298e7e165ce9d0",
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:e5a51e1a50cb61e4f1158029f633ee9999af88eb8471cc675780f788410fa5af",
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync",
+              "size": 238939
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:d693ce66be1cca825b375c3e8c755f64735c20785a6a795988e4124680e3929e",
+              "name": "effectcraft-0.23.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb",
+              "digest": "sha256:5922f3e252b63cb262cbb75e26e2ca83d3625223a80027696f1d3614fb622aab",
+              "name": "effectcraft-0.23.1-linux-aarch64.deb",
+              "size": 79344396
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.deb.asc",
+              "digest": "sha256:13839b844570f3f90ae20398e0ef9c094f9dffceed363256c157f687b8c74f91",
+              "name": "effectcraft-0.23.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak",
+              "digest": "sha256:06596d2d2e05b9a54e2576788d170a4c860edfd52c660ebb931e4a6eb89bf7b9",
+              "name": "effectcraft-0.23.1-linux-aarch64.flatpak",
+              "size": 46287328
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:62b3866fbbebb3df25dae5abd0586648a2dc467291a72a07b03eb0e1534c6ab4",
+              "name": "effectcraft-0.23.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:e6561d59791100882f5931a26b7c117b8c492e38bdf6082189126b0b0aa089a2",
+              "name": "effectcraft-0.23.1-linux-aarch64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.oci.sig",
+              "digest": "sha256:2b3e48b0674c9006c2dd7e8ce222f4ef67aeedd16980fa76be0a5423940bf23b",
+              "name": "effectcraft-0.23.1-linux-aarch64.oci.sig",
+              "size": 386
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:6ae23f9a59f5c79d25868f9a042df199bcece302520b9c0440b6c7747ca3caa3",
+              "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst",
+              "size": 53467043
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:32586250e8dd5748461637a54f261c5a9a01a652d0670ee6ecf74b1993cfce97",
+              "name": "effectcraft-0.23.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm",
+              "digest": "sha256:db4dcc7130fb99b381a1322b975c4d6680f5719b11f1943a200cddc56728f40a",
+              "name": "effectcraft-0.23.1-linux-aarch64.rpm",
+              "size": 78537403
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:9d2738a78893d26051c5a362f7b67567f8d0814cdcc3ace3961c70e526a323f0",
+              "name": "effectcraft-0.23.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz",
+              "digest": "sha256:fff8ed752b90d63c1e491f6cc6d2700fc7122fc15e1fab674000065052bef3fe",
+              "name": "effectcraft-0.23.1-linux-aarch64.tar.gz",
+              "size": 75739000
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:a2754b769e8c35b9af8ff5e657c8b4409342c02478747f740064203271c8342c",
+              "name": "effectcraft-0.23.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb",
+              "digest": "sha256:6d688e923663894ee7cd74b96d9f732788b6e324f1ba2adb38d2e41d9f5b8a77",
+              "name": "effectcraft-0.23.1-linux-riscv64.deb",
+              "size": 80629444
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.deb.asc",
+              "digest": "sha256:c2f150265fc804195f05c59e96c6d95d7072bcc72c7310907737d9d282dd35b9",
+              "name": "effectcraft-0.23.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm",
+              "digest": "sha256:f574784ae95f34fdcac9e214b2b8bb876c75aaec815b62632feb8f7585573c3e",
+              "name": "effectcraft-0.23.1-linux-riscv64.rpm",
+              "size": 80417104
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:14a6f2e0d731cc195136f8111e0243d5be3f86048b23d104c8738fd88905d6a7",
+              "name": "effectcraft-0.23.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz",
+              "digest": "sha256:6f1a6481f7a52a0469b521ea667980351572ba9d73c3364055af87d4468581df",
+              "name": "effectcraft-0.23.1-linux-riscv64.tar.gz",
+              "size": 78955844
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:75b05bed3bc410b33536bc4ceca0461638f31936d3677da06828e99844ffd121",
+              "name": "effectcraft-0.23.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage",
+              "digest": "sha256:7905485d7e91999a0c19ecba447d0dfd11c13bddb132bdf9cca65cd8b60671fb",
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage",
+              "size": 75024888
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:4cddb7a2c9c32c296fdc26e68c16c9009cc55fe74cddbe5160886fd14b204007",
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:7473f9bac1f6fe6484c4e70e397192040013420916ab45033b78dee0fadf6fcf",
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync",
+              "size": 256689
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:5f22289f4a149f1c0b7735c7ae34f052d5db3d9ec95177a3a35ed18283c04de1",
+              "name": "effectcraft-0.23.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb",
+              "digest": "sha256:9cef6ac57ce3d34437762886696a031158f0a5f49120bd90f1ab9c5d4d91c2d2",
+              "name": "effectcraft-0.23.1-linux-x86_64.deb",
+              "size": 83263308
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.deb.asc",
+              "digest": "sha256:8d3a9935bbac46b891e1117501e43adb39229fe4d556670745976ea717fdab88",
+              "name": "effectcraft-0.23.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak",
+              "digest": "sha256:a6015b680578721edad1b73f67a9744219d06038d623fadf5a61b28ee34c7f5a",
+              "name": "effectcraft-0.23.1-linux-x86_64.flatpak",
+              "size": 52574032
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:da389335c71fb631e0487fa362a6ffefcfb49460af6091028a8c98540028b0c6",
+              "name": "effectcraft-0.23.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:19257da46a9d2cf42f0027c0df55acf362a44db299897e4e71479b6c30d3ab76",
+              "name": "effectcraft-0.23.1-linux-x86_64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.oci.sig",
+              "digest": "sha256:fe18fe8e0373f72afe1dc2538d7b1b9cf377074e6a97197d340ff30170bea0a2",
+              "name": "effectcraft-0.23.1-linux-x86_64.oci.sig",
+              "size": 377
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:06923c5ab5d8d6773b1efbe0fc9edad90cbd5c29ae033344aaa7efb0ef9b2adc",
+              "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst",
+              "size": 56853629
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:ab3158f1713ce26bf4e40f83b86b7917fe6421eae74d504b3a9277ce57940cfc",
+              "name": "effectcraft-0.23.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm",
+              "digest": "sha256:7b29373910c98eb8cad576ba9308e587d0fa64a5ef3ee27c5f607c988fd0a8af",
+              "name": "effectcraft-0.23.1-linux-x86_64.rpm",
+              "size": 82732959
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:b21d1c4961b3e5c7a207931cd993453b1d193b2f30d22810e09c307a79b418a6",
+              "name": "effectcraft-0.23.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz",
+              "digest": "sha256:a330d1406fde71d07ac55ad37fe81f5de37ec7ea7ca7c3b9fa02aacd04502db1",
+              "name": "effectcraft-0.23.1-linux-x86_64.tar.gz",
+              "size": 81374963
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:09c3d1eb08c09abd0d456c5da8656b86939098633dea4f2dcb112a55d56111f7",
+              "name": "effectcraft-0.23.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-macos-universal.dmg",
+              "digest": "sha256:10703ae0b8b279241e7a87b69bfa5ae0213cc21a67a04ea978e84309f6e8e2f8",
+              "name": "effectcraft-0.23.1-macos-universal.dmg",
+              "size": 82074483
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64-portable.zip",
+              "digest": "sha256:9612097232dfbdc95457e6f96706c14f056ac8182f818ece36c43c9665f14ca2",
+              "name": "effectcraft-0.23.1-windows-arm64-portable.zip",
+              "size": 77850724
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-arm64.msi",
+              "digest": "sha256:f159e9daf6428d5fa50b42d8c8358710bd1005030cfd60c8fd1301a2adc9a34f",
+              "name": "effectcraft-0.23.1-windows-arm64.msi",
+              "size": 56901632
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64-portable.zip",
+              "digest": "sha256:9697f99ba8b8c2c36d791a19367ec39ffa0a6f71e849f716e07d1fc69b531310",
+              "name": "effectcraft-0.23.1-windows-x64-portable.zip",
+              "size": 84658279
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-0.23.1-windows-x64.msi",
+              "digest": "sha256:4ccfc6efe361402e64fedaf9c00439b4651d44721b8409ced647a0adf72fe198",
+              "name": "effectcraft-0.23.1-windows-x64.msi",
+              "size": 63840256
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-cli-0.23.1-macos-universal.zip",
+              "digest": "sha256:405ea3a2ead24ae4dabfda3bf383fc61baa6c2ad4414666eb419d9594df94721",
+              "name": "effectcraft-cli-0.23.1-macos-universal.zip",
+              "size": 76858216
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/effectcraft-web-0.23.1.zip",
+              "digest": "sha256:de8bc2116ae87beeabddb756397e825a556939f326ae9907c3bf29c49d8ea2ee",
+              "name": "effectcraft-web-0.23.1.zip",
+              "size": 22438665
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt",
+              "digest": "sha256:2eb08cac2c0f107bd66402271de9a026db998cf4e8290942c50b35c72dd5faf6",
+              "name": "SHA256SUMS.txt",
+              "size": 5170
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/effectcraft/releases/download/v0.23.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:0287aef73e2859e7b56d92bce42e94352bc210610b01e92ab033a00fa0654ce6",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "EffectCraft v0.23.1",
+          "prerelease": false,
+          "tag_name": "v0.23.1"
+        },
         {
           "assets": [
             {
@@ -84341,7 +84957,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"e798a493f1525709bb7625f20760c7105ece4e3f8943b7cf63ccd34f4a4c307e\"",
+      "etag": "\"647a18ab8a89fec8c7c0164129cb51ab7baf132e93dc2991818702426c1b597d\"",
       "body": {
         "assets": [
           {
@@ -84676,7 +85292,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"6fdb1d138a81e2bd12e6f4e75d3d055a74dd0d10860b9b7d35a7fb3661d7e9d9\"",
+      "etag": "\"c8942b21ee278578b8854e7417f8a3b1938de6462e183510664e9599e86b160a\"",
       "body": [
         {
           "assets": [
@@ -88359,7 +88975,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"14145ed81058f9a5cc0bf1bc16abea2dc658008063b7559f096cf154c904b0bb\"",
+      "etag": "\"dc6331dd50f47c831c77a9b8d28580be4fd7aeaeb73837af7e4ab13ad4cd379e\"",
       "body": {
         "assets": [
           {
@@ -88670,7 +89286,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"a4daa449a6d2fe2f66b1fa1ca704cce02581451713d2d1abfb76fc82b67d3778\"",
+      "etag": "\"9aa49df686a148c66f034106de8c6e1c592a6c89784c20f79f54da21de3efd30\"",
       "body": [
         {
           "assets": [
@@ -92401,7 +93017,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"22e612b0c7c68b30cf75a376935b6a1853008709719b253f8b2defbb48e31974\"",
+      "etag": "\"2f69527d35871e6fe129d5209c27d0a98a5a240582d76897984b40373d6a3303\"",
       "body": {
         "assets": [
           {
@@ -92712,7 +93328,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"4020b6f6d7b78387dcc45276e3aed10f46abaa6f0301675ea6da7cb18cf62b39\"",
+      "etag": "\"f8984c779994de03a5a7f8ae96a2422d455842a9670a8f8258f0da4b099c87da\"",
       "body": [
         {
           "assets": [
@@ -96155,7 +96771,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"df8325855123001cb7b03a328f4df99fbe03e98dda12937c99962aab97781bbf\"",
+      "etag": "\"83e7216daabb76b52ceec4106ea2eccf1b952196cf95a764c56cdb4f7cf3f273\"",
       "body": {
         "assets": [
           {
@@ -96466,7 +97082,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"afbd0495a7e28e977557f181a5abf56f7885818f1386745d1d315db1c3310b7c\"",
+      "etag": "\"31d70746e49b97b5ead4f5b60119d8902b22e6f034b19572a38750736b4657b9\"",
       "body": [
         {
           "assets": [
@@ -100349,7 +100965,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"8f2388a8bfbd5c2223dbcff61f95d4bf9b15abe41972299554d850e7835d51ab\"",
+      "etag": "\"8745861af8799726ff67a6c908c9647c2d2695eb7ee39a9d6610b1e17c77abeb\"",
       "body": {
         "assets": [
           {
@@ -100660,7 +101276,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"48202defaa655b07273f462e686f06cce8d60b0d66fc0dc3e060bd20e09327a6\"",
+      "etag": "\"cd28c1745980326c11d9a6a9701df2aa1dc491ff23fc12d9f4916fb8c269ec11\"",
       "body": [
         {
           "assets": [
@@ -102115,7 +102731,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"328907b260a7382525e0cb965ed81c70af3e99086da24abfe75eda641e54054d\"",
+      "etag": "\"5b1ce01f33b188592d7568504d0a8f58fe4333076e0c2bae058334f7929dc639\"",
       "body": {
         "assets": [
           {
@@ -102450,7 +103066,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"4e929c58fe379075c3b9c217cdf8adafc4ea855b118629f705c74eb4d7ed9a64\"",
+      "etag": "\"2bb579c7b903971ffee46dfadee67f047d33d392949276ecf8703fa02a92f5dd\"",
       "body": [
         {
           "assets": [
@@ -106815,7 +107431,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"02a41ef08373afdb5354cf3ce065dc472756d62cb65ce500d895628663466498\"",
+      "etag": "\"4dcfc1b205cfdd76dea1d74a4c89d225d4412de66b2a4a99558c406bab62966d\"",
       "body": {
         "assets": [
           {
@@ -107138,7 +107754,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"5d10a21558ca729d819d4cef4470068cf2125a6c8e0c2bde86f467db86d3af28\"",
+      "etag": "\"a29f98fda85f7c55034efcb199b921a151c7c443c648c312d29f7ff4e6e1669b\"",
       "body": [
         {
           "assets": [
@@ -111603,7 +112219,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"4a8fe9859843547343692682b3c50f1691424f46776c498941ce0ecd2058c33f\"",
+      "etag": "\"410f2948fa0901d7d44d0d5d5ba28387e6c0a329b2fd04def4b83fa5ac2254c6\"",
       "body": {
         "assets": [
           {
@@ -111914,7 +112530,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"2df7822ae6523dda1d63c325cd9f4e9ef4cc14ff6a08767bbc2d45dd16f43c5c\"",
+      "etag": "\"ef5c2ed4534985a3fef893d6a798a1380a2637da9d100f96c4f97986342f1d95\"",
       "body": [
         {
           "assets": [
@@ -115235,7 +115851,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"0a799cb4af0efe48190a126f4de6195f3eea7ab7bdbbaebb9f1ab5db4d4f05ca\"",
+      "etag": "\"f5431e5629d72e0a2f9f0c0b571d0b96ec1bf0864bd9614bb73a52f485eb13a7\"",
       "body": {
         "assets": [
           {
@@ -115546,7 +116162,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"0b77ac9003081b825a565376540848cd81f95fd22aeb663f86abcf5e7c04853b\"",
+      "etag": "\"3d43f43b4865c2951f07eb6edd1b986eac7bc966ac4315c0a904ddb38bfbe1af\"",
       "body": [
         {
           "assets": [
@@ -117203,7 +117819,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"54b812170e60bf4265e8b7b32f4df5ab8b77b166ce5df15215f0a4bd78245968\"",
+      "etag": "\"21addd99af265ee40ab769f00bc9759ea72c40022c05e9ab298116846ffb9765\"",
       "body": {
         "assets": [
           {
@@ -117514,7 +118130,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"c13e6ae79d0bca9324c09e267925a7f85d7a5a117c857aa856542a764f841049\"",
+      "etag": "\"e7f7dee375bde7e641c9583b025c09b49041052d6b4b491f6adb5590acd2484b\"",
       "body": [
         {
           "assets": [
@@ -121879,7 +122495,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"db36a403c65f02b6973403e38f1170434957914544f9a6c6d9226407bd4c2497\"",
+      "etag": "\"8b0973a293bc75cafa8c7e19a50a12bdcfd914244756c6f693530468e3c786c1\"",
       "body": {
         "assets": [
           {
@@ -122190,7 +122806,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"8eb73758682bedc26b479573e9b1d8593af1a984b001d7c7c90f2c3762e3a7d1\"",
+      "etag": "\"59d605c38929a2b2e91b8d78ef99e6c71fd10f039a9ea7aede0305f72879859b\"",
       "body": [
         {
           "assets": [
@@ -125645,7 +126261,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"7832a8e44daf464a04ffb4d3613be407f84aa5820fc6d4a7271e08332adf05f3\"",
+      "etag": "\"725ddb9d610b1bef192469dcb9d659d4f431bf5066593c24909410594c9817a6\"",
       "body": {
         "assets": [
           {
@@ -125950,7 +126566,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"a845fb136fc3434268342e14c40c1607199f8d7569b8fc8685cd3d43861fe45b\"",
+      "etag": "\"f42d86f66e9db8c2fc029246fd3752c0b63c05dea02cfe65d2204139a3ee1d0a\"",
       "body": [
         {
           "assets": [
