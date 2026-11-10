@@ -18,10 +18,98 @@ impl App {
             || self.manager_plan.is_some()
             || self.confirm_clean
             || self.api_cache_cleanup.receiver.is_some()
+            || self.rollback_cleanup.receiver.is_some()
             || self
                 .operation_records
                 .iter()
                 .any(|operation| !operation.lifecycle.terminal())
+    }
+
+    pub(super) fn rollback_cleanup_row(&mut self, ui: &mut egui::Ui) {
+        let blocked = self.api_cache_cleanup_blocked();
+        let clearing = self.rollback_cleanup.receiver.is_some();
+        let detail = if clearing {
+            "Deleting saved rollbacks..."
+        } else if self.rollback_cleanup.message.is_empty() {
+            "Free up space without changing your installed apps."
+        } else {
+            &self.rollback_cleanup.message
+        };
+        if row(ui, "Saved rollbacks", Some(detail), 64.0, |ui| {
+            if clearing {
+                ui.spinner();
+            }
+            btn(if clearing {
+                "Deleting..."
+            } else {
+                "Delete all"
+            })
+            .enabled(!blocked)
+            .show(ui)
+            .clicked()
+        }) {
+            self.rollback_cleanup.confirm = true;
+        }
+    }
+
+    pub(super) fn poll_rollback_cleanup(&mut self, ctx: &egui::Context) {
+        let Some(receiver) = &self.rollback_cleanup.receiver else {
+            return;
+        };
+        let result = match receiver.try_recv() {
+            Ok(result) => Some(result),
+            Err(mpsc::TryRecvError::Disconnected) => {
+                Some(Err("Rollback cleanup worker stopped unexpectedly.".into()))
+            }
+            Err(mpsc::TryRecvError::Empty) => None,
+        };
+        if let Some(result) = result {
+            self.rollback_cleanup.receiver = None;
+            self.rollback_cleanup.message = match result {
+                Ok(()) => "Saved rollbacks deleted.".into(),
+                Err(error) => error,
+            };
+            self.display_rollbacks.clear();
+            self.config_refresh_at = std::time::Instant::now();
+        } else {
+            ctx.request_repaint_after(Duration::from_millis(100));
+        }
+    }
+
+    pub(super) fn rollback_cleanup_dialog(&mut self, ctx: &egui::Context) {
+        if !self.rollback_cleanup.confirm {
+            return;
+        }
+        let blocked = self.api_cache_cleanup_blocked();
+        let dialog = modal(ctx, "Delete all rollbacks?", 440.0, |ui| {
+            dialogs::title_bar(ui, "Delete all rollbacks?", |_| {});
+            dialogs::band(ui, egui::Margin::symmetric(16, 16), 0.0, |ui| {
+                ui.label("Delete all saved rollbacks to free up space? Installed apps, settings and active recovery files are kept. New rollbacks will still be saved according to your settings.");
+            });
+            dialogs::footer(ui, |ui| {
+                if dialogs::action(ui, "Delete all", Kind::Danger, !blocked).clicked() {
+                    self.rollback_cleanup.confirm = false;
+                    let paths = self.paths.clone();
+                    let (sender, receiver) = mpsc::channel();
+                    self.rollback_cleanup.receiver = Some(receiver);
+                    let ctx = ctx.clone();
+                    std::thread::spawn(move || {
+                        let result =
+                            craft_apps_manager::installations::rollbacks::remove_all(&paths)
+                                .map(|_| ())
+                                .map_err(|e| format!("{e:#}"));
+                        let _ = sender.send(result);
+                        ctx.request_repaint();
+                    });
+                }
+                if dialogs::action(ui, "Cancel", Kind::Secondary, true).clicked() {
+                    self.rollback_cleanup.confirm = false;
+                }
+            });
+        });
+        if dialog.should_close() {
+            self.rollback_cleanup.confirm = false;
+        }
     }
 
     pub(super) fn api_cache_cleanup_row(&mut self, ui: &mut egui::Ui) {

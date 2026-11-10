@@ -753,6 +753,10 @@ impl App {
         rect: Rect,
         floating: bool,
     ) {
+        // The caller still maintains row slots, arrival motion and drag targets.
+        if !floating && !ui.is_rect_visible(rect) && !ui.memory(|memory| memory.any_popup_open()) {
+            return;
+        }
         let status = self.status(name);
         let install_available = self.install_available(name, ui.ctx());
         let unavailable_message = if install_available {
@@ -1473,5 +1477,71 @@ mod search_tests {
             });
         }
         assert_eq!(search, "ab");
+    }
+}
+#[cfg(test)]
+mod viewport_tests {
+    use super::*;
+    #[test]
+    fn offscreen_items_skip_layout_and_visible_items_return_after_scrolling() {
+        let root = std::env::temp_dir().join(format!("craft-viewport-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            false,
+        )
+        .unwrap();
+        let options = app.app_install_options("filmcraft");
+        app.download_availability.insert(
+            (
+                "filmcraft".into(),
+                options.release_format,
+                options.architecture,
+            ),
+            Some(true),
+        );
+        // egui retains the preceding frame's response for one frame. Check each
+        // position after two frames, as the item scrolls out and back in.
+        for (frame, visible) in [false, false, true, true, false, false, true, true]
+            .into_iter()
+            .enumerate()
+        {
+            let mut item_id = None;
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(640.0, 480.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| {
+                        item_id = Some(ui.id().with(("sidebar-row", "filmcraft")));
+                        let rect = Rect::from_min_size(
+                            egui::pos2(10.0, if visible { 10.0 } else { 10000.0 }),
+                            egui::vec2(200.0, 158.0),
+                        );
+                        app.app_row(ui, &State::default(), "filmcraft", false, rect, false);
+                    });
+                },
+            );
+            let response = ctx.read_response(item_id.unwrap());
+            if frame % 2 == 0 {
+                continue;
+            }
+            assert_eq!(
+                response.is_some(),
+                visible,
+                "Only visible items should build interactive content"
+            );
+        }
+        drop(app);
+        if root.exists() {
+            std::fs::remove_dir_all(root).unwrap();
+        }
     }
 }

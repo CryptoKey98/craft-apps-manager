@@ -25,7 +25,7 @@ These are build-machine dependencies. User installation requirements are in the 
 
 ## App-release catalog
 
-The optional app-release catalog supplies supported apps' release lists and verified compatibility information. It is separate from the Manager's self-updater. Normal source builds use the checked-in disabled catalog source; the local test-catalog feature requires an explicitly supplied test source. See [App-release catalog](app-release-catalog.md) for configuration and publishing rules.
+The optional app-release catalog supplies supported apps' release lists and verified compatibility information. It is separate from the Manager's self-updater. Default source builds use GitHub directly: `app_release_catalog = false` in `updater.toml`. To opt in, set this top-level option to `true` and configure the public endpoint and trusted keys in `assets/app-release-catalog/source.json`. The official `updater.production.toml` explicitly enables it. The local test-catalog feature requires an explicitly supplied test source. See [App-release catalog](app-release-catalog.md) for refresh, fallback and publishing rules.
 
 ## Choose the updater
 
@@ -113,7 +113,7 @@ Build a native executable first. The portable scripts create a ZIP and then reus
 
 ```sh
 sh scripts/packaging/package-linux-zip.sh target/release/craft-apps-manager
-sh scripts/packaging/package-linux-tar.sh dist/linux/Craft-Apps-Manager-1.0.0-linux-x64.zip
+sh scripts/packaging/package-linux-tar.sh dist/linux/Craft-Apps-Manager-1.1.1-linux-x64.zip
 ```
 
 Replace the archive's version and architecture with the actual output. TAR.GZ packaging currently requires ZIP in the selected package configuration.

@@ -307,6 +307,21 @@ impl Network {
         url: &str,
         policy: CachePolicy,
     ) -> Result<T> {
+        self.release_json_for(
+            url,
+            policy,
+            crate::installations::release_catalog::resolution::ReleaseIntent::Browse,
+        )
+    }
+    pub fn release_json_for<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        policy: CachePolicy,
+        intent: crate::installations::release_catalog::resolution::ReleaseIntent,
+    ) -> Result<T> {
+        if !intent.uses_catalog() {
+            return self.json_with_policy(url, policy);
+        }
         // Loopback API fixtures must stay isolated even when a preview build's
         // bundled catalog points at a live test feed. Shipping builds omit this.
         #[cfg(test)]
@@ -350,6 +365,7 @@ impl Network {
         fresh: bool,
         policy: CachePolicy,
     ) -> Result<T> {
+        let catalog_epoch = crate::installations::release_catalog::api_epoch(&self.root, url);
         let token = url
             .starts_with("https://api.github.com/")
             .then(github_token)
@@ -374,12 +390,18 @@ impl Network {
                     &tag,
                     CachePolicy::Versions.seconds(),
                 ) {
-                    crate::installations::release_catalog::observe_api(&self.root, url, &value, at);
+                    crate::installations::release_catalog::observe_api(
+                        &self.root,
+                        url,
+                        &value,
+                        at,
+                        catalog_epoch.as_deref(),
+                    );
                     return Ok(serde_json::from_value(value)?);
                 }
             }
         }
-        let record = cache::request_finishing(
+        let response = cache::request_finishing(
             key.clone(),
             fresh,
             policy.seconds(),
@@ -505,7 +527,20 @@ impl Network {
                     ));
                 }
             },
-        )?;
+        );
+        let record = match response {
+            Ok(record) => record,
+            Err(error) => {
+                if cache::status(&error).is_some_and(|status| status.as_u16() == 404) {
+                    crate::installations::release_catalog::observe_withdrawal(
+                        &self.root,
+                        url,
+                        catalog_epoch.as_deref(),
+                    );
+                }
+                return Err(error);
+            }
+        };
         // Publish the UI generation only after dependent invalidation finishes.
         cache::observe_completed(key, record.generation.clone());
         crate::installations::release_catalog::observe_api(
@@ -513,6 +548,7 @@ impl Network {
             url,
             &record.value,
             record.at,
+            catalog_epoch.as_deref(),
         );
         match decoded.into_inner() {
             Some(value) => Ok(value),

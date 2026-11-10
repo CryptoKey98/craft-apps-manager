@@ -38,7 +38,12 @@ pub(super) fn restore_with(
         None,
         "Copying and verifying the retained version locally",
     );
-    let prepared = files::copy_directory_verified(&retained, &stage).and_then(|()| job.check());
+    let prepared = if point.compressed {
+        compression::verify(&retained, point, Some(&stage), Some(job))
+    } else {
+        files::copy_directory_verified(&retained, &stage)
+    }
+    .and_then(|()| job.check());
     if let Err(error) = prepared {
         let _ = files::remove_managed(&stage, &paths.at("runtime/rollback-transactions"));
         cleanup_empty(paths, job);

@@ -19,6 +19,19 @@ SPEC.loader.exec_module(catalog)
 
 
 class PublicationTests(unittest.TestCase):
+    def test_work_status_is_bounded_and_cannot_replace_authority_on_error(self):
+        self.publish(1, 'v1.0.0')
+        published,candidate,_ = self.publication(2, 'v2.0.0')
+        catalog.stage_objects(self.feed,published,self.source,self.tool,now=self.now)
+        before = (self.feed/'v1/index.json').read_bytes()
+        (candidate/'status.json').write_text(json.dumps(dict(schema=1,generated_at=self.now,pending_inspections=-1)))
+        with self.assertRaisesRegex(ValueError, 'Invalid publisher work status'):
+            catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
+        self.assertEqual(before, (self.feed/'v1/index.json').read_bytes())
+        (candidate/'status.json').write_text(json.dumps(dict(schema=1,generated_at=self.now,pending_inspections=4)))
+        catalog.stage_root(self.feed,published,candidate,self.source,self.tool,now=self.now)
+        self.assertEqual(json.loads((self.feed/'publisher/status.json').read_text())['pending_inspections'], 4)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='craft app catalog publishing ')
         self.root = Path(self.temporary.name)

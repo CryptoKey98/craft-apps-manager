@@ -10,7 +10,7 @@ Available for **Windows, Linux, and macOS**. This is an independent community pr
 
 **[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [Documentation](https://github.com/CryptoKey98/craft-apps-manager/wiki) · [Changelog](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
 
-Version **1.1.0** includes app rollback, consistent settings saves, safer migration, clearer GitHub activity, and faster installation choices. It also introduces an optional signed app-release catalog and SolidCraft discovery. See the [changelog](CHANGELOG.md) for the full release notes.
+Version **1.1.1** includes smoother scrolling, more efficient automatic update checks, and version lists that stay in sync when GitHub finds a newer release. See the [changelog](CHANGELOG.md) for the full release notes.
 
 ![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.8.0)
 
@@ -100,7 +100,7 @@ Install stable Rust and your platform's prerequisites, then run from the reposit
 cargo build --release --locked --bin craft-apps-manager
 ```
 
-**This builds the default GitHub-only updater.** For the official service updater on Windows:
+**This builds the default GitHub-only updater with the app-release catalog disabled.** For the official service updater and enabled app-release catalog on Windows:
 
 ```powershell
 python scripts/lib/updater_config.py build --config updater.production.toml --target-os windows

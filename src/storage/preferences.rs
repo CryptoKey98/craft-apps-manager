@@ -57,6 +57,10 @@ pub struct Preferences {
     #[serde(default)]
     pub rollback_enabled: Option<bool>,
     #[serde(default)]
+    pub compress_rollbacks: bool,
+    #[serde(default)]
+    pub rollback_compression_overrides: std::collections::BTreeMap<String, bool>,
+    #[serde(default)]
     pub rollback_overrides: std::collections::BTreeMap<String, bool>,
     pub notify_updates: bool,
     /// Legacy global fields are read for compatibility, never installation authority.
@@ -98,6 +102,8 @@ impl Default for Preferences {
             batch_admin: true,
             keep_app_backups: false,
             rollback_enabled: Some(true),
+            compress_rollbacks: false,
+            rollback_compression_overrides: Default::default(),
             rollback_overrides: Default::default(),
             notify_updates: true,
             app_install_options: Default::default(),

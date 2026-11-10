@@ -1,5 +1,6 @@
 //! Local, verified previous versions, keyed by the portable ownership identity.
 mod cleanup;
+mod compression;
 pub(crate) mod native;
 mod native_package;
 mod restore;
@@ -25,10 +26,57 @@ use store::{ensure_identity, identity, manifest, owner, read_point, root, select
 pub use store::{record_update, remove_previous};
 pub use uninstall::discard_uninstalled;
 
+pub fn remove_all(paths: &Paths) -> Result<usize> {
+    let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
+    ensure!(
+        !crate::operations::Manager::new(&paths.root)
+            .list()
+            .iter()
+            .any(|op| !op.lifecycle.terminal()),
+        "Wait for active operations to finish"
+    );
+    let Some(config) = paths.read_inventory()? else {
+        return Ok(0);
+    };
+    ensure!(
+        Path::new(&config.apps_root) == paths.root,
+        "Installation inventory belongs to another library"
+    );
+    let mut seen = std::collections::BTreeSet::new();
+    let mut removed = 0;
+    let mut preserved = 0;
+    for installed in config.apps.iter().chain(&config.installations) {
+        let id = if installed.install_kind == "installer" {
+            native::key(installed)
+        } else {
+            identity(paths, installed)
+        };
+        let Ok(id) = id else {
+            continue;
+        };
+        if !seen.insert(id) {
+            continue;
+        }
+        match removal_candidate_for(paths, installed) {
+            Ok(Some(point)) => match store::remove_checked(paths, installed, &point) {
+                Ok(()) => removed += 1,
+                Err(_) => preserved += 1,
+            },
+            Ok(None) => {}
+            Err(_) => preserved += 1,
+        }
+    }
+    ensure!(preserved == 0, "Removed {removed} rollback versions; {preserved} could not be safely removed. Active apps and recovery files were preserved.");
+    Ok(removed)
+}
+
 /// Metadata authorization for explicit deletion, independent of file integrity.
 /// Restoration continues to require the complete verified manifest.
 pub fn removal_candidate(paths: &Paths, installed: &Installed) -> Result<Option<RollbackPoint>> {
     selected(paths, installed)?;
+    removal_candidate_for(paths, installed)
+}
+fn removal_candidate_for(paths: &Paths, installed: &Installed) -> Result<Option<RollbackPoint>> {
     let id = if installed.install_kind == "installer" {
         native::key(installed)?
     } else {
@@ -80,8 +128,12 @@ pub struct RollbackPoint {
     package_type: String,
     executable: PathBuf,
     files: BTreeMap<PathBuf, (u64, String)>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    directories: BTreeMap<PathBuf, u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     native: Option<native::NativePoint>,
+    #[serde(default)]
+    compressed: bool,
 }
 #[derive(Clone)]
 pub struct RollbackStatus {
@@ -89,6 +141,8 @@ pub struct RollbackStatus {
     pub previous: Option<RollbackPoint>,
     pub preference: Option<bool>,
     pub global_enabled: bool,
+    pub compression_preference: Option<bool>,
+    pub global_compression_enabled: bool,
     pub unsupported: Option<String>,
 }
 pub fn status(paths: &Paths, installed: &Installed) -> Result<RollbackStatus> {
@@ -116,7 +170,13 @@ pub fn status(paths: &Paths, installed: &Installed) -> Result<RollbackStatus> {
             .map(|id| read_point(paths, id))
             .transpose()?
             .flatten(),
-        preference: id.and_then(|id| prefs.rollback_overrides.get(&id).copied()),
+        preference: id
+            .as_ref()
+            .and_then(|id| prefs.rollback_overrides.get(id).copied()),
+        compression_preference: id
+            .as_ref()
+            .and_then(|id| prefs.rollback_compression_overrides.get(id).copied()),
+        global_compression_enabled: prefs.compress_rollbacks,
         global_enabled: prefs.rollback_enabled(),
         unsupported,
     })
@@ -153,6 +213,15 @@ pub fn save_override(
     expected_preference: Option<bool>,
     preference: Option<bool>,
 ) -> Result<()> {
+    save_options(paths, expected, expected_preference, preference, None)
+}
+pub fn save_options(
+    paths: &Paths,
+    expected: &Installed,
+    expected_preference: Option<bool>,
+    preference: Option<bool>,
+    compression: Option<(Option<bool>, Option<bool>)>,
+) -> Result<()> {
     let _lock = crate::platform::Lock::take("Local\\CraftAppsManager")?;
     selected(paths, expected)?;
     let id = if expected.install_kind == "installer" {
@@ -167,6 +236,23 @@ pub fn save_override(
         "Rollback preference changed. Reopen the dialog."
     );
     let mut edited = base.clone();
+    if let Some((original, value)) = compression {
+        ensure!(
+            expected.install_kind == "portable",
+            "Installer packages retain their existing format"
+        );
+        ensure!(
+            base.rollback_compression_overrides.get(&id).copied() == original,
+            "Compression preference changed. Reopen the dialog."
+        );
+        if let Some(value) = value {
+            edited
+                .rollback_compression_overrides
+                .insert(id.clone(), value);
+        } else {
+            edited.rollback_compression_overrides.remove(&id);
+        }
+    }
     if let Some(value) = preference {
         edited.rollback_overrides.insert(id, value);
     } else {

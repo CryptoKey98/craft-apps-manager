@@ -73,6 +73,25 @@ fn single_catalog_lookup_does_not_copy_unrelated_apps() {
     .unwrap();
     catalog::load(&root.0);
     assert!(catalog::all().len() >= 256);
+    let (keys, key_bytes) = allocated(catalog::release_keys);
+    let (ordered, order_bytes) =
+        allocated(|| catalog::metadata::ordered_release_apps(&keys, "portable"));
+    let (_, title_bytes) = allocated(|| catalog::metadata::title("fixturecraft42"));
+    println!("List keys: {key_bytes} bytes; ordered list: {order_bytes}; title: {title_bytes}");
+    assert_eq!(ordered, keys);
+    assert!(
+        key_bytes < 64 * 1024,
+        "App keys must not copy release metadata"
+    );
+    assert!(
+        order_bytes < 64 * 1024,
+        "Ordering must not copy release metadata"
+    );
+    let (_, expected_title_bytes) = allocated(|| entries[42].title.clone());
+    assert_eq!(
+        title_bytes, expected_title_bytes,
+        "A label must only copy its text"
+    );
     let (entry, bytes) = allocated(|| catalog::get("filmcraft").unwrap());
     let (_, old_bytes) = allocated(|| catalog::all().into_iter().find(|e| e.key == "filmcraft"));
     println!("Single lookup: {bytes} bytes; whole-catalog lookup: {old_bytes} bytes");
@@ -106,6 +125,38 @@ fn single_catalog_lookup_does_not_copy_unrelated_apps() {
     assert_eq!(
         catalog::get("fixturecraft42").unwrap().description,
         "Changed publisher metadata"
+    );
+    entries[42].title = "Renamed app".into();
+    entries[42].category = "Changed category".into();
+    entries[42].release = false;
+    entries[42].source = true;
+    files::write_json(
+        &root.0.join("runtime/catalog.json"),
+        &serde_json::json!({"checkedAt": 0, "entries": entries, "learned": {}}),
+    )
+    .unwrap();
+    catalog::load(&root.0);
+    assert_eq!(catalog::metadata::title("fixturecraft42"), "Renamed app");
+    assert_eq!(
+        catalog::metadata::category("fixturecraft42"),
+        "Changed category"
+    );
+    assert!(!catalog::release_keys()
+        .iter()
+        .any(|key| key == "fixturecraft42"));
+    assert!(catalog::source_keys()
+        .iter()
+        .any(|key| key == "fixturecraft42"));
+    assert_eq!(
+        catalog::metadata::ordered_release_apps(
+            &[
+                "missing".into(),
+                "fixturecraft42".into(),
+                "filmcraft".into()
+            ],
+            "installer"
+        ),
+        vec!["filmcraft"]
     );
 }
 

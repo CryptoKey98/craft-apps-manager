@@ -1,4 +1,5 @@
 //! Manager self-update integration and existing signed update protocols.
+pub mod cleanup;
 pub mod legacy;
 pub mod revisions;
 pub mod service;

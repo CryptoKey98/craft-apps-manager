@@ -37,6 +37,8 @@ pub struct Observation {
 }
 #[derive(Clone, Default)]
 pub struct Snapshot {
+    pub blocked: std::collections::BTreeSet<(String, super::provider::Query)>,
+    pub query_checked: BTreeMap<(String, super::provider::Query), i64>,
     pub epoch: String,
     pub source: String,
     pub attempted: i64,
@@ -126,7 +128,7 @@ pub fn load(root: &Path, source: &Source) -> Result<State> {
         .unwrap_or_else(new_epoch);
     let mut state = State {
         epoch,
-        schema: 1,
+        schema: 2,
         source: fingerprint.clone(),
         ..Default::default()
     };
@@ -144,18 +146,19 @@ pub fn load(root: &Path, source: &Source) -> Result<State> {
                 .take(MAX_DECODED + 1)
                 .read_to_end(&mut bytes)?;
             ensure!(bytes.len() as u64 <= MAX_DECODED, "Decoded cache too large");
-            let cached: State = serde_json::from_slice(&bytes)?;
+            let mut cached: State = serde_json::from_slice(&bytes)?;
             ensure!(
-                cached.schema == 1
+                matches!(cached.schema, 1 | 2)
                     && cached.source == fingerprint
                     && cached.objects.len() <= 128
                     && cached.observations.len() <= 2048
-                    && cached.api_observations.len() <= 512,
+                    && cached.api_observations.len() <= 4096,
                 "Invalid cache schema/source/bounds"
             );
             if let Some(envelope) = &cached.envelope {
                 verify_index(envelope.as_bytes(), source, 0)?;
             }
+            cached.schema = 2;
             Ok(cached)
         })();
         if let Ok(cached) = read {
@@ -219,11 +222,6 @@ pub fn snapshot(state: &State, source: &Source) -> Result<Snapshot> {
             }
             if let Some(body) = state.objects.get(&reference.sha256) {
                 if let Ok(app) = verify_app(body.as_bytes(), repo, reference) {
-                    for (index, release) in app.releases.iter().enumerate() {
-                        result
-                            .tags
-                            .insert((repo.clone(), release.tag_name.clone()), index);
-                    }
                     for evidence in &app.scopes {
                         if evidence.inspector_version == 1 {
                             result.scope.insert(
@@ -287,6 +285,16 @@ pub fn snapshot(state: &State, source: &Source) -> Result<Snapshot> {
             );
         }
     }
+    super::api_observation::merge(&mut result);
+    // API observations can insert, reorder or withdraw releases. Index the
+    // merged view, so memory-only previews resolve the same exact tag.
+    for (repo, app) in &result.apps {
+        for (index, release) in app.releases.iter().enumerate() {
+            result
+                .tags
+                .insert((repo.clone(), release.tag_name.clone()), index);
+        }
+    }
     Ok(result)
 }
 pub fn save(root: &Path, state: &mut State, active: &str) -> Result<()> {
@@ -297,17 +305,12 @@ pub fn save(root: &Path, state: &mut State, active: &str) -> Result<()> {
     state
         .overrides
         .retain(|_, time| now.saturating_sub(*time) <= 86400);
-    state
-        .api_observations
-        .retain(|observation| observation.valid());
-    if state.api_observations.len() > 512 {
-        state
-            .api_observations
-            .sort_by_key(|observation| observation.at);
-        state
-            .api_observations
-            .drain(..state.api_observations.len() - 512);
-    }
+    super::api_observation::retire_resolved(state);
+    super::api_observation::trim(&mut state.api_observations);
+    ensure!(
+        state.api_observations.len() <= 4096,
+        "API conflict cache exceeds budget"
+    );
     state
         .observations
         .retain(|o| now.saturating_sub(o.used) <= 30 * 86400);

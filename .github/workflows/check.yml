@@ -130,7 +130,11 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} -- --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- -D warnings
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - name: Verify updater build configuration modes
         if: matrix.target == 'x86_64-pc-windows-msvc'
         env:
@@ -261,7 +265,11 @@ jobs:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - run: cargo clippy --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- -D warnings
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - run: cargo build --release --locked --target ${{ matrix.target }}
         if: needs.changes.outputs.packages == 'true'
       - uses: actions/upload-artifact@v4
@@ -446,10 +454,14 @@ jobs:
         run: runuser -u builder -- cargo test --locked --all-targets -- --test-threads=1
       - name: Test service updater
         run: runuser -u builder -- cargo test --locked --features service-updater --all-targets -- --test-threads=1
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - name: Clippy default updater
         run: runuser -u builder -- cargo clippy --locked --all-targets -- -D warnings
       - name: Clippy service updater
         run: runuser -u builder -- cargo clippy --locked --all-targets --features service-updater -- -D warnings
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - name: Build and package for Arch
         run: |
           runuser -u builder -- cargo build --release --locked --bin craft-apps-manager
@@ -479,8 +491,12 @@ jobs:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
       - run: cargo test --locked --all-targets -- --test-threads=1
       - run: cargo test --locked --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo clippy --locked --all-targets --features service-updater,app-catalog-tools -- -D warnings
+        env:
+          CRAFT_UPDATER_CONFIG: updater.production.toml
 
   macos-packages:
     name: macOS package checks

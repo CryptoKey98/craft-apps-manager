@@ -143,14 +143,28 @@ pub fn check_installation(
     installed: &crate::model::Installed,
     prefs: &Preferences,
 ) -> Result<Option<String>> {
+    check_installation_for(
+        paths,
+        installed,
+        prefs,
+        crate::installations::release_catalog::resolution::ReleaseIntent::AutomaticUpdate,
+    )
+}
+pub fn check_installation_for(
+    paths: &Paths,
+    installed: &crate::model::Installed,
+    prefs: &Preferences,
+    intent: crate::installations::release_catalog::resolution::ReleaseIntent,
+) -> Result<Option<String>> {
     let app = &installed.name;
     crate::model::valid_app(app)?;
-    let release: Release = Network::new(&paths.root)?.release_json_with_policy(
+    let release: Release = Network::new(&paths.root)?.release_json_for(
         &format!(
             "https://api.github.com/repos/{}/releases/latest",
             crate::model::repository(app)
         ),
         crate::network::CachePolicy::Update,
+        intent,
     )?;
     check_installed_release(&release, app, installed, prefs)
 }
