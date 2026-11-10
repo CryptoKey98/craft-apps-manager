@@ -22,6 +22,8 @@ enum Confirmation {
 struct Draft {
     original: Option<bool>,
     value: Option<bool>,
+    compression_original: Option<bool>,
+    compression_value: Option<bool>,
     confirmation: Option<Confirmation>,
 }
 
@@ -49,13 +51,19 @@ impl Draft {
         Self {
             original: preference,
             value: preference,
+            compression_original: None,
+            compression_value: None,
             confirmation: None,
         }
     }
 
     fn changed(&self) -> bool {
-        self.value != self.original
+        self.value != self.original || self.compression_value != self.compression_original
     }
+}
+
+fn compression_available(kind: &str, retention: Option<bool>, global: bool) -> bool {
+    kind == "portable" && retention.unwrap_or(global)
 }
 
 pub(in crate::ui) struct RollbackDialog {
@@ -141,6 +149,8 @@ impl App {
                     Ok(status) => {
                         dialog.loaded_at = Some(ctx.input(|input| input.time));
                         dialog.draft = Draft::loaded(status.preference);
+                        dialog.draft.compression_original = status.compression_preference;
+                        dialog.draft.compression_value = status.compression_preference;
                         self.display_rollbacks
                             .insert(dialog.installed.name.clone(), Ok(status.clone()));
                         dialog.status = Some(status);
@@ -246,7 +256,7 @@ impl App {
                             if confirmation == Confirmation::Restore && dialog.installed.install_kind == "installer" {
                                 note(ui, "The verified installer will restore this version. Administrator approval may be required.");
                             }
-                            note(ui, "Unsaved retention changes will not be applied.");
+                            note(ui, "Unsaved rollback settings will not be applied.");
                         }
                         if stale { note(ui, "The selected installation changed. Cancel and reopen Rollback."); }
                     });
@@ -299,7 +309,9 @@ impl App {
                         close = true;
                     }
                     band(ui, egui::Margin::symmetric(22, 22), 0.0, |ui| {
-                        egui::ScrollArea::vertical().max_height((ctx.screen_rect().height() - 230.0).clamp(100.0, 480.0)).show(ui, |ui| {
+                        // Let the full review fit after adding compression controls;
+                        // constrain it only when the app window itself is too short.
+                        egui::ScrollArea::vertical().max_height((ctx.screen_rect().height() - 230.0).max(100.0)).show(ui, |ui| {
                     ui.spacing_mut().item_spacing.y = 0.0;
                     ui.allocate_ui_with_layout(egui::vec2(ui.available_width(), 21.0), egui::Layout::left_to_right(egui::Align::Center), |ui| {
                         theme::text(ui, "Current version", 12.0, theme::palette().muted);
@@ -364,6 +376,27 @@ impl App {
                         });
                         });
                         if supported || dialog.status.is_none() {
+                            ui.add_space(20.0);
+                            rule(ui);
+                            ui.add_space(20.0);
+                            let editable = supported && compression_available(&dialog.installed.install_kind, dialog.draft.value, dialog.status.as_ref().is_some_and(|status| status.global_enabled));
+                            ui.scope(|ui| {
+                                if !editable { ui.multiply_opacity(0.45); }
+                                theme::heading(ui, "Compression", 14.0);
+                                ui.add_space(5.0);
+                                layout::note(ui, if dialog.installed.install_kind == "installer" { "Installer packages keep their existing format." } else if !editable && dialog.status.is_some() { "Enable rollbacks to change compression." } else { "For future rollback versions of this installation" });
+                                ui.add_space(10.0);
+                                ui.add_enabled_ui(!locked && editable, |ui| {
+                                    ui.spacing_mut().button_padding = egui::vec2(10.0,8.0);
+                                    egui::ComboBox::from_id_salt("rollback-compression").width(ui.available_width())
+                                        .selected_text(if dialog.installed.install_kind == "installer" { "Not applicable".into() } else { dialog.status.as_ref().map_or(" ".into(), |status| preference_label(dialog.draft.compression_value, status.global_compression_enabled)) })
+                                        .show_ui(ui, |ui| {
+                                            for value in [None,Some(true),Some(false)] {
+                                                ui.selectable_value(&mut dialog.draft.compression_value,value,preference_label(value,dialog.status.as_ref().is_some_and(|status| status.global_compression_enabled)));
+                                            }
+                                        });
+                                });
+                            });
                             ui.add_space(26.0);
                             ui.add_space(16.0);
                             layout::note(ui, "Changes the app version. Older versions may not support settings or data changed by a newer version.");
@@ -414,13 +447,17 @@ impl App {
             let installed = dialog.installed.clone();
             let original = dialog.draft.original;
             let preference = dialog.draft.value;
+            let compression = (installed.install_kind == "portable").then_some((
+                dialog.draft.compression_original,
+                dialog.draft.compression_value,
+            ));
             let (tx, rx) = mpsc::channel();
             dialog.pending = Some(Pending::Save(rx));
             dialog.error = None;
             let ctx = ctx.clone();
             std::thread::spawn(move || {
                 let _ = tx.send(
-                    rollbacks::save_override(&paths, &installed, original, preference)
+                    rollbacks::save_options(&paths, &installed, original, preference, compression)
                         .map_err(|e| format!("{e:#}")),
                 );
                 ctx.request_repaint();
@@ -607,6 +644,8 @@ mod tests {
                 previous: Some(point),
                 preference: None,
                 global_enabled: true,
+                compression_preference: None,
+                global_compression_enabled: false,
                 unsupported: None,
             }),
             draft: Draft {
@@ -620,6 +659,25 @@ mod tests {
         draw_dialog(&mut app, &ctx, vec![]);
         draw_dialog(&mut app, &ctx, vec![]);
         let main = draw_dialog(&mut app, &ctx, vec![]);
+        let warning = main
+            .shapes
+            .iter()
+            .find_map(|clipped| {
+                if let egui::Shape::Text(text) = &clipped.shape {
+                    if text.galley.job.text.starts_with("Changes the app version.") {
+                        return Some((
+                            clipped.clip_rect,
+                            egui::Rect::from_min_size(text.pos, text.galley.size()),
+                        ));
+                    }
+                }
+                None
+            })
+            .expect("rollback warning is rendered");
+        assert!(
+            warning.0.expand(1.0).contains_rect(warning.1),
+            "Normal-height Rollback dialog must fit its content without scrolling: {warning:?}"
+        );
         let settings_position = text_center(&main, "Keep a rollback version");
         let cancel_position = text_center(&main, "Cancel");
         let retained_status = app.rollback_dialog.as_mut().unwrap().status.take().unwrap();
@@ -769,6 +827,22 @@ mod tests {
             None,
             "reopening discards cancelled draft"
         );
+    }
+
+    #[test]
+    fn compression_draft_tracks_changes_and_disabling_retention_keeps_the_choice() {
+        let mut draft = Draft::loaded(None);
+        draft.compression_value = Some(true);
+        assert!(draft.changed());
+        assert!(compression_available("portable", None, true));
+        assert!(!compression_available("portable", None, false));
+        draft.value = Some(false);
+        assert!(!compression_available("portable", draft.value, true));
+        assert_eq!(draft.compression_value, Some(true));
+        draft.value = Some(true);
+        assert!(compression_available("portable", draft.value, false));
+        assert!(!compression_available("installer", Some(true), true));
+        assert_eq!(Draft::loaded(None).compression_value, None);
     }
 
     #[test]

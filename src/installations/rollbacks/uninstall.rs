@@ -74,10 +74,14 @@ pub fn discard_uninstalled(
     let directory = root(paths, &id)?;
     let contents = directory.join(&point.id);
     files::inside(&contents, &directory)?;
-    ensure!(
-        manifest(&contents)? == point.files,
-        "Previous version has changed; preserved for recovery"
-    );
+    if point.compressed {
+        compression::verify(&contents, &point, None, None)?;
+    } else {
+        ensure!(
+            manifest(&contents)? == point.files,
+            "Previous version has changed; preserved for recovery"
+        );
+    }
     fs::remove_file(directory.join("point.json"))?;
     files::remove_managed(&contents, &directory)?;
     cleanup::prune_empty(paths)

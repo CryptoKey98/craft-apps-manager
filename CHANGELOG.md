@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1
+
+- Optionally compress portable rollback versions to save space, and remove retained rollback versions together from Settings.
+- Clean up completed Manager-update downloads and helper files in the background, while preserving active updates and unresolved recovery files.
+- Fix the Manager failing to reopen when its update helper still holds the operation lock.
+- Reduce unnecessary work while scrolling Home and the sidebar or returning to Home.
+- Use the signed release catalog for automatic app checks and GitHub for manual checks, showing newly found releases without waiting for catalog publication.
+- Keep version lists and download choices in sync, and preserve known update indicators when a later check fails.
+- Make the app-release catalog opt-in for source builds, while keeping it enabled in official builds.
+
 ## 1.1.0
 
 ### Rev. 2 · All platforms

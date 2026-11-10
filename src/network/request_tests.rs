@@ -335,3 +335,25 @@ fn withdrawn_tag_retires_old_history_including_its_persisted_copy() {
     );
     assert!(network.json::<serde_json::Value>(tag).is_err());
 }
+#[test]
+fn manual_release_checks_share_one_api_request_without_catalog_waits() {
+    let server = Server::new(HashMap::from([(
+        "/repos/storytold/filmcraft/releases/latest".into(),
+        (
+            200,
+            serde_json::json!({"tag_name":"v3.0.0","draft":false,"prerelease":false,"assets":[]}),
+        ),
+    )]));
+    let network = Network::new(&server.root).unwrap();
+    for _ in 0..3 {
+        let release: crate::model::Release = network
+            .release_json_for(
+                "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+                CachePolicy::Update,
+                crate::installations::release_catalog::resolution::ReleaseIntent::ManualUpdate,
+            )
+            .unwrap();
+        assert_eq!(release.tag_name, "v3.0.0");
+    }
+    assert_eq!(server.count(), 1);
+}

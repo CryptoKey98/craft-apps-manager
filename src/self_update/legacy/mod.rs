@@ -510,8 +510,44 @@ fn apply_with_authorization(plan_path: &Path, authorization: Option<&Path>) -> R
         apply_macos(plan_path, authorization)
     }
     #[cfg(not(target_os = "macos"))]
-    apply_executable(plan_path, authorization)
+    {
+        apply_executable(plan_path, authorization)
+    }
 }
+
+fn record_completed(plan: &Plan, stage: &Path) {
+    if let Err(error) = super::cleanup::completed(plan, stage) {
+        eprintln!("Update cleanup receipt could not be saved: {error:#}");
+    }
+}
+
+/// Replacement and recovery hold the existing mutation gates; startup does not.
+#[cfg(not(target_os = "macos"))]
+fn commit_then_restart<G>(
+    guards: G,
+    commit: impl FnOnce() -> Result<()>,
+    restart: impl FnOnce() -> Result<()>,
+    recover: impl FnOnce() -> Result<()>,
+) -> Result<()> {
+    if let Err(error) = commit() {
+        recover().context("Could not restore previous manager after replacement failed")?;
+        return Err(error);
+    }
+    drop(guards);
+    let result = restart();
+    if result.is_err() {
+        // Only the helper waits here, never a UI thread. A failed launch must
+        // reacquire mutation ownership before restoring the original executable.
+        let _builder = crate::platform::Lock::wait("Local\\CraftAppsSourceBuilder")?;
+        let _manager = crate::platform::Lock::wait("Local\\CraftAppsManager")?;
+        recover().context("Could not restore previous manager after restart failed")?;
+    }
+    result
+}
+
+#[cfg(all(test, not(target_os = "macos")))]
+#[path = "restart_tests.rs"]
+mod restart_tests;
 #[cfg(not(target_os = "macos"))]
 fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()> {
     let mut plan: Plan = files::read_json(plan_path)?;
@@ -618,6 +654,9 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
                 }
             })();
             if let Err(error) = installation {
+                #[cfg(feature = "service-updater")]
+                drop(_authorization);
+                drop(_execution);
                 return recover_failed_update(error, &windows_update_result_path()?, || {
                     files::no_links(&plan.target)?;
                     Command::new(&plan.target)
@@ -637,6 +676,9 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
                 )?;
             }
             crate::manager_updates::transaction::acknowledge_native_batch(&plan, authorization)?;
+            #[cfg(feature = "service-updater")]
+            drop(_authorization);
+            drop(_execution);
             let mut command = Command::new(&plan.target);
             crate::manager_updates::bridge::append_restart(&mut command, &plan);
             command
@@ -645,6 +687,7 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
                 .arg("--tools")
                 .arg(&plan.tools)
                 .spawn()?;
+            record_completed(&plan, &stage);
             return Ok(());
         }
         #[cfg(not(target_os = "windows"))]
@@ -663,6 +706,9 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
                     &stage,
                 )?;
             }
+            #[cfg(feature = "service-updater")]
+            drop(_authorization);
+            drop(_execution);
             let mut command = Command::new(&plan.target);
             crate::manager_updates::bridge::append_restart(&mut command, &plan);
             command
@@ -671,11 +717,13 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
                 .arg("--tools")
                 .arg(&plan.tools)
                 .spawn()?;
+            record_completed(&plan, &stage);
             return Ok(());
         }
         #[cfg(not(target_os = "linux"))]
         bail!("Linux package updates are only supported on Linux");
     }
+    let previous_hash = files::hash(&plan.target)?;
     let backup = stage.join("previous.exe");
     let deadline = Instant::now() + Duration::from_secs(60);
     loop {
@@ -688,26 +736,42 @@ fn apply_executable(plan_path: &Path, authorization: Option<&Path>) -> Result<()
             Err(_) => std::thread::sleep(Duration::from_millis(250)),
         }
     }
-    let result = (|| -> Result<()> {
-        fs::rename(&plan.staged, &plan.target)?;
-        crate::portable_mode::adopt_updated_portable(home, &plan.root, Some(&plan.tools))?;
-        let mut command = Command::new(&plan.target);
-        crate::manager_updates::bridge::append_restart(&mut command, &plan);
-        command
-            .arg("--root")
-            .arg(&plan.root)
-            .arg("--tools")
-            .arg(&plan.tools)
-            .spawn()?;
-        Ok(())
-    })();
-    if result.is_err() {
-        if plan.target.is_dir() {
-            fs::remove_dir_all(&plan.target)?;
-        } else if plan.target.exists() {
-            fs::remove_file(&plan.target)?;
-        }
-        fs::rename(&backup, &plan.target).context("Could not restore previous manager")?;
+    let result = commit_then_restart(
+        (_authorization, _execution),
+        || {
+            fs::rename(&plan.staged, &plan.target)?;
+            crate::portable_mode::adopt_updated_portable(home, &plan.root, Some(&plan.tools))
+        },
+        || {
+            let mut command = Command::new(&plan.target);
+            crate::manager_updates::bridge::append_restart(&mut command, &plan);
+            command
+                .arg("--root")
+                .arg(&plan.root)
+                .arg("--tools")
+                .arg(&plan.tools)
+                .spawn()?;
+            Ok(())
+        },
+        || {
+            files::no_links(&backup)?;
+            anyhow::ensure!(
+                files::hash(&backup)? == previous_hash,
+                "Previous manager recovery changed; files were preserved"
+            );
+            if plan.target.exists() {
+                files::no_links(&plan.target)?;
+                anyhow::ensure!(
+                    plan.target.is_file() && files::hash(&plan.target)? == plan.hash,
+                    "Replacement changed before recovery; files were preserved"
+                );
+                fs::remove_file(&plan.target)?;
+            }
+            fs::rename(&backup, &plan.target).context("Could not restore previous manager")
+        },
+    );
+    if result.is_ok() {
+        record_completed(&plan, &stage);
     }
     result
 }
@@ -1360,6 +1424,9 @@ fn apply_macos_with_authorization(
             );
         }
         bail!("{detailed}");
+    }
+    if reporting.is_ok() {
+        record_completed(&plan, &stage);
     }
     reporting.context(
         "Manager was replaced and its launch request accepted, but result reporting failed",

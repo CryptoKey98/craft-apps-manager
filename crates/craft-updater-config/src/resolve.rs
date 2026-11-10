@@ -425,7 +425,8 @@ impl ResolvedConfig {
             self.config.service.check_url,
             self.config.network.connect_timeout_seconds,
             self.config.network.metadata_timeout_seconds,
-            self.config.network.download_timeout_seconds
+            self.config.network.download_timeout_seconds,
+            self.config.app_release_catalog
         ]);
         format!("{:x}", Sha256::digest(value.to_string().as_bytes()))
     }

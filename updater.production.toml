@@ -1,10 +1,11 @@
-# Official publisher/renewal configuration. Source builds keep updater.toml defaults.
+# Official build/publisher/renewal configuration. Source builds keep updater.toml defaults.
 # No private signing material or Cloudflare credentials belong in this file.
 schema_version = 1
 source = "service"
 repository = "CryptoKey98/craft-apps-manager"
 channel = "stable"
 public_key_file = "assets/update-public-key.hex"
+app_release_catalog = true
 
 [service]
 catalog_url = "https://craft-apps-manager-updates.cryptokeyofficial.workers.dev/v2/catalog.json"
@@ -12,14 +13,14 @@ mirror_url = "https://github.com/CryptoKey98/craft-apps-manager/releases/downloa
 check_url = ""
 
 [revisions]
-windows = 2
-linux = 2
-macos = 2
+windows = 1
+linux = 1
+macos = 1
 
 [publishing]
 enabled = true
 profiles_file = "update-service/catalog/supported-clients.json"
-next_catalog_file = "update-service/catalog/release-1.1.0.json"
+next_catalog_file = "update-service/catalog/release-1.1.1.json"
 mirror_tag = "v0.9.0"
 catalog_validity_days = 30
 renew_before_days = 7

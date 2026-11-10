@@ -265,7 +265,7 @@ impl App {
             self.error = Some(format!("Some settings could not be saved. Successful changes were kept. Click Save to retry the remaining changes.\n\n{}", errors.join("\n\n")));
         }
         if !recheck_apps.is_empty() {
-            self.check_apps(ctx, recheck_apps);
+            self.check_apps_for(ctx, recheck_apps, craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::AutomaticUpdate);
         }
         ctx.request_repaint();
     }

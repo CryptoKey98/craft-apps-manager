@@ -159,6 +159,14 @@ def stage_root(feed, published, candidate, source, tool, now=None):
         if app != read_json(Path(published)/'apps'/f'{digest}.json'):
             raise ValueError('Publisher object checkpoint does not match the signed catalog')
     checkpoint = {name: (Path(candidate)/name).read_bytes() for name in ['repositories.json','discovery.json','inspection.json','bundle.json']}
+    status_path = Path(candidate)/'status.json'
+    if status_path.exists():
+        status = read_json(status_path, 4096)
+        if (set(status) != {'schema', 'generated_at', 'pending_inspections'} or status['schema'] != 1 or
+                type(status['pending_inspections']) is not int or not 0 <= status['pending_inspections'] <= 10000 or
+                type(status['generated_at']) is not int or not 0 < status['generated_at'] <= now + 300):
+            raise ValueError('Invalid publisher work status')
+        checkpoint['status.json'] = status_path.read_bytes()
     for name in checkpoint:
         read_json(Path(candidate)/name)
     ledger_path, ledger = retention(feed, now)
@@ -248,6 +256,12 @@ def collect(tool, source, previous, output, inspections):
     args = ['--previous', old] if old.exists() else []
     invoke(tool, 'aggregate', '--discovery', output/'discovery.json', *args,
            '--evidence', output/'inspection.json', '--out', output/'bundle.json')
+    pending = int(invoke(tool, 'pending-count', '--discovery', output/'discovery.json',
+                         '--checkpoint', output/'inspection.json', '--previous', output/'bundle.json',
+                         '--since', int(time.time()) - 12 * 3600))
+    if not 0 <= pending <= 10000:
+        raise ValueError('Inspection queue exceeds bounds')
+    (output/'status.json').write_text(json.dumps(dict(schema=1, generated_at=int(time.time()), pending_inspections=pending)))
 
 
 def baseline_file(feed, source, tool, output):

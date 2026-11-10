@@ -206,25 +206,28 @@ pub fn known_entries() -> Vec<Entry> {
     }
 }
 pub fn get(key: &str) -> Option<Entry> {
+    with_entries(|entries| entries.iter().find(|e| e.key == key).cloned())
+}
+// Project only the data a caller needs while holding the catalog read lock.
+// Callers must not acquire another catalog lock inside this closure.
+pub(super) fn with_entries<T>(read: impl FnOnce(&[Entry]) -> T) -> T {
     let current = CURRENT.read().unwrap();
     if current.is_empty() {
         static FALLBACK: std::sync::OnceLock<Vec<Entry>> = std::sync::OnceLock::new();
-        FALLBACK
-            .get_or_init(builtin)
-            .iter()
-            .find(|e| e.key == key)
-            .cloned()
+        read(FALLBACK.get_or_init(builtin))
     } else {
-        current.iter().find(|e| e.key == key).cloned()
+        read(&current)
     }
 }
 /// Apps with installable releases, in a stable order.
 pub fn release_keys() -> Vec<String> {
-    all()
-        .into_iter()
-        .filter(|e| e.release)
-        .map(|e| e.key)
-        .collect()
+    with_entries(|entries| {
+        entries
+            .iter()
+            .filter(|e| e.release)
+            .map(|e| e.key.clone())
+            .collect()
+    })
 }
 /// macOS bundle identifiers an installed copy of the app may carry.
 pub fn bundle_ids(key: &str) -> Vec<String> {
@@ -240,11 +243,13 @@ pub fn bundle_ids(key: &str) -> Vec<String> {
 }
 /// Apps whose source can be downloaded and built.
 pub fn source_keys() -> Vec<String> {
-    all()
-        .into_iter()
-        .filter(|e| e.source)
-        .map(|e| e.key)
-        .collect()
+    with_entries(|entries| {
+        entries
+            .iter()
+            .filter(|e| e.source)
+            .map(|e| e.key.clone())
+            .collect()
+    })
 }
 /// The bare repository name, without any `owner/` prefix.
 pub fn repository_name(repository: &str) -> &str {

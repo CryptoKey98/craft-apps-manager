@@ -74,6 +74,8 @@ Before release activation, publish the real release packages, verify their remot
 
 This is for people compiling the manager. Packaged releases use their publisher's build choice; there is no additional user-facing settings control. With the checked-in `source = "github"` configuration and no source override, enabling `--features service-updater` alone keeps the existing GitHub updater. Endpoint values alone do not activate the service.
 
+App-release metadata is an independent choice: the top-level `app_release_catalog` boolean defaults to `false` in `updater.toml` and is explicitly `true` in `updater.production.toml`. It can be enabled with either Manager updater source. Enabled clients still verify the public feed configured in `assets/app-release-catalog/source.json` and fall back to GitHub when needed. The build's configuration fingerprint includes this choice, so package verification detects a binary built with the wrong selection.
+
 The exact GitHub-only, production service, and identity-verification commands are in [Building and testing](building.md#choose-the-updater). The build helper selects the TOML and required Cargo feature together. No private signing key is needed to compile a client.
 
 For a fork, select your own TOML with `--config`; configure its repository, channel, pinned public key, and signed catalog URL. Supported environment overrides can also select these values at compile time. An empty endpoint override clears the file value. Do not point production-key clients at the isolated test Worker.
@@ -209,6 +211,8 @@ Bridge restarts bypass the successful-result cache so they fetch current policy;
 Immutable asset uploads are preflighted as a group. Already-published identical bytes are left alone, different bytes stop the upload, and missing assets are uploaded without clobber. GitHub-only publishers retain a separate mutable legacy-download path; service-enabled baseline packages stay immutable. This protects existing signed catalogs even if a configured naming pattern accidentally reuses an older filename.
 
 Keep helper/staging failure records until ownership and recovery needs are established. A failed native installer is not assumed rollback-safe. A DMG detach failure retains its exact cleanup record; never sweep arbitrary mounted volumes. Cancellation before commit leaves the installed program untouched; installation already handed to a native package manager may need to finish before the manager can report a verified result.
+
+After a successful restart, the Manager checks its known self-update staging locations in the background, newest first. Cleanup binds each stage to the running target and data folder, then requires a matching installed executable hash or established completion/version evidence. Active operations and bridge approval block cleanup. Unknown files, links and unresolved recovery copies are preserved; locked files retain their plan so a later pass can retry. This maintenance does not remove app rollbacks or relax update verification.
 
 Correct a bad catalog by signing a **higher** sequence. Do not replay an earlier deployment/catalog as a rollback. Reverting bad application code also needs a new version/revision. Retain necessary bridge assets in historical public releases and preserve the verification path they require. Do not draft/delete them as cleanup. Retiring legacy downloads is an explicit owner decision and may require a manual update for pre-server-aware managers that missed the transition.
 

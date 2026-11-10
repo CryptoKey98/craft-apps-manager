@@ -19,6 +19,175 @@ fn retained_tree_rejects_changed_content() {
 }
 
 #[cfg(not(target_os = "macos"))]
+#[test]
+fn older_uncompressed_points_without_compression_fields_still_restore() {
+    let mut f = Fixture::new();
+    let point = f.update();
+    let pointer = root(&f.paths, &point.installation_id)
+        .unwrap()
+        .join("point.json");
+    let mut value: serde_json::Value = files::read_json(&pointer).unwrap();
+    value.as_object_mut().unwrap().remove("compressed");
+    value.as_object_mut().unwrap().remove("directories");
+    files::write_json(&pointer, &value).unwrap();
+    let point = status(&f.paths, &f.installed).unwrap().previous.unwrap();
+    assert!(!point.compressed && point.directories.is_empty());
+    rollback(&f.paths, &f.installed, &point, &f.job).unwrap();
+    assert_eq!(
+        f.paths.read_inventory().unwrap().unwrap().apps[0].version,
+        "1.0.0"
+    );
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn compressed_rollback_round_trip_preserves_the_installation() {
+    let mut f = Fixture::new();
+    fs::create_dir_all(Path::new(&f.installed.path).join("empty-settings")).unwrap();
+    let base = f.paths.preferences().unwrap();
+    let mut value = serde_json::to_value(&base).unwrap();
+    value["compressRollbacks"] = true.into();
+    let edited: crate::model::Preferences = serde_json::from_value(value).unwrap();
+    crate::storage::config::ConfigStore::new(f.paths.root.clone())
+        .patch_section_typed("manager", &base, &edited)
+        .unwrap();
+    let point = f.update();
+    let folder = store::bound_folder(&f.paths, &f.installed, &point).unwrap();
+    assert!(folder.join("rollback.zip").is_file());
+    assert!(!folder.join(&point.executable).exists());
+    rollback(&f.paths, &f.installed, &point, &f.job).unwrap();
+    assert_eq!(
+        fs::read(Path::new(&f.installed.path).join(&point.executable)).unwrap(),
+        b"old executable"
+    );
+    assert!(!folder.exists());
+    assert!(Path::new(&f.installed.path).join("empty-settings").is_dir());
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn cancelled_compression_keeps_original_recovery_and_previous_rollback() {
+    let mut f = Fixture::new();
+    let previous = f.update();
+    let base = f.paths.preferences().unwrap();
+    let mut edited = base.clone();
+    edited.compress_rollbacks = true;
+    crate::storage::config::ConfigStore::new(f.paths.root.clone())
+        .patch_section_typed("manager", &base, &edited)
+        .unwrap();
+    let old = staging_path(&f.paths);
+    files::copy_directory_verified(Path::new(&f.installed.path), &old).unwrap();
+    f.job
+        .cancel
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    let result = record_update(&f.paths, &f.installed, &f.installed, &old, &f.job);
+    assert!(crate::jobs::is_cancelled(&result.unwrap_err()));
+    assert!(old.join(portable::MARKER).exists());
+    assert_eq!(
+        status(&f.paths, &f.installed).unwrap().previous.unwrap().id,
+        previous.id
+    );
+    let directory = root(&f.paths, &previous.installation_id).unwrap();
+    assert_eq!(fs::read_dir(directory).unwrap().count(), 2);
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn bulk_removal_refuses_active_operations() {
+    let mut f = Fixture::new();
+    let point = f.update();
+    let operation =
+        crate::operations::Manager::new(&f.paths.root).register("install", "fixture", None);
+    assert!(remove_all(&f.paths).is_err());
+    assert!(root(&f.paths, &point.installation_id)
+        .unwrap()
+        .join(&point.id)
+        .exists());
+    operation.finish(crate::operations::Lifecycle::Completed, "done".into());
+    assert_eq!(remove_all(&f.paths).unwrap(), 1);
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn damaged_compressed_rollback_keeps_current_installation_and_remains_removable() {
+    let mut f = Fixture::new();
+    let base = f.paths.preferences().unwrap();
+    let mut edited = base.clone();
+    edited.compress_rollbacks = true;
+    crate::storage::config::ConfigStore::new(f.paths.root.clone())
+        .patch_section_typed("manager", &base, &edited)
+        .unwrap();
+    let point = f.update();
+    let folder = store::bound_folder(&f.paths, &f.installed, &point).unwrap();
+    fs::write(folder.join("rollback.zip"), b"broken archive").unwrap();
+    assert!(rollback(&f.paths, &f.installed, &point, &f.job).is_err());
+    assert_eq!(
+        f.paths.read_inventory().unwrap().unwrap().apps[0].version,
+        "2.0.0"
+    );
+    remove_previous(&f.paths, &f.installed, &point).unwrap();
+    assert!(!folder.exists());
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn bulk_removal_keeps_apps_settings_and_unknown_recovery() {
+    for compressed in [false, true] {
+        let mut f = Fixture::new();
+        let base = f.paths.preferences().unwrap();
+        let mut edited = base.clone();
+        edited.compress_rollbacks = compressed;
+        crate::storage::config::ConfigStore::new(f.paths.root.clone())
+            .patch_section_typed("manager", &base, &edited)
+            .unwrap();
+        let point = f.update();
+        let unknown = f.paths.at("rollbacks/unknown/personal.txt");
+        files::write_bytes(&unknown, b"keep").unwrap();
+        let recovery = staging_path(&f.paths);
+        files::write_bytes(&recovery.join("recovery"), b"keep").unwrap();
+        let before = manifest(Path::new(&f.installed.path)).unwrap();
+        assert_eq!(remove_all(&f.paths).unwrap(), 1);
+        assert!(status(&f.paths, &f.installed).unwrap().previous.is_none());
+        assert_eq!(manifest(Path::new(&f.installed.path)).unwrap(), before);
+        assert_eq!(
+            f.paths.preferences().unwrap().compress_rollbacks,
+            compressed
+        );
+        assert!(unknown.exists() && recovery.exists());
+        assert!(!root(&f.paths, &point.installation_id)
+            .unwrap()
+            .join(point.id)
+            .exists());
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+#[test]
+fn compression_override_is_independent_conflict_checked_and_can_inherit_again() {
+    let mut f = Fixture::new();
+    save_options(&f.paths, &f.installed, None, None, Some((None, Some(true)))).unwrap();
+    let status = status(&f.paths, &f.installed).unwrap();
+    assert_eq!(status.compression_preference, Some(true));
+    assert!(!status.global_compression_enabled);
+    assert!(save_options(
+        &f.paths,
+        &f.installed,
+        None,
+        Some(false),
+        Some((None, Some(false)))
+    )
+    .is_err());
+    assert_eq!(f.paths.preferences().unwrap().rollback_overrides.len(), 0);
+    let point = f.update();
+    assert!(point.compressed);
+    save_options(&f.paths, &f.installed, None, None, Some((Some(true), None))).unwrap();
+    assert!(super::status(&f.paths, &f.installed)
+        .unwrap()
+        .compression_preference
+        .is_none());
+}
+
+#[cfg(not(target_os = "macos"))]
 struct Fixture {
     paths: Paths,
     installed: Installed,

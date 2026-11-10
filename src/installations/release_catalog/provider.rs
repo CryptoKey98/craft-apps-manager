@@ -5,7 +5,7 @@ use std::{
     path::Path,
     sync::{Arc, OnceLock},
 };
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum Query {
     History,
     Latest,
@@ -23,8 +23,13 @@ pub fn source() -> &'static Source {
     SOURCE.get_or_init(|| {
         let bundled = include_str!("../../../assets/app-release-catalog/source.json");
         #[cfg(feature = "app-catalog-test-source")]
-        let bundled = option_env!("CRAFT_APP_CATALOG_TEST_SOURCE_JSON").unwrap_or(bundled);
-        serde_json::from_str(bundled).expect("Invalid bundled app catalog source")
+        if let Some(test_source) = option_env!("CRAFT_APP_CATALOG_TEST_SOURCE_JSON") {
+            return serde_json::from_str(test_source).expect("Invalid test app catalog source");
+        }
+        let mut source: Source =
+            serde_json::from_str(bundled).expect("Invalid bundled app catalog source");
+        source.enabled &= env!("CRAFT_APP_RELEASE_CATALOG_ENABLED") == "true";
+        source
     })
 }
 
@@ -74,17 +79,15 @@ pub(crate) fn value(
     repo: &str,
     query: &Query,
 ) -> Option<serde_json::Value> {
-    let checked = *snapshot.checked.get(repo)?;
-    if snapshot
-        .overrides
-        .get(repo)
-        .is_some_and(|time| *time > checked)
-    {
+    let checked = snapshot
+        .query_checked
+        .get(&(repo.to_owned(), query.clone()))
+        .or_else(|| snapshot.checked.get(repo))
+        .copied()?;
+    if snapshot.blocked.contains(&(repo.to_owned(), query.clone())) {
         return None;
     }
-    if matches!(query, Query::Latest)
-        && chrono::Utc::now().timestamp().saturating_sub(checked) > 1800
-    {
+    if !resolution::eligible(checked, chrono::Utc::now().timestamp()) {
         return None;
     }
     let app = snapshot.apps.get(repo)?;
@@ -163,11 +166,16 @@ pub fn peek_release(
         return None;
     }
     let snapshot = store::peek(root)?;
-    let checked = *snapshot.checked.get(&repo)?;
-    if snapshot.overrides.get(&repo).is_some_and(|t| *t > checked) {
+    let query = tag.map_or(Query::Latest, |tag| Query::Tag(tag.into()));
+    let checked = snapshot
+        .query_checked
+        .get(&(repo.clone(), query.clone()))
+        .or_else(|| snapshot.checked.get(&repo))
+        .copied()?;
+    if snapshot.blocked.contains(&(repo.clone(), query)) {
         return None;
     }
-    if tag.is_none() && chrono::Utc::now().timestamp().saturating_sub(checked) > 1800 {
+    if !resolution::eligible(checked, chrono::Utc::now().timestamp()) {
         return None;
     }
     let app = snapshot.apps.get(&repo)?;
@@ -225,13 +233,6 @@ pub fn generation(root: &Path, repo: &str) -> Option<String> {
         return None;
     }
     let snapshot = store::peek(root)?;
-    if let Some(time) = snapshot
-        .overrides
-        .get(&repo)
-        .filter(|t| **t > *snapshot.checked.get(&repo).unwrap_or(&0))
-    {
-        return Some(format!("api:{time}"));
-    }
     snapshot.generation.get(&repo).cloned()
 }
 fn refresh_background(root: &Path, repo: &str, last: i64, epoch: &str) {

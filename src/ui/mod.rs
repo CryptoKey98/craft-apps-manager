@@ -255,6 +255,7 @@ pub struct App {
     tools_text: String,
     confirm_clean: bool,
     api_cache_cleanup: screens::settings::cache_cleanup::State,
+    rollback_cleanup: screens::settings::cache_cleanup::State,
     closing: bool,
     tray: Option<tray::Tray>,
     tray_wake: tray::Wake,
@@ -311,6 +312,7 @@ pub struct App {
     versions_result: Option<Result<Vec<model::Release>, String>>,
     compatibility_info: Option<dialogs::CompatibilityInfo>,
     release_checks: BTreeMap<String, (String, ReleaseCheck)>,
+    known_updates: BTreeMap<(String, String, String), String>,
     check_receiver: std::sync::mpsc::Receiver<CheckMessage>,
     check_sender: std::sync::mpsc::Sender<CheckMessage>,
     checking_apps: std::collections::BTreeSet<String>,
@@ -381,6 +383,9 @@ impl App {
         theme::apply(&cc.egui_ctx, preferences.theme);
         let build_preferences = paths.builder_preferences()?;
         let args: Vec<_> = std::env::args().collect();
+        if !builder && args.iter().all(|arg| !arg.starts_with("--preview")) {
+            self_update::cleanup::schedule(&paths);
+        }
         let preview_new_app = args
             .windows(2)
             .find(|args| args[0] == "--preview-new-app")
@@ -549,6 +554,7 @@ impl App {
             selection_notice: None,
             confirm_clean: false,
             api_cache_cleanup: Default::default(),
+            rollback_cleanup: Default::default(),
             closing: false,
             tray: None,
             tray_wake: tray::Wake::new(cc),
@@ -605,6 +611,7 @@ impl App {
             versions_result: None,
             compatibility_info: None,
             release_checks: Default::default(),
+            known_updates: Default::default(),
             check_receiver,
             check_sender,
             checking_apps: Default::default(),
@@ -828,6 +835,14 @@ impl App {
         self.check_apps(ctx, vec![(self.app.clone(), installed_version)]);
     }
     fn check_apps(&mut self, ctx: &egui::Context, apps: Vec<(String, String)>) {
+        self.check_apps_for(ctx, apps, craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::ManualUpdate);
+    }
+    fn check_apps_for(
+        &mut self,
+        ctx: &egui::Context,
+        apps: Vec<(String, String)>,
+        intent: craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent,
+    ) {
         let apps: Vec<_> = apps
             .into_iter()
             .filter_map(|(app, version)| {
@@ -843,9 +858,17 @@ impl App {
                 Some(installed)
             })
             .collect();
-        self.check_installations(ctx, apps);
+        self.check_installations_for(ctx, apps, intent);
     }
     fn check_installations(&mut self, ctx: &egui::Context, apps: Vec<model::Installed>) {
+        self.check_installations_for(ctx, apps, craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::AutomaticUpdate);
+    }
+    fn check_installations_for(
+        &mut self,
+        ctx: &egui::Context,
+        apps: Vec<model::Installed>,
+        intent: craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent,
+    ) {
         let apps: Vec<_> = apps
             .into_iter()
             .filter(|copy| self.checking_apps.insert(copy.name.clone()))
@@ -854,6 +877,12 @@ impl App {
             return;
         }
         for copy in &apps {
+            if let Some(update) = self.status(&copy.name).update {
+                self.known_updates.insert(
+                    (copy.name.clone(), copy.path.clone(), copy.version.clone()),
+                    update,
+                );
+            }
             self.remember_installation_check(ctx, copy);
             let id = installation_check_id(&self.paths, copy, self.check_generation);
             ctx.data_mut(|data| {
@@ -872,8 +901,9 @@ impl App {
         std::thread::spawn(move || {
             for installed in apps {
                 let started = std::time::Instant::now();
-                let result = updates::check_installation(&paths, &installed, &preferences)
-                    .map_err(|e| format!("{e:#}"));
+                let result =
+                    updates::check_installation_for(&paths, &installed, &preferences, intent)
+                        .map_err(|e| format!("{e:#}"));
                 // Keep fast cached checks visible long enough to acknowledge the click.
                 std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
                 if tx.send((generation, installed, result)).is_err() {
@@ -1464,6 +1494,13 @@ impl App {
         )
     }
     fn refresh_changed_installations(&mut self, config: &model::Config, ctx: &egui::Context) {
+        self.known_updates.retain(|(name, path, version), _| {
+            config
+                .apps
+                .iter()
+                .chain(config.installations.iter())
+                .any(|copy| &copy.name == name && &copy.path == path && &copy.version == version)
+        });
         let changed_versions: Vec<_> = config
             .apps
             .iter()
@@ -1531,7 +1568,19 @@ impl App {
                     .map(|(_, result)| result.clone())
             });
         AppStatus {
-            update: check.as_ref().and_then(|c| c.clone().ok().flatten()),
+            update: check
+                .as_ref()
+                .and_then(|c| c.clone().ok().flatten())
+                .or_else(|| {
+                    installed.as_ref().and_then(|copy| {
+                        self.known_updates
+                            .iter()
+                            .find(|((name, path, version), _)| {
+                                name == &copy.name && path == &copy.path && version == &copy.version
+                            })
+                            .map(|(_, version)| version.clone())
+                    })
+                }),
             check,
             alternate: self
                 .alternates
@@ -2211,7 +2260,7 @@ impl App {
                     .map(|app| (app.name, app.version))
                     .collect();
                 self.apps_startup_pending = false;
-                self.check_apps(ctx, apps);
+                self.check_apps_for(ctx, apps, craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::AutomaticUpdate);
             }
         }
         if let Some(receiver) = &self.periodic_receiver {
@@ -2359,6 +2408,17 @@ impl App {
         result: ReleaseCheck,
     ) {
         if generation == self.check_generation {
+            if let Ok(update) = &result {
+                let key = (
+                    installed.name.clone(),
+                    installed.path.clone(),
+                    installed.version.clone(),
+                );
+                self.known_updates.remove(&key);
+                if let Some(version) = update {
+                    self.known_updates.insert(key, version.clone());
+                }
+            }
             let id = installation_check_id(&self.paths, &installed, generation);
             let active_id = egui::Id::new((
                 "active-installation-check",
@@ -2801,5 +2861,70 @@ mod outcome_tests {
             result_for_display(&success).unwrap(),
             PathBuf::from("prepared-update")
         );
+    }
+}
+#[cfg(test)]
+mod catalog_update_tests {
+    use super::*;
+    #[test]
+    fn failed_check_keeps_known_update_and_other_copy_cannot_inherit_it() {
+        let root = std::env::temp_dir().join(format!(
+            "craft-catalog-notification-{}",
+            uuid::Uuid::new_v4()
+        ));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            false,
+        )
+        .unwrap();
+        let installed = model::Installed {
+            name: "filmcraft".into(),
+            version: "1.0.0".into(),
+            path: root.join("one").display().to_string(),
+            install_kind: "portable".into(),
+            architecture: "x64".into(),
+            ..Default::default()
+        };
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: vec![installed.clone()],
+            installations: vec![installed.clone()],
+            portable_label_counters: Default::default(),
+        });
+        let generation = app.check_generation;
+        app.apply_release_check(
+            &ctx,
+            generation,
+            installed.clone(),
+            Ok(Some("2.0.0".into())),
+        );
+        app.apply_release_check(
+            &ctx,
+            generation,
+            installed.clone(),
+            Err("GitHub temporarily unavailable".into()),
+        );
+        let status = app.status("filmcraft");
+        assert_eq!(status.update.as_deref(), Some("2.0.0"));
+        assert!(status.check.unwrap().is_err());
+        app.apply_release_check(&ctx, generation, installed.clone(), Ok(None));
+        assert!(app.status("filmcraft").update.is_none());
+        app.apply_release_check(
+            &ctx,
+            generation,
+            installed.clone(),
+            Ok(Some("2.0.0".into())),
+        );
+        app.display_config.as_mut().unwrap().apps[0].path = root.join("two").display().to_string();
+        app.release_checks.clear();
+        assert!(app.status("filmcraft").update.is_none());
+        drop(app);
+        if root.exists() {
+            std::fs::remove_dir_all(root).unwrap();
+        }
     }
 }

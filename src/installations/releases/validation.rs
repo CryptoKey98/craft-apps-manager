@@ -29,8 +29,11 @@ pub(super) fn revalidate_plan(paths: &Paths, plan: &ReleasePlan, job: &Job) -> R
         }
         // Share a check completed within the last minute. Older browsing data
         // must pass conditional HTTP validation before downloading/elevation.
-        let release: Release =
-            network.release_json_with_policy(url.as_str(), crate::network::CachePolicy::Update)?;
+        let release: Release = network.release_json_for(
+            url.as_str(),
+            crate::network::CachePolicy::Update,
+            crate::installations::release_catalog::resolution::ReleaseIntent::InstallValidation,
+        )?;
         validate_reviewed(entry, plan.requested_tag.as_deref(), &release)?;
     }
     Ok(())

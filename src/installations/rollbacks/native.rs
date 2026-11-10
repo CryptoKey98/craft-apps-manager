@@ -289,6 +289,8 @@ pub(super) fn status(
             previous: None,
             preference: None,
             global_enabled: prefs.rollback_enabled(),
+            compression_preference: None,
+            global_compression_enabled: prefs.compress_rollbacks,
             unsupported,
         });
     }
@@ -306,6 +308,8 @@ pub(super) fn status(
         previous,
         preference: prefs.rollback_overrides.get(&id).copied(),
         global_enabled: prefs.rollback_enabled(),
+        compression_preference: None,
+        global_compression_enabled: prefs.compress_rollbacks,
         unsupported,
     })
 }
@@ -316,8 +320,10 @@ pub(super) fn remove(paths: &Paths, expected: &Installed, point: &RollbackPoint)
         files::no_links(&folder)?;
     }
     let directory = root(paths, &point.installation_id)?;
+    if folder.exists() {
+        files::remove_managed(&folder, &directory)?;
+    }
     fs::remove_file(directory.join("point.json"))?;
-    files::remove_managed(&folder, &directory)?;
     cleanup::prune_empty(paths)
 }
 
@@ -644,6 +650,8 @@ pub(super) fn publish_with(
             package_type: previous.package_type.clone(),
             executable: asset.name.clone().into(),
             files: manifest(&destination)?,
+            directories: BTreeMap::new(),
+            compressed: false,
             native: Some(NativePoint {
                 schema: 1,
                 repository: crate::model::repository(&previous.name).to_ascii_lowercase(),

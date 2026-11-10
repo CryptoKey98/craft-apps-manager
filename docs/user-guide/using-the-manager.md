@@ -81,7 +81,9 @@ New Storytold Craft apps can be discovered without updating the manager. Explici
 
 The **New** badge lasts up to 14 days from an app's official addition to discovery. Viewing the app clears it sooner. Repository age, app updates, cache clearing, and fresh manager installs do not restart that shared period. New apps initially appear at the top; drag them to change the sidebar or Home order independently.
 
-When an app-release catalog is configured, the manager uses verified catalog information for supported Craft apps' version lists and package choices. Missing or unavailable catalog information falls back to GitHub automatically. Custom GitHub apps go directly to GitHub. Installation still verifies the selected download; browsing the version list does not download installers to inspect them.
+When an app-release catalog is configured, the manager uses verified catalog information for supported Craft apps' version lists, package choices and automatic update checks. Missing information or app information last checked more than 24 hours ago falls back to GitHub automatically. Clicking **Check for updates** checks GitHub directly, reusing a successful check for up to 60 seconds. Newly found releases appear in the version list without waiting for the catalog to catch up. Custom GitHub apps go directly to GitHub. Installation still verifies the selected download; browsing the version list does not download installers to inspect them.
+
+The manager normally checks for a newer catalog at most once a minute when release information is needed, including enabled startup and periodic app checks. It does not continuously poll the catalog while idle. If a check fails, known update indicators are kept; a failed check does not mean an app is up to date.
 
 Older PrintCraft files remain compatible with PDFCraft's library identity. App discovery and ArtCraft support were contributed by [carpaaaaa](https://github.com/carpaaaaa).
 
@@ -122,6 +124,8 @@ Use **Settings → Updates → GitHub Cache → Clear cache**, below GitHub toke
 
 Older API cache entries are converted only after the new copy has been checked. Their original timestamps are retained; corrupt or unsupported entries are ignored and fetched again when needed.
 
+Completed Manager-update downloads and helper files are cleaned up in the background after a successful restart, newest first. Recognized older leftovers are checked too. Active updates, unresolved recovery copies and unknown content are kept; locked files are retried later. This is separate from app rollback retention.
+
 Recently used responses also stay in memory for quick access. Update checks reuse results for up to 60 seconds, version lists and package options for 15 minutes, and older-release details and repository descriptions for 24 hours. A changed release refreshes related version lists and previews. Before installing, the manager checks the reviewed download against release information no more than a minute old; package verification still applies.
 
 Startup discovery and manual app-list refresh share a 60-second successful-check cooldown. When enabled, periodic discovery revalidates at the configured check interval. Browsing the saved app list does not trigger discovery, and a failed discovery does not reset its successful-check time. Cache freshness and the 30-day unused-file cleanup are separate.
@@ -142,15 +146,19 @@ Builds use upstream source and lockfiles. Upstream compilation failures are show
 
 **Build Options** can delete temporary cache from interrupted builds, even before a successful build exists. Cleanup is unavailable during a build and preserves completed builds and source ZIPs. The next build recreates its cache.
 
-Use **Settings → Updates → Rollback → Keep the previous version for rollback** to retain one uncompressed previous version for supported portable installations. New libraries enable this by default; existing libraries preserve their previous backup-retention preference. The old compression and source-backup controls are retired.
+Use **Settings → Updates → Rollback → Keep the previous version for rollback** to retain one previous version for supported installations. New libraries enable this by default; existing libraries preserve their previous backup-retention preference.
+
+**Compress rollback versions** saves future portable rollback copies as ZIP archives. It is off by default and applies after **Save**; existing rollback copies are unchanged. Compression runs in the background during an update or downgrade, and the original recovery folder is removed only after the archive is verified. Creating and restoring compressed copies takes longer. Retained installer packages are kept in their existing format.
+
+Under **Saved rollbacks**, **Delete all** asks for confirmation, then deletes recognized rollback versions from this library in the background. This is an immediate maintenance action, separate from Settings Save. Installed apps, preferences, active recovery files and unknown content are kept. It does not disable future rollback retention.
 
 Open **Rollback → Review…** in an app’s Tools section. Click the previous-version card, then **Confirm**, to return that selected installation to the retained version. Each portable installation has its own previous version, even when several copies of the app are installed. **Remove previous version…** asks before deleting that retained copy.
 
-The Rollback dialog can inherit the global setting or use **Enabled** / **Disabled** for that installation. Changes apply only with **Save**; **Cancel** discards them. Disabling retention affects future updates and does not delete an existing previous version. Uninstalling a portable installation also removes its verified retained version; other installations and legacy archives are preserved.
+The Rollback dialog can inherit the global setting or use **Enabled** / **Disabled** for that installation. Its separate **Compression** section offers the same choices for portable installations. Compression is grayed out when rollbacks are effectively disabled, while remembering its choice for later. Changes apply only with **Save**; **Cancel** discards them. Disabling retention affects future updates and does not delete an existing previous version. Uninstalling a portable installation also removes its verified retained version; other installations and legacy archives are preserved.
 
-Rollback changes program files, not the format of your documents. Older versions may not understand newer settings or app data. Keep separate backups of important work. Native installations use the existing verified installer version selector rather than folder snapshots; there is no universal installer rollback. Temporary recovery protection during replacement remains active even when retaining previous versions is disabled.
+Rollback changes program files, not the format of your documents. Older versions may not understand newer settings or app data. Keep separate backups of important work. Supported native installations restore a verified retained installer package, with installation identity, scope and recovery checks; support depends on the package and platform. Temporary recovery protection during replacement remains active even when retaining previous versions is disabled.
 
-New updates no longer create compressed app or source backups. Existing legacy backup files remain on disk; the manager does not guess which installation owns an old archive or automatically delete it during migration. Open those archives separately with a compatible archive utility if you need their contents.
+Existing legacy backup files remain on disk; optional rollback compression does not revive the old app/source backup system. The manager does not guess which installation owns an old archive or automatically delete it during migration. Open those archives separately with a compatible archive utility if you need their contents.
 
 Uninstalling can optionally remove listed app profile folders. This is off by default, and some installations share profiles. Review the confirmation before deleting profile data.
 

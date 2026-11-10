@@ -25,6 +25,9 @@ fn no_background_checks(app: &mut App) {
     app.manager_startup_pending = false;
     app.token_check_started = true;
     app.tray_notice_shown = true;
+    // These tests drive tray/save events, not inventory polling. A snapshot
+    // worker can otherwise still create new-apps.json after App is dropped.
+    app.config_refresh_at = std::time::Instant::now() + std::time::Duration::from_secs(3600);
 }
 
 #[test]

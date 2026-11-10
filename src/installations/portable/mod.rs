@@ -114,7 +114,7 @@ fn numbered_copy(app: &str, target: &Path) -> bool {
         })
 }
 
-pub(super) fn validate_path(target: &Path) -> Result<()> {
+pub(crate) fn validate_path(target: &Path) -> Result<()> {
     let parent = target.parent().context("Missing app parent folder")?;
     files::inside(target, parent)?;
     let mut cursor = parent;

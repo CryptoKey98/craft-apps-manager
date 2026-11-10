@@ -212,7 +212,7 @@ pub fn record_update(
     let exe = crate::model::installed_executable(old_folder, &previous.name)
         .context("Previous executable is missing")?;
     let entries = manifest(old_folder)?;
-    let point = RollbackPoint {
+    let mut point = RollbackPoint {
         id: uuid::Uuid::new_v4().to_string(),
         version: previous.version.clone(),
         bytes: entries.values().map(|(len, _)| len).sum(),
@@ -223,18 +223,37 @@ pub fn record_update(
         package_type: previous.package_type.clone(),
         executable: exe.strip_prefix(old_folder)?.into(),
         files: entries,
+        directories: BTreeMap::new(),
         native: None,
+        compressed: prefs
+            .rollback_compression_overrides
+            .get(&id)
+            .copied()
+            .unwrap_or(prefs.compress_rollbacks),
     };
     let directory = root(paths, &id)?;
     fs::create_dir_all(&directory)?;
     let old = read_point(paths, &id)?;
     let destination = directory.join(&point.id);
-    files::copy_directory_verified(old_folder, &destination)?;
-    ensure!(
-        manifest(&destination)? == point.files,
-        "Retained copy verification failed"
-    );
-    files::write_json(&directory.join("point.json"), &point)?;
+    let retained = (|| -> Result<()> {
+        if point.compressed {
+            compression::create(old_folder, &destination, &mut point, job)?;
+            point.bytes = fs::metadata(destination.join("rollback.zip"))?.len();
+        } else {
+            files::copy_directory_verified(old_folder, &destination)?;
+            ensure!(
+                manifest(&destination)? == point.files,
+                "Retained copy verification failed"
+            );
+        }
+        job.check()?;
+        files::write_json(&directory.join("point.json"), &point)
+    })();
+    if let Err(error) = retained {
+        let _ = files::remove_managed(&destination, &directory);
+        cleanup_empty(paths, job);
+        return Err(error);
+    }
     if let Some(old) = old {
         if let Err(error) = files::remove_managed(&directory.join(old.id), &directory) {
             job.log(&format!("Previous version cleanup warning: {error:#}"));
@@ -277,6 +296,10 @@ pub(super) fn verify_point(
     point: &RollbackPoint,
 ) -> Result<PathBuf> {
     let path = bound_folder(paths, expected, point)?;
+    if point.compressed {
+        compression::verify(&path, point, None, None)?;
+        return Ok(path);
+    }
     ensure!(
         manifest(&path)? == point.files,
         "Previous version files have changed"
@@ -298,6 +321,13 @@ pub fn remove_previous(paths: &Paths, expected: &Installed, point: &RollbackPoin
         serde_json::to_value(&candidate)? == serde_json::to_value(point)?,
         "Previous version changed. Reopen the dialog."
     );
+    remove_checked(paths, expected, point)
+}
+pub(super) fn remove_checked(
+    paths: &Paths,
+    expected: &Installed,
+    point: &RollbackPoint,
+) -> Result<()> {
     if expected.install_kind == "installer" {
         return native::remove(paths, expected, point);
     }
@@ -306,9 +336,11 @@ pub fn remove_previous(paths: &Paths, expected: &Installed, point: &RollbackPoin
         files::no_links(&folder)?;
     }
     let directory = root(paths, &point.installation_id)?;
-    // Clear the pointer first; failed deletion leaves an unadvertised recoverable copy.
+    // Keep the pointer on a locked/failed deletion so maintenance can retry.
+    if folder.exists() {
+        files::remove_managed(&folder, &directory)?;
+    }
     fs::remove_file(directory.join("point.json"))?;
-    files::remove_managed(&folder, &directory)?;
     cleanup::prune_empty(paths)
 }
 

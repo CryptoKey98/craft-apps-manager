@@ -85,6 +85,14 @@ A failed-job rerun uses the original run's source and workflow. If the fix is in
 
 For ordinary metadata expiry renewal without changing offers, use `mode=renew`. Scheduled renewal already runs daily; see [Renewal](updater-operations.md#publishing-and-renewal).
 
+## External app catalog scheduling
+
+The app-release catalog is separate from the signed Manager update catalog and its Worker. Release publishes the Manager's packages and update offers; it does not install or replace the VPS app-catalog scheduler.
+
+External scheduling is a separate deployment, with its source and operational instructions maintained outside this repository. Older Managers use a 30-minute catalog freshness limit; reducing publication frequency can make them fall back to GitHub more often. The 1.1.1 client accepts each app's successful observation for up to 24 hours and checks GitHub directly for a manual update check.
+
+Coordinate any external scheduler change separately from publication, and keep the daily GitHub fallback enabled. Verify actual successful publications and their signed metadata after a scheduling change. A merged workflow or a successful local test does not deploy an external service.
+
 ## Confirm publication
 
 - The intended release is public and marked latest where appropriate.

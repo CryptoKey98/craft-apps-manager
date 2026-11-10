@@ -207,6 +207,7 @@ fn path_field(ui: &mut egui::Ui, text: &mut String) -> bool {
 impl App {
     pub(in crate::ui) fn settings_ui(&mut self, ctx: &egui::Context) {
         self.poll_api_cache_cleanup(ctx);
+        self.poll_rollback_cleanup(ctx);
         if !self.settings {
             return;
         }
@@ -444,8 +445,9 @@ impl App {
                 self.visibility_open = false;
             }
         }
-        let api_cache_dialog_open = self.api_cache_cleanup.confirm;
+        let api_cache_dialog_open = self.api_cache_cleanup.confirm || self.rollback_cleanup.confirm;
         self.api_cache_cleanup_dialog(ctx);
+        self.rollback_cleanup_dialog(ctx);
         if !api_cache_dialog_open
             && !self.visibility_open
             && !self.selection
@@ -1456,12 +1458,17 @@ impl App {
                 ui,
                 &mut enabled,
                 "Keep the previous version for rollback",
-                Some("Keeps one previous version for rollback."),
+                Some("Restore an app’s previous version if an update causes problems."),
             )
             .changed()
             {
                 self.settings_draft.rollback_enabled = Some(enabled);
             }
+            ui.add_enabled_ui(enabled, |ui| {
+                check_row(ui, &mut self.settings_draft.compress_rollbacks,
+                    "Compress rollback versions", Some("Saves space for future portable rollback versions. Creating and restoring them takes longer."));
+            });
+            self.rollback_cleanup_row(ui);
         });
         ui.add_space(16.0);
         self.github_token_settings(ui);

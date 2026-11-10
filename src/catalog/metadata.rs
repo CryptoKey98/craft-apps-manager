@@ -8,16 +8,18 @@ pub fn apps() -> Vec<String> {
 /// Keeps saved ordering across formats, displaying only apps registered for this format.
 pub fn ordered_release_apps(order: &[String], format: &str) -> Vec<String> {
     let _ = format;
-    let eligible: std::collections::BTreeSet<_> = crate::catalog::known_entries()
-        .into_iter()
-        .filter(|entry| entry.release)
-        .map(|entry| entry.key)
-        .collect();
-    order
-        .iter()
-        .filter(|name| eligible.contains(*name))
-        .cloned()
-        .collect()
+    super::registry::with_entries(|entries| {
+        let eligible: std::collections::BTreeSet<_> = entries
+            .iter()
+            .filter(|entry| entry.release)
+            .map(|entry| entry.key.as_str())
+            .collect();
+        order
+            .iter()
+            .filter(|name| eligible.contains(name.as_str()))
+            .cloned()
+            .collect()
+    })
 }
 
 /// Apps whose source can be downloaded and built, from the current catalog.
@@ -26,9 +28,13 @@ pub fn sources() -> Vec<String> {
 }
 
 pub fn title(name: &str) -> String {
-    crate::catalog::get(name)
-        .map(|e| e.title)
-        .unwrap_or_else(|| crate::catalog::pretty(name))
+    super::registry::with_entries(|entries| {
+        entries
+            .iter()
+            .find(|e| e.key == name)
+            .map(|e| e.title.clone())
+    })
+    .unwrap_or_else(|| crate::catalog::pretty(name))
 }
 
 /// The upstream repository as an `owner/name` slug. Supported apps store a
@@ -65,9 +71,13 @@ pub fn icon_url(name: &str) -> String {
 
 /// Short category shown under each app, taken from the upstream repository description.
 pub fn category(name: &str) -> String {
-    crate::catalog::get(name)
-        .map(|e| e.category)
-        .unwrap_or_default()
+    super::registry::with_entries(|entries| {
+        entries
+            .iter()
+            .find(|e| e.key == name)
+            .map(|e| e.category.clone())
+    })
+    .unwrap_or_default()
 }
 
 /// The upstream repository description, shown on each app page.

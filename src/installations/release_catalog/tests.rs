@@ -1,4 +1,20 @@
 use super::*;
+
+#[test]
+fn bundled_catalog_requires_explicit_build_opt_in() {
+    #[cfg(feature = "app-catalog-test-source")]
+    if option_env!("CRAFT_APP_CATALOG_TEST_SOURCE_JSON").is_some() {
+        return;
+    }
+    let descriptor: Source = serde_json::from_str(include_str!(
+        "../../../assets/app-release-catalog/source.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        provider::source().enabled,
+        descriptor.enabled && option_env!("CRAFT_APP_RELEASE_CATALOG_ENABLED") == Some("true")
+    );
+}
 use ed25519_dalek::{Signer, SigningKey};
 use std::collections::BTreeMap;
 const DOMAIN: &[u8] = b"craft-apps-manager/app-release-catalog/v1\n";
@@ -348,7 +364,7 @@ fn conditional_response_does_not_refresh_upstream_freshness() {
     }
     let root = Root::new();
     let app = app_fixture();
-    let old = chrono::Utc::now().timestamp() - 3600;
+    let old = chrono::Utc::now().timestamp() - 25 * 3600;
     let (source, index, body) = bundle(&app, old, 7);
     let first = Transport {
         index,
@@ -362,7 +378,10 @@ fn conditional_response_does_not_refresh_upstream_freshness() {
     let snapshot = client::refresh(&root.0, &source, &app.repository, &Unchanged).unwrap();
     assert_eq!(snapshot.checked[&app.repository], old);
     assert!(provider::value(&snapshot, &app.repository, &provider::Query::Latest).is_none());
-    assert!(provider::value(&snapshot, &app.repository, &provider::Query::History).is_some());
+    assert!(
+        provider::value(&snapshot, &app.repository, &provider::Query::History).is_none(),
+        "Expired browsing data also needs revalidation"
+    );
 }
 #[test]
 fn clear_preserves_unknown_files_and_discards_cached_metadata() {
@@ -1280,12 +1299,15 @@ fn actual_api_evidence_survives_late_enrollment_but_matching_catalog_is_adopted(
     newer.tag_name = "v3.0.0".into();
     let newer_json = serde_json::to_value(&newer).unwrap();
     super::api_observation::observe_with(&root.0, &source, url, &newer_json, now);
-    assert!(provider::value(
-        &store::peek(&root.0).unwrap(),
-        &app.repository,
-        &provider::Query::Latest
-    )
-    .is_none());
+    assert_eq!(
+        provider::value(
+            &store::peek(&root.0).unwrap(),
+            &app.repository,
+            &provider::Query::Latest
+        )
+        .unwrap()["tag_name"],
+        "v3.0.0"
+    );
     // A delayed old cached response must not erase knowledge of the newer release.
     super::api_observation::observe_with(
         &root.0,
@@ -1294,12 +1316,15 @@ fn actual_api_evidence_survives_late_enrollment_but_matching_catalog_is_adopted(
         &serde_json::to_value(&app.releases[0]).unwrap(),
         now - 30,
     );
-    assert!(provider::value(
-        &store::peek(&root.0).unwrap(),
-        &app.repository,
-        &provider::Query::Latest
-    )
-    .is_none());
+    assert_eq!(
+        provider::value(
+            &store::peek(&root.0).unwrap(),
+            &app.repository,
+            &provider::Query::Latest
+        )
+        .unwrap()["tag_name"],
+        "v3.0.0"
+    );
     // A later signed scan is authoritative; reopening does not renew the old API time.
     let (_, index, _) = bundle(&app, now + 1, 8);
     let mut state = store::load(&root.0, &source).unwrap();
@@ -1476,7 +1501,11 @@ fn api_observation_cache_is_optional_bounded_and_cleared_with_metadata() {
     let mut state = store::load(&root.0, &source).unwrap();
     state.api_observations = vec![state.api_observations[0].clone(); 513];
     store::save(&root.0, &mut state, &app.repository).unwrap();
-    assert_eq!(state.api_observations.len(), 512);
+    assert_eq!(
+        state.api_observations.len(),
+        1,
+        "Duplicate query evidence is coalesced"
+    );
     store::clear(&root.0).unwrap();
     assert!(store::peek(&root.0).is_none());
     assert!(store::load(&root.0, &source)
@@ -1568,4 +1597,310 @@ fn user_created_catalog_ancestor_links_remain_rejected() {
         0,
         "Reject the link before writing anything through it"
     );
+}
+#[test]
+fn redesigned_freshness_and_api_overlay_share_latest_history_and_tag() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 3600, 7);
+    let snapshot = client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    assert!(
+        provider::value(&snapshot, &app.repository, &provider::Query::Latest).is_some(),
+        "A successful one-hour-old signed scan remains eligible"
+    );
+    let mut newer = app.releases[0].clone();
+    newer.tag_name = "v3.0.0".into();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(&newer).unwrap(),
+        now,
+    );
+    let snapshot = store::peek(&root.0).unwrap();
+    assert_eq!(
+        provider::value(&snapshot, &app.repository, &provider::Query::Latest).unwrap()["tag_name"],
+        "v3.0.0"
+    );
+    let history = provider::value(&snapshot, &app.repository, &provider::Query::History).unwrap();
+    assert_eq!(history[0]["tag_name"], "v3.0.0");
+    assert!(provider::value(
+        &snapshot,
+        &app.repository,
+        &provider::Query::Tag("v3.0.0".into())
+    )
+    .is_some());
+    assert_eq!(
+        provider::peek_release(&root.0, &app.repository, Some("v3.0.0"))
+            .unwrap()
+            .tag_name,
+        "v3.0.0"
+    );
+    assert_eq!(
+        provider::peek_release(&root.0, &app.repository, Some(&app.releases[0].tag_name))
+            .unwrap()
+            .tag_name,
+        app.releases[0].tag_name
+    );
+    // Reopening uses the exact observed time, and persists the same merged view.
+    let restarted = store::snapshot(&store::load(&root.0, &source).unwrap(), &source).unwrap();
+    assert_eq!(
+        provider::value(&restarted, &app.repository, &provider::Query::Latest).unwrap()["tag_name"],
+        "v3.0.0"
+    );
+}
+#[test]
+fn fresh_api_latest_does_not_renew_unchecked_historical_releases() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 25 * 3600, 7);
+    client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    let mut newer = app.releases[0].clone();
+    newer.tag_name = "v3.0.0".into();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(newer).unwrap(),
+        now,
+    );
+    let snapshot = store::peek(&root.0).unwrap();
+    assert!(provider::value(&snapshot, &app.repository, &provider::Query::Latest).is_some());
+    assert!(provider::value(
+        &snapshot,
+        &app.repository,
+        &provider::Query::Tag("v3.0.0".into())
+    )
+    .is_some());
+    assert!(provider::value(&snapshot, &app.repository, &provider::Query::History).is_none());
+    assert!(provider::value(
+        &snapshot,
+        &app.repository,
+        &provider::Query::Tag(app.releases[0].tag_name.clone())
+    )
+    .is_none());
+    let page: Vec<_> = (0..100)
+        .map(|index| {
+            let mut release = app.releases[0].clone();
+            release.tag_name = format!("v4.0.{index}");
+            release
+        })
+        .collect();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100",
+        &serde_json::to_value(page).unwrap(),
+        now + 1,
+    );
+    let snapshot = store::peek(&root.0).unwrap();
+    let history = provider::value(&snapshot, &app.repository, &provider::Query::History).unwrap();
+    assert_eq!(history.as_array().unwrap().len(), 100);
+    assert!(!history.as_array().unwrap().iter().any(|release| {
+        release["tag_name"].as_str() == Some(app.releases[0].tag_name.as_str())
+    }));
+}
+
+#[test]
+fn expired_overlay_and_cache_eviction_cannot_resurrect_an_older_catalog() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 120, 7);
+    client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    let mut changed = app.releases[0].clone();
+    changed.tag_name = "v3.0.0".into();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(changed).unwrap(),
+        now,
+    );
+    let mut state = store::load(&root.0, &source).unwrap();
+    // Drop the body as LRU eviction does; the unresolved marker must survive.
+    let mut encoded = serde_json::to_value(&state.api_observations[0]).unwrap();
+    encoded.as_object_mut().unwrap().remove("body");
+    state.api_observations[0] = serde_json::from_value(encoded).unwrap();
+    let snapshot = store::snapshot(&state, &source).unwrap();
+    assert!(provider::value(&snapshot, &app.repository, &provider::Query::Latest).is_none());
+    assert!(provider::value(&snapshot, &app.repository, &provider::Query::History).is_none());
+    // A later successful signed scan resolves even a withdrawal or marker.
+    let (_, index, _) = bundle(&app, now + 1, 8);
+    state.envelope = Some(String::from_utf8(index).unwrap());
+    let snapshot = store::snapshot(&state, &source).unwrap();
+    assert_eq!(
+        provider::value(&snapshot, &app.repository, &provider::Query::Latest).unwrap()["tag_name"],
+        "v2.0.0"
+    );
+}
+
+#[test]
+fn api_observation_epoch_guard_rejects_a_late_worker_after_clear() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 120, 7);
+    let snapshot = client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(&app.releases[0]).unwrap(),
+        now,
+    );
+    // A distinct tag supplies a conflicting stored evidence record.
+    let mut newer = app.releases[0].clone();
+    newer.tag_name = "v3.0.0".into();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(newer).unwrap(),
+        now,
+    );
+    let evidence = store::load(&root.0, &source).unwrap().api_observations[0].clone();
+    store::clear(&root.0).unwrap();
+    super::api_observation::persist(&root.0, &source, evidence, Some(&snapshot.epoch));
+    assert!(store::peek(&root.0).is_none());
+    assert!(store::load(&root.0, &source)
+        .unwrap()
+        .api_observations
+        .is_empty());
+}
+#[test]
+fn an_explicit_tag_does_not_permanently_override_a_confirmed_latest_selection() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 120, 7);
+    client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    let mut other = app.releases[0].clone();
+    other.tag_name = "v3.0.0".into();
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/tags/v3.0.0",
+        &serde_json::to_value(other).unwrap(),
+        now,
+    );
+    assert!(provider::value(
+        &store::peek(&root.0).unwrap(),
+        &app.repository,
+        &provider::Query::Latest
+    )
+    .is_none());
+    super::api_observation::observe_with(
+        &root.0,
+        &source,
+        "https://api.github.com/repos/storytold/filmcraft/releases/latest",
+        &serde_json::to_value(&app.releases[0]).unwrap(),
+        now + 1,
+    );
+    let snapshot = store::peek(&root.0).unwrap();
+    assert_eq!(
+        provider::value(&snapshot, &app.repository, &provider::Query::Latest).unwrap()["tag_name"],
+        "v2.0.0"
+    );
+    assert!(provider::value(
+        &snapshot,
+        &app.repository,
+        &provider::Query::Tag("v3.0.0".into())
+    )
+    .is_some());
+}
+#[test]
+fn confirmed_withdrawal_blocks_old_tag_until_a_later_signed_scan() {
+    let root = Root::new();
+    let app = app_fixture();
+    let now = chrono::Utc::now().timestamp();
+    let (source, index, body) = bundle(&app, now - 120, 7);
+    client::refresh(
+        &root.0,
+        &source,
+        &app.repository,
+        &Transport {
+            index,
+            app: body,
+            count: std::cell::Cell::new(0),
+        },
+    )
+    .unwrap();
+    let evidence = serde_json::from_value(serde_json::json!({
+        "repository":app.repository, "query":{"Tag":"v2.0.0"}, "at":now,
+        "hash":verification::hash(b"withdrawn"), "history_prefix":null, "withdrawn":true
+    }))
+    .unwrap();
+    super::api_observation::persist(&root.0, &source, evidence, None);
+    let snapshot = store::peek(&root.0).unwrap();
+    assert!(provider::value(
+        &snapshot,
+        &app.repository,
+        &provider::Query::Tag("v2.0.0".into())
+    )
+    .is_none());
+    assert!(provider::value(&snapshot, &app.repository, &provider::Query::Latest).is_none());
+    let mut state = store::load(&root.0, &source).unwrap();
+    let (_, index, _) = bundle(&app, now + 1, 8);
+    state.envelope = Some(String::from_utf8(index).unwrap());
+    store::save(&root.0, &mut state, &app.repository).unwrap();
+    assert!(state.api_observations.is_empty());
+    assert!(provider::value(
+        &store::snapshot(&state, &source).unwrap(),
+        &app.repository,
+        &provider::Query::Latest
+    )
+    .is_some());
 }

@@ -193,6 +193,22 @@ impl App {
                                     }
                                     ui.add_space(8.0);
                                 }
+                                if env!("CARGO_PKG_VERSION") != "1.1.0" {
+                                    ui.add_space(16.0);
+                                    theme::heading(ui, "Also included from 1.1.0", 13.0);
+                                    ui.add_space(10.0);
+                                    for section in release_notes("1.1.0") {
+                                        if let Some(title) = section.title {
+                                            theme::heading(ui, title, 13.0);
+                                            ui.add_space(10.0);
+                                        }
+                                        for note in section.notes {
+                                            body_text(ui, &format!("• {note}"));
+                                            ui.add_space(8.0);
+                                        }
+                                        ui.add_space(8.0);
+                                    }
+                                }
                                 ui.add_space(16.0);
                                 theme::heading(ui, "Also included from 1.0.0", 13.0);
                                 ui.add_space(10.0);

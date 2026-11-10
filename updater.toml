@@ -1,4 +1,4 @@
-# Source builds use GitHub unless explicitly opted into service-updater.
+# Default source builds use GitHub for Manager updates and app metadata.
 # This is build/publisher configuration, never an installed-user settings file.
 # Official releases explicitly select updater.production.toml through their workflow.
 # Private signing keys and account credentials belong in secrets, never here.
@@ -8,6 +8,8 @@ source = "github"
 repository = "CryptoKey98/craft-apps-manager"
 channel = "stable"
 public_key_file = "assets/update-public-key.hex"
+# Source builds use GitHub directly unless explicitly enabled.
+app_release_catalog = false
 
 [service]
 catalog_url = "https://craft-apps-manager-updates.cryptokeyofficial.workers.dev/v2/catalog.json"
@@ -15,9 +17,9 @@ mirror_url = ""
 check_url = ""
 
 [revisions]
-windows = 2
-linux = 2
-macos = 2
+windows = 1
+linux = 1
+macos = 1
 
 [network]
 connect_timeout_seconds = 10

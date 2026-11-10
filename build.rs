@@ -63,6 +63,10 @@ fn main() {
     );
     for (name, value) in [
         ("CRAFT_UPDATE_SOURCE", config.config.source.clone()),
+        (
+            "CRAFT_APP_RELEASE_CATALOG_ENABLED",
+            config.config.app_release_catalog.to_string(),
+        ),
         ("CRAFT_MANAGER_REPOSITORY", config.config.repository.clone()),
         (
             "CRAFT_UPDATE_CATALOG_URL",

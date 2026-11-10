@@ -48,6 +48,53 @@ fn source_defaults_and_views() {
     }
 }
 #[test]
+fn app_catalog_is_off_by_default_and_independent_of_the_manager_updater() {
+    let f = Fixture::new();
+    let default = f.get().unwrap();
+    assert_eq!(
+        default.view(View::Build).unwrap()["app_release_catalog"],
+        false
+    );
+    f.set("app_release_catalog=true");
+    let enabled = f.get().unwrap();
+    assert_eq!(enabled.config.source, "github");
+    assert!(enabled.required_features.is_empty());
+    assert_eq!(
+        enabled.view(View::Build).unwrap()["app_release_catalog"],
+        true
+    );
+    assert_ne!(default.runtime_fingerprint(), enabled.runtime_fingerprint());
+    f.set("source='service'\n[service]\ncatalog_url='https://updates.example/v2/catalog.json'");
+    assert_eq!(
+        f.get().unwrap().view(View::Build).unwrap()["app_release_catalog"],
+        false
+    );
+}
+#[test]
+fn checked_in_profiles_explicitly_select_app_catalog_behavior() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_path_buf();
+    for (file, enabled) in [("updater.toml", false), ("updater.production.toml", true)] {
+        let config = resolve(
+            &root,
+            Some(std::path::Path::new(file)),
+            &BTreeMap::new(),
+            "windows",
+            &ConfigOverrides::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            config.view(View::Build).unwrap()["app_release_catalog"],
+            enabled,
+            "{file}"
+        );
+    }
+}
+#[test]
 fn service_opt_in_and_target_revision() {
     let f = Fixture::new();
     f.set("source='service'\n[service]\ncatalog_url='https://updates.example/v2/catalog.json'\n[revisions]\nlinux=3\nwindows=2");
@@ -87,6 +134,7 @@ fn rejects_invalid_config() {
         "[service]\ncatalog_url='https://user@example.com'",
         "[service]\ncatalog_url='https://example.com/?q=x'",
         "[service]\ncatalog_url='https://example.com/#x'",
+        "app_release_catalog='true'",
         "[revisions]\nlinux=0",
         "[revisions]\nlinux=65536",
         "[network]\nconnect_timeout_seconds=0",
