@@ -16646,6 +16646,34 @@
         "inspector_version": 1
       },
       "used": 1794434505
+    },
+    {
+      "repository": "storytold/soundcraft",
+      "evidence": {
+        "tag": "v0.20.0",
+        "asset_name": "soundcraft-0.20.0-windows-arm64.msi",
+        "digest": "sha256:fb25e831f4012c95a7fdb55241a86cdfacedb40f6822283c25205080d166dc77",
+        "size": 13176832,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794436336
+    },
+    {
+      "repository": "storytold/soundcraft",
+      "evidence": {
+        "tag": "v0.20.0",
+        "asset_name": "soundcraft-0.20.0-windows-x64.msi",
+        "digest": "sha256:c55c80cc1c9ff959a49ddc69d46a025c76355340ef6e46c65c497a74a4ae0d28",
+        "size": 14782464,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794436337
     }
   ],
   "attempts": {
@@ -17331,6 +17359,8 @@
     "storytold/soundcraft:v0.18.0:soundcraft-0.18.0-windows-x86.msi:sha256:24e2d1db40348055cffc2a9ef8ad9c3082ee5b6f8a3e4396c15a4b73f04e9b29": 1794003822,
     "storytold/soundcraft:v0.19.0:soundcraft-0.19.0-windows-arm64.msi:sha256:35c894602e1b59a2f843a1ed0e10aefa24cc3515929d96b1bde3361bf5689efd": 1794229778,
     "storytold/soundcraft:v0.19.0:soundcraft-0.19.0-windows-x64.msi:sha256:bf9df0f7e936ce20112a79f4967eba5fac233e598f5c659bc861db76344678b0": 1794229779,
+    "storytold/soundcraft:v0.20.0:soundcraft-0.20.0-windows-arm64.msi:sha256:fb25e831f4012c95a7fdb55241a86cdfacedb40f6822283c25205080d166dc77": 1794436336,
+    "storytold/soundcraft:v0.20.0:soundcraft-0.20.0-windows-x64.msi:sha256:c55c80cc1c9ff959a49ddc69d46a025c76355340ef6e46c65c497a74a4ae0d28": 1794436336,
     "storytold/soundcraft:v0.3.0:soundcraft-0.3.0-windows-arm64.msi:sha256:ba77dc5e7e10250c163ee4f98b046096d9dc355ab45045f4376e382ebc54972d": 1793539980,
     "storytold/soundcraft:v0.3.0:soundcraft-0.3.0-windows-x64.msi:sha256:cb084ef5efc9be5151fa52d345656ce17ae511776e32f39ed510517dbdb0bdc8": 1793536619,
     "storytold/soundcraft:v0.3.0:soundcraft-0.3.0-windows-x86.msi:sha256:a0bb9e8e68a34270f4c08b652313abf2e797a40f3ffa72777a771f81983eaca7": 1793536619,

@@ -2,107 +2,107 @@
   "index": {
     "schema": 1,
     "purpose": "app-release-catalog",
-    "sequence": 440,
-    "generated_at": 1794434505,
+    "sequence": 441,
+    "generated_at": 1794436337,
     "repositories": {
       "storytold/anicraft": {
         "sha256": "db5249f58650c28a5514d1ae1602b2ebe1e12f4e5d820bc6163a010fcbb98098",
         "size": 28782,
-        "checked_at": 1794434478,
+        "checked_at": 1794436319,
         "discovery_added_at": 1794361626
       },
       "storytold/artcraft": {
         "sha256": "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b",
         "size": 48040,
-        "checked_at": 1794434479
+        "checked_at": 1794436319
       },
       "storytold/cadcraft": {
         "sha256": "ca280ebb1157e16d6afb1bad3c4822881da1d2e29f5f091f5c9d0303e161585a",
         "size": 176914,
-        "checked_at": 1794434479
+        "checked_at": 1794436320
       },
       "storytold/deckcraft": {
         "sha256": "0fd7d0b71c373881cf0af196bf6b22e5ee707562ec83ebb705956812c735aa88",
         "size": 169734,
-        "checked_at": 1794434481
+        "checked_at": 1794436321
       },
       "storytold/designcraft": {
         "sha256": "8e845d6f178499d7677dabe24eea39c3af8f5b35b70e0bbb061c5bcf356a2fb9",
         "size": 206717,
-        "checked_at": 1794434482
+        "checked_at": 1794436322
       },
       "storytold/effectcraft": {
         "sha256": "169ea483a6f8d9f75abb1b86672cad846357d17f6100ea676327f8c52fc1489b",
         "size": 230325,
-        "checked_at": 1794434483
+        "checked_at": 1794436323
       },
       "storytold/figcraft": {
         "sha256": "c57ef6331ee9113fe69fa459237916514aa5129278e85a1c5db5a96adfb94531",
         "size": 174284,
-        "checked_at": 1794434484
+        "checked_at": 1794436324
       },
       "storytold/filmcraft": {
         "sha256": "3d63fc892b6377b16fe8b91420061d10daf650ddbe00da7442e144ba6898c632",
         "size": 192355,
-        "checked_at": 1794434486
+        "checked_at": 1794436325
       },
       "storytold/gridcraft": {
         "sha256": "5c61355ead09c6f6851a68d9d8336e6234110d0312c4600ebfdf9eb951a732a3",
         "size": 178888,
-        "checked_at": 1794434487
+        "checked_at": 1794436326
       },
       "storytold/lightcraft": {
         "sha256": "4c885e1592ebe56a05552088e48dd073a617007a5d00788766800b4b86373cd7",
         "size": 201959,
-        "checked_at": 1794434488
+        "checked_at": 1794436327
       },
       "storytold/materialcraft": {
         "sha256": "543b1eb44414abb56428101b3e6956bf4ce48a4a8ad029032b10de192388ac56",
         "size": 85529,
-        "checked_at": 1794434489,
+        "checked_at": 1794436327,
         "discovery_added_at": 1793675300
       },
       "storytold/pdfcraft": {
         "sha256": "054fe4f02415454c12fb8a2597037049c1f8666632e220ce9a3cd655535571ad",
         "size": 221792,
-        "checked_at": 1794434490
+        "checked_at": 1794436328
       },
       "storytold/photocraft": {
         "sha256": "a5b29cfc804402aed3625473b543e85386813dd30b16100a2707d2251c9dd240",
         "size": 230996,
-        "checked_at": 1794434491
+        "checked_at": 1794436329
       },
       "storytold/soundcraft": {
-        "sha256": "249c17aa59d83eba92b6e8531c80bada98d384bbcc4306a201edcba6eaeadc45",
-        "size": 160283,
-        "checked_at": 1794434492
+        "sha256": "2df8b959a1bdcfbf55d827e93bbfc13ec12d70330e3ea60bdae74139b2da169c",
+        "size": 174763,
+        "checked_at": 1794436330
       },
       "storytold/texturecraft": {
         "sha256": "428e75230fd36cbcedfd4db1c9155fbed0babe665d1f73a092578acdc6a56081",
         "size": 95030,
-        "checked_at": 1794434493,
+        "checked_at": 1794436331,
         "discovery_added_at": 1793516400
       },
       "storytold/vectorcraft": {
         "sha256": "c3e45ef3a024c4e39e9399e3ce0b516a88ec071e4c63ca2ad202a240e35ba7ca",
         "size": 227968,
-        "checked_at": 1794434494
+        "checked_at": 1794436332
       },
       "storytold/wordcraft": {
         "sha256": "2f7cecc3496b33e8da261801d02991069f1efa8efad6d455f6e43ff0298b2132",
         "size": 179690,
-        "checked_at": 1794434495
+        "checked_at": 1794436333
       },
       "tangency-labs/solidcraft": {
         "sha256": "cb1675742790599834caaeac531292ce0b1212989b42c72a225ea2ec0622e2d6",
         "size": 662440,
-        "checked_at": 1794434497,
+        "checked_at": 1794436335,
         "discovery_added_at": 1793516400
       },
       "ucs-care-group/mailcraft": {
         "sha256": "3333764848241c8cf64d5968ce8a021903f827bb8683e727b1c2577ad6b4fc74",
         "size": 148690,
-        "checked_at": 1794434498,
+        "checked_at": 1794436336,
         "discovery_added_at": 1794294000
       }
     }
@@ -14993,11 +14993,319 @@
         }
       ]
     },
-    "249c17aa59d83eba92b6e8531c80bada98d384bbcc4306a201edcba6eaeadc45": {
+    "2df8b959a1bdcfbf55d827e93bbfc13ec12d70330e3ea60bdae74139b2da169c": {
       "schema": 1,
       "repository": "storytold/soundcraft",
-      "latest_tag": "v0.19.0",
+      "latest_tag": "v0.20.0",
       "releases": [
+        {
+          "tag_name": "v0.20.0",
+          "name": "SoundCraft v0.20.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5123,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/SHA256SUMS.txt",
+              "digest": "sha256:d2e0461a0ef2aed7e64616f0200cf1018197b42a788964b4f2594a5576a45c48"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:dbc62b4c48cca4775e104ab353af1d24a62911799610e1405151d4ea3f53c65a"
+            },
+            {
+              "name": "soundcraft-0.20.0-freebsd-aarch64.tar.gz",
+              "size": 18460488,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:974294ac42db4e4ca91c809a557ccb2a63f139620dc2a866902ba518b999dc51"
+            },
+            {
+              "name": "soundcraft-0.20.0-freebsd-x86_64.tar.gz",
+              "size": 20521074,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:6fcc71c0b0739efcdc63e99c1d83d51972ed96c52ebb8e11ffc004670ba36f61"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.AppImage",
+              "size": 18606600,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.AppImage",
+              "digest": "sha256:f46f007f3d12d1d76bba64b913a66e119c46534530dfad8f5520debfd87835a3"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:6f9c710ecef38f2a647fe957581eb27b5ee81b9acdf77552ffad77c41aa052eb"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.AppImage.zsync",
+              "size": 63853,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:0e190d485b8ba1754960d2373ccc95a1ae6c5dfd4c1b98c3c1345e58de74f9d9"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:987ea4ee61367d403af7565e10764d53b68512bf9847be2d28a5e60b95fe3295"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.deb",
+              "size": 20395388,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.deb",
+              "digest": "sha256:323141892d2f613ec588fa80f2e326f2e62dbfb4d49ea58447b843fcd4f495d0"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.deb.asc",
+              "digest": "sha256:301049818d27b0c130a0771be1093ca44ee7185dcacf1f1d5b816f33ad22e6b4"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.flatpak",
+              "size": 12504952,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.flatpak",
+              "digest": "sha256:bdc7323ed45d15b8d28542ab597ca6851325850a28371ab7c1f94cff309bf5f5"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:95bea13f6143ab0c9f58cde7531c9f4d080447a5a4fe5aec8818f08a53f67b48"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:37c0e3eb71e91ad2c720a75425984ef82acc0dbdd8434ec7dcc8dd50ff4fee53"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.oci.sig",
+              "size": 389,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.oci.sig",
+              "digest": "sha256:889acc4ca62cc2569ef2304986f997e02cbdafa86a7ad5b97dc384ace9808d18"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.pkg.tar.zst",
+              "size": 12529873,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:93f2ba558023d0804fb1a4231bbd86f066ba3fd552e25921ec149b21a9e3d075"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:7b31d380493a81bc84bd8069e8aae01571be9e90e4080926a7b54e13249ac36b"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.rpm",
+              "size": 20180849,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.rpm",
+              "digest": "sha256:5760b36204e7957040c55e86304cc45a6b2bafd20dc187aaca1234a24c79b9dd"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:876ed5e53cfa50abe855559f5ebbd7ad4dc76723cc90d5112b2983fd773ed9bc"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.tar.gz",
+              "size": 19458320,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.tar.gz",
+              "digest": "sha256:d5da77a61e82d393963e51559378ef3d0bed1502a38e7c6e272c92fc63a52de8"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:0d7a5b173646ded3cc63c13cffd7aab5ac3bd2a63ee7abb1f57ea8eb4b5c8247"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.deb",
+              "size": 20680480,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.deb",
+              "digest": "sha256:e935095ff825b690e54c285479581e5c1d451a4bc0c81812671929fbadb22434"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.deb.asc",
+              "digest": "sha256:74ae842de2f65806fbe603527cef3411bed30ceeac12037d1c748d648cba7291"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.rpm",
+              "size": 20629141,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.rpm",
+              "digest": "sha256:eb6d3fdfda221149fb570a31790158f4331276fcaaa19b7951ba72329365c949"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:766a6c866546cc706f5ba5beb88ace1322ff186af96eb3bcadb765f1c5b73673"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.tar.gz",
+              "size": 20225760,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.tar.gz",
+              "digest": "sha256:02bedcc40b76fcde4e5da4e2c5e91f1089495caf31eb0e860af1505b5ec46b68"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:9837e2adfc97cfc97f7a7625d79dd52df4ee16fcd624b401ac392f60d6a2cece"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.AppImage",
+              "size": 20191736,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.AppImage",
+              "digest": "sha256:ed3470dbe50d6e646ea08bb252e1206388ef223db00c10bea389c8d2f2c2c286"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:10a44e775270a598309663faaeea2914057e5c412d050e16739e14344ff52ad6"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.AppImage.zsync",
+              "size": 69269,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:c86e8f3e1735395ec9fd0111f95a5d2316f0c21b0af2da856c6517c08576f366"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:d4c44f9861e76f110c82efa844a830d81a410a415f9f8744a386d49e380ffac9"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.deb",
+              "size": 21664384,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.deb",
+              "digest": "sha256:ab0f48700d99daf798bf25281d5324943e39abf54d841da0445fe923e4c8aac9"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.deb.asc",
+              "digest": "sha256:4fe8143e53cb5b2efd245955676ac7579131b16a37301c436b68682b68b9ceaa"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.flatpak",
+              "size": 14325136,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.flatpak",
+              "digest": "sha256:ed682759b1f3205c0b09c95f8714d9168e50e2877f59a15b65589316afa2ef3a"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:d31bb236628a24ee1df3be7eed24bfc1e0931a91b27d6c59ad95afae026560b6"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:dcf5656678357897a20191d5e9c0492b420008f1031188caef9cf2e5a3594367"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.oci.sig",
+              "size": 386,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.oci.sig",
+              "digest": "sha256:cef09cc47c2f68dae0291ab765d37b7e08dac402c193fccb2c7068f3e8129f57"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.pkg.tar.zst",
+              "size": 13522576,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:be6cd9418548b20cf49c05d7959ba7170b395ee9518c178c76bbd70ce0c22bf3"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:d1263c33bd4bd7128fccaab2e420ee96621634dfaa9abfbb5975f35d357edabf"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.rpm",
+              "size": 21517062,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.rpm",
+              "digest": "sha256:b4cad6bc2cd359845f252ca947c4e79deb84074042b3e15d4921316f8ababce6"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:0fe419e8ca15d8f01d04b201e073fad340377af7730aaef2c744e8fed9703b34"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.tar.gz",
+              "size": 21122502,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.tar.gz",
+              "digest": "sha256:ce8474473e3e7feb2276af04ff20732ed6391055f188913779834f514ee1a648"
+            },
+            {
+              "name": "soundcraft-0.20.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:7098d7924c8d4b74cb16f76c94f3bbddb8ad06c1d0ceb2dfdefa35c1a37fae3a"
+            },
+            {
+              "name": "soundcraft-0.20.0-macos-universal.dmg",
+              "size": 30646148,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-macos-universal.dmg",
+              "digest": "sha256:bb7150ba57e0f128cb0bd1bedcaecad9686eea7c5d20fd31c1ffc24d7d13cfe6"
+            },
+            {
+              "name": "soundcraft-0.20.0-windows-arm64-portable.zip",
+              "size": 17461464,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-windows-arm64-portable.zip",
+              "digest": "sha256:d0b3b1e8a951e15f6520aa44a3863ece3570d40bccc66051a5b36ca36a96bb2d"
+            },
+            {
+              "name": "soundcraft-0.20.0-windows-arm64.msi",
+              "size": 13176832,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-windows-arm64.msi",
+              "digest": "sha256:fb25e831f4012c95a7fdb55241a86cdfacedb40f6822283c25205080d166dc77"
+            },
+            {
+              "name": "soundcraft-0.20.0-windows-x64-portable.zip",
+              "size": 19084524,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-windows-x64-portable.zip",
+              "digest": "sha256:db540d0c0ab74006ea48d86e8f8d5b70ea8777c31a42c3799cd0674b96a13d23"
+            },
+            {
+              "name": "soundcraft-0.20.0-windows-x64.msi",
+              "size": 14782464,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-0.20.0-windows-x64.msi",
+              "digest": "sha256:c55c80cc1c9ff959a49ddc69d46a025c76355340ef6e46c65c497a74a4ae0d28"
+            },
+            {
+              "name": "soundcraft-cli-0.20.0-macos-universal.zip",
+              "size": 8219389,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-cli-0.20.0-macos-universal.zip",
+              "digest": "sha256:2784f2cd59c56f7dd8d3251acff57518b28612b5858e37d712f0ea58511d7bcb"
+            },
+            {
+              "name": "soundcraft-web-0.20.0.zip",
+              "size": 6916431,
+              "browser_download_url": "https://github.com/storytold/soundcraft/releases/download/v0.20.0/soundcraft-web-0.20.0.zip",
+              "digest": "sha256:b0b320d4442de64d211b0274fc18d1d49f7e326a41e2dec13c3ac206ce9ddb53"
+            }
+          ]
+        },
         {
           "tag_name": "v0.19.0",
           "name": "SoundCraft v0.19.0",
@@ -18631,6 +18939,26 @@
           "asset_name": "soundcraft-0.19.0-windows-x64.msi",
           "digest": "sha256:bf9df0f7e936ce20112a79f4967eba5fac233e598f5c659bc861db76344678b0",
           "size": 14704640,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "dual",
+          "inspector_version": 1
+        },
+        {
+          "tag": "v0.20.0",
+          "asset_name": "soundcraft-0.20.0-windows-arm64.msi",
+          "digest": "sha256:fb25e831f4012c95a7fdb55241a86cdfacedb40f6822283c25205080d166dc77",
+          "size": 13176832,
+          "os": "windows",
+          "architecture": "arm64",
+          "policy": "dual",
+          "inspector_version": 1
+        },
+        {
+          "tag": "v0.20.0",
+          "asset_name": "soundcraft-0.20.0-windows-x64.msi",
+          "digest": "sha256:c55c80cc1c9ff959a49ddc69d46a025c76355340ef6e46c65c497a74a4ae0d28",
+          "size": 14782464,
           "os": "windows",
           "architecture": "x64",
           "policy": "dual",
