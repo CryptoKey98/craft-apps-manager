@@ -16590,6 +16590,34 @@
         "inspector_version": 1
       },
       "used": 1794426623
+    },
+    {
+      "repository": "storytold/lightcraft",
+      "evidence": {
+        "tag": "v0.21.0",
+        "asset_name": "lightcraft-0.21.0-windows-arm64.msi",
+        "digest": "sha256:183affa845c584578367d05cad767bfb6d0d925adf5072a71e2bf8036a0d688b",
+        "size": 95682560,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794433291
+    },
+    {
+      "repository": "storytold/lightcraft",
+      "evidence": {
+        "tag": "v0.21.0",
+        "asset_name": "lightcraft-0.21.0-windows-x64.msi",
+        "digest": "sha256:e900ac8e70b2212c71b85190e4e1f75111e48c4f776b28d93963eac5c807d7ef",
+        "size": 99975168,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794433292
     }
   ],
   "attempts": {
@@ -17070,6 +17098,8 @@
     "storytold/lightcraft:v0.2.1:lightcraft-0.2.1-windows-x86.msi:sha256:af086d310c13ea62b092e4946da63c134aa8e22333558cfdbc864cc278520b2d": 1793536458,
     "storytold/lightcraft:v0.20.0:lightcraft-0.20.0-windows-arm64.msi:sha256:7f25de3971568375dc468e26815ba3226e45d76e5a5f5744e01bf57078be88d8": 1794228261,
     "storytold/lightcraft:v0.20.0:lightcraft-0.20.0-windows-x64.msi:sha256:d38f95c6915bcc8199ca513746508d80c5e2a0369fb5a4600ac13a4f2d9ccac1": 1794228262,
+    "storytold/lightcraft:v0.21.0:lightcraft-0.21.0-windows-arm64.msi:sha256:183affa845c584578367d05cad767bfb6d0d925adf5072a71e2bf8036a0d688b": 1794433289,
+    "storytold/lightcraft:v0.21.0:lightcraft-0.21.0-windows-x64.msi:sha256:e900ac8e70b2212c71b85190e4e1f75111e48c4f776b28d93963eac5c807d7ef": 1794433291,
     "storytold/lightcraft:v0.4.0:lightcraft-0.4.0-windows-arm64.msi:sha256:d2b4c72014cbf75bfb5e832c42c8903f61c739e91792fc523b188102ae0c7e5b": 1793539942,
     "storytold/lightcraft:v0.4.0:lightcraft-0.4.0-windows-x64.msi:sha256:7b404524fefd87f109f5f59ea21208bfa62f2437726cf578be4e448526762103": 1793536455,
     "storytold/lightcraft:v0.4.0:lightcraft-0.4.0-windows-x86.msi:sha256:576586742ff44e4fc629062ef404e9697db803d41e2d3fe56b9357397521f7a8": 1793536456,

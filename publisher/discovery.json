@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1794427806,
+      "checked_at": 1794433271,
       "latest_tag": "v0.2.0",
       "releases": [
         {
@@ -637,7 +637,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1794427807,
+      "checked_at": 1794433271,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -1722,7 +1722,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1794427808,
+      "checked_at": 1794433272,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -5469,7 +5469,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1794427809,
+      "checked_at": 1794433273,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -9034,7 +9034,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1794427810,
+      "checked_at": 1794433274,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -13287,7 +13287,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1794427811,
+      "checked_at": 1794433275,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -18032,7 +18032,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1794427812,
+      "checked_at": 1794433276,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -21717,7 +21717,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1794427813,
+      "checked_at": 1794433277,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -25758,7 +25758,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1794427814,
+      "checked_at": 1794433278,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -29511,9 +29511,317 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1794427815,
-      "latest_tag": "v0.20.0",
+      "checked_at": 1794433279,
+      "latest_tag": "v0.21.0",
       "releases": [
+        {
+          "tag_name": "v0.21.0",
+          "name": "LightCraft v0.21.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+              "size": 116029267,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:fbddf0d8b91f42f455d9d64f661cd9b18601df00eff3abe2dcc25fde8989a8dc"
+            },
+            {
+              "name": "lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+              "size": 121886309,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:da8317ce0f04767e5861a456192ee004573bf16b85022cb445824d0d277f43b4"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage",
+              "size": 110590472,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage",
+              "digest": "sha256:026842f690848af3588d2879f4bc8e626bd965462f2fd924e64db9d179e57ab8"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:7b99fa39a76c984448de1ca118b67d10d8b6307f807ec9742fb38377cb03b8db"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+              "size": 189252,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:72f05910147af7f4b0207f3d1803a95eb985b87450803a49bf4d06561fb95224"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:518831290f0406805842327012e0a34614e9c3b8da09ebc6f70a7723853100b1"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.deb",
+              "size": 119855320,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb",
+              "digest": "sha256:0031241de69276f83a21e1c810f846e584f6042bddda0a227771bbf14f50a44b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb.asc",
+              "digest": "sha256:3485f1334cbd283495b18e25ca1e79142dd655a2de8fc2d13f070e6b1c4679a2"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.flatpak",
+              "size": 82357472,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak",
+              "digest": "sha256:fb1b38ae22eafb2825b71de9d8872a55f96b9d463971c36ae4c74071f0506d0d"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:952ba59c38fa9b487473d5507c926086885ceca61d841cba416c5256d62de253"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:efc60479d43b36fd441c743aca636d2be4aa035d78191f7d000091aa7da7dbfc"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.oci.sig",
+              "size": 383,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci.sig",
+              "digest": "sha256:fe898737d3d061da4499a84bcf5a19cc1412c4a204408f409a266aeeefb9a0b0"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+              "size": 91165024,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9f5e4e2a57527a0e54039619bb5db67724d442c3af7f3dfabfa992035d86cf9b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:f01b5cf2657cffaafa54c89c37eac214887893cf44e20fc0d75e16881435b56b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.rpm",
+              "size": 118991634,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm",
+              "digest": "sha256:0c2c6a2780d10afa1914bef497db551b8dea877c3b66ebcda51d4e44e8df2a1c"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:6aaf9d36a2371a96cbf3ff8838cf50f984d93c4204db7bcb13b5cdf895231666"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.tar.gz",
+              "size": 116940522,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz",
+              "digest": "sha256:23471d75f49814fa734d94a990d1e6c61441aef0403e7b94571b09e9fb18f51b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:38198ed3850a69c9059e44b5f8cf232f0e1a94a828e497a096d8ebb13dfb0c2e"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.deb",
+              "size": 120799704,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb",
+              "digest": "sha256:dff9dfed7f8167ae7bbf957d0440f5cfd06e74210925ccfd343d443d144a5e3c"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb.asc",
+              "digest": "sha256:372fb01b8791a49858b806aa6f45be799a7232c0203429a5db31a9d0bcd18e3a"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.rpm",
+              "size": 120334694,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm",
+              "digest": "sha256:6867ef3983085f912a40260eaa0e5e25e0480ef2334bb3539d973b5c4c9d2c7f"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:3dc2b85822b864b4caa3462236b8078e552295ee9bf2407cdc2aa1a9a783f5f8"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.tar.gz",
+              "size": 119220706,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz",
+              "digest": "sha256:2c2c7284c6409b3a3f9e84b0681b69c4709fbf2622b661bc90a7056759c1edfb"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:26922dd01a22e0cca5a555d88a364db623fa761b79e65359a0876a24a65f55d2"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage",
+              "size": 115657208,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage",
+              "digest": "sha256:c3dea6f5c75b55d8023937c0965b5b7612533131da7d56e550a4ef0688faf1d6"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:9bfe3ca6d9ada13f0566cf154f45c881455376d838e3fa25234ec3d5f14efe6e"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+              "size": 197909,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:c9ff6d63521af0c4322babdd0e00ab900cce05a10e969fa41e248b0c5e16443e"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:1f993b9138afe66786d966c7966580607b191f5b89690ee7b24b263b0d8b5069"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.deb",
+              "size": 124344178,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb",
+              "digest": "sha256:07e46260fdd109f732d0a0dbb53f018cf903f11a99fd6a4d84f042724ebe4725"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb.asc",
+              "digest": "sha256:98bfa3d106444dfaa9db78c7431eddca9688633e9672de1aa1395aeb82290969"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.flatpak",
+              "size": 87955720,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak",
+              "digest": "sha256:fb64b5ef2573780bafffb3bca48cd568f4717cf1ed3f4a9fcfb128c5489e3166"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:13f259223e448aa5c00da0d3196a54fafba1d4a1e0cddc84e0ea2f53c72ca08d"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6c17ca9f9cd4da89305dd1af0527e20704a7b405878613dba3445bc5edf07ea3"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.oci.sig",
+              "size": 389,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci.sig",
+              "digest": "sha256:195a13efeb72bdc393497150544e86854a93cfc6f3cd6538ee6817ae28ec2fbf"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+              "size": 94961797,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:8a953bf0bbfc9dfcc405358aa462909494bf8aca5848ac56e8c36d9a6b258d7c"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:007a5b808b4627a811ba855aafd28f594f6313a86e9d7af29a660a7afebba61b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.rpm",
+              "size": 123624399,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm",
+              "digest": "sha256:088d7542ef7111439928d39fcfb62558e2a918e81944293882d128c24d85571b"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:7eb0d8d5055a86b15544fb8f5165b350d6c8fa6c4818bb61a9ba6fc706ff2bba"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.tar.gz",
+              "size": 122561046,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz",
+              "digest": "sha256:7e7da553dea100268a058f135c7c4ad1f4fb76b4d8242e14f70f16ed89259580"
+            },
+            {
+              "name": "lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:a5219afd81d8e98309232d74fc47af0782a886d1904c949247c9cd2a765ef9b6"
+            },
+            {
+              "name": "lightcraft-0.21.0-macos-universal.dmg",
+              "size": 127258006,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-macos-universal.dmg",
+              "digest": "sha256:dd3cd5b54df0d7d7a457e00f3fad7e550813d4df8a8cdaa1a6bdcf7021fb2b3d"
+            },
+            {
+              "name": "lightcraft-0.21.0-windows-arm64-portable.zip",
+              "size": 117829475,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64-portable.zip",
+              "digest": "sha256:a0bb4cee17ec5e0bffff29c1f70ea79722bd2660d758417a8aa485e2828153ce"
+            },
+            {
+              "name": "lightcraft-0.21.0-windows-arm64.msi",
+              "size": 95682560,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64.msi",
+              "digest": "sha256:183affa845c584578367d05cad767bfb6d0d925adf5072a71e2bf8036a0d688b"
+            },
+            {
+              "name": "lightcraft-0.21.0-windows-x64-portable.zip",
+              "size": 122886896,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64-portable.zip",
+              "digest": "sha256:4ed5ef94c357c5af60d4f52ba338331c4bbdeaee94ddd30beb09e7761ee74c57"
+            },
+            {
+              "name": "lightcraft-0.21.0-windows-x64.msi",
+              "size": 99975168,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64.msi",
+              "digest": "sha256:e900ac8e70b2212c71b85190e4e1f75111e48c4f776b28d93963eac5c807d7ef"
+            },
+            {
+              "name": "lightcraft-cli-0.21.0-macos-universal.zip",
+              "size": 121466894,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-cli-0.21.0-macos-universal.zip",
+              "digest": "sha256:7a974c00254d2a909fc3c63133fd78ae16ad2ab5039a1269858eb50a53e0ebca"
+            },
+            {
+              "name": "lightcraft-web-0.21.0.zip",
+              "size": 74571781,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-web-0.21.0.zip",
+              "digest": "sha256:5d032efb28c2859ac86e72ff592b5dcef8014dd63a7a9744d952e291e7c7f63f"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5123,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt",
+              "digest": "sha256:f84105abca4f3ff9d3c5f15b6f0f77d9f6464ff030893578b945dbaf33b23d83"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:66b730a66df6fc323a3d3db4ae0b0ea8f2b2fcff3a4909a6a4d887cc15829f6b"
+            }
+          ]
+        },
         {
           "tag_name": "v0.20.0",
           "name": "LightCraft v0.20.0",
@@ -33396,7 +33704,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1794427815,
+      "checked_at": 1794433280,
       "latest_tag": "v0.4.0",
       "releases": [
         {
@@ -35161,7 +35469,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1794427817,
+      "checked_at": 1794433281,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -39860,7 +40168,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1794427818,
+      "checked_at": 1794433282,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -44327,7 +44635,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1794427819,
+      "checked_at": 1794433283,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -47650,7 +47958,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1794427819,
+      "checked_at": 1794433283,
       "latest_tag": "v0.6.0",
       "releases": [
         {
@@ -49617,7 +49925,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1794427820,
+      "checked_at": 1794433284,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -54292,7 +54600,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1794427821,
+      "checked_at": 1794433285,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -58057,7 +58365,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1794427825,
+      "checked_at": 1794433288,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -71324,7 +71632,7 @@
       "error": null
     },
     "ucs-care-group/mailcraft": {
-      "checked_at": 1794427826,
+      "checked_at": 1794433289,
       "latest_tag": "v0.11.1",
       "releases": [
         {
@@ -74379,7 +74687,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"9c6aa735bf04942a82fec44e67208b66e20dcd243b401e328d301647501d723d\"",
+      "etag": "\"3e6c774da97aef37a6b489b134f0160a6c7a464617b8f335fa16043b7fa80d00\"",
       "body": {
         "assets": [
           {
@@ -74696,7 +75004,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"8a61938a5ffe47969724a6f1aee4a8f7f995a585972c47ea81c91017d5f29afc\"",
+      "etag": "\"ecf7dd612e8db4a87d00e3ef056a455b536982531f21fbd19e62d901343dfa70\"",
       "body": [
         {
           "assets": [
@@ -75329,7 +75637,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"33c96bb2248f142e5f6ceb3b53dccfe9adb6fddb33961615f1db054cf5011834\"",
+      "etag": "\"63e175b01caefa46b3a1a43299399d7cc4d4a0da86eb59854dbea9bbc7982f3e\"",
       "body": {
         "assets": [
           {
@@ -75610,7 +75918,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"30b93e7648f80aef19c390be70995037f7438d4a875b9e5d607decaf0c30ca61\"",
+      "etag": "\"c2788098cf57d92f403b05c2de8fc77a095cd6034349c5513dd7af0dc4e52251\"",
       "body": [
         {
           "assets": [
@@ -76693,7 +77001,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"b3645e86113b714d9802f2fb31ead9f8372985e4db7f0cd77de66f5a554e9efa\"",
+      "etag": "\"2dcf7ebfbe3aecb675dc61ef55235cd9422e8bd9490b6598f82460f009668dee\"",
       "body": {
         "assets": [
           {
@@ -77004,7 +77312,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"be8b1d78c50e24a542f61a38a14180211cdca8b62583d4cc7da7b75d358fab80\"",
+      "etag": "\"8b030177b7e4c46570caad09b2269a7385daf5ff24fe80a7e9737a60e5df20eb\"",
       "body": [
         {
           "assets": [
@@ -80749,7 +81057,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"05e667893e550178945e6fa7f4c63cdcc992995909df52b38ef1b0ce8eae7a39\"",
+      "etag": "\"5440c8220fb0ea03dda65cddde5f68524f9fbe11a3c693801751436a88f5eed2\"",
       "body": {
         "assets": [
           {
@@ -81060,7 +81368,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"1c456173bd0c05263e6f98042769398e51cb3cb3af3216413b60c4c93aca85d4\"",
+      "etag": "\"15607acb32ad0a8ac5abf4927c5cebb102dadaa27c83de5028f442eff28f0c31\"",
       "body": [
         {
           "assets": [
@@ -84623,7 +84931,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"b2a4e26af4af368df415e9dc2d087eaa509c6979fcfc9dfd728314e96ad12b00\"",
+      "etag": "\"414513d2d4b131c5a20e95cd02446a0e2262e3413e3090e3ba4f909419b6fe98\"",
       "body": {
         "assets": [
           {
@@ -84934,7 +85242,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"aa092f98db2e9c077ae5f1a4d4a888cd49bfe3c0fecd885fb6c9d7842b18dc18\"",
+      "etag": "\"096403170a4c5d1764f489c8aa31d59b93b0554502abd972084164c0da99f426\"",
       "body": [
         {
           "assets": [
@@ -89185,7 +89493,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"eeb7401e0fbc955c3792ac09b24f57d4e176114e579e74a49c34faffdfe57a5c\"",
+      "etag": "\"3948b506eab2b206f7e4c6319f3d666d729ec7884def97711c96e0abee48ce63\"",
       "body": {
         "assets": [
           {
@@ -89496,7 +89804,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"ad2d0196f146cd4ec7201da865999c37c3bf1a1fe288663615ba472d9ce3c5a3\"",
+      "etag": "\"129f878059599639678ac0e01de6f539ac8c5313dbf18e4fb1b6b366fab3a820\"",
       "body": [
         {
           "assets": [
@@ -94239,7 +94547,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"8b0ddc0de7bfd07045607e8960c70497b0f3083c6dbd6c4326fef9e879649744\"",
+      "etag": "\"656668f6eaaac45eb84dc4b283323800e3144cd8292d057e4068cc4a72afbc0d\"",
       "body": {
         "assets": [
           {
@@ -94574,7 +94882,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"3adabe17a1415e95b5dfcb34fac10bf31a40edd606f3d01d83bc0da4239db25e\"",
+      "etag": "\"48895a523738d8f556f5f8aef5ec8cdffa876b281981814d2f260144ef3a7c32\"",
       "body": [
         {
           "assets": [
@@ -98257,7 +98565,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"88c8bded2c7d3c8dc2b2feb066c73b353f339473eeec40f0841b69f6e7395984\"",
+      "etag": "\"400284917155300b530fee9e9b941a07b0affecc0000e59299d8152726b7dd96\"",
       "body": {
         "assets": [
           {
@@ -98568,7 +98876,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"fe3c24015d1d28d7237d946f8fc94c3b243f7f76791a0a7ff352350a187a228c\"",
+      "etag": "\"bb0f1998ff41bf0dd7cd23496a1694c70375af08132175739d37c6bd1c1565dc\"",
       "body": [
         {
           "assets": [
@@ -102607,7 +102915,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"bd1e7a750b09b41b868b076c80cfe8610ed5279a93969e5a73fecb73a03936f3\"",
+      "etag": "\"a1ffc7bbe1b947ef6c74b2e8e20363092bfb14abdd2655a7af86d1e8720b5f17\"",
       "body": {
         "assets": [
           {
@@ -102918,7 +103226,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"d35936cb6d30101b7a917fd5fd73c487f0a0028c2c2124c6a3cd9e80b214b6d8\"",
+      "etag": "\"9775822ccd40da2504a1a48c17d22e86a94bc31e83e6b76f445d3bf2c8930e34\"",
       "body": [
         {
           "assets": [
@@ -106669,319 +106977,627 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"39e17b6e1483e08b8df8a31ff09ce161bee10edd36c28e348def2c04d5d49341\"",
+      "etag": "\"06acb9dd5d9c496b4c4403e23dcd223aedb6fef156a6755eda9c8e7ad7b1d334\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:736e345925cd73f3abac82f6e76f8a5d0dd786091c17713ca76f47c62169f8e5",
-            "name": "lightcraft-0.20.0-freebsd-aarch64.tar.gz",
-            "size": 115616757
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+            "digest": "sha256:fbddf0d8b91f42f455d9d64f661cd9b18601df00eff3abe2dcc25fde8989a8dc",
+            "name": "lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+            "size": 116029267
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:a6187eea4ea08c5e9a19ac6d96744c393b1c1e3efde8f55ad6ded3de66f6552e",
-            "name": "lightcraft-0.20.0-freebsd-x86_64.tar.gz",
-            "size": 121557311
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:da8317ce0f04767e5861a456192ee004573bf16b85022cb445824d0d277f43b4",
+            "name": "lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+            "size": 121886309
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.AppImage",
-            "digest": "sha256:810e99565a6fd0bd4414cd478fee4b69da5de2f764bc4fac90f4daeeff081f9b",
-            "name": "lightcraft-0.20.0-linux-aarch64.AppImage",
-            "size": 110168584
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage",
+            "digest": "sha256:026842f690848af3588d2879f4bc8e626bd965462f2fd924e64db9d179e57ab8",
+            "name": "lightcraft-0.21.0-linux-aarch64.AppImage",
+            "size": 110590472
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.AppImage.asc",
-            "digest": "sha256:5874991d128a1f03e020763928e61ad2f7598a1f2047b0885b1ee20304298a97",
-            "name": "lightcraft-0.20.0-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.asc",
+            "digest": "sha256:7b99fa39a76c984448de1ca118b67d10d8b6307f807ec9742fb38377cb03b8db",
+            "name": "lightcraft-0.21.0-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:9e3f9bd719c9654e64fa44685434f94bae0580919f425bf13a32376a9cd95363",
-            "name": "lightcraft-0.20.0-linux-aarch64.AppImage.zsync",
-            "size": 188531
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:72f05910147af7f4b0207f3d1803a95eb985b87450803a49bf4d06561fb95224",
+            "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+            "size": 189252
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:55568d1b4b1e4e6835ce6791e08396f163b0687400895f4932941b39169f7b6d",
-            "name": "lightcraft-0.20.0-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:518831290f0406805842327012e0a34614e9c3b8da09ebc6f70a7723853100b1",
+            "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.deb",
-            "digest": "sha256:483a4bed1247f5d769ee197b220c360094ce3279ebfacf91fbf1f4634f2618a8",
-            "name": "lightcraft-0.20.0-linux-aarch64.deb",
-            "size": 119434686
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb",
+            "digest": "sha256:0031241de69276f83a21e1c810f846e584f6042bddda0a227771bbf14f50a44b",
+            "name": "lightcraft-0.21.0-linux-aarch64.deb",
+            "size": 119855320
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.deb.asc",
-            "digest": "sha256:3c38fd722749038879373f577fcc3bce3e2bb1e979b2d4881f07e2565487b4bb",
-            "name": "lightcraft-0.20.0-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb.asc",
+            "digest": "sha256:3485f1334cbd283495b18e25ca1e79142dd655a2de8fc2d13f070e6b1c4679a2",
+            "name": "lightcraft-0.21.0-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.flatpak",
-            "digest": "sha256:9a6d8044e419ec6bed425d6057a9660989adbd5a254f4313397850739293ac4c",
-            "name": "lightcraft-0.20.0-linux-aarch64.flatpak",
-            "size": 82434576
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak",
+            "digest": "sha256:fb1b38ae22eafb2825b71de9d8872a55f96b9d463971c36ae4c74071f0506d0d",
+            "name": "lightcraft-0.21.0-linux-aarch64.flatpak",
+            "size": 82357472
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.flatpak.asc",
-            "digest": "sha256:f437dacc1bf713fee7f3dce16fe83acc04376a360b50902d28a4d5d2ec6b6cae",
-            "name": "lightcraft-0.20.0-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak.asc",
+            "digest": "sha256:952ba59c38fa9b487473d5507c926086885ceca61d841cba416c5256d62de253",
+            "name": "lightcraft-0.21.0-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:9737d611565ebd94cf03ce656653a1613900c62af7c55f70084c68af5b725b62",
-            "name": "lightcraft-0.20.0-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:efc60479d43b36fd441c743aca636d2be4aa035d78191f7d000091aa7da7dbfc",
+            "name": "lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.oci.sig",
-            "digest": "sha256:dee35b1c840e1292979c6ccfcb8f596f3686f8dbe43f026f7c73273abbc04a5c",
-            "name": "lightcraft-0.20.0-linux-aarch64.oci.sig",
-            "size": 391
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:472067a045f08060cac4d09869936a65206c8b958058f74deca4c7493201ec92",
-            "name": "lightcraft-0.20.0-linux-aarch64.pkg.tar.zst",
-            "size": 91254301
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:4c30b6c978831cf9581b0fa307afa08ec6a6f0d1a04659d70b6b7ca29f2cb62a",
-            "name": "lightcraft-0.20.0-linux-aarch64.pkg.tar.zst.sig",
-            "size": 119
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.rpm",
-            "digest": "sha256:3f0aba5c2bbd51b0b0504200ae68d74f7ba4913f695ebd560c43af11b6055574",
-            "name": "lightcraft-0.20.0-linux-aarch64.rpm",
-            "size": 118571637
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.rpm.asc",
-            "digest": "sha256:d08aa922cc664b9e8b3424ac1f86b314e1265bb2cc24ed32064a6598fa14455d",
-            "name": "lightcraft-0.20.0-linux-aarch64.rpm.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.tar.gz",
-            "digest": "sha256:92d39ff4eb207e41dafe4bb1edc5708a048672b2a92500a840bee7869d504f85",
-            "name": "lightcraft-0.20.0-linux-aarch64.tar.gz",
-            "size": 116532506
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:77496d14482434e5f6e2328e21b653ab0e10d681e3adba54220df2018b147b9e",
-            "name": "lightcraft-0.20.0-linux-aarch64.tar.gz.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.deb",
-            "digest": "sha256:303d0005f24078cd00da1dadfeb6d312d10a43d58224f5b5b1898c0310183043",
-            "name": "lightcraft-0.20.0-linux-riscv64.deb",
-            "size": 120403048
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.deb.asc",
-            "digest": "sha256:24f4a24fa455022a71166034092fc56b5d289b319dd9d34ed211a945946f903f",
-            "name": "lightcraft-0.20.0-linux-riscv64.deb.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.rpm",
-            "digest": "sha256:beed6085b2b051ec58766606274117dfa02b1df1d241192485064fee721b7049",
-            "name": "lightcraft-0.20.0-linux-riscv64.rpm",
-            "size": 119931250
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.rpm.asc",
-            "digest": "sha256:0bc2bc0b029580bf965f478f5501b72dde5b2c58b32ea78e49149137e3af8552",
-            "name": "lightcraft-0.20.0-linux-riscv64.rpm.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.tar.gz",
-            "digest": "sha256:fad350cf5858c0275124f8808a14320743a4a335d89d7352de4382b949c4850d",
-            "name": "lightcraft-0.20.0-linux-riscv64.tar.gz",
-            "size": 118828042
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:e4c61467a5bd17dd149c75873b8c01c6dd1a080ef032fa6360f2e1572d958a6c",
-            "name": "lightcraft-0.20.0-linux-riscv64.tar.gz.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.AppImage",
-            "digest": "sha256:66be1e9185d56f60086e9a7c019064dd238d95531c13c0e1c83a527fceb73e10",
-            "name": "lightcraft-0.20.0-linux-x86_64.AppImage",
-            "size": 115378680
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.AppImage.asc",
-            "digest": "sha256:c023761e0bd385662caec6b4b6110d8bae2a716cf287ab68ff6edb4acc1154cc",
-            "name": "lightcraft-0.20.0-linux-x86_64.AppImage.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:a16a065b943084f0e2e5b89eae535893dbd5ddf47af1b2a86c872d743317be9e",
-            "name": "lightcraft-0.20.0-linux-x86_64.AppImage.zsync",
-            "size": 197433
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:8f8b6792b52cc06c4704a6b7d71e451e2a2e5ddedb6b160e7da00f215f777ef4",
-            "name": "lightcraft-0.20.0-linux-x86_64.AppImage.zsync.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.deb",
-            "digest": "sha256:bfa1d812208bfe5b45d411a1c8250f7374e65137b7a6d5fdf685bcb39d8388ba",
-            "name": "lightcraft-0.20.0-linux-x86_64.deb",
-            "size": 124023402
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.deb.asc",
-            "digest": "sha256:5b15b1bbecdc360d7e4effe6fa5417d991e8c6e3dcf71f355e72ad73469ebc8a",
-            "name": "lightcraft-0.20.0-linux-x86_64.deb.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.flatpak",
-            "digest": "sha256:9828d1380fcd9284858d240aa4145dc033e09196144fb6d2f18ba8ace8267021",
-            "name": "lightcraft-0.20.0-linux-x86_64.flatpak",
-            "size": 87777552
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.flatpak.asc",
-            "digest": "sha256:23cc5db470fe332f92f1720dae1d4abb3537e9c510ff7b64b402c80530023627",
-            "name": "lightcraft-0.20.0-linux-x86_64.flatpak.asc",
-            "size": 228
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:6ad0ea281eccfd140adc8296c0de7d5106308aa52fd00c9f20eacdfbb43e9cc6",
-            "name": "lightcraft-0.20.0-linux-x86_64.oci-manifest.json",
-            "size": 494
-          },
-          {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.oci.sig",
-            "digest": "sha256:e8ae8c9dec6400960e2759e681dec7e630c589614efdd022d7a8eb74b9d4093c",
-            "name": "lightcraft-0.20.0-linux-x86_64.oci.sig",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci.sig",
+            "digest": "sha256:fe898737d3d061da4499a84bcf5a19cc1412c4a204408f409a266aeeefb9a0b0",
+            "name": "lightcraft-0.21.0-linux-aarch64.oci.sig",
             "size": 383
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:31e2fda3c59744a184035adddf02ce8e1b21087365d24ab9dde7c44211050f19",
-            "name": "lightcraft-0.20.0-linux-x86_64.pkg.tar.zst",
-            "size": 94756411
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:9f5e4e2a57527a0e54039619bb5db67724d442c3af7f3dfabfa992035d86cf9b",
+            "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+            "size": 91165024
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:c02767983799d59ba73d30ff8accdee637c21edbc147a11792e478740cc7a256",
-            "name": "lightcraft-0.20.0-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:f01b5cf2657cffaafa54c89c37eac214887893cf44e20fc0d75e16881435b56b",
+            "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.rpm",
-            "digest": "sha256:fa824ecadedd42c2fce6186e9310a46a7f54dfdef16652513259be3f151dd5b2",
-            "name": "lightcraft-0.20.0-linux-x86_64.rpm",
-            "size": 123301181
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm",
+            "digest": "sha256:0c2c6a2780d10afa1914bef497db551b8dea877c3b66ebcda51d4e44e8df2a1c",
+            "name": "lightcraft-0.21.0-linux-aarch64.rpm",
+            "size": 118991634
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.rpm.asc",
-            "digest": "sha256:e7fafa9f752b6ad004bc0bff8d89079aa082613f81b11a76c5aa3bf88512bb70",
-            "name": "lightcraft-0.20.0-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm.asc",
+            "digest": "sha256:6aaf9d36a2371a96cbf3ff8838cf50f984d93c4204db7bcb13b5cdf895231666",
+            "name": "lightcraft-0.21.0-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.tar.gz",
-            "digest": "sha256:8cb5eed825b2dd9e0fa42680129d3e5aa718f07196d67cc5d05741f0e6a9cc25",
-            "name": "lightcraft-0.20.0-linux-x86_64.tar.gz",
-            "size": 122231444
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz",
+            "digest": "sha256:23471d75f49814fa734d94a990d1e6c61441aef0403e7b94571b09e9fb18f51b",
+            "name": "lightcraft-0.21.0-linux-aarch64.tar.gz",
+            "size": 116940522
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:522ce11bf49c3e629e263134b7f091cda1423f90796820a8aa4734b888fc3c3e",
-            "name": "lightcraft-0.20.0-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:38198ed3850a69c9059e44b5f8cf232f0e1a94a828e497a096d8ebb13dfb0c2e",
+            "name": "lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-macos-universal.dmg",
-            "digest": "sha256:ddb34c8c87bb05ad2c295052e3026363686d7995b08bcfe50e6cd98a6b67a697",
-            "name": "lightcraft-0.20.0-macos-universal.dmg",
-            "size": 126712332
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb",
+            "digest": "sha256:dff9dfed7f8167ae7bbf957d0440f5cfd06e74210925ccfd343d443d144a5e3c",
+            "name": "lightcraft-0.21.0-linux-riscv64.deb",
+            "size": 120799704
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-windows-arm64-portable.zip",
-            "digest": "sha256:84d4b5ff52172e00e3ea25fb8c59fad5a061faec8593459214b240ca287ccc12",
-            "name": "lightcraft-0.20.0-windows-arm64-portable.zip",
-            "size": 117408073
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb.asc",
+            "digest": "sha256:372fb01b8791a49858b806aa6f45be799a7232c0203429a5db31a9d0bcd18e3a",
+            "name": "lightcraft-0.21.0-linux-riscv64.deb.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-windows-arm64.msi",
-            "digest": "sha256:7f25de3971568375dc468e26815ba3226e45d76e5a5f5744e01bf57078be88d8",
-            "name": "lightcraft-0.20.0-windows-arm64.msi",
-            "size": 95232000
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm",
+            "digest": "sha256:6867ef3983085f912a40260eaa0e5e25e0480ef2334bb3539d973b5c4c9d2c7f",
+            "name": "lightcraft-0.21.0-linux-riscv64.rpm",
+            "size": 120334694
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-windows-x64-portable.zip",
-            "digest": "sha256:3270be6ba63455714f1337c11a297fde92e8e822fcc61c49e3b4d31db85ea5ea",
-            "name": "lightcraft-0.20.0-windows-x64-portable.zip",
-            "size": 122529857
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm.asc",
+            "digest": "sha256:3dc2b85822b864b4caa3462236b8078e552295ee9bf2407cdc2aa1a9a783f5f8",
+            "name": "lightcraft-0.21.0-linux-riscv64.rpm.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-0.20.0-windows-x64.msi",
-            "digest": "sha256:d38f95c6915bcc8199ca513746508d80c5e2a0369fb5a4600ac13a4f2d9ccac1",
-            "name": "lightcraft-0.20.0-windows-x64.msi",
-            "size": 99655680
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz",
+            "digest": "sha256:2c2c7284c6409b3a3f9e84b0681b69c4709fbf2622b661bc90a7056759c1edfb",
+            "name": "lightcraft-0.21.0-linux-riscv64.tar.gz",
+            "size": 119220706
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-cli-0.20.0-macos-universal.zip",
-            "digest": "sha256:b73900c6a3bb71d5b1720e9e779bd50ec551abfb02c952d29ed3756a564be605",
-            "name": "lightcraft-cli-0.20.0-macos-universal.zip",
-            "size": 120908565
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:26922dd01a22e0cca5a555d88a364db623fa761b79e65359a0876a24a65f55d2",
+            "name": "lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+            "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/lightcraft-web-0.20.0.zip",
-            "digest": "sha256:720087af36cd56800974012a35badae0d235fc132dc414d1366a52e7f40b783f",
-            "name": "lightcraft-web-0.20.0.zip",
-            "size": 74363103
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage",
+            "digest": "sha256:c3dea6f5c75b55d8023937c0965b5b7612533131da7d56e550a4ef0688faf1d6",
+            "name": "lightcraft-0.21.0-linux-x86_64.AppImage",
+            "size": 115657208
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+            "digest": "sha256:9bfe3ca6d9ada13f0566cf154f45c881455376d838e3fa25234ec3d5f14efe6e",
+            "name": "lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:c9ff6d63521af0c4322babdd0e00ab900cce05a10e969fa41e248b0c5e16443e",
+            "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+            "size": 197909
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:1f993b9138afe66786d966c7966580607b191f5b89690ee7b24b263b0d8b5069",
+            "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb",
+            "digest": "sha256:07e46260fdd109f732d0a0dbb53f018cf903f11a99fd6a4d84f042724ebe4725",
+            "name": "lightcraft-0.21.0-linux-x86_64.deb",
+            "size": 124344178
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb.asc",
+            "digest": "sha256:98bfa3d106444dfaa9db78c7431eddca9688633e9672de1aa1395aeb82290969",
+            "name": "lightcraft-0.21.0-linux-x86_64.deb.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak",
+            "digest": "sha256:fb64b5ef2573780bafffb3bca48cd568f4717cf1ed3f4a9fcfb128c5489e3166",
+            "name": "lightcraft-0.21.0-linux-x86_64.flatpak",
+            "size": 87955720
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+            "digest": "sha256:13f259223e448aa5c00da0d3196a54fafba1d4a1e0cddc84e0ea2f53c72ca08d",
+            "name": "lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:6c17ca9f9cd4da89305dd1af0527e20704a7b405878613dba3445bc5edf07ea3",
+            "name": "lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+            "size": 494
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci.sig",
+            "digest": "sha256:195a13efeb72bdc393497150544e86854a93cfc6f3cd6538ee6817ae28ec2fbf",
+            "name": "lightcraft-0.21.0-linux-x86_64.oci.sig",
+            "size": 389
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:8a953bf0bbfc9dfcc405358aa462909494bf8aca5848ac56e8c36d9a6b258d7c",
+            "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+            "size": 94961797
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:007a5b808b4627a811ba855aafd28f594f6313a86e9d7af29a660a7afebba61b",
+            "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+            "size": 119
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm",
+            "digest": "sha256:088d7542ef7111439928d39fcfb62558e2a918e81944293882d128c24d85571b",
+            "name": "lightcraft-0.21.0-linux-x86_64.rpm",
+            "size": 123624399
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm.asc",
+            "digest": "sha256:7eb0d8d5055a86b15544fb8f5165b350d6c8fa6c4818bb61a9ba6fc706ff2bba",
+            "name": "lightcraft-0.21.0-linux-x86_64.rpm.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz",
+            "digest": "sha256:7e7da553dea100268a058f135c7c4ad1f4fb76b4d8242e14f70f16ed89259580",
+            "name": "lightcraft-0.21.0-linux-x86_64.tar.gz",
+            "size": 122561046
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:a5219afd81d8e98309232d74fc47af0782a886d1904c949247c9cd2a765ef9b6",
+            "name": "lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+            "size": 228
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-macos-universal.dmg",
+            "digest": "sha256:dd3cd5b54df0d7d7a457e00f3fad7e550813d4df8a8cdaa1a6bdcf7021fb2b3d",
+            "name": "lightcraft-0.21.0-macos-universal.dmg",
+            "size": 127258006
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64-portable.zip",
+            "digest": "sha256:a0bb4cee17ec5e0bffff29c1f70ea79722bd2660d758417a8aa485e2828153ce",
+            "name": "lightcraft-0.21.0-windows-arm64-portable.zip",
+            "size": 117829475
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64.msi",
+            "digest": "sha256:183affa845c584578367d05cad767bfb6d0d925adf5072a71e2bf8036a0d688b",
+            "name": "lightcraft-0.21.0-windows-arm64.msi",
+            "size": 95682560
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64-portable.zip",
+            "digest": "sha256:4ed5ef94c357c5af60d4f52ba338331c4bbdeaee94ddd30beb09e7761ee74c57",
+            "name": "lightcraft-0.21.0-windows-x64-portable.zip",
+            "size": 122886896
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64.msi",
+            "digest": "sha256:e900ac8e70b2212c71b85190e4e1f75111e48c4f776b28d93963eac5c807d7ef",
+            "name": "lightcraft-0.21.0-windows-x64.msi",
+            "size": 99975168
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-cli-0.21.0-macos-universal.zip",
+            "digest": "sha256:7a974c00254d2a909fc3c63133fd78ae16ad2ab5039a1269858eb50a53e0ebca",
+            "name": "lightcraft-cli-0.21.0-macos-universal.zip",
+            "size": 121466894
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-web-0.21.0.zip",
+            "digest": "sha256:5d032efb28c2859ac86e72ff592b5dcef8014dd63a7a9744d952e291e7c7f63f",
+            "name": "lightcraft-web-0.21.0.zip",
+            "size": 74571781
+          },
+          {
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/SHA256SUMS.txt",
-            "digest": "sha256:41bf9e2948677ccbb6a37a66faf21b00285e4008d40f9a0b1cef2d2fcbf82b5c",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt",
+            "digest": "sha256:f84105abca4f3ff9d3c5f15b6f0f77d9f6464ff030893578b945dbaf33b23d83",
             "name": "SHA256SUMS.txt",
             "size": 5123
           },
           {
-            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.20.0/SHA256SUMS.txt.asc",
-            "digest": "sha256:209c5c884bcbb2dca6b71e8bfecb58dbf86fe9c3c3cd459d1f82340f0d6ac2ff",
+            "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt.asc",
+            "digest": "sha256:66b730a66df6fc323a3d3db4ae0b0ea8f2b2fcff3a4909a6a4d887cc15829f6b",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "LightCraft v0.20.0",
+        "name": "LightCraft v0.21.0",
         "prerelease": false,
-        "tag_name": "v0.20.0"
+        "tag_name": "v0.21.0"
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"7670ed70c1eabf137603c6aa3acd5edf73553819df2a70ea795dbaccb96b71dc\"",
+      "etag": "\"eb25d43c4f0a709d3346561e5f1ea580e8d9dcc48a2e0c633825109c2a3f69f3\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:fbddf0d8b91f42f455d9d64f661cd9b18601df00eff3abe2dcc25fde8989a8dc",
+              "name": "lightcraft-0.21.0-freebsd-aarch64.tar.gz",
+              "size": 116029267
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:da8317ce0f04767e5861a456192ee004573bf16b85022cb445824d0d277f43b4",
+              "name": "lightcraft-0.21.0-freebsd-x86_64.tar.gz",
+              "size": 121886309
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage",
+              "digest": "sha256:026842f690848af3588d2879f4bc8e626bd965462f2fd924e64db9d179e57ab8",
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage",
+              "size": 110590472
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:7b99fa39a76c984448de1ca118b67d10d8b6307f807ec9742fb38377cb03b8db",
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:72f05910147af7f4b0207f3d1803a95eb985b87450803a49bf4d06561fb95224",
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync",
+              "size": 189252
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:518831290f0406805842327012e0a34614e9c3b8da09ebc6f70a7723853100b1",
+              "name": "lightcraft-0.21.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb",
+              "digest": "sha256:0031241de69276f83a21e1c810f846e584f6042bddda0a227771bbf14f50a44b",
+              "name": "lightcraft-0.21.0-linux-aarch64.deb",
+              "size": 119855320
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.deb.asc",
+              "digest": "sha256:3485f1334cbd283495b18e25ca1e79142dd655a2de8fc2d13f070e6b1c4679a2",
+              "name": "lightcraft-0.21.0-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak",
+              "digest": "sha256:fb1b38ae22eafb2825b71de9d8872a55f96b9d463971c36ae4c74071f0506d0d",
+              "name": "lightcraft-0.21.0-linux-aarch64.flatpak",
+              "size": 82357472
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:952ba59c38fa9b487473d5507c926086885ceca61d841cba416c5256d62de253",
+              "name": "lightcraft-0.21.0-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:efc60479d43b36fd441c743aca636d2be4aa035d78191f7d000091aa7da7dbfc",
+              "name": "lightcraft-0.21.0-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.oci.sig",
+              "digest": "sha256:fe898737d3d061da4499a84bcf5a19cc1412c4a204408f409a266aeeefb9a0b0",
+              "name": "lightcraft-0.21.0-linux-aarch64.oci.sig",
+              "size": 383
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9f5e4e2a57527a0e54039619bb5db67724d442c3af7f3dfabfa992035d86cf9b",
+              "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst",
+              "size": 91165024
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:f01b5cf2657cffaafa54c89c37eac214887893cf44e20fc0d75e16881435b56b",
+              "name": "lightcraft-0.21.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm",
+              "digest": "sha256:0c2c6a2780d10afa1914bef497db551b8dea877c3b66ebcda51d4e44e8df2a1c",
+              "name": "lightcraft-0.21.0-linux-aarch64.rpm",
+              "size": 118991634
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:6aaf9d36a2371a96cbf3ff8838cf50f984d93c4204db7bcb13b5cdf895231666",
+              "name": "lightcraft-0.21.0-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz",
+              "digest": "sha256:23471d75f49814fa734d94a990d1e6c61441aef0403e7b94571b09e9fb18f51b",
+              "name": "lightcraft-0.21.0-linux-aarch64.tar.gz",
+              "size": 116940522
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:38198ed3850a69c9059e44b5f8cf232f0e1a94a828e497a096d8ebb13dfb0c2e",
+              "name": "lightcraft-0.21.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb",
+              "digest": "sha256:dff9dfed7f8167ae7bbf957d0440f5cfd06e74210925ccfd343d443d144a5e3c",
+              "name": "lightcraft-0.21.0-linux-riscv64.deb",
+              "size": 120799704
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.deb.asc",
+              "digest": "sha256:372fb01b8791a49858b806aa6f45be799a7232c0203429a5db31a9d0bcd18e3a",
+              "name": "lightcraft-0.21.0-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm",
+              "digest": "sha256:6867ef3983085f912a40260eaa0e5e25e0480ef2334bb3539d973b5c4c9d2c7f",
+              "name": "lightcraft-0.21.0-linux-riscv64.rpm",
+              "size": 120334694
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:3dc2b85822b864b4caa3462236b8078e552295ee9bf2407cdc2aa1a9a783f5f8",
+              "name": "lightcraft-0.21.0-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz",
+              "digest": "sha256:2c2c7284c6409b3a3f9e84b0681b69c4709fbf2622b661bc90a7056759c1edfb",
+              "name": "lightcraft-0.21.0-linux-riscv64.tar.gz",
+              "size": 119220706
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:26922dd01a22e0cca5a555d88a364db623fa761b79e65359a0876a24a65f55d2",
+              "name": "lightcraft-0.21.0-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage",
+              "digest": "sha256:c3dea6f5c75b55d8023937c0965b5b7612533131da7d56e550a4ef0688faf1d6",
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage",
+              "size": 115657208
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:9bfe3ca6d9ada13f0566cf154f45c881455376d838e3fa25234ec3d5f14efe6e",
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:c9ff6d63521af0c4322babdd0e00ab900cce05a10e969fa41e248b0c5e16443e",
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync",
+              "size": 197909
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:1f993b9138afe66786d966c7966580607b191f5b89690ee7b24b263b0d8b5069",
+              "name": "lightcraft-0.21.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb",
+              "digest": "sha256:07e46260fdd109f732d0a0dbb53f018cf903f11a99fd6a4d84f042724ebe4725",
+              "name": "lightcraft-0.21.0-linux-x86_64.deb",
+              "size": 124344178
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.deb.asc",
+              "digest": "sha256:98bfa3d106444dfaa9db78c7431eddca9688633e9672de1aa1395aeb82290969",
+              "name": "lightcraft-0.21.0-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak",
+              "digest": "sha256:fb64b5ef2573780bafffb3bca48cd568f4717cf1ed3f4a9fcfb128c5489e3166",
+              "name": "lightcraft-0.21.0-linux-x86_64.flatpak",
+              "size": 87955720
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:13f259223e448aa5c00da0d3196a54fafba1d4a1e0cddc84e0ea2f53c72ca08d",
+              "name": "lightcraft-0.21.0-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:6c17ca9f9cd4da89305dd1af0527e20704a7b405878613dba3445bc5edf07ea3",
+              "name": "lightcraft-0.21.0-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.oci.sig",
+              "digest": "sha256:195a13efeb72bdc393497150544e86854a93cfc6f3cd6538ee6817ae28ec2fbf",
+              "name": "lightcraft-0.21.0-linux-x86_64.oci.sig",
+              "size": 389
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:8a953bf0bbfc9dfcc405358aa462909494bf8aca5848ac56e8c36d9a6b258d7c",
+              "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst",
+              "size": 94961797
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:007a5b808b4627a811ba855aafd28f594f6313a86e9d7af29a660a7afebba61b",
+              "name": "lightcraft-0.21.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm",
+              "digest": "sha256:088d7542ef7111439928d39fcfb62558e2a918e81944293882d128c24d85571b",
+              "name": "lightcraft-0.21.0-linux-x86_64.rpm",
+              "size": 123624399
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:7eb0d8d5055a86b15544fb8f5165b350d6c8fa6c4818bb61a9ba6fc706ff2bba",
+              "name": "lightcraft-0.21.0-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz",
+              "digest": "sha256:7e7da553dea100268a058f135c7c4ad1f4fb76b4d8242e14f70f16ed89259580",
+              "name": "lightcraft-0.21.0-linux-x86_64.tar.gz",
+              "size": 122561046
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:a5219afd81d8e98309232d74fc47af0782a886d1904c949247c9cd2a765ef9b6",
+              "name": "lightcraft-0.21.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-macos-universal.dmg",
+              "digest": "sha256:dd3cd5b54df0d7d7a457e00f3fad7e550813d4df8a8cdaa1a6bdcf7021fb2b3d",
+              "name": "lightcraft-0.21.0-macos-universal.dmg",
+              "size": 127258006
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64-portable.zip",
+              "digest": "sha256:a0bb4cee17ec5e0bffff29c1f70ea79722bd2660d758417a8aa485e2828153ce",
+              "name": "lightcraft-0.21.0-windows-arm64-portable.zip",
+              "size": 117829475
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-arm64.msi",
+              "digest": "sha256:183affa845c584578367d05cad767bfb6d0d925adf5072a71e2bf8036a0d688b",
+              "name": "lightcraft-0.21.0-windows-arm64.msi",
+              "size": 95682560
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64-portable.zip",
+              "digest": "sha256:4ed5ef94c357c5af60d4f52ba338331c4bbdeaee94ddd30beb09e7761ee74c57",
+              "name": "lightcraft-0.21.0-windows-x64-portable.zip",
+              "size": 122886896
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-0.21.0-windows-x64.msi",
+              "digest": "sha256:e900ac8e70b2212c71b85190e4e1f75111e48c4f776b28d93963eac5c807d7ef",
+              "name": "lightcraft-0.21.0-windows-x64.msi",
+              "size": 99975168
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-cli-0.21.0-macos-universal.zip",
+              "digest": "sha256:7a974c00254d2a909fc3c63133fd78ae16ad2ab5039a1269858eb50a53e0ebca",
+              "name": "lightcraft-cli-0.21.0-macos-universal.zip",
+              "size": 121466894
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/lightcraft-web-0.21.0.zip",
+              "digest": "sha256:5d032efb28c2859ac86e72ff592b5dcef8014dd63a7a9744d952e291e7c7f63f",
+              "name": "lightcraft-web-0.21.0.zip",
+              "size": 74571781
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt",
+              "digest": "sha256:f84105abca4f3ff9d3c5f15b6f0f77d9f6464ff030893578b945dbaf33b23d83",
+              "name": "SHA256SUMS.txt",
+              "size": 5123
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/lightcraft/releases/download/v0.21.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:66b730a66df6fc323a3d3db4ae0b0ea8f2b2fcff3a4909a6a4d887cc15829f6b",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "LightCraft v0.21.0",
+          "prerelease": false,
+          "tag_name": "v0.21.0"
+        },
         {
           "assets": [
             {
@@ -110863,7 +111479,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"56656209b37221e857cfa290556d31f5d0b91054bcf3c180d971eed83e9aab1d\"",
+      "etag": "\"0548e166fa552be012a41dd9888d642f5954e4acafdbb199fc5fc92283a8950b\"",
       "body": {
         "assets": [
           {
@@ -111174,7 +111790,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"d474717cd05a28be2807b3d6c87d64a0862f52c364e266d6a3e6cb071173a638\"",
+      "etag": "\"9f14047296f3e45ca0aa0dc9615aa7d0553040321376607cb75326ec45ccd43c\"",
       "body": [
         {
           "assets": [
@@ -112937,7 +113553,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"77d604a908859e06133b3766ccc7fdbb7335f919a2205140cfe20709c4eddcdf\"",
+      "etag": "\"66f34ed2e495d20132742171729df3dbc1f90b2890f9e4a0723001fdd0a16e2d\"",
       "body": {
         "assets": [
           {
@@ -113272,7 +113888,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"b273b3a6fbe9261bd07357d244b3d8652c48da775bc82435f318b69dcde1e67f\"",
+      "etag": "\"96c7807d82a390bebe3db4b33cc46eac174ca7d0b15e2f9a8cc4cc1f6a46f558\"",
       "body": [
         {
           "assets": [
@@ -117969,7 +118585,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"3228927547eefe545a20fffb444c1d682387a0e6c1e1f895529574fcb5ac6824\"",
+      "etag": "\"6d28a746d157b6c6183df2c7f6c28741a104df9b0c3c4e699a49f3c023d6860b\"",
       "body": {
         "assets": [
           {
@@ -118292,7 +118908,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"2093c21035c36c4ee94ca641c1b800456aba0cd8ba00a2caf8dccc37b9d62c8d\"",
+      "etag": "\"e5a50fd24e7674137e6e799440a7c8d4ccd43ae7d442265c416c9cdfd84d7be2\"",
       "body": [
         {
           "assets": [
@@ -122757,7 +123373,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"5bba6de882a2e0043166f63671e26524825f455ba12cdc07c0863996a625d16a\"",
+      "etag": "\"c81c76779f50588dc5d05310f288e3e874b11f1b4c2a2bcb4d6d374e2a6dbc9d\"",
       "body": {
         "assets": [
           {
@@ -123068,7 +123684,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"7ce1437bc60d0b9c7d08ca7f583cb898b77e82c55d1ff3d6ff61ad701a616423\"",
+      "etag": "\"54a9a893b54439d25e058885425c43010d83955111d90d79b93744a3b019717a\"",
       "body": [
         {
           "assets": [
@@ -126389,7 +127005,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"30e878f529ddec39735b826532dd91715c379c65fd4ff5c81ec060b405d23cc7\"",
+      "etag": "\"0c06f4f8fa1c22181fa0e12cacd71274393e345f731eaefe796b014c66071327\"",
       "body": {
         "assets": [
           {
@@ -126700,7 +127316,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"2ff899423f21aa2be67ff60ce1044ae7e6218679d72141812edc9a6afdc1f898\"",
+      "etag": "\"e52022b53a578a19828d082a8654c654c29c8a2cb73e5e15a2fc7bb1a4d139ff\"",
       "body": [
         {
           "assets": [
@@ -128665,7 +129281,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"d73659a17c082a2ae15bb68e30f43923e26df4fd03e2414deacf4e74bd21de8b\"",
+      "etag": "\"e376613281bad59bf78cc231474bbfbaf2ef862b615ceb9aec37b7845b15a05d\"",
       "body": {
         "assets": [
           {
@@ -128976,7 +129592,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"302c2787ef32e5f64ebde4e73c6d743975d85f153664243159d8b7850b1db0c1\"",
+      "etag": "\"fdc37d29dfe235304e1b2d8822fbd370ee30b1ed46813d6ea650ed69783ebc82\"",
       "body": [
         {
           "assets": [
@@ -133649,7 +134265,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"970d917c822b7ff2b2f590bc3be7371844985d91cd8c4485192c4b6969a19ff6\"",
+      "etag": "\"10f091ddf95d2d1cc961a667218f0cc6e602a6fedf703416ac3e2632c3164120\"",
       "body": {
         "assets": [
           {
@@ -133960,7 +134576,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"d76e4e1ff81b00f0e7b9124295711bbfd1e1a9a829928374759fe616a999b2ca\"",
+      "etag": "\"2481b59a533d9a66ccae710c18176878d8dc812d5ea8ae5847b01d75ae045e85\"",
       "body": [
         {
           "assets": [
@@ -137723,7 +138339,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"d8ff55db91ddc7aa68d2d7122e0d0b0b54cd665fcc8e43dac6cbcd1623f5033f\"",
+      "etag": "\"3e776b71ea5487590b92c71d541a32db315467be50dc13e8f1d485eee91fcab8\"",
       "body": {
         "assets": [
           {
@@ -138028,7 +138644,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"278a0e6c59096c33f8eac70a0c9c90a63fa164a6f2de9e4df79733bffc1e0a99\"",
+      "etag": "\"fc45d41359f4e5efd2dd0098159c451d11798a9e7b9afe8892475160762ab8b8\"",
       "body": [
         {
           "assets": [
@@ -157681,7 +158297,7 @@
       ]
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest": {
-      "etag": "\"d19ca66e5d9f9d14a8fe82409b1a90d15c93cc677d50e101fc203b0fd97a1a2b\"",
+      "etag": "\"0fc2d11182b7a406fde78564b0b62df891c1b9326d2aed2103ca23d93ba37871\"",
       "body": {
         "assets": [
           {
@@ -157842,7 +158458,7 @@
       }
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases?per_page=100&page=1": {
-      "etag": "\"59994514d393a607e098c58666686fa22a1f1ffbed3b7bb47659e2c13a3b5157\"",
+      "etag": "\"9d881a68116898baa8cae4598ef34f59e2a586286dba8f11e6f3a03b47c2cac0\"",
       "body": [
         {
           "assets": [
