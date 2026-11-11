@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1794424165,
+      "checked_at": 1794426598,
       "latest_tag": "v0.2.0",
       "releases": [
         {
@@ -637,7 +637,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1794424166,
+      "checked_at": 1794426599,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -1722,7 +1722,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1794424167,
+      "checked_at": 1794426600,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -5469,7 +5469,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1794424168,
+      "checked_at": 1794426601,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -9034,7 +9034,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1794424169,
+      "checked_at": 1794426602,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -13287,7 +13287,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1794424170,
+      "checked_at": 1794426603,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -18032,7 +18032,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1794424171,
+      "checked_at": 1794426604,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -21717,7 +21717,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1794424172,
+      "checked_at": 1794426606,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -25758,7 +25758,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1794424173,
+      "checked_at": 1794426607,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -29511,7 +29511,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1794424174,
+      "checked_at": 1794426608,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -33396,7 +33396,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1794424174,
+      "checked_at": 1794426609,
       "latest_tag": "v0.4.0",
       "releases": [
         {
@@ -35161,7 +35161,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1794424176,
+      "checked_at": 1794426610,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -39860,7 +39860,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1794424177,
+      "checked_at": 1794426612,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -44327,7 +44327,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1794424177,
+      "checked_at": 1794426613,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -47650,7 +47650,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1794424178,
+      "checked_at": 1794426613,
       "latest_tag": "v0.6.0",
       "releases": [
         {
@@ -49617,7 +49617,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1794424179,
+      "checked_at": 1794426615,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -54292,9 +54292,317 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1794424180,
-      "latest_tag": "v0.17.0",
+      "checked_at": 1794426616,
+      "latest_tag": "v0.18.0",
       "releases": [
+        {
+          "tag_name": "v0.18.0",
+          "name": "WordCraft v0.18.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5076,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt",
+              "digest": "sha256:393c04ba9ca9ec89e2f735e6908084350b40944d9374a7e39a6744501be3e6db"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:5502a8fa4615978da6ecc34afad4aa54484293c75f1ea8f2158de5be63377947"
+            },
+            {
+              "name": "wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+              "size": 113700684,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:90f640706a1dd7e204ea8f5a2290d5d8a218441227e14ae747c1701deca8d2a0"
+            },
+            {
+              "name": "wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+              "size": 118035443,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4d003b7b4307acabf934b6517b7877f62a5e89edc155bdb8fc8d7dfbf9515d13"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage",
+              "size": 108718600,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage",
+              "digest": "sha256:27b392e21ffaffa3c3c12d37f345b8fd69801ece311fa69604a49e0786ca7095"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:d12d8dc721748ea9ef33433b111d94ff89169aceb3c6a8ff9136e5fe621ca0a7"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+              "size": 186051,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:cb9ce58c18981cda80564dbdaa59713d4763276c39c7402a6bc0f39bcca8b20d"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:630c94ce72e8749664783b73d45f836d03daafe1b30d0d2ecfd0e1f8cec7bc17"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.deb",
+              "size": 117323338,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb",
+              "digest": "sha256:269df23e108ec29e13e89dbaa7036b2449348ee9cedbf5988b91a79c629f5ec6"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb.asc",
+              "digest": "sha256:8bdd3ba5a7aaf760ed62f5b8fbb0a8289b88c62858dfcfeb1fb788fd1e2f1f54"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.flatpak",
+              "size": 80791472,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak",
+              "digest": "sha256:71f2460ff7483b16c0f719d5ce0602a1100dab9fc0dd7c877302bfd26dc9d5fd"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:fa6a38ba13b1124efa91caea0744eb276da9ed607577da2dd23080630195feb4"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:aea4c64ccbee0ec567fa3ad5eb579623eb7c71f1ab6732bcfcb06c7622a4df4b"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.oci.sig",
+              "size": 378,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci.sig",
+              "digest": "sha256:b6f2aa10364011d1e52893844c7018d10e4268856aa9a29710b79999d1d4a760"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+              "size": 87915582,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:fee9df73f3ac134e576fcf57116f6abbf2dd6af420996b3bd92dcb5f5c114338"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:b68d1e730df6eefbab8b41c9cf2ec52068195518188f01fe6b8b55dfd26560bf"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.rpm",
+              "size": 116521149,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm",
+              "digest": "sha256:21670a6531f236ae7972e29515e82c0726b67ce0954da5f70bf7934c6ae7cb76"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:bd9d5d6b209e5278ac523b5a23a3854ba637e3306ec17afcca8a07d168b914ac"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.tar.gz",
+              "size": 114727066,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz",
+              "digest": "sha256:a38d61d1c47d274b6038c23d2dbcae882ba0d7b1008c08b601d56ad1aaa51821"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:ee2ae104226ceeae6bacdc446de5056b9e1b945e4eaf2f46e4cfec4e3749b289"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.deb",
+              "size": 118391806,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb",
+              "digest": "sha256:5978cce203623a4b20e99ca50b74d05b9f5e178f0d7a4e69ce074f1c1ea3d3dd"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb.asc",
+              "digest": "sha256:59276f9e29f4d12ab5089fbdacfc1f77cece4c4093cf1483adc9c4efaa3de55a"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.rpm",
+              "size": 117937982,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm",
+              "digest": "sha256:f5093278c607b77ab8f7ec477ab6e8bc69cd531c248eef92575c9ec194d53923"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:ba02bc0f9b8745b577ead9f8957b5e824f5aa2871160b18ce33cfac22bfbec03"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.tar.gz",
+              "size": 116914215,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz",
+              "digest": "sha256:ac035856bdc2f32ff76cc06b7eccfa189be20fe3b72bb9eee28e1e29de2efb71"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:852652d225fba4e8af0cca36f188b7215c5ee63603026e7af95e1e87a0c4a367"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage",
+              "size": 112007672,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage",
+              "digest": "sha256:872dbcd6b3e55a06e770d2f457a872f09e8e50be7a1627b187dd8a2760569b37"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:515470c5f9fb402e7c739713cb304743b658d1ffca3ae9aa8b4405394f301cee"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+              "size": 191670,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:38acbecd9c8e63f31bd395dc77be84b33d8a68619cf59aab1e3969a293db3fe8"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:0bb581aaea2df4b1995a51c5532e94b7d4ba8587558368cbddb84a895e4fd7b9"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.deb",
+              "size": 120022160,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb",
+              "digest": "sha256:f78a56c793e8c091958671caa9de04f89fff4a0a14fa2cfce1b588ebbc81bdb9"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb.asc",
+              "digest": "sha256:9d0ff114cc9b64ccf850c3ef1a24326a11e3ebf224afbe65bd7790c231806336"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.flatpak",
+              "size": 84775272,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak",
+              "digest": "sha256:9bcd53ce5a307e375173c9077f99eb94f9610ea03ae0d3bd58c71420bd02f966"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:24848e4d557ecdac538cf1b10f68a41faf086d2f56fb888cbae33c461251e295"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:8379601b6c4f2a47c09e9c6b61d26b19ddbce527cbc9a1499989256d3d5144c2"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.oci.sig",
+              "size": 382,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci.sig",
+              "digest": "sha256:14a39f6d55428238cfecae882770b687568d60f0f019e365ef63702160c74e86"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+              "size": 90207895,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:d5efd5b690a2584ef0266ebf2fc311354df4099b03ea01141af0f94c32ba1d85"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:0fa5d30c536fef14e0bf5f2237abbffa96b9a6b41b895597a4c6cf9561b0e52b"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.rpm",
+              "size": 119335598,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm",
+              "digest": "sha256:85701a718b36c4eafcccc09e77213b3464fe06970dbd1b5afba70ac905ab8756"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:2db7db6733cfbbd3432feb1379b95528012d3426d9a44756c5534edd86959645"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.tar.gz",
+              "size": 118330240,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz",
+              "digest": "sha256:f29693e6036de94156cef42bcdbd64478a1aec2f396a4c2a15a7f7253e759226"
+            },
+            {
+              "name": "wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:d6e47dcd720c3be22e6c35a17d42f6027d4eb76da429be1df7d94cba9a2f31c6"
+            },
+            {
+              "name": "wordcraft-0.18.0-macos-universal.dmg",
+              "size": 132181710,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-macos-universal.dmg",
+              "digest": "sha256:6f7dbf03a0b55bbb0e0cd2757d73cc417c9a6afb30bcb4ff56009c1ca039e74a"
+            },
+            {
+              "name": "wordcraft-0.18.0-windows-arm64-portable.zip",
+              "size": 114457532,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64-portable.zip",
+              "digest": "sha256:493cb7196834589a762a16ed02a5e7f5e775d8275ca94bad706accf8bf0b4ea3"
+            },
+            {
+              "name": "wordcraft-0.18.0-windows-arm64.msi",
+              "size": 91435008,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64.msi",
+              "digest": "sha256:6f3e33801641daa378bfa1413c64008aa2ca742bbc153ba060e929b6d10013e2"
+            },
+            {
+              "name": "wordcraft-0.18.0-windows-x64-portable.zip",
+              "size": 117972941,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64-portable.zip",
+              "digest": "sha256:3604ff087970f8e2ea982cd599b8036b52832ae7faf5221e9a95a5e6b4cd69b8"
+            },
+            {
+              "name": "wordcraft-0.18.0-windows-x64.msi",
+              "size": 95031296,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64.msi",
+              "digest": "sha256:8a0bed4ddd40a96f6d7439a3bc7d9bebefe2507066b96ced67f4ef954174012c"
+            },
+            {
+              "name": "wordcraft-cli-0.18.0-macos-universal.zip",
+              "size": 103010992,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-cli-0.18.0-macos-universal.zip",
+              "digest": "sha256:7df280ca934307fd80d389e2075bf00a042e09880f7200937b1829c8c5f30f19"
+            },
+            {
+              "name": "wordcraft-web-0.18.0.zip",
+              "size": 22534993,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-web-0.18.0.zip",
+              "digest": "sha256:a444046f649a50779b1b6a1b0db7e24facd906156ceecbcfa53bdbbbc89f0310"
+            }
+          ]
+        },
         {
           "tag_name": "v0.17.0",
           "name": "WordCraft v0.17.0",
@@ -57749,7 +58057,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1794424182,
+      "checked_at": 1794426619,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -71016,7 +71324,7 @@
       "error": null
     },
     "ucs-care-group/mailcraft": {
-      "checked_at": 1794424183,
+      "checked_at": 1794426620,
       "latest_tag": "v0.11.1",
       "releases": [
         {
@@ -74071,7 +74379,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"f0f42b84e0bbf32e2b5623251d2e3cbf149270547e520b91319d6554171ce804\"",
+      "etag": "\"8bb6de78a486721b5565083457030fe0174be64bbda84000cd1a4b381c7c4a50\"",
       "body": {
         "assets": [
           {
@@ -74388,7 +74696,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"69ae4543fcc8e71881e0beea4f47352bb36eeccef5a05d1eaa9ced2929625785\"",
+      "etag": "\"d31abc581cff02e3ce34d38607b336e6cbba13b387205c7cff79e787d8286157\"",
       "body": [
         {
           "assets": [
@@ -75021,7 +75329,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"82ee3d5cda13da8b5c0daae4ca788cd3b0ac59e9e2ea62d1acd89431a717b7a9\"",
+      "etag": "\"3a8687a8a7e1112097de899d156550c885e370f848909e5e314aea647f368166\"",
       "body": {
         "assets": [
           {
@@ -75302,7 +75610,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"ef406e16ee41341df194b077c9cc431f27432c9f15f719412e18a3a7dcdaa085\"",
+      "etag": "\"3af0d67767627c6d2b81d62d5096b4c32478976be04fecc303bb66d5ea4b9ebb\"",
       "body": [
         {
           "assets": [
@@ -76385,7 +76693,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"d39a974891b812f63f5c9ed7daa49cc739926f0a7f443235e581d7c7a04069d7\"",
+      "etag": "\"d25f7e551996a51f1cf57af2f01f94812ae2ad6cd9ecc7419f63552800fa0df3\"",
       "body": {
         "assets": [
           {
@@ -76696,7 +77004,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"64605b0a35292b1ff8b9642406ffd829e3c51dda98c8444cd7c5efec05dfe691\"",
+      "etag": "\"2004548622406bdf65c9ce96501a23738819c010213911c89568f45abfc0403a\"",
       "body": [
         {
           "assets": [
@@ -80441,7 +80749,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"8432f53cda6949ed7e7f9e07074fa84fd18ba7db9eff8b2b941c6e3d56bc8292\"",
+      "etag": "\"1f66ba4ee987bfe34c369a6629caf6afa366d7fca08a55a28b51e51bc3f55212\"",
       "body": {
         "assets": [
           {
@@ -80752,7 +81060,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"7b6117ef5c99977586c803ad8c4d09336f350cfe1c76a221c1f4aea6f815c24d\"",
+      "etag": "\"2fde027fc0ef8fdd6d15af33f6eca8ebc9fdc92bf951c3e0fdcbb0fd9a30c757\"",
       "body": [
         {
           "assets": [
@@ -84315,7 +84623,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"6fe6756c1d55c3d72eab5b134373c9f16046ca018e80266cbe36409d47b0fde6\"",
+      "etag": "\"5955666d4861b0a9a92ef675f6053db256825c052a3b33a527c0d9966fa0d62a\"",
       "body": {
         "assets": [
           {
@@ -84626,7 +84934,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"c8c92eaabfa7853168e108f54d178e589f0d5007a02905f76c90a471427a609a\"",
+      "etag": "\"f2d5f4277deadc996a6c019a1a3ed51007ddfd11495f94fd604114a0ca5d3835\"",
       "body": [
         {
           "assets": [
@@ -88877,7 +89185,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"fa5eb9154ade6342aee61eedb3959952ca9558da929077c52922e801cea6d4ca\"",
+      "etag": "\"7edc79e494e60d3c3b116df0161373bfa67797b3fa44359fcee1850e88ff1f31\"",
       "body": {
         "assets": [
           {
@@ -89188,7 +89496,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"5392c2de151baf28078a9ff17d606285c915230bd0241357073b61deb8b033d0\"",
+      "etag": "\"74e70866c63b199ce8bce4ddb7017c459c628468cc11f3edab1fec468dd12cae\"",
       "body": [
         {
           "assets": [
@@ -93931,7 +94239,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"3269b7b223db3bde280ee32fa4a2d72a76ec77567db1e7ac9ef1a87890587756\"",
+      "etag": "\"4344ee00e131d5ec5ebdb504a449def9a1c958ad7e9bb5c1dbb32ea66b15b418\"",
       "body": {
         "assets": [
           {
@@ -94266,7 +94574,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"b1d12dfa5780944cc24965a153cf94379b1f0461fe5e98a7d6121f66636fa78c\"",
+      "etag": "\"f7db46692b405e7984de737cb6953f4c20cac19e33f62bd2a674a701146fa2df\"",
       "body": [
         {
           "assets": [
@@ -97949,7 +98257,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"0d6b094c19a981d8bebcf3c1eccde50abc4bc2b89bd1607b37c027a279d3ccfd\"",
+      "etag": "\"ecbb2aba5ac57e0e5acac9f813bb036a09316c2f5aff9f581e561ea326323eb4\"",
       "body": {
         "assets": [
           {
@@ -98260,7 +98568,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"0c5e2fed6297971c3cc665075f9ccb738d1ce7a178063e9a30554808e5ce6f91\"",
+      "etag": "\"67aa01f3afc5a15b96e493aa92bd7cbd0bfaf724eabbdf3fae1f3a4545e3c825\"",
       "body": [
         {
           "assets": [
@@ -102299,7 +102607,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"2240ada25977cc7d8950c5e0384192e249daa1493c73fbd46fe9d94d47fcd07e\"",
+      "etag": "\"ff40950a4191342bd73f29a63af6e5eeff82557e2e495b884b9c165e9630e548\"",
       "body": {
         "assets": [
           {
@@ -102610,7 +102918,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"a8a0d447756586ba531772683a5268c65f0fd3a3050bd1eb42e5d7930b7f73e5\"",
+      "etag": "\"3af220e9bd6c9d088a0a46cdf3fb5b4f342a282158ff0962d7598160c73ca72d\"",
       "body": [
         {
           "assets": [
@@ -106361,7 +106669,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"feb888a9252582e3f7419392603becfc3e450c8342f5d6312b4fb988202b047d\"",
+      "etag": "\"b85cccb7d148d31f469a36037962c8cded67ce4d12f85701f598514045ebca0c\"",
       "body": {
         "assets": [
           {
@@ -106672,7 +106980,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"9165eaddea42ee239b17766f0fb454706eea88561ea6983b6278d82074f9d7fd\"",
+      "etag": "\"111b5f7764bf1258f023e8681022cb07005c0911deb9cdc44980329349143b92\"",
       "body": [
         {
           "assets": [
@@ -110555,7 +110863,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"c63e75ecd2597f9273cf2468140a2965a0651b54bad3169faabfaabe8f3f4b53\"",
+      "etag": "\"522bd03c5e278c09451bb735da124769d6701e54bb24cbb6a534948676298d3b\"",
       "body": {
         "assets": [
           {
@@ -110866,7 +111174,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"57677d7a6266cfa04b2f32e7af4aff89e8357bca2b39e43319de3fd8bc86f848\"",
+      "etag": "\"001d8ef56dfd3af8b3b6b8474e3bd39c55fbb398ca52d47ba4747a7f89c63738\"",
       "body": [
         {
           "assets": [
@@ -112629,7 +112937,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"8c4011fc2312e48c02e61c00e6a2fdc27ca34badd0a2c749112b5f70687db812\"",
+      "etag": "\"0b884949bb08a7ab5e5b53df4fe171ced60ce710fd80771e0eb57f4e74fa5300\"",
       "body": {
         "assets": [
           {
@@ -112964,7 +113272,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"0cc601cf36288416693cc7a5931ad231c92c683c8c75640d59b15c469bf44b5f\"",
+      "etag": "\"5e7a151d8614c4c0fa766162cb624bb2c0a9b18ddd18269d585b8ea423ba7f61\"",
       "body": [
         {
           "assets": [
@@ -117661,7 +117969,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"4e467afd55211a724f5045fddb5b1b5ac814d33f4a9d3f5a10b3f5c990e05c21\"",
+      "etag": "\"75a434f8d188f10a037e0d383069e18dfe61928d3c70387bda08b6854a42d70e\"",
       "body": {
         "assets": [
           {
@@ -117984,7 +118292,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"6aed2217f01bb6189586afa3fdcb59a0cc51557e0761f372373489f18f3a39c7\"",
+      "etag": "\"1fc589d3a35957ddd9f7bf42a055c6d24cb1f76775493679e65c40e221add41d\"",
       "body": [
         {
           "assets": [
@@ -122449,7 +122757,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"d31fb6408501978852df28e11a26ff3a7d4de783166cffbc97f340eb8c768f38\"",
+      "etag": "\"39ce2d33952026d56b93698516a3470931006b79f2334f905959bdaf0b5af1c5\"",
       "body": {
         "assets": [
           {
@@ -122760,7 +123068,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"0eb00a322173584f5c09c95f7c70365d0ffc8c842683b5e22f32d0d0b5c58250\"",
+      "etag": "\"02a640835f80ba79b0ba01f5580c102b7adda5de67375c1d11c9395995e64554\"",
       "body": [
         {
           "assets": [
@@ -126081,7 +126389,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"deb9cc8658d5ad8c6600d539864bbbac8169769d98ea2fc4394f38f2065f9212\"",
+      "etag": "\"7a7949d8c49cecb92a0e23e9244985c26d9513f2a1140c4c74363f441d77776e\"",
       "body": {
         "assets": [
           {
@@ -126392,7 +126700,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"f7475ab7c1d99ba0684d383c9bee8b0f0b27784651b8828d801cc22b87fe3c7c\"",
+      "etag": "\"1f56eaa5baa8cd0421fc9f659621977502e72530ffd0c660fc283668db32dbb3\"",
       "body": [
         {
           "assets": [
@@ -128357,7 +128665,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"703fada2314baae3fd93af627d90970af0b56dd7d71be9bfd7db0ea47e6c767c\"",
+      "etag": "\"0b880a82f3a0d52ac763cd9720b4a6d4ab5ae54600df3fa47635e8c53c409f4e\"",
       "body": {
         "assets": [
           {
@@ -128668,7 +128976,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"9f2505030a007f13f75c42e0052af0520bfd0062c4b901c875b388f469f34b77\"",
+      "etag": "\"3f856421486c1129db15773140a6b991dc8b1472d3ed2a27fde1ca4e940b5886\"",
       "body": [
         {
           "assets": [
@@ -133341,319 +133649,627 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"62b9ea49a5faf5a97ad06869ad3b10d239a4264201020acccb9c5a1b033bdcef\"",
+      "etag": "\"91e19d6c0275d1aba54fd8226e87376de3bc76e593f5b33a12d56c347cfbaddb\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/SHA256SUMS.txt",
-            "digest": "sha256:f0f8b9f14dfce0bdcd4216f554df00000aa38b704778bb56dcd150e34863ff2c",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt",
+            "digest": "sha256:393c04ba9ca9ec89e2f735e6908084350b40944d9374a7e39a6744501be3e6db",
             "name": "SHA256SUMS.txt",
             "size": 5076
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/SHA256SUMS.txt.asc",
-            "digest": "sha256:b9ca053e897f2ac90d2d1710c135acf4e225b99f0fb0b24d78fcd6ca2cc7e8cc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt.asc",
+            "digest": "sha256:5502a8fa4615978da6ecc34afad4aa54484293c75f1ea8f2158de5be63377947",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:e46bf7d87dfae3f65a1a79c1b1a9fa0f658ac484ea2e8bff7c8645f8be583a32",
-            "name": "wordcraft-0.17.0-freebsd-aarch64.tar.gz",
-            "size": 113536791
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+            "digest": "sha256:90f640706a1dd7e204ea8f5a2290d5d8a218441227e14ae747c1701deca8d2a0",
+            "name": "wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+            "size": 113700684
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:3d19d4286ce147014a1da0cb6e6217cde989a7d420b5886b7f289e853c9a6f17",
-            "name": "wordcraft-0.17.0-freebsd-x86_64.tar.gz",
-            "size": 117848546
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:4d003b7b4307acabf934b6517b7877f62a5e89edc155bdb8fc8d7dfbf9515d13",
+            "name": "wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+            "size": 118035443
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.AppImage",
-            "digest": "sha256:3b044e86d84180a05a488b42249311a9d1ed835190c13c4af11ceaf5879cedfc",
-            "name": "wordcraft-0.17.0-linux-aarch64.AppImage",
-            "size": 108468744
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage",
+            "digest": "sha256:27b392e21ffaffa3c3c12d37f345b8fd69801ece311fa69604a49e0786ca7095",
+            "name": "wordcraft-0.18.0-linux-aarch64.AppImage",
+            "size": 108718600
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.AppImage.asc",
-            "digest": "sha256:315f7ef4f7d77dc242a366cebd13a2266ba5e4f125dae2fa0b583601d1f209c3",
-            "name": "wordcraft-0.17.0-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.asc",
+            "digest": "sha256:d12d8dc721748ea9ef33433b111d94ff89169aceb3c6a8ff9136e5fe621ca0a7",
+            "name": "wordcraft-0.18.0-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:51038be9299fddc4c79499779b91942e25be0417c86824bf41bb6482038ce52b",
-            "name": "wordcraft-0.17.0-linux-aarch64.AppImage.zsync",
-            "size": 185624
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:cb9ce58c18981cda80564dbdaa59713d4763276c39c7402a6bc0f39bcca8b20d",
+            "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+            "size": 186051
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:73b4241033a7d707ce164207a517651d571ff4e8b5ff8a152e4a12bd98305ab0",
-            "name": "wordcraft-0.17.0-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:630c94ce72e8749664783b73d45f836d03daafe1b30d0d2ecfd0e1f8cec7bc17",
+            "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.deb",
-            "digest": "sha256:a187fbb2d2def8b1a1fd512322cc53638859692b162786c27570f9f68131b8f8",
-            "name": "wordcraft-0.17.0-linux-aarch64.deb",
-            "size": 117130734
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb",
+            "digest": "sha256:269df23e108ec29e13e89dbaa7036b2449348ee9cedbf5988b91a79c629f5ec6",
+            "name": "wordcraft-0.18.0-linux-aarch64.deb",
+            "size": 117323338
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.deb.asc",
-            "digest": "sha256:d2bc4ad72352fb5600f6fb15716dd6ebe49ef5867a1ba7aa110198fd3d062d55",
-            "name": "wordcraft-0.17.0-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb.asc",
+            "digest": "sha256:8bdd3ba5a7aaf760ed62f5b8fbb0a8289b88c62858dfcfeb1fb788fd1e2f1f54",
+            "name": "wordcraft-0.18.0-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.flatpak",
-            "digest": "sha256:7a8d94a961151fc7838fc7b34392bc0c7f60f2cb64ae0c27524f43a9007a6e9a",
-            "name": "wordcraft-0.17.0-linux-aarch64.flatpak",
-            "size": 80636752
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak",
+            "digest": "sha256:71f2460ff7483b16c0f719d5ce0602a1100dab9fc0dd7c877302bfd26dc9d5fd",
+            "name": "wordcraft-0.18.0-linux-aarch64.flatpak",
+            "size": 80791472
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.flatpak.asc",
-            "digest": "sha256:4bfa8d34b44652968da12bc8ca2278827de87c853cd8cd49b51546324e2e383a",
-            "name": "wordcraft-0.17.0-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak.asc",
+            "digest": "sha256:fa6a38ba13b1124efa91caea0744eb276da9ed607577da2dd23080630195feb4",
+            "name": "wordcraft-0.18.0-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:ef3fc34d4480cb8b2b545d926e038302cc064057e5415218d76db9b830b5a84b",
-            "name": "wordcraft-0.17.0-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:aea4c64ccbee0ec567fa3ad5eb579623eb7c71f1ab6732bcfcb06c7622a4df4b",
+            "name": "wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.oci.sig",
-            "digest": "sha256:7b7203272e4fb7d622a8478b4046bf69168ee426e2df7ab79b06488573879adf",
-            "name": "wordcraft-0.17.0-linux-aarch64.oci.sig",
-            "size": 386
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci.sig",
+            "digest": "sha256:b6f2aa10364011d1e52893844c7018d10e4268856aa9a29710b79999d1d4a760",
+            "name": "wordcraft-0.18.0-linux-aarch64.oci.sig",
+            "size": 378
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:433a79a3d5e62d7410d936c80be8378f512dd7126de2ad9e14e032519c55ad75",
-            "name": "wordcraft-0.17.0-linux-aarch64.pkg.tar.zst",
-            "size": 87759044
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:fee9df73f3ac134e576fcf57116f6abbf2dd6af420996b3bd92dcb5f5c114338",
+            "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+            "size": 87915582
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:547fd587e6af74bf937e8c969d1093bed2f43cad505b087002c78e61ee3ffc2d",
-            "name": "wordcraft-0.17.0-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:b68d1e730df6eefbab8b41c9cf2ec52068195518188f01fe6b8b55dfd26560bf",
+            "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.rpm",
-            "digest": "sha256:8480c4072e5c89a8bb0f34e1d134ca43d286bd35c13e222637733d955dbeaa55",
-            "name": "wordcraft-0.17.0-linux-aarch64.rpm",
-            "size": 116325835
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm",
+            "digest": "sha256:21670a6531f236ae7972e29515e82c0726b67ce0954da5f70bf7934c6ae7cb76",
+            "name": "wordcraft-0.18.0-linux-aarch64.rpm",
+            "size": 116521149
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.rpm.asc",
-            "digest": "sha256:7d602549cb5ef6de49616e6ca6dec8db6c9063005c3f0e2310ed8e817e35c8cc",
-            "name": "wordcraft-0.17.0-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm.asc",
+            "digest": "sha256:bd9d5d6b209e5278ac523b5a23a3854ba637e3306ec17afcca8a07d168b914ac",
+            "name": "wordcraft-0.18.0-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.tar.gz",
-            "digest": "sha256:c172dc50ce4d8b262e49f9f0ef4ba4f988c3bda1669c37b9dd6964e46c9e56db",
-            "name": "wordcraft-0.17.0-linux-aarch64.tar.gz",
-            "size": 114554702
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz",
+            "digest": "sha256:a38d61d1c47d274b6038c23d2dbcae882ba0d7b1008c08b601d56ad1aaa51821",
+            "name": "wordcraft-0.18.0-linux-aarch64.tar.gz",
+            "size": 114727066
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:8a39bbbb85bd02d8f25787b3b773bbbb87f0df2dc19d45dee333da43e4fc54f2",
-            "name": "wordcraft-0.17.0-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:ee2ae104226ceeae6bacdc446de5056b9e1b945e4eaf2f46e4cfec4e3749b289",
+            "name": "wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.deb",
-            "digest": "sha256:fb16cc360af4cd6c296f91f95de5a4ded6796aa4b16017ad1c3add3ad629a47c",
-            "name": "wordcraft-0.17.0-linux-riscv64.deb",
-            "size": 118163448
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb",
+            "digest": "sha256:5978cce203623a4b20e99ca50b74d05b9f5e178f0d7a4e69ce074f1c1ea3d3dd",
+            "name": "wordcraft-0.18.0-linux-riscv64.deb",
+            "size": 118391806
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.deb.asc",
-            "digest": "sha256:f90eaca574f3731387445ca3e57cd3d02f3b3582924530a3f69d1b90e499a931",
-            "name": "wordcraft-0.17.0-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb.asc",
+            "digest": "sha256:59276f9e29f4d12ab5089fbdacfc1f77cece4c4093cf1483adc9c4efaa3de55a",
+            "name": "wordcraft-0.18.0-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.rpm",
-            "digest": "sha256:5b70beed00c9cb60b07555dfdc2c5bdbbd4166e397e7be953f2f6d1d2ed52486",
-            "name": "wordcraft-0.17.0-linux-riscv64.rpm",
-            "size": 117715315
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm",
+            "digest": "sha256:f5093278c607b77ab8f7ec477ab6e8bc69cd531c248eef92575c9ec194d53923",
+            "name": "wordcraft-0.18.0-linux-riscv64.rpm",
+            "size": 117937982
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.rpm.asc",
-            "digest": "sha256:8ea9b103bb0c45c51df32b5100de9692eaad9554a5e1a7dc725fb10585ed0435",
-            "name": "wordcraft-0.17.0-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm.asc",
+            "digest": "sha256:ba02bc0f9b8745b577ead9f8957b5e824f5aa2871160b18ce33cfac22bfbec03",
+            "name": "wordcraft-0.18.0-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.tar.gz",
-            "digest": "sha256:c019849bfac4c82d35c9fefa86b92d440aed54e6cf258070a567638977161785",
-            "name": "wordcraft-0.17.0-linux-riscv64.tar.gz",
-            "size": 116682984
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz",
+            "digest": "sha256:ac035856bdc2f32ff76cc06b7eccfa189be20fe3b72bb9eee28e1e29de2efb71",
+            "name": "wordcraft-0.18.0-linux-riscv64.tar.gz",
+            "size": 116914215
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:52ce17f432d48b7a9127df2291b4f746c2b61eeb97e1b9d9c1ed7b33df164a29",
-            "name": "wordcraft-0.17.0-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:852652d225fba4e8af0cca36f188b7215c5ee63603026e7af95e1e87a0c4a367",
+            "name": "wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.AppImage",
-            "digest": "sha256:606b3ae330c767cfa192803dba8eb7b9d29c66cdf29d0cabde083f17f06ad16b",
-            "name": "wordcraft-0.17.0-linux-x86_64.AppImage",
-            "size": 111868408
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage",
+            "digest": "sha256:872dbcd6b3e55a06e770d2f457a872f09e8e50be7a1627b187dd8a2760569b37",
+            "name": "wordcraft-0.18.0-linux-x86_64.AppImage",
+            "size": 112007672
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.AppImage.asc",
-            "digest": "sha256:07eac41896f7f14a6d453d6d535eebc5309039a71ecf6a72ee30f61d43fbb033",
-            "name": "wordcraft-0.17.0-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.asc",
+            "digest": "sha256:515470c5f9fb402e7c739713cb304743b658d1ffca3ae9aa8b4405394f301cee",
+            "name": "wordcraft-0.18.0-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:b8d0dc78795b8600457dafea1eb37bd8fe1cb11f948321920a5a4ff22c70b12a",
-            "name": "wordcraft-0.17.0-linux-x86_64.AppImage.zsync",
-            "size": 191432
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:38acbecd9c8e63f31bd395dc77be84b33d8a68619cf59aab1e3969a293db3fe8",
+            "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+            "size": 191670
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:7081045ade3d7893c91bfed368a0c067aa708bebd5761a6859cbca8b9254d7da",
-            "name": "wordcraft-0.17.0-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:0bb581aaea2df4b1995a51c5532e94b7d4ba8587558368cbddb84a895e4fd7b9",
+            "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.deb",
-            "digest": "sha256:2761056ab7ba9aa5ed49bf56fb98df6081767686ff70e5c1c3e79a0c54591cfb",
-            "name": "wordcraft-0.17.0-linux-x86_64.deb",
-            "size": 119804940
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb",
+            "digest": "sha256:f78a56c793e8c091958671caa9de04f89fff4a0a14fa2cfce1b588ebbc81bdb9",
+            "name": "wordcraft-0.18.0-linux-x86_64.deb",
+            "size": 120022160
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.deb.asc",
-            "digest": "sha256:024f3df9c86f3b9b087bd731f36bd4627d222a37ba7bd22cd0ea9d3a4165036e",
-            "name": "wordcraft-0.17.0-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb.asc",
+            "digest": "sha256:9d0ff114cc9b64ccf850c3ef1a24326a11e3ebf224afbe65bd7790c231806336",
+            "name": "wordcraft-0.18.0-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.flatpak",
-            "digest": "sha256:4b2b09e05afcb671955bfe4a7d73dedbd433b946ac99efdb7cfcd50b02e70af6",
-            "name": "wordcraft-0.17.0-linux-x86_64.flatpak",
-            "size": 84635376
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak",
+            "digest": "sha256:9bcd53ce5a307e375173c9077f99eb94f9610ea03ae0d3bd58c71420bd02f966",
+            "name": "wordcraft-0.18.0-linux-x86_64.flatpak",
+            "size": 84775272
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.flatpak.asc",
-            "digest": "sha256:be226f5f13b44488c36996d4dbfcc658e5950a5dc07a871e1495f152a9617351",
-            "name": "wordcraft-0.17.0-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak.asc",
+            "digest": "sha256:24848e4d557ecdac538cf1b10f68a41faf086d2f56fb888cbae33c461251e295",
+            "name": "wordcraft-0.18.0-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:fb691ddaabeb8c7300b513a4ab967869be9f69207f57a7e455c327df406102b6",
-            "name": "wordcraft-0.17.0-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:8379601b6c4f2a47c09e9c6b61d26b19ddbce527cbc9a1499989256d3d5144c2",
+            "name": "wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.oci.sig",
-            "digest": "sha256:6fb258172b7a5affc2ac3530ab9070c0c91fb5a0594921c706b3d8e6c61eeaa7",
-            "name": "wordcraft-0.17.0-linux-x86_64.oci.sig",
-            "size": 383
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci.sig",
+            "digest": "sha256:14a39f6d55428238cfecae882770b687568d60f0f019e365ef63702160c74e86",
+            "name": "wordcraft-0.18.0-linux-x86_64.oci.sig",
+            "size": 382
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:08eea3640736c89774c38ff246fa3d735dc8579a68661e1b475fbd1e84e3e99d",
-            "name": "wordcraft-0.17.0-linux-x86_64.pkg.tar.zst",
-            "size": 90036416
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:d5efd5b690a2584ef0266ebf2fc311354df4099b03ea01141af0f94c32ba1d85",
+            "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+            "size": 90207895
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:5cfccf255fb8a187d03cac6e14c34b53f367658e79a6e26b36ef9d2cbc934596",
-            "name": "wordcraft-0.17.0-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:0fa5d30c536fef14e0bf5f2237abbffa96b9a6b41b895597a4c6cf9561b0e52b",
+            "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.rpm",
-            "digest": "sha256:6a2fe1f36b17251fef018a0de5dd9565a88777794f8ea5f9b8630bfd520ad8d4",
-            "name": "wordcraft-0.17.0-linux-x86_64.rpm",
-            "size": 119132566
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm",
+            "digest": "sha256:85701a718b36c4eafcccc09e77213b3464fe06970dbd1b5afba70ac905ab8756",
+            "name": "wordcraft-0.18.0-linux-x86_64.rpm",
+            "size": 119335598
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.rpm.asc",
-            "digest": "sha256:3ac3e113fc7e128c01da380e68a6afbd466c821fb310c6507363ffee5ebdaf24",
-            "name": "wordcraft-0.17.0-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm.asc",
+            "digest": "sha256:2db7db6733cfbbd3432feb1379b95528012d3426d9a44756c5534edd86959645",
+            "name": "wordcraft-0.18.0-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.tar.gz",
-            "digest": "sha256:9c744c0c31a3ce25df82680fc75e645d682846faccbe103f4f91a758b19f3687",
-            "name": "wordcraft-0.17.0-linux-x86_64.tar.gz",
-            "size": 118118832
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz",
+            "digest": "sha256:f29693e6036de94156cef42bcdbd64478a1aec2f396a4c2a15a7f7253e759226",
+            "name": "wordcraft-0.18.0-linux-x86_64.tar.gz",
+            "size": 118330240
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:f010977abb11ade83cd37abbe5f9c4b80cd3743274fce2f1adf9fe1849324bd7",
-            "name": "wordcraft-0.17.0-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:d6e47dcd720c3be22e6c35a17d42f6027d4eb76da429be1df7d94cba9a2f31c6",
+            "name": "wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-macos-universal.dmg",
-            "digest": "sha256:be5d89a23905c3a91df4d58f00f827ac06aa8c50cbeb41e6e7d9f7dfb864a58a",
-            "name": "wordcraft-0.17.0-macos-universal.dmg",
-            "size": 131826572
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-macos-universal.dmg",
+            "digest": "sha256:6f7dbf03a0b55bbb0e0cd2757d73cc417c9a6afb30bcb4ff56009c1ca039e74a",
+            "name": "wordcraft-0.18.0-macos-universal.dmg",
+            "size": 132181710
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-windows-arm64-portable.zip",
-            "digest": "sha256:da5e5a409502794e4a9834fb934d8dd14a2f53858f535fadcecea6642a1ba895",
-            "name": "wordcraft-0.17.0-windows-arm64-portable.zip",
-            "size": 114246203
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64-portable.zip",
+            "digest": "sha256:493cb7196834589a762a16ed02a5e7f5e775d8275ca94bad706accf8bf0b4ea3",
+            "name": "wordcraft-0.18.0-windows-arm64-portable.zip",
+            "size": 114457532
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-windows-arm64.msi",
-            "digest": "sha256:7daf2494ad65067f2381e33ea2b9fcc8fa16bebda8f89922418d37fd4f2d329f",
-            "name": "wordcraft-0.17.0-windows-arm64.msi",
-            "size": 91328512
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64.msi",
+            "digest": "sha256:6f3e33801641daa378bfa1413c64008aa2ca742bbc153ba060e929b6d10013e2",
+            "name": "wordcraft-0.18.0-windows-arm64.msi",
+            "size": 91435008
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-windows-x64-portable.zip",
-            "digest": "sha256:ad05af39d62504ddb382f93f9b7e2e7e9ce92938d132c18c4fb43e10822108ce",
-            "name": "wordcraft-0.17.0-windows-x64-portable.zip",
-            "size": 117678204
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64-portable.zip",
+            "digest": "sha256:3604ff087970f8e2ea982cd599b8036b52832ae7faf5221e9a95a5e6b4cd69b8",
+            "name": "wordcraft-0.18.0-windows-x64-portable.zip",
+            "size": 117972941
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-0.17.0-windows-x64.msi",
-            "digest": "sha256:7a98138fceaa422f110a1fa137f96640b1542cacdebf269db874971dcd4bdea3",
-            "name": "wordcraft-0.17.0-windows-x64.msi",
-            "size": 94769152
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64.msi",
+            "digest": "sha256:8a0bed4ddd40a96f6d7439a3bc7d9bebefe2507066b96ced67f4ef954174012c",
+            "name": "wordcraft-0.18.0-windows-x64.msi",
+            "size": 95031296
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-cli-0.17.0-macos-universal.zip",
-            "digest": "sha256:edb73c8562541df448884fcddc03540980a4a64939d363ab90b59a08b95b14d0",
-            "name": "wordcraft-cli-0.17.0-macos-universal.zip",
-            "size": 102822003
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-cli-0.18.0-macos-universal.zip",
+            "digest": "sha256:7df280ca934307fd80d389e2075bf00a042e09880f7200937b1829c8c5f30f19",
+            "name": "wordcraft-cli-0.18.0-macos-universal.zip",
+            "size": 103010992
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.17.0/wordcraft-web-0.17.0.zip",
-            "digest": "sha256:713f5e4b01427eb262c70e280e55d1354fa530e5a351b9751ebbe37398ea2ed0",
-            "name": "wordcraft-web-0.17.0.zip",
-            "size": 22431740
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-web-0.18.0.zip",
+            "digest": "sha256:a444046f649a50779b1b6a1b0db7e24facd906156ceecbcfa53bdbbbc89f0310",
+            "name": "wordcraft-web-0.18.0.zip",
+            "size": 22534993
           }
         ],
         "draft": false,
-        "name": "WordCraft v0.17.0",
+        "name": "WordCraft v0.18.0",
         "prerelease": false,
-        "tag_name": "v0.17.0"
+        "tag_name": "v0.18.0"
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"e4dfdffbe086f1671e452e66788b1ac19f8621dfbc942dab890ac71a3bc56ef3\"",
+      "etag": "\"e413d9b0e1ccd2290b4d194284d22488e8d623a1188d6f65c8e58eae5b77e001\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt",
+              "digest": "sha256:393c04ba9ca9ec89e2f735e6908084350b40944d9374a7e39a6744501be3e6db",
+              "name": "SHA256SUMS.txt",
+              "size": 5076
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:5502a8fa4615978da6ecc34afad4aa54484293c75f1ea8f2158de5be63377947",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:90f640706a1dd7e204ea8f5a2290d5d8a218441227e14ae747c1701deca8d2a0",
+              "name": "wordcraft-0.18.0-freebsd-aarch64.tar.gz",
+              "size": 113700684
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4d003b7b4307acabf934b6517b7877f62a5e89edc155bdb8fc8d7dfbf9515d13",
+              "name": "wordcraft-0.18.0-freebsd-x86_64.tar.gz",
+              "size": 118035443
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage",
+              "digest": "sha256:27b392e21ffaffa3c3c12d37f345b8fd69801ece311fa69604a49e0786ca7095",
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage",
+              "size": 108718600
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:d12d8dc721748ea9ef33433b111d94ff89169aceb3c6a8ff9136e5fe621ca0a7",
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:cb9ce58c18981cda80564dbdaa59713d4763276c39c7402a6bc0f39bcca8b20d",
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync",
+              "size": 186051
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:630c94ce72e8749664783b73d45f836d03daafe1b30d0d2ecfd0e1f8cec7bc17",
+              "name": "wordcraft-0.18.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb",
+              "digest": "sha256:269df23e108ec29e13e89dbaa7036b2449348ee9cedbf5988b91a79c629f5ec6",
+              "name": "wordcraft-0.18.0-linux-aarch64.deb",
+              "size": 117323338
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.deb.asc",
+              "digest": "sha256:8bdd3ba5a7aaf760ed62f5b8fbb0a8289b88c62858dfcfeb1fb788fd1e2f1f54",
+              "name": "wordcraft-0.18.0-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak",
+              "digest": "sha256:71f2460ff7483b16c0f719d5ce0602a1100dab9fc0dd7c877302bfd26dc9d5fd",
+              "name": "wordcraft-0.18.0-linux-aarch64.flatpak",
+              "size": 80791472
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:fa6a38ba13b1124efa91caea0744eb276da9ed607577da2dd23080630195feb4",
+              "name": "wordcraft-0.18.0-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:aea4c64ccbee0ec567fa3ad5eb579623eb7c71f1ab6732bcfcb06c7622a4df4b",
+              "name": "wordcraft-0.18.0-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.oci.sig",
+              "digest": "sha256:b6f2aa10364011d1e52893844c7018d10e4268856aa9a29710b79999d1d4a760",
+              "name": "wordcraft-0.18.0-linux-aarch64.oci.sig",
+              "size": 378
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:fee9df73f3ac134e576fcf57116f6abbf2dd6af420996b3bd92dcb5f5c114338",
+              "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst",
+              "size": 87915582
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:b68d1e730df6eefbab8b41c9cf2ec52068195518188f01fe6b8b55dfd26560bf",
+              "name": "wordcraft-0.18.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm",
+              "digest": "sha256:21670a6531f236ae7972e29515e82c0726b67ce0954da5f70bf7934c6ae7cb76",
+              "name": "wordcraft-0.18.0-linux-aarch64.rpm",
+              "size": 116521149
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:bd9d5d6b209e5278ac523b5a23a3854ba637e3306ec17afcca8a07d168b914ac",
+              "name": "wordcraft-0.18.0-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz",
+              "digest": "sha256:a38d61d1c47d274b6038c23d2dbcae882ba0d7b1008c08b601d56ad1aaa51821",
+              "name": "wordcraft-0.18.0-linux-aarch64.tar.gz",
+              "size": 114727066
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:ee2ae104226ceeae6bacdc446de5056b9e1b945e4eaf2f46e4cfec4e3749b289",
+              "name": "wordcraft-0.18.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb",
+              "digest": "sha256:5978cce203623a4b20e99ca50b74d05b9f5e178f0d7a4e69ce074f1c1ea3d3dd",
+              "name": "wordcraft-0.18.0-linux-riscv64.deb",
+              "size": 118391806
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.deb.asc",
+              "digest": "sha256:59276f9e29f4d12ab5089fbdacfc1f77cece4c4093cf1483adc9c4efaa3de55a",
+              "name": "wordcraft-0.18.0-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm",
+              "digest": "sha256:f5093278c607b77ab8f7ec477ab6e8bc69cd531c248eef92575c9ec194d53923",
+              "name": "wordcraft-0.18.0-linux-riscv64.rpm",
+              "size": 117937982
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:ba02bc0f9b8745b577ead9f8957b5e824f5aa2871160b18ce33cfac22bfbec03",
+              "name": "wordcraft-0.18.0-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz",
+              "digest": "sha256:ac035856bdc2f32ff76cc06b7eccfa189be20fe3b72bb9eee28e1e29de2efb71",
+              "name": "wordcraft-0.18.0-linux-riscv64.tar.gz",
+              "size": 116914215
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:852652d225fba4e8af0cca36f188b7215c5ee63603026e7af95e1e87a0c4a367",
+              "name": "wordcraft-0.18.0-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage",
+              "digest": "sha256:872dbcd6b3e55a06e770d2f457a872f09e8e50be7a1627b187dd8a2760569b37",
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage",
+              "size": 112007672
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:515470c5f9fb402e7c739713cb304743b658d1ffca3ae9aa8b4405394f301cee",
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:38acbecd9c8e63f31bd395dc77be84b33d8a68619cf59aab1e3969a293db3fe8",
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync",
+              "size": 191670
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:0bb581aaea2df4b1995a51c5532e94b7d4ba8587558368cbddb84a895e4fd7b9",
+              "name": "wordcraft-0.18.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb",
+              "digest": "sha256:f78a56c793e8c091958671caa9de04f89fff4a0a14fa2cfce1b588ebbc81bdb9",
+              "name": "wordcraft-0.18.0-linux-x86_64.deb",
+              "size": 120022160
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.deb.asc",
+              "digest": "sha256:9d0ff114cc9b64ccf850c3ef1a24326a11e3ebf224afbe65bd7790c231806336",
+              "name": "wordcraft-0.18.0-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak",
+              "digest": "sha256:9bcd53ce5a307e375173c9077f99eb94f9610ea03ae0d3bd58c71420bd02f966",
+              "name": "wordcraft-0.18.0-linux-x86_64.flatpak",
+              "size": 84775272
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:24848e4d557ecdac538cf1b10f68a41faf086d2f56fb888cbae33c461251e295",
+              "name": "wordcraft-0.18.0-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:8379601b6c4f2a47c09e9c6b61d26b19ddbce527cbc9a1499989256d3d5144c2",
+              "name": "wordcraft-0.18.0-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.oci.sig",
+              "digest": "sha256:14a39f6d55428238cfecae882770b687568d60f0f019e365ef63702160c74e86",
+              "name": "wordcraft-0.18.0-linux-x86_64.oci.sig",
+              "size": 382
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:d5efd5b690a2584ef0266ebf2fc311354df4099b03ea01141af0f94c32ba1d85",
+              "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst",
+              "size": 90207895
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:0fa5d30c536fef14e0bf5f2237abbffa96b9a6b41b895597a4c6cf9561b0e52b",
+              "name": "wordcraft-0.18.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm",
+              "digest": "sha256:85701a718b36c4eafcccc09e77213b3464fe06970dbd1b5afba70ac905ab8756",
+              "name": "wordcraft-0.18.0-linux-x86_64.rpm",
+              "size": 119335598
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:2db7db6733cfbbd3432feb1379b95528012d3426d9a44756c5534edd86959645",
+              "name": "wordcraft-0.18.0-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz",
+              "digest": "sha256:f29693e6036de94156cef42bcdbd64478a1aec2f396a4c2a15a7f7253e759226",
+              "name": "wordcraft-0.18.0-linux-x86_64.tar.gz",
+              "size": 118330240
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:d6e47dcd720c3be22e6c35a17d42f6027d4eb76da429be1df7d94cba9a2f31c6",
+              "name": "wordcraft-0.18.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-macos-universal.dmg",
+              "digest": "sha256:6f7dbf03a0b55bbb0e0cd2757d73cc417c9a6afb30bcb4ff56009c1ca039e74a",
+              "name": "wordcraft-0.18.0-macos-universal.dmg",
+              "size": 132181710
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64-portable.zip",
+              "digest": "sha256:493cb7196834589a762a16ed02a5e7f5e775d8275ca94bad706accf8bf0b4ea3",
+              "name": "wordcraft-0.18.0-windows-arm64-portable.zip",
+              "size": 114457532
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-arm64.msi",
+              "digest": "sha256:6f3e33801641daa378bfa1413c64008aa2ca742bbc153ba060e929b6d10013e2",
+              "name": "wordcraft-0.18.0-windows-arm64.msi",
+              "size": 91435008
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64-portable.zip",
+              "digest": "sha256:3604ff087970f8e2ea982cd599b8036b52832ae7faf5221e9a95a5e6b4cd69b8",
+              "name": "wordcraft-0.18.0-windows-x64-portable.zip",
+              "size": 117972941
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-0.18.0-windows-x64.msi",
+              "digest": "sha256:8a0bed4ddd40a96f6d7439a3bc7d9bebefe2507066b96ced67f4ef954174012c",
+              "name": "wordcraft-0.18.0-windows-x64.msi",
+              "size": 95031296
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-cli-0.18.0-macos-universal.zip",
+              "digest": "sha256:7df280ca934307fd80d389e2075bf00a042e09880f7200937b1829c8c5f30f19",
+              "name": "wordcraft-cli-0.18.0-macos-universal.zip",
+              "size": 103010992
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.0/wordcraft-web-0.18.0.zip",
+              "digest": "sha256:a444046f649a50779b1b6a1b0db7e24facd906156ceecbcfa53bdbbbc89f0310",
+              "name": "wordcraft-web-0.18.0.zip",
+              "size": 22534993
+            }
+          ],
+          "draft": false,
+          "name": "WordCraft v0.18.0",
+          "prerelease": false,
+          "tag_name": "v0.18.0"
+        },
         {
           "assets": [
             {
@@ -137107,7 +137723,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"1c75671bc5bbedee85c723a73709c215d9348c01ee1db1a48a1ff1f1587b5d63\"",
+      "etag": "\"96f84ac8b04f97070f00af726a60d4b83f0e72b4c1ae64c4c8b0d2a5bb865b1f\"",
       "body": {
         "assets": [
           {
@@ -137412,7 +138028,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"2a011d4f4aee9c59ee7e5c7e518a735c50b784f38d997cf53ec972c490d1949c\"",
+      "etag": "\"72a78c87fe8436c1cf2a2318c69c5838236bddc1e17027656dc00b71252aec0c\"",
       "body": [
         {
           "assets": [
@@ -156787,7 +157403,7 @@
       ]
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest": {
-      "etag": "\"34823ad2f2a2e816f599130c1dbf06e0f093d106e85f367f022605bba8afde39\"",
+      "etag": "\"f79c40e88bf4113bbd4ac989dd3877811b01f3629a137fdb263e7558b4bf1a99\"",
       "body": {
         "assets": [
           {
@@ -156948,7 +157564,7 @@
       }
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases?per_page=100&page=1": {
-      "etag": "\"745ee03052ba0837cc0259ff6fb17009d858e2dcc7bcc2f6e3b3bd2bf4cee8d9\"",
+      "etag": "\"58a90535d226f4a5596b1598821a035f1053efe13bc7704b9b757f83e270d31d\"",
       "body": [
         {
           "assets": [

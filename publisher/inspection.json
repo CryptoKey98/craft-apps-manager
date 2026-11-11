@@ -16562,6 +16562,34 @@
         "inspector_version": 1
       },
       "used": 1794424186
+    },
+    {
+      "repository": "storytold/wordcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "wordcraft-0.18.0-windows-arm64.msi",
+        "digest": "sha256:6f3e33801641daa378bfa1413c64008aa2ca742bbc153ba060e929b6d10013e2",
+        "size": 91435008,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794426622
+    },
+    {
+      "repository": "storytold/wordcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "wordcraft-0.18.0-windows-x64.msi",
+        "digest": "sha256:8a0bed4ddd40a96f6d7439a3bc7d9bebefe2507066b96ced67f4ef954174012c",
+        "size": 95031296,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794426623
     }
   ],
   "attempts": {
@@ -17389,6 +17417,8 @@
     "storytold/wordcraft:v0.16.0:wordcraft-0.16.0-windows-x86.msi:sha256:b04ac99fe8910be77dc387566b61c3dfdcc132a89df77d8f29dd8da1026cb1ff": 1794005357,
     "storytold/wordcraft:v0.17.0:wordcraft-0.17.0-windows-arm64.msi:sha256:7daf2494ad65067f2381e33ea2b9fcc8fa16bebda8f89922418d37fd4f2d329f": 1794229781,
     "storytold/wordcraft:v0.17.0:wordcraft-0.17.0-windows-x64.msi:sha256:7a98138fceaa422f110a1fa137f96640b1542cacdebf269db874971dcd4bdea3": 1794229782,
+    "storytold/wordcraft:v0.18.0:wordcraft-0.18.0-windows-arm64.msi:sha256:6f3e33801641daa378bfa1413c64008aa2ca742bbc153ba060e929b6d10013e2": 1794426620,
+    "storytold/wordcraft:v0.18.0:wordcraft-0.18.0-windows-x64.msi:sha256:8a0bed4ddd40a96f6d7439a3bc7d9bebefe2507066b96ced67f4ef954174012c": 1794426622,
     "storytold/wordcraft:v0.3.0:wordcraft-0.3.0-windows-arm64.msi:sha256:a17f5b8d3213c9462694dba532dc99f6148e75ffc79785bdb0c7d285e1b2b161": 1793540006,
     "storytold/wordcraft:v0.3.0:wordcraft-0.3.0-windows-x64.msi:sha256:9ef44bc198d361f30ad986bf056c4d255df032d3cb1b5ab23a75de2b20a7de0c": 1793536764,
     "storytold/wordcraft:v0.3.0:wordcraft-0.3.0-windows-x86.msi:sha256:573d96894424ef7fc262f614e1b71d552d637ceea0d3cddbea20f75156fddc31": 1793536765,
