@@ -16618,6 +16618,34 @@
         "inspector_version": 1
       },
       "used": 1794433292
+    },
+    {
+      "repository": "storytold/photocraft",
+      "evidence": {
+        "tag": "v0.23.0",
+        "asset_name": "photocraft-0.23.0-windows-arm64.msi",
+        "digest": "sha256:e262ca15dd0d51521526785e9de7c6ea1fffa07db2d0c20e269cf84bc9e2dbc2",
+        "size": 111538176,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794434504
+    },
+    {
+      "repository": "storytold/photocraft",
+      "evidence": {
+        "tag": "v0.23.0",
+        "asset_name": "photocraft-0.23.0-windows-x64.msi",
+        "digest": "sha256:eac24e0e5a675c3cb50d25752138d63c405f0fb9482163968f0553d04653c789",
+        "size": 118390784,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794434505
     }
   ],
   "attempts": {
@@ -17251,6 +17279,8 @@
     "storytold/photocraft:v0.21.0:photocraft-0.21.0-windows-x86.msi:sha256:d6e04d7f889b61ff01a297b479dce2d13f93df3b4a61a8cddafdb2f41a9dbb76": 1794003820,
     "storytold/photocraft:v0.22.0:photocraft-0.22.0-windows-arm64.msi:sha256:de1e0cb544c736a6372f751b535b0552bd202152312053516bab533e2d09bafa": 1794229776,
     "storytold/photocraft:v0.22.0:photocraft-0.22.0-windows-x64.msi:sha256:d74e766ee6dbd14b81bb329dfc21facd71d907e6828079f79ce7728995c477f1": 1794229777,
+    "storytold/photocraft:v0.23.0:photocraft-0.23.0-windows-arm64.msi:sha256:e262ca15dd0d51521526785e9de7c6ea1fffa07db2d0c20e269cf84bc9e2dbc2": 1794434498,
+    "storytold/photocraft:v0.23.0:photocraft-0.23.0-windows-x64.msi:sha256:eac24e0e5a675c3cb50d25752138d63c405f0fb9482163968f0553d04653c789": 1794434504,
     "storytold/photocraft:v0.3.0:photocraft-0.3.0-windows-arm64.msi:sha256:990a6c05a5a3de92ed4e1410546624db8f1eb696589db15beeca730e268d1316": 1793539975,
     "storytold/photocraft:v0.3.0:photocraft-0.3.0-windows-x64.msi:sha256:2b3e1bfdacfb597c1cab783c9ed14ed59854cc4bf11f333973d1c823d77e9db6": 1793536587,
     "storytold/photocraft:v0.3.0:photocraft-0.3.0-windows-x86.msi:sha256:7294cce12465d9755b776f1c558050367c49c795af84fba28e4428f73404d18f": 1793536590,

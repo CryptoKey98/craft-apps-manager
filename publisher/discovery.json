@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1794433271,
+      "checked_at": 1794434478,
       "latest_tag": "v0.2.0",
       "releases": [
         {
@@ -637,7 +637,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1794433271,
+      "checked_at": 1794434479,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -1722,7 +1722,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1794433272,
+      "checked_at": 1794434479,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -5469,7 +5469,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1794433273,
+      "checked_at": 1794434481,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -9034,7 +9034,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1794433274,
+      "checked_at": 1794434482,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -13287,7 +13287,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1794433275,
+      "checked_at": 1794434483,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -18032,7 +18032,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1794433276,
+      "checked_at": 1794434484,
       "latest_tag": "v0.17.0",
       "releases": [
         {
@@ -21717,7 +21717,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1794433277,
+      "checked_at": 1794434486,
       "latest_tag": "v0.20.0",
       "releases": [
         {
@@ -25758,7 +25758,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1794433278,
+      "checked_at": 1794434487,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -29511,7 +29511,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1794433279,
+      "checked_at": 1794434488,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -33704,7 +33704,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1794433280,
+      "checked_at": 1794434489,
       "latest_tag": "v0.4.0",
       "releases": [
         {
@@ -35469,7 +35469,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1794433281,
+      "checked_at": 1794434490,
       "latest_tag": "v0.21.0",
       "releases": [
         {
@@ -40168,9 +40168,329 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1794433282,
-      "latest_tag": "v0.22.0",
+      "checked_at": 1794434491,
+      "latest_tag": "v0.23.0",
       "releases": [
+        {
+          "tag_name": "v0.23.0",
+          "name": "PhotoCraft v0.23.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "photocraft-0.23.0-freebsd-aarch64.tar.gz",
+              "size": 130952067,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:84dcf35a1000950a6b10312064de69a18e2e761c6f8a969c75ad121c0e6773ef"
+            },
+            {
+              "name": "photocraft-0.23.0-freebsd-x86_64.tar.gz",
+              "size": 138480224,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:7cb40f76c2197bf924db7e9d807916a2664c58f36450a8b2439d3be0fec6bd2d"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage",
+              "size": 126609928,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage",
+              "digest": "sha256:b76cdd4bcf0b27e7128d9035c5e2aaff5128198e0606870d0dd948be99c43664"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:f5e424f489f7e41f2a89237859f4774b57f8f479d88c9363287b81b306a41377"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+              "size": 216629,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:66dc37c5f6a159697e47ce5d13bde7a5d00927ef24b1fb29fd883e53ad69303a"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:c792181de1eee349038aeb5dbae4e27ac8243454bb542eea40bf0676e8666944"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.deb",
+              "size": 137007506,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb",
+              "digest": "sha256:97c207a0efbfa0813663aec1b4c16cca25bb61a6cf38de122e6c68c5162b0fdb"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb.asc",
+              "digest": "sha256:91009db6628d40d90ea1a8a8a2ce079849981e72343be59c18d4d74648b4fda5"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.flatpak",
+              "size": 97807328,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak",
+              "digest": "sha256:0732e567bd84d5db41b06577a3c66e78b5f971222b29fde5a2714211753e86d3"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:be7d0241fbed35c7e4a990f81606b84ac8eeb13a0b8f75a8d352eac678175542"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:8bdfea0a3fb0617218d326f8d95fada5c6c9a4cf645bb76a2a79e231300a6589"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.oci.sig",
+              "size": 389,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci.sig",
+              "digest": "sha256:119d55dc60f38b4252076d7af4c2938d1403bf6d4b6544580e63587f5c53be06"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+              "size": 107148786,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9abb247b6a52e136bb68049158a078f8b74a5cbc2f61cd391f1113061676f1d6"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:2f3b760762cd93e839754010f863a1d821dd269c05b924ab57189c32fa746774"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.rpm",
+              "size": 135793495,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm",
+              "digest": "sha256:7f765cb0f9c6be7e20f3c47fb3f370a5237a051a4e5f924296ba1cd8b513e370"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:c94d44c36ff22cee4cd4199518ef469bb0c2c9c4a2f9407a3da2c742fd3c14b0"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.tar.gz",
+              "size": 133361996,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz",
+              "digest": "sha256:2ce8978292d3148e18526b540b6d0cf5ea9b9a4b782d345cca4d3c03e8ba751c"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:f746b6785a8abce00ddce38cf5571dc164cde3707e8e764d615d3e8aac0e3670"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.deb",
+              "size": 138480264,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb",
+              "digest": "sha256:62bfde49979f0ac13f939d1d8aeae9c43c00513d8633d9b12c0884ca291e8ba2"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb.asc",
+              "digest": "sha256:edfd3c9a1e30edd7698a7c9d4e29104796ce677e7068dc4baa3914bcc175fa3c"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.rpm",
+              "size": 137821789,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm",
+              "digest": "sha256:580074d7279ffa515a8c4c4959bb1d99cefabead58457ff2fed940b193dc61c1"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:61697b87e44a7c97b16018b7fcb6a9bf8196888f5ec977c6de4fe647316c6b00"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.tar.gz",
+              "size": 136569776,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz",
+              "digest": "sha256:79e065c5dbe8362a792a0239310bbbb66a5e64d88c43a24c8be7e46161e613d7"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:65085c6759bf3dccccd0820298098251bed55c3631b8361c75475158f12eb3a9"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage",
+              "size": 132078072,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage",
+              "digest": "sha256:2419663622c98f16c461dafabeb4df7923d2ec4e4a6c7e001a1df8a2804d93c3"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:87d850c827ac5230892961ead86d52a785ca99dbc4cde9636b7949179fad9f00"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+              "size": 225972,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:49b3af4c5374e18ee23ee8cfdf909e51ac071c150f172704ea2c82dcb93a7e9b"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:9cdfa5a12df641e74b7b941db04a50e371f9a51fb3d5acb0f11079cda09cf7a6"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.deb",
+              "size": 141548538,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb",
+              "digest": "sha256:f23c8f9e71ec991702f6286f3025a53360f200b6c85a219efb8d84eaf3c1d6c1"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb.asc",
+              "digest": "sha256:11f9803c8d51041ec87ce4664352b9f8be5b6bb7c1b7450ee5bd99b293449478"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.flatpak",
+              "size": 104503608,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak",
+              "digest": "sha256:bbb7ce7707f93b85b253b3fd8a09608c4e8cc56ca9418eb7ef881187053db291"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:60720af0772fc27e7eec7cb1cb2d4e8a6a764da4e2f4a29ee90ca8ae71e32e96"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:307b5ddcfd792225fa2d77533bf0c39e05354da89445c206cd970e76240f221f"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.oci.sig",
+              "size": 383,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci.sig",
+              "digest": "sha256:679e932a5be3e8156178d3f1547dc2f2330b5da45fb4b0a98f037750d08c3460"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+              "size": 111041418,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:74179d3d3ce9098b0cfe10f09a05144a9ae1f226fdb3777e0624351124ed846d"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:c104c24199ce93a3a0caec1641bbe3d2713acd5b67164538f82b7db3d17dca73"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.rpm",
+              "size": 140572461,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm",
+              "digest": "sha256:5641651c10215cd8ca701154bed36a7d5fd76721af72bf7b3250fd9af49b4602"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:33d3d74ae4d52b585b08bf0d3ba2bc388df30a382d1c924062a375e26f24c4ed"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.tar.gz",
+              "size": 139403559,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz",
+              "digest": "sha256:9858ee234854f7c390f3eab4734aea53100cc912c2c8dceaa029427b75dd22f8"
+            },
+            {
+              "name": "photocraft-0.23.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:cb3b4736b259d5ab92bc3eca6df8b6c1f6d51aafb282590e432134efd18b78cd"
+            },
+            {
+              "name": "photocraft-0.23.0-macos-universal.dmg",
+              "size": 274134041,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-macos-universal.dmg",
+              "digest": "sha256:8ca761f3e9af4d932cc6efdd6ecbfa22128153ba30cce955547ca6256e61516d"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-arm64-portable.zip",
+              "size": 136321892,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-portable.zip",
+              "digest": "sha256:6337b01f504f259d839184e9be805f1a243f21aa592274af0da1a6802fdd1d84"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-arm64-symbols.zip",
+              "size": 6759624,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-symbols.zip",
+              "digest": "sha256:2302f42ff4282158d52ca3a6580c510349d3a5723cdbad920b1d1c0df6f99dbe"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-arm64.msi",
+              "size": 111538176,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64.msi",
+              "digest": "sha256:e262ca15dd0d51521526785e9de7c6ea1fffa07db2d0c20e269cf84bc9e2dbc2"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-x64-portable.zip",
+              "size": 143076507,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-portable.zip",
+              "digest": "sha256:36ba00f818f5ce307478242bae577d747e7a09d47a9a7316cce834e37a9049fd"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-x64-symbols.zip",
+              "size": 7259461,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-symbols.zip",
+              "digest": "sha256:951840bfb4dacf1eb841e340def133f85927a01ce6b0226b248c4956b7ddb044"
+            },
+            {
+              "name": "photocraft-0.23.0-windows-x64.msi",
+              "size": 118390784,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64.msi",
+              "digest": "sha256:eac24e0e5a675c3cb50d25752138d63c405f0fb9482163968f0553d04653c789"
+            },
+            {
+              "name": "photocraft-cli-0.23.0-macos-universal.zip",
+              "size": 120430132,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-cli-0.23.0-macos-universal.zip",
+              "digest": "sha256:4b5ce645ce682960afbbece76d188f51ec58500f3ed52f1beb0d8d5121f0f977"
+            },
+            {
+              "name": "photocraft-web-0.23.0.zip",
+              "size": 16041654,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-web-0.23.0.zip",
+              "digest": "sha256:363cb0c04462f277012d603b4ce5d18cae9f841a2398546142230e86b365b7bc"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5341,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt",
+              "digest": "sha256:8eaf0613d88ed884633b98c16464eefae5d94a4529ce3b0927bbb9d25bb82896"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:c7346033522331fc5651481403e289d0678c8c1ad99a2fea6eae6440512519c4"
+            }
+          ]
+        },
         {
           "tag_name": "v0.22.0",
           "name": "PhotoCraft v0.22.0",
@@ -44635,7 +44955,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1794433283,
+      "checked_at": 1794434492,
       "latest_tag": "v0.19.0",
       "releases": [
         {
@@ -47958,7 +48278,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1794433283,
+      "checked_at": 1794434493,
       "latest_tag": "v0.6.0",
       "releases": [
         {
@@ -49925,7 +50245,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1794433284,
+      "checked_at": 1794434494,
       "latest_tag": "v0.24.0",
       "releases": [
         {
@@ -54600,7 +54920,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1794433285,
+      "checked_at": 1794434495,
       "latest_tag": "v0.18.0",
       "releases": [
         {
@@ -58365,7 +58685,7 @@
       "error": null
     },
     "tangency-labs/solidcraft": {
-      "checked_at": 1794433288,
+      "checked_at": 1794434497,
       "latest_tag": "v0.30.1",
       "releases": [
         {
@@ -71632,7 +71952,7 @@
       "error": null
     },
     "ucs-care-group/mailcraft": {
-      "checked_at": 1794433289,
+      "checked_at": 1794434498,
       "latest_tag": "v0.11.1",
       "releases": [
         {
@@ -74687,7 +75007,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"3e6c774da97aef37a6b489b134f0160a6c7a464617b8f335fa16043b7fa80d00\"",
+      "etag": "\"1bb1fe4b6f5d65af09664b347eb6e0ad815d31e262b3717d1ba1c6879d912cb7\"",
       "body": {
         "assets": [
           {
@@ -75004,7 +75324,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"ecf7dd612e8db4a87d00e3ef056a455b536982531f21fbd19e62d901343dfa70\"",
+      "etag": "\"2caaff0fbd3c01d247a9757803e36f863a01fe676a4055de04b25191baf40747\"",
       "body": [
         {
           "assets": [
@@ -75637,7 +75957,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"63e175b01caefa46b3a1a43299399d7cc4d4a0da86eb59854dbea9bbc7982f3e\"",
+      "etag": "\"d1320eb03f02d0078fb0eb8504212d9c8bd2b954824557cd3e5fd119231ab635\"",
       "body": {
         "assets": [
           {
@@ -75918,7 +76238,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"c2788098cf57d92f403b05c2de8fc77a095cd6034349c5513dd7af0dc4e52251\"",
+      "etag": "\"bbfb8a7c9620c84e0eba382ec15d63814dce29b7343707c0eae665152e214a8a\"",
       "body": [
         {
           "assets": [
@@ -77001,7 +77321,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"2dcf7ebfbe3aecb675dc61ef55235cd9422e8bd9490b6598f82460f009668dee\"",
+      "etag": "\"a0891d11453f55852a513e1ce39705f49c2d9d285ab30064651ca7b27cf50b66\"",
       "body": {
         "assets": [
           {
@@ -77312,7 +77632,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"8b030177b7e4c46570caad09b2269a7385daf5ff24fe80a7e9737a60e5df20eb\"",
+      "etag": "\"e873016e0f5e3a9dc367f9e51417cbe803395f2f150d7eab3c0d4eb9a1c33f81\"",
       "body": [
         {
           "assets": [
@@ -81057,7 +81377,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"5440c8220fb0ea03dda65cddde5f68524f9fbe11a3c693801751436a88f5eed2\"",
+      "etag": "\"ce69190cab2f68789361f6ca769113ddf08a5df5473c567882ff7e04d73245bd\"",
       "body": {
         "assets": [
           {
@@ -81368,7 +81688,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"15607acb32ad0a8ac5abf4927c5cebb102dadaa27c83de5028f442eff28f0c31\"",
+      "etag": "\"668922b1d2c492a00c2f73660d0710a5537af6d285f97a0b9b2368e67444f80c\"",
       "body": [
         {
           "assets": [
@@ -84931,7 +85251,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"414513d2d4b131c5a20e95cd02446a0e2262e3413e3090e3ba4f909419b6fe98\"",
+      "etag": "\"fef6c8b1afba8310a89e3807e1961b1e82567e436e5dbe501a4aad98b5bc7e86\"",
       "body": {
         "assets": [
           {
@@ -85242,7 +85562,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"096403170a4c5d1764f489c8aa31d59b93b0554502abd972084164c0da99f426\"",
+      "etag": "\"aa5eb931f4b30bf0a07740139b9ea22718819fb6858dc628ab7c2931622073a7\"",
       "body": [
         {
           "assets": [
@@ -89493,7 +89813,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"3948b506eab2b206f7e4c6319f3d666d729ec7884def97711c96e0abee48ce63\"",
+      "etag": "\"61fce79a2bab0451aab9c92bbad120e678beac5f81d44e1b14fddcd3bca0bc84\"",
       "body": {
         "assets": [
           {
@@ -89804,7 +90124,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"129f878059599639678ac0e01de6f539ac8c5313dbf18e4fb1b6b366fab3a820\"",
+      "etag": "\"d5fd4d127fce65767a8db5140fdcf3f0e0451eea17a91b3dac4fa54707a4511d\"",
       "body": [
         {
           "assets": [
@@ -94547,7 +94867,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"656668f6eaaac45eb84dc4b283323800e3144cd8292d057e4068cc4a72afbc0d\"",
+      "etag": "\"503524ae1aea4ae6eab726e8c197dd1c88148f8b329cd890e9dbb6847a6aa3a4\"",
       "body": {
         "assets": [
           {
@@ -94882,7 +95202,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"48895a523738d8f556f5f8aef5ec8cdffa876b281981814d2f260144ef3a7c32\"",
+      "etag": "\"7a919817bc7c7273e23ce31527f8c30671056cbefb99009050db7c2ae7bf63e2\"",
       "body": [
         {
           "assets": [
@@ -98565,7 +98885,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"400284917155300b530fee9e9b941a07b0affecc0000e59299d8152726b7dd96\"",
+      "etag": "\"2134587896eb9f00699fdc345ae5bf39162c171f724eaed56bd5635a1e501039\"",
       "body": {
         "assets": [
           {
@@ -98876,7 +99196,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"bb0f1998ff41bf0dd7cd23496a1694c70375af08132175739d37c6bd1c1565dc\"",
+      "etag": "\"210a94f1120fbc40649dda27ea66d9ee516e0521f1050d9cfd6b8218d50613f4\"",
       "body": [
         {
           "assets": [
@@ -102915,7 +103235,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"a1ffc7bbe1b947ef6c74b2e8e20363092bfb14abdd2655a7af86d1e8720b5f17\"",
+      "etag": "\"c9fd864bcf1c17435269a09c8997dbb59e5b03993747f382c4297ae6fc86d055\"",
       "body": {
         "assets": [
           {
@@ -103226,7 +103546,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"9775822ccd40da2504a1a48c17d22e86a94bc31e83e6b76f445d3bf2c8930e34\"",
+      "etag": "\"94da1e87e4215e85626dd2f6dae8560917dc8d371634bc10edbe3f3a91088991\"",
       "body": [
         {
           "assets": [
@@ -106977,7 +107297,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"06acb9dd5d9c496b4c4403e23dcd223aedb6fef156a6755eda9c8e7ad7b1d334\"",
+      "etag": "\"838e5e23e926dda866d5f9ec862230f6d778a3a0f132dc0bcf01fbcc8d84d122\"",
       "body": {
         "assets": [
           {
@@ -107288,7 +107608,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"eb25d43c4f0a709d3346561e5f1ea580e8d9dcc48a2e0c633825109c2a3f69f3\"",
+      "etag": "\"48dbb3094981ae1af5dab6277139e55a2df622a5d8135eb9d3d80eb3fae62a88\"",
       "body": [
         {
           "assets": [
@@ -111479,7 +111799,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"0548e166fa552be012a41dd9888d642f5954e4acafdbb199fc5fc92283a8950b\"",
+      "etag": "\"da34fd57232ea0c2a751dbe46793d40d7f5b255565c3f5bdab25920a00065da4\"",
       "body": {
         "assets": [
           {
@@ -111790,7 +112110,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"9f14047296f3e45ca0aa0dc9615aa7d0553040321376607cb75326ec45ccd43c\"",
+      "etag": "\"489a0af4d1a7f5a3faffef4cbab554a967bb4c0a6f2f1dcf7b427c14c8184b8f\"",
       "body": [
         {
           "assets": [
@@ -113553,7 +113873,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"66f34ed2e495d20132742171729df3dbc1f90b2890f9e4a0723001fdd0a16e2d\"",
+      "etag": "\"4b00dc16246280e4e6162ebef7ec8cf49776831412ca67025c63264251f3a580\"",
       "body": {
         "assets": [
           {
@@ -113888,7 +114208,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"96c7807d82a390bebe3db4b33cc46eac174ca7d0b15e2f9a8cc4cc1f6a46f558\"",
+      "etag": "\"8ed65e70a0115882397dc4adab2b9ea6eab9fc650137d2f3266fb39a6ef865b6\"",
       "body": [
         {
           "assets": [
@@ -118585,331 +118905,651 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"6d28a746d157b6c6183df2c7f6c28741a104df9b0c3c4e699a49f3c023d6860b\"",
+      "etag": "\"217d38cff881c11bab1649430983f4087e13b600b66a909826aac3254596476f\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-freebsd-aarch64.tar.gz",
-            "digest": "sha256:93b7381312816bce4b18db9175b44b0fc45d7a8cc97c8343eea056a79290b2e5",
-            "name": "photocraft-0.22.0-freebsd-aarch64.tar.gz",
-            "size": 129016004
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-aarch64.tar.gz",
+            "digest": "sha256:84dcf35a1000950a6b10312064de69a18e2e761c6f8a969c75ad121c0e6773ef",
+            "name": "photocraft-0.23.0-freebsd-aarch64.tar.gz",
+            "size": 130952067
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:3b1c455d81d4ba2f0bf073e49f228c349fa77f055b36874fff030e72bef7dd3b",
-            "name": "photocraft-0.22.0-freebsd-x86_64.tar.gz",
-            "size": 136291143
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:7cb40f76c2197bf924db7e9d807916a2664c58f36450a8b2439d3be0fec6bd2d",
+            "name": "photocraft-0.23.0-freebsd-x86_64.tar.gz",
+            "size": 138480224
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.AppImage",
-            "digest": "sha256:8972885159ee575507e02d7c3d784ba2a6598a3ed20469d72586c8b9a69d6663",
-            "name": "photocraft-0.22.0-linux-aarch64.AppImage",
-            "size": 124889608
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage",
+            "digest": "sha256:b76cdd4bcf0b27e7128d9035c5e2aaff5128198e0606870d0dd948be99c43664",
+            "name": "photocraft-0.23.0-linux-aarch64.AppImage",
+            "size": 126609928
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.AppImage.asc",
-            "digest": "sha256:1c618532de560e9c5107e4d97b6a76adba61d4862490d8dac72875fbefae37c4",
-            "name": "photocraft-0.22.0-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.asc",
+            "digest": "sha256:f5e424f489f7e41f2a89237859f4774b57f8f479d88c9363287b81b306a41377",
+            "name": "photocraft-0.23.0-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:5f4e479ea6d3dfe464006b74b1351c9852e6a62a32a19e77393fce3fb666b96f",
-            "name": "photocraft-0.22.0-linux-aarch64.AppImage.zsync",
-            "size": 213689
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:66dc37c5f6a159697e47ce5d13bde7a5d00927ef24b1fb29fd883e53ad69303a",
+            "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+            "size": 216629
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:b406fad9078b217317020951ee032bf97a9d549324a6f5b41e8f381d480c4209",
-            "name": "photocraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:c792181de1eee349038aeb5dbae4e27ac8243454bb542eea40bf0676e8666944",
+            "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.deb",
-            "digest": "sha256:a33dd61368896efbcc06455232c0e9af677f47505ea6f6e43333da9d12dc9d9b",
-            "name": "photocraft-0.22.0-linux-aarch64.deb",
-            "size": 134955440
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb",
+            "digest": "sha256:97c207a0efbfa0813663aec1b4c16cca25bb61a6cf38de122e6c68c5162b0fdb",
+            "name": "photocraft-0.23.0-linux-aarch64.deb",
+            "size": 137007506
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.deb.asc",
-            "digest": "sha256:db4fba385fe1dde0bcb7c3aa207c5b45d85d204f9c9337e0deddc2e32d7854a4",
-            "name": "photocraft-0.22.0-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb.asc",
+            "digest": "sha256:91009db6628d40d90ea1a8a8a2ce079849981e72343be59c18d4d74648b4fda5",
+            "name": "photocraft-0.23.0-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.flatpak",
-            "digest": "sha256:f74a13fa10d44ba1e7700480595fdcb282762808d3872c4ba86c714e5476c825",
-            "name": "photocraft-0.22.0-linux-aarch64.flatpak",
-            "size": 96794656
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak",
+            "digest": "sha256:0732e567bd84d5db41b06577a3c66e78b5f971222b29fde5a2714211753e86d3",
+            "name": "photocraft-0.23.0-linux-aarch64.flatpak",
+            "size": 97807328
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.flatpak.asc",
-            "digest": "sha256:7a7b5cd8f96cbcdea181318b6e43934a7772f05847ca1130c95eee69f6581494",
-            "name": "photocraft-0.22.0-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak.asc",
+            "digest": "sha256:be7d0241fbed35c7e4a990f81606b84ac8eeb13a0b8f75a8d352eac678175542",
+            "name": "photocraft-0.23.0-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:dd75b78dc1e000d94e8bab70398fe0bef306110867dc4971bae986cf2b6916ed",
-            "name": "photocraft-0.22.0-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:8bdfea0a3fb0617218d326f8d95fada5c6c9a4cf645bb76a2a79e231300a6589",
+            "name": "photocraft-0.23.0-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.oci.sig",
-            "digest": "sha256:79176a91c2d9f3f0f1c5d9cc84da1795f42d11d763fe2d70ac887dd904c39f2a",
-            "name": "photocraft-0.22.0-linux-aarch64.oci.sig",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci.sig",
+            "digest": "sha256:119d55dc60f38b4252076d7af4c2938d1403bf6d4b6544580e63587f5c53be06",
+            "name": "photocraft-0.23.0-linux-aarch64.oci.sig",
             "size": 389
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:0a835cb3f74576f92f9485b30797529351822ffaaa9e977c083d929cbd42b636",
-            "name": "photocraft-0.22.0-linux-aarch64.pkg.tar.zst",
-            "size": 106306596
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:9abb247b6a52e136bb68049158a078f8b74a5cbc2f61cd391f1113061676f1d6",
+            "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+            "size": 107148786
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:bc2d9242862dcfdfe9f9e349e64a2294011eae475391aad22356a09f319916b8",
-            "name": "photocraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:2f3b760762cd93e839754010f863a1d821dd269c05b924ab57189c32fa746774",
+            "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.rpm",
-            "digest": "sha256:5aac72fe484fbeee91f81ebd5426e32d2b84d73ad0e7e78ac95edbf1ab0a2a9f",
-            "name": "photocraft-0.22.0-linux-aarch64.rpm",
-            "size": 133790409
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm",
+            "digest": "sha256:7f765cb0f9c6be7e20f3c47fb3f370a5237a051a4e5f924296ba1cd8b513e370",
+            "name": "photocraft-0.23.0-linux-aarch64.rpm",
+            "size": 135793495
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.rpm.asc",
-            "digest": "sha256:a99cef2801ef84914bbd0e83469be22d286ad8aacb498ed0f4489d9888f06815",
-            "name": "photocraft-0.22.0-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm.asc",
+            "digest": "sha256:c94d44c36ff22cee4cd4199518ef469bb0c2c9c4a2f9407a3da2c742fd3c14b0",
+            "name": "photocraft-0.23.0-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.tar.gz",
-            "digest": "sha256:117d5ba6d4a52cbe2d284c78a682da420063a7b4600dab332545b2bb7239a36a",
-            "name": "photocraft-0.22.0-linux-aarch64.tar.gz",
-            "size": 131371313
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz",
+            "digest": "sha256:2ce8978292d3148e18526b540b6d0cf5ea9b9a4b782d345cca4d3c03e8ba751c",
+            "name": "photocraft-0.23.0-linux-aarch64.tar.gz",
+            "size": 133361996
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:07a4e7bdeab6ec25a22779c4c3447283b7d78721e3e0e53f05f41016f26aacb1",
-            "name": "photocraft-0.22.0-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:f746b6785a8abce00ddce38cf5571dc164cde3707e8e764d615d3e8aac0e3670",
+            "name": "photocraft-0.23.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.deb",
-            "digest": "sha256:01c200142464428223259382893059a102b29d7c1a8185a43f24a4d7b2d4bfc0",
-            "name": "photocraft-0.22.0-linux-riscv64.deb",
-            "size": 136279232
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb",
+            "digest": "sha256:62bfde49979f0ac13f939d1d8aeae9c43c00513d8633d9b12c0884ca291e8ba2",
+            "name": "photocraft-0.23.0-linux-riscv64.deb",
+            "size": 138480264
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.deb.asc",
-            "digest": "sha256:3340fc1bce7334bc62afb64c9fbcfbb20b9fd88d02de56c513f7557e3aed2dcc",
-            "name": "photocraft-0.22.0-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb.asc",
+            "digest": "sha256:edfd3c9a1e30edd7698a7c9d4e29104796ce677e7068dc4baa3914bcc175fa3c",
+            "name": "photocraft-0.23.0-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.rpm",
-            "digest": "sha256:2628b16a3731910cbaa87444509fb7b4464566ac322f11d7a745b1e2822321da",
-            "name": "photocraft-0.22.0-linux-riscv64.rpm",
-            "size": 135653214
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm",
+            "digest": "sha256:580074d7279ffa515a8c4c4959bb1d99cefabead58457ff2fed940b193dc61c1",
+            "name": "photocraft-0.23.0-linux-riscv64.rpm",
+            "size": 137821789
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.rpm.asc",
-            "digest": "sha256:9d1d5aeb2d88ecb76fe3ebddc366283a93fb47caf2f3d78baa9e866be3cc64b7",
-            "name": "photocraft-0.22.0-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm.asc",
+            "digest": "sha256:61697b87e44a7c97b16018b7fcb6a9bf8196888f5ec977c6de4fe647316c6b00",
+            "name": "photocraft-0.23.0-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.tar.gz",
-            "digest": "sha256:c2010ff2d7e827a382089a584fe3bd6d1d8e7c89e31ad673ab0bad337f173109",
-            "name": "photocraft-0.22.0-linux-riscv64.tar.gz",
-            "size": 134409489
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz",
+            "digest": "sha256:79e065c5dbe8362a792a0239310bbbb66a5e64d88c43a24c8be7e46161e613d7",
+            "name": "photocraft-0.23.0-linux-riscv64.tar.gz",
+            "size": 136569776
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:56de6e9d2d5962407c75fa60c34f7ed0ac9a2f494a8870703ff672991fc081b4",
-            "name": "photocraft-0.22.0-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:65085c6759bf3dccccd0820298098251bed55c3631b8361c75475158f12eb3a9",
+            "name": "photocraft-0.23.0-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.AppImage",
-            "digest": "sha256:cee934e6c38c0ff7f8cd7ee03694128be05be137fc4301180e2f716e7d2a1f9f",
-            "name": "photocraft-0.22.0-linux-x86_64.AppImage",
-            "size": 130148856
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage",
+            "digest": "sha256:2419663622c98f16c461dafabeb4df7923d2ec4e4a6c7e001a1df8a2804d93c3",
+            "name": "photocraft-0.23.0-linux-x86_64.AppImage",
+            "size": 132078072
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.AppImage.asc",
-            "digest": "sha256:4c78adc0a9e6b9d19f02a83d7f550436a177e9ce34e3333471e1cb8eeff2d6bf",
-            "name": "photocraft-0.22.0-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.asc",
+            "digest": "sha256:87d850c827ac5230892961ead86d52a785ca99dbc4cde9636b7949179fad9f00",
+            "name": "photocraft-0.23.0-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:f6f12e96dd51eff659a143fe76abfde00a04b8310de71a539b99b02fdfc8fdc2",
-            "name": "photocraft-0.22.0-linux-x86_64.AppImage.zsync",
-            "size": 222675
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:49b3af4c5374e18ee23ee8cfdf909e51ac071c150f172704ea2c82dcb93a7e9b",
+            "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+            "size": 225972
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:abcc5a0048929011116bbd05cc4987fa544852f025178264021d618f910a37be",
-            "name": "photocraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:9cdfa5a12df641e74b7b941db04a50e371f9a51fb3d5acb0f11079cda09cf7a6",
+            "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.deb",
-            "digest": "sha256:d9c272fb0f2667eb1bd35e601a5541d10f4dae93e3a9b70165d9b3dd43c280bf",
-            "name": "photocraft-0.22.0-linux-x86_64.deb",
-            "size": 139237666
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb",
+            "digest": "sha256:f23c8f9e71ec991702f6286f3025a53360f200b6c85a219efb8d84eaf3c1d6c1",
+            "name": "photocraft-0.23.0-linux-x86_64.deb",
+            "size": 141548538
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.deb.asc",
-            "digest": "sha256:c62ac56cef43a83236090447e38a5cd5f25c9017672113eee372150000761c32",
-            "name": "photocraft-0.22.0-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb.asc",
+            "digest": "sha256:11f9803c8d51041ec87ce4664352b9f8be5b6bb7c1b7450ee5bd99b293449478",
+            "name": "photocraft-0.23.0-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.flatpak",
-            "digest": "sha256:78c36d08fd6146553162b3de3217fcbd50246c3d5c9a3ab986d3dcd2d7f11dda",
-            "name": "photocraft-0.22.0-linux-x86_64.flatpak",
-            "size": 103575936
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak",
+            "digest": "sha256:bbb7ce7707f93b85b253b3fd8a09608c4e8cc56ca9418eb7ef881187053db291",
+            "name": "photocraft-0.23.0-linux-x86_64.flatpak",
+            "size": 104503608
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.flatpak.asc",
-            "digest": "sha256:08d4c865d7f23dcffbc19172c2a78ddd983a76ae18db119113d8d7c732d03fa1",
-            "name": "photocraft-0.22.0-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak.asc",
+            "digest": "sha256:60720af0772fc27e7eec7cb1cb2d4e8a6a764da4e2f4a29ee90ca8ae71e32e96",
+            "name": "photocraft-0.23.0-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:dd28d526080d7d4a9b033398b73a82452d4cdf9261beb9976af321c4e69db9b7",
-            "name": "photocraft-0.22.0-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:307b5ddcfd792225fa2d77533bf0c39e05354da89445c206cd970e76240f221f",
+            "name": "photocraft-0.23.0-linux-x86_64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.oci.sig",
-            "digest": "sha256:85052acedbbf44d65fc4d567c14682d270529204faf946a6dd3efad7f0a1ca7c",
-            "name": "photocraft-0.22.0-linux-x86_64.oci.sig",
-            "size": 388
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci.sig",
+            "digest": "sha256:679e932a5be3e8156178d3f1547dc2f2330b5da45fb4b0a98f037750d08c3460",
+            "name": "photocraft-0.23.0-linux-x86_64.oci.sig",
+            "size": 383
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:f2816929b15ebc226518796f22db422f7e452e34b7c65c9469042b7edb7162ca",
-            "name": "photocraft-0.22.0-linux-x86_64.pkg.tar.zst",
-            "size": 109973104
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:74179d3d3ce9098b0cfe10f09a05144a9ae1f226fdb3777e0624351124ed846d",
+            "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+            "size": 111041418
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:cf929a6d13732e055073336e6b18c6b54dc2b826e84dcd077be41d9392bdad98",
-            "name": "photocraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:c104c24199ce93a3a0caec1641bbe3d2713acd5b67164538f82b7db3d17dca73",
+            "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.rpm",
-            "digest": "sha256:68134da7e34d931b2a4a39a9d45203a7c920859bd4eabee275e4e7d1b1eabf50",
-            "name": "photocraft-0.22.0-linux-x86_64.rpm",
-            "size": 138307004
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm",
+            "digest": "sha256:5641651c10215cd8ca701154bed36a7d5fd76721af72bf7b3250fd9af49b4602",
+            "name": "photocraft-0.23.0-linux-x86_64.rpm",
+            "size": 140572461
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.rpm.asc",
-            "digest": "sha256:c0a11d129a2e95cfb952103213c9e2be36ace32879914e79f877433eb31180ff",
-            "name": "photocraft-0.22.0-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm.asc",
+            "digest": "sha256:33d3d74ae4d52b585b08bf0d3ba2bc388df30a382d1c924062a375e26f24c4ed",
+            "name": "photocraft-0.23.0-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.tar.gz",
-            "digest": "sha256:eedeafa4675dfbd1f2351e6bfa4b82f54453694eb36da1bbd5ca8bbf5f54f202",
-            "name": "photocraft-0.22.0-linux-x86_64.tar.gz",
-            "size": 137140561
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz",
+            "digest": "sha256:9858ee234854f7c390f3eab4734aea53100cc912c2c8dceaa029427b75dd22f8",
+            "name": "photocraft-0.23.0-linux-x86_64.tar.gz",
+            "size": 139403559
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:0acdf8a5b18432c47bad1586ff8968525364452bd5385f5c1556f90923be9e6d",
-            "name": "photocraft-0.22.0-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:cb3b4736b259d5ab92bc3eca6df8b6c1f6d51aafb282590e432134efd18b78cd",
+            "name": "photocraft-0.23.0-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-macos-universal.dmg",
-            "digest": "sha256:027596dcb13db0c0d749315c052493bf587886e9d081afa57cbc6575a4cde6e9",
-            "name": "photocraft-0.22.0-macos-universal.dmg",
-            "size": 269729474
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-macos-universal.dmg",
+            "digest": "sha256:8ca761f3e9af4d932cc6efdd6ecbfa22128153ba30cce955547ca6256e61516d",
+            "name": "photocraft-0.23.0-macos-universal.dmg",
+            "size": 274134041
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-arm64-portable.zip",
-            "digest": "sha256:924698755733a08218eabdc2c9577542c6b6b95302a5b03957650b08e07cfc9e",
-            "name": "photocraft-0.22.0-windows-arm64-portable.zip",
-            "size": 134333950
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-portable.zip",
+            "digest": "sha256:6337b01f504f259d839184e9be805f1a243f21aa592274af0da1a6802fdd1d84",
+            "name": "photocraft-0.23.0-windows-arm64-portable.zip",
+            "size": 136321892
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-arm64-symbols.zip",
-            "digest": "sha256:1e8d7fa08cfee58ec1abf4700e83c16f78a1053f3a1a7437c747f32f526fc00f",
-            "name": "photocraft-0.22.0-windows-arm64-symbols.zip",
-            "size": 6701585
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-symbols.zip",
+            "digest": "sha256:2302f42ff4282158d52ca3a6580c510349d3a5723cdbad920b1d1c0df6f99dbe",
+            "name": "photocraft-0.23.0-windows-arm64-symbols.zip",
+            "size": 6759624
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-arm64.msi",
-            "digest": "sha256:de1e0cb544c736a6372f751b535b0552bd202152312053516bab533e2d09bafa",
-            "name": "photocraft-0.22.0-windows-arm64.msi",
-            "size": 110698496
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64.msi",
+            "digest": "sha256:e262ca15dd0d51521526785e9de7c6ea1fffa07db2d0c20e269cf84bc9e2dbc2",
+            "name": "photocraft-0.23.0-windows-arm64.msi",
+            "size": 111538176
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-x64-portable.zip",
-            "digest": "sha256:d6e13cd7de440d9aae5964aaf70b15762b64dc05127155c3e2f06308f153e46b",
-            "name": "photocraft-0.22.0-windows-x64-portable.zip",
-            "size": 141201815
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-portable.zip",
+            "digest": "sha256:36ba00f818f5ce307478242bae577d747e7a09d47a9a7316cce834e37a9049fd",
+            "name": "photocraft-0.23.0-windows-x64-portable.zip",
+            "size": 143076507
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-x64-symbols.zip",
-            "digest": "sha256:b15e272be0d07d005219ca1f2d11e70c0caf617e8c4fc48e48f305be7ed9bc94",
-            "name": "photocraft-0.22.0-windows-x64-symbols.zip",
-            "size": 7202901
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-symbols.zip",
+            "digest": "sha256:951840bfb4dacf1eb841e340def133f85927a01ce6b0226b248c4956b7ddb044",
+            "name": "photocraft-0.23.0-windows-x64-symbols.zip",
+            "size": 7259461
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-0.22.0-windows-x64.msi",
-            "digest": "sha256:d74e766ee6dbd14b81bb329dfc21facd71d907e6828079f79ce7728995c477f1",
-            "name": "photocraft-0.22.0-windows-x64.msi",
-            "size": 117329920
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64.msi",
+            "digest": "sha256:eac24e0e5a675c3cb50d25752138d63c405f0fb9482163968f0553d04653c789",
+            "name": "photocraft-0.23.0-windows-x64.msi",
+            "size": 118390784
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-cli-0.22.0-macos-universal.zip",
-            "digest": "sha256:60e5bf1e689e58a800763867fbed193b7297d6366bbece57b6b78abd9ada875b",
-            "name": "photocraft-cli-0.22.0-macos-universal.zip",
-            "size": 119924833
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-cli-0.23.0-macos-universal.zip",
+            "digest": "sha256:4b5ce645ce682960afbbece76d188f51ec58500f3ed52f1beb0d8d5121f0f977",
+            "name": "photocraft-cli-0.23.0-macos-universal.zip",
+            "size": 120430132
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/photocraft-web-0.22.0.zip",
-            "digest": "sha256:597c4ffc54eca20d944a292b54ef7b6a3a1fd20725c42396eee00adebef3ebd9",
-            "name": "photocraft-web-0.22.0.zip",
-            "size": 14909301
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-web-0.23.0.zip",
+            "digest": "sha256:363cb0c04462f277012d603b4ce5d18cae9f841a2398546142230e86b365b7bc",
+            "name": "photocraft-web-0.23.0.zip",
+            "size": 16041654
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/SHA256SUMS.txt",
-            "digest": "sha256:54b118024d0b5685b282c2a862213786a11f2d200d5405360bc2856f57caa99b",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt",
+            "digest": "sha256:8eaf0613d88ed884633b98c16464eefae5d94a4529ce3b0927bbb9d25bb82896",
             "name": "SHA256SUMS.txt",
             "size": 5341
           },
           {
-            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.22.0/SHA256SUMS.txt.asc",
-            "digest": "sha256:4d374abaf0051f1ca747363c7b9efcadbd32e704d15a77d5736baac94b603d6f",
+            "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt.asc",
+            "digest": "sha256:c7346033522331fc5651481403e289d0678c8c1ad99a2fea6eae6440512519c4",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "PhotoCraft v0.22.0",
+        "name": "PhotoCraft v0.23.0",
         "prerelease": false,
-        "tag_name": "v0.22.0"
+        "tag_name": "v0.23.0"
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"e5a50fd24e7674137e6e799440a7c8d4ccd43ae7d442265c416c9cdfd84d7be2\"",
+      "etag": "\"574ca1f2854df2e3869477597608407ba2a364e1aea925474ccf0565226e3635\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:84dcf35a1000950a6b10312064de69a18e2e761c6f8a969c75ad121c0e6773ef",
+              "name": "photocraft-0.23.0-freebsd-aarch64.tar.gz",
+              "size": 130952067
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:7cb40f76c2197bf924db7e9d807916a2664c58f36450a8b2439d3be0fec6bd2d",
+              "name": "photocraft-0.23.0-freebsd-x86_64.tar.gz",
+              "size": 138480224
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage",
+              "digest": "sha256:b76cdd4bcf0b27e7128d9035c5e2aaff5128198e0606870d0dd948be99c43664",
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage",
+              "size": 126609928
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:f5e424f489f7e41f2a89237859f4774b57f8f479d88c9363287b81b306a41377",
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:66dc37c5f6a159697e47ce5d13bde7a5d00927ef24b1fb29fd883e53ad69303a",
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync",
+              "size": 216629
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:c792181de1eee349038aeb5dbae4e27ac8243454bb542eea40bf0676e8666944",
+              "name": "photocraft-0.23.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb",
+              "digest": "sha256:97c207a0efbfa0813663aec1b4c16cca25bb61a6cf38de122e6c68c5162b0fdb",
+              "name": "photocraft-0.23.0-linux-aarch64.deb",
+              "size": 137007506
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.deb.asc",
+              "digest": "sha256:91009db6628d40d90ea1a8a8a2ce079849981e72343be59c18d4d74648b4fda5",
+              "name": "photocraft-0.23.0-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak",
+              "digest": "sha256:0732e567bd84d5db41b06577a3c66e78b5f971222b29fde5a2714211753e86d3",
+              "name": "photocraft-0.23.0-linux-aarch64.flatpak",
+              "size": 97807328
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:be7d0241fbed35c7e4a990f81606b84ac8eeb13a0b8f75a8d352eac678175542",
+              "name": "photocraft-0.23.0-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:8bdfea0a3fb0617218d326f8d95fada5c6c9a4cf645bb76a2a79e231300a6589",
+              "name": "photocraft-0.23.0-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.oci.sig",
+              "digest": "sha256:119d55dc60f38b4252076d7af4c2938d1403bf6d4b6544580e63587f5c53be06",
+              "name": "photocraft-0.23.0-linux-aarch64.oci.sig",
+              "size": 389
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9abb247b6a52e136bb68049158a078f8b74a5cbc2f61cd391f1113061676f1d6",
+              "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst",
+              "size": 107148786
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:2f3b760762cd93e839754010f863a1d821dd269c05b924ab57189c32fa746774",
+              "name": "photocraft-0.23.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm",
+              "digest": "sha256:7f765cb0f9c6be7e20f3c47fb3f370a5237a051a4e5f924296ba1cd8b513e370",
+              "name": "photocraft-0.23.0-linux-aarch64.rpm",
+              "size": 135793495
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:c94d44c36ff22cee4cd4199518ef469bb0c2c9c4a2f9407a3da2c742fd3c14b0",
+              "name": "photocraft-0.23.0-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz",
+              "digest": "sha256:2ce8978292d3148e18526b540b6d0cf5ea9b9a4b782d345cca4d3c03e8ba751c",
+              "name": "photocraft-0.23.0-linux-aarch64.tar.gz",
+              "size": 133361996
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:f746b6785a8abce00ddce38cf5571dc164cde3707e8e764d615d3e8aac0e3670",
+              "name": "photocraft-0.23.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb",
+              "digest": "sha256:62bfde49979f0ac13f939d1d8aeae9c43c00513d8633d9b12c0884ca291e8ba2",
+              "name": "photocraft-0.23.0-linux-riscv64.deb",
+              "size": 138480264
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.deb.asc",
+              "digest": "sha256:edfd3c9a1e30edd7698a7c9d4e29104796ce677e7068dc4baa3914bcc175fa3c",
+              "name": "photocraft-0.23.0-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm",
+              "digest": "sha256:580074d7279ffa515a8c4c4959bb1d99cefabead58457ff2fed940b193dc61c1",
+              "name": "photocraft-0.23.0-linux-riscv64.rpm",
+              "size": 137821789
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:61697b87e44a7c97b16018b7fcb6a9bf8196888f5ec977c6de4fe647316c6b00",
+              "name": "photocraft-0.23.0-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz",
+              "digest": "sha256:79e065c5dbe8362a792a0239310bbbb66a5e64d88c43a24c8be7e46161e613d7",
+              "name": "photocraft-0.23.0-linux-riscv64.tar.gz",
+              "size": 136569776
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:65085c6759bf3dccccd0820298098251bed55c3631b8361c75475158f12eb3a9",
+              "name": "photocraft-0.23.0-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage",
+              "digest": "sha256:2419663622c98f16c461dafabeb4df7923d2ec4e4a6c7e001a1df8a2804d93c3",
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage",
+              "size": 132078072
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:87d850c827ac5230892961ead86d52a785ca99dbc4cde9636b7949179fad9f00",
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:49b3af4c5374e18ee23ee8cfdf909e51ac071c150f172704ea2c82dcb93a7e9b",
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync",
+              "size": 225972
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:9cdfa5a12df641e74b7b941db04a50e371f9a51fb3d5acb0f11079cda09cf7a6",
+              "name": "photocraft-0.23.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb",
+              "digest": "sha256:f23c8f9e71ec991702f6286f3025a53360f200b6c85a219efb8d84eaf3c1d6c1",
+              "name": "photocraft-0.23.0-linux-x86_64.deb",
+              "size": 141548538
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.deb.asc",
+              "digest": "sha256:11f9803c8d51041ec87ce4664352b9f8be5b6bb7c1b7450ee5bd99b293449478",
+              "name": "photocraft-0.23.0-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak",
+              "digest": "sha256:bbb7ce7707f93b85b253b3fd8a09608c4e8cc56ca9418eb7ef881187053db291",
+              "name": "photocraft-0.23.0-linux-x86_64.flatpak",
+              "size": 104503608
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:60720af0772fc27e7eec7cb1cb2d4e8a6a764da4e2f4a29ee90ca8ae71e32e96",
+              "name": "photocraft-0.23.0-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:307b5ddcfd792225fa2d77533bf0c39e05354da89445c206cd970e76240f221f",
+              "name": "photocraft-0.23.0-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.oci.sig",
+              "digest": "sha256:679e932a5be3e8156178d3f1547dc2f2330b5da45fb4b0a98f037750d08c3460",
+              "name": "photocraft-0.23.0-linux-x86_64.oci.sig",
+              "size": 383
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:74179d3d3ce9098b0cfe10f09a05144a9ae1f226fdb3777e0624351124ed846d",
+              "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst",
+              "size": 111041418
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:c104c24199ce93a3a0caec1641bbe3d2713acd5b67164538f82b7db3d17dca73",
+              "name": "photocraft-0.23.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm",
+              "digest": "sha256:5641651c10215cd8ca701154bed36a7d5fd76721af72bf7b3250fd9af49b4602",
+              "name": "photocraft-0.23.0-linux-x86_64.rpm",
+              "size": 140572461
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:33d3d74ae4d52b585b08bf0d3ba2bc388df30a382d1c924062a375e26f24c4ed",
+              "name": "photocraft-0.23.0-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz",
+              "digest": "sha256:9858ee234854f7c390f3eab4734aea53100cc912c2c8dceaa029427b75dd22f8",
+              "name": "photocraft-0.23.0-linux-x86_64.tar.gz",
+              "size": 139403559
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:cb3b4736b259d5ab92bc3eca6df8b6c1f6d51aafb282590e432134efd18b78cd",
+              "name": "photocraft-0.23.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-macos-universal.dmg",
+              "digest": "sha256:8ca761f3e9af4d932cc6efdd6ecbfa22128153ba30cce955547ca6256e61516d",
+              "name": "photocraft-0.23.0-macos-universal.dmg",
+              "size": 274134041
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-portable.zip",
+              "digest": "sha256:6337b01f504f259d839184e9be805f1a243f21aa592274af0da1a6802fdd1d84",
+              "name": "photocraft-0.23.0-windows-arm64-portable.zip",
+              "size": 136321892
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64-symbols.zip",
+              "digest": "sha256:2302f42ff4282158d52ca3a6580c510349d3a5723cdbad920b1d1c0df6f99dbe",
+              "name": "photocraft-0.23.0-windows-arm64-symbols.zip",
+              "size": 6759624
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-arm64.msi",
+              "digest": "sha256:e262ca15dd0d51521526785e9de7c6ea1fffa07db2d0c20e269cf84bc9e2dbc2",
+              "name": "photocraft-0.23.0-windows-arm64.msi",
+              "size": 111538176
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-portable.zip",
+              "digest": "sha256:36ba00f818f5ce307478242bae577d747e7a09d47a9a7316cce834e37a9049fd",
+              "name": "photocraft-0.23.0-windows-x64-portable.zip",
+              "size": 143076507
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64-symbols.zip",
+              "digest": "sha256:951840bfb4dacf1eb841e340def133f85927a01ce6b0226b248c4956b7ddb044",
+              "name": "photocraft-0.23.0-windows-x64-symbols.zip",
+              "size": 7259461
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-0.23.0-windows-x64.msi",
+              "digest": "sha256:eac24e0e5a675c3cb50d25752138d63c405f0fb9482163968f0553d04653c789",
+              "name": "photocraft-0.23.0-windows-x64.msi",
+              "size": 118390784
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-cli-0.23.0-macos-universal.zip",
+              "digest": "sha256:4b5ce645ce682960afbbece76d188f51ec58500f3ed52f1beb0d8d5121f0f977",
+              "name": "photocraft-cli-0.23.0-macos-universal.zip",
+              "size": 120430132
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/photocraft-web-0.23.0.zip",
+              "digest": "sha256:363cb0c04462f277012d603b4ce5d18cae9f841a2398546142230e86b365b7bc",
+              "name": "photocraft-web-0.23.0.zip",
+              "size": 16041654
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt",
+              "digest": "sha256:8eaf0613d88ed884633b98c16464eefae5d94a4529ce3b0927bbb9d25bb82896",
+              "name": "SHA256SUMS.txt",
+              "size": 5341
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.23.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:c7346033522331fc5651481403e289d0678c8c1ad99a2fea6eae6440512519c4",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "PhotoCraft v0.23.0",
+          "prerelease": false,
+          "tag_name": "v0.23.0"
+        },
         {
           "assets": [
             {
@@ -123373,7 +124013,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"c81c76779f50588dc5d05310f288e3e874b11f1b4c2a2bcb4d6d374e2a6dbc9d\"",
+      "etag": "\"d14e2dc66a0e15a379a8df499d823c8a60f500dbc7a26fb5124537129286aa43\"",
       "body": {
         "assets": [
           {
@@ -123684,7 +124324,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"54a9a893b54439d25e058885425c43010d83955111d90d79b93744a3b019717a\"",
+      "etag": "\"f91e000ebe9dfdf062daa053d66ad517c34c64acd4d0b25629249c18f8a53a16\"",
       "body": [
         {
           "assets": [
@@ -127005,7 +127645,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"0c06f4f8fa1c22181fa0e12cacd71274393e345f731eaefe796b014c66071327\"",
+      "etag": "\"591abd02c89a3244762ef4dfe7c1a70d82684baa0c585fd2c2f16a108c753aea\"",
       "body": {
         "assets": [
           {
@@ -127316,7 +127956,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"e52022b53a578a19828d082a8654c654c29c8a2cb73e5e15a2fc7bb1a4d139ff\"",
+      "etag": "\"e795e7592445dc8b095d6931a68f766606b7122559644708378e82d9f63da0ba\"",
       "body": [
         {
           "assets": [
@@ -129281,7 +129921,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"e376613281bad59bf78cc231474bbfbaf2ef862b615ceb9aec37b7845b15a05d\"",
+      "etag": "\"de2a145e4d301de5912e9e847b4df704dcbbed29f6e7b0afc8acac29358045e8\"",
       "body": {
         "assets": [
           {
@@ -129592,7 +130232,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"fdc37d29dfe235304e1b2d8822fbd370ee30b1ed46813d6ea650ed69783ebc82\"",
+      "etag": "\"519a4eb7a8235de6fbaa1cbe48b503a814972dfce4c86de86fe1bd106c1b1575\"",
       "body": [
         {
           "assets": [
@@ -134265,7 +134905,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"10f091ddf95d2d1cc961a667218f0cc6e602a6fedf703416ac3e2632c3164120\"",
+      "etag": "\"baa92f82023a8964bdb2bc99c57ba24c08723423c6a7ee5f124584ffa876b874\"",
       "body": {
         "assets": [
           {
@@ -134576,7 +135216,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"2481b59a533d9a66ccae710c18176878d8dc812d5ea8ae5847b01d75ae045e85\"",
+      "etag": "\"ada0194b53dc1abc1931f4a169c136b597801f052264475e9c636284ef23f1eb\"",
       "body": [
         {
           "assets": [
@@ -138339,7 +138979,7 @@
       ]
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest": {
-      "etag": "\"3e776b71ea5487590b92c71d541a32db315467be50dc13e8f1d485eee91fcab8\"",
+      "etag": "\"1caf538b38417beff7dfc6347477a5d3b1f766f905f3e404b3e1aff9382dc210\"",
       "body": {
         "assets": [
           {
@@ -138644,7 +139284,7 @@
       }
     },
     "https://api.github.com/repos/tangency-labs/solidcraft/releases?per_page=100&page=1": {
-      "etag": "\"fc45d41359f4e5efd2dd0098159c451d11798a9e7b9afe8892475160762ab8b8\"",
+      "etag": "\"6f3839c95cb0434e0c50b6c2526f37de7ba1dd05f2530f38c30b477d152dedd0\"",
       "body": [
         {
           "assets": [
@@ -158297,7 +158937,7 @@
       ]
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest": {
-      "etag": "\"0fc2d11182b7a406fde78564b0b62df891c1b9326d2aed2103ca23d93ba37871\"",
+      "etag": "\"f09c981fc7f92c952ac540665ebf50bac0534421e4d4c3f9fca44bb4c12597d0\"",
       "body": {
         "assets": [
           {
@@ -158458,7 +159098,7 @@
       }
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases?per_page=100&page=1": {
-      "etag": "\"9d881a68116898baa8cae4598ef34f59e2a586286dba8f11e6f3a03b47c2cac0\"",
+      "etag": "\"db4ee21d0754fe586a45024fdd3061b39cda9985b6a7c9a80d4132783fdf8de9\"",
       "body": [
         {
           "assets": [
