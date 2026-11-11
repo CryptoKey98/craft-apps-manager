@@ -2,107 +2,107 @@
   "index": {
     "schema": 1,
     "purpose": "app-release-catalog",
-    "sequence": 435,
-    "generated_at": 1794419351,
+    "sequence": 436,
+    "generated_at": 1794424186,
     "repositories": {
       "storytold/anicraft": {
         "sha256": "db5249f58650c28a5514d1ae1602b2ebe1e12f4e5d820bc6163a010fcbb98098",
         "size": 28782,
-        "checked_at": 1794419326,
+        "checked_at": 1794424165,
         "discovery_added_at": 1794361626
       },
       "storytold/artcraft": {
         "sha256": "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b",
         "size": 48040,
-        "checked_at": 1794419326
+        "checked_at": 1794424166
       },
       "storytold/cadcraft": {
         "sha256": "ca280ebb1157e16d6afb1bad3c4822881da1d2e29f5f091f5c9d0303e161585a",
         "size": 176914,
-        "checked_at": 1794419327
+        "checked_at": 1794424167
       },
       "storytold/deckcraft": {
         "sha256": "0fd7d0b71c373881cf0af196bf6b22e5ee707562ec83ebb705956812c735aa88",
         "size": 169734,
-        "checked_at": 1794419328
+        "checked_at": 1794424168
       },
       "storytold/designcraft": {
         "sha256": "8e845d6f178499d7677dabe24eea39c3af8f5b35b70e0bbb061c5bcf356a2fb9",
         "size": 206717,
-        "checked_at": 1794419329
+        "checked_at": 1794424169
       },
       "storytold/effectcraft": {
         "sha256": "169ea483a6f8d9f75abb1b86672cad846357d17f6100ea676327f8c52fc1489b",
         "size": 230325,
-        "checked_at": 1794419330
+        "checked_at": 1794424170
       },
       "storytold/figcraft": {
         "sha256": "c57ef6331ee9113fe69fa459237916514aa5129278e85a1c5db5a96adfb94531",
         "size": 174284,
-        "checked_at": 1794419331
+        "checked_at": 1794424171
       },
       "storytold/filmcraft": {
         "sha256": "3d63fc892b6377b16fe8b91420061d10daf650ddbe00da7442e144ba6898c632",
         "size": 192355,
-        "checked_at": 1794419332
+        "checked_at": 1794424172
       },
       "storytold/gridcraft": {
         "sha256": "5c61355ead09c6f6851a68d9d8336e6234110d0312c4600ebfdf9eb951a732a3",
         "size": 178888,
-        "checked_at": 1794419333
+        "checked_at": 1794424173
       },
       "storytold/lightcraft": {
         "sha256": "ffb6421798b57e0e801e26a351a4094ba6293b62febba41de413d7eaa962a71d",
         "size": 187458,
-        "checked_at": 1794419336
+        "checked_at": 1794424174
       },
       "storytold/materialcraft": {
         "sha256": "543b1eb44414abb56428101b3e6956bf4ce48a4a8ad029032b10de192388ac56",
         "size": 85529,
-        "checked_at": 1794419337,
+        "checked_at": 1794424174,
         "discovery_added_at": 1793675300
       },
       "storytold/pdfcraft": {
         "sha256": "054fe4f02415454c12fb8a2597037049c1f8666632e220ce9a3cd655535571ad",
         "size": 221792,
-        "checked_at": 1794419338
+        "checked_at": 1794424176
       },
       "storytold/photocraft": {
         "sha256": "83ac6e4d40c2d392f804e421245eadfcda6df8a3e7209a7617753ee03ae0a0fc",
         "size": 215916,
-        "checked_at": 1794419339
+        "checked_at": 1794424177
       },
       "storytold/soundcraft": {
         "sha256": "249c17aa59d83eba92b6e8531c80bada98d384bbcc4306a201edcba6eaeadc45",
         "size": 160283,
-        "checked_at": 1794419340
+        "checked_at": 1794424177
       },
       "storytold/texturecraft": {
         "sha256": "428e75230fd36cbcedfd4db1c9155fbed0babe665d1f73a092578acdc6a56081",
         "size": 95030,
-        "checked_at": 1794419341,
+        "checked_at": 1794424178,
         "discovery_added_at": 1793516400
       },
       "storytold/vectorcraft": {
-        "sha256": "8fc8da580a850cbcf4ee13851a4173583a729f511b15ad370b2a285b7e4f6e8c",
-        "size": 213312,
-        "checked_at": 1794419342
+        "sha256": "c3e45ef3a024c4e39e9399e3ce0b516a88ec071e4c63ca2ad202a240e35ba7ca",
+        "size": 227968,
+        "checked_at": 1794424179
       },
       "storytold/wordcraft": {
         "sha256": "cb71927712ecc4b2bf872452b84c884e35cd3e33fa2defaa1b3f176f2028b1eb",
         "size": 165336,
-        "checked_at": 1794419343
+        "checked_at": 1794424180
       },
       "tangency-labs/solidcraft": {
         "sha256": "cb1675742790599834caaeac531292ce0b1212989b42c72a225ea2ec0622e2d6",
         "size": 662440,
-        "checked_at": 1794419345,
+        "checked_at": 1794424182,
         "discovery_added_at": 1793516400
       },
       "ucs-care-group/mailcraft": {
         "sha256": "3333764848241c8cf64d5968ce8a021903f827bb8683e727b1c2577ad6b4fc74",
         "size": 148690,
-        "checked_at": 1794419346,
+        "checked_at": 1794424183,
         "discovery_added_at": 1794294000
       }
     }
@@ -45581,11 +45581,1656 @@
         }
       ]
     },
-    "8fc8da580a850cbcf4ee13851a4173583a729f511b15ad370b2a285b7e4f6e8c": {
+    "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b": {
+      "schema": 1,
+      "repository": "storytold/artcraft",
+      "latest_tag": "artcraft-v0.41.1",
+      "releases": [
+        {
+          "tag_name": "artcraft-v0.41.1",
+          "name": "ArtCraft v0.41.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage",
+              "size": 177187336,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage",
+              "digest": "sha256:31a4071758ce7989c6548e3976839aaf6010be414d0a1b5cc9a913537bbc88de"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:b31e7b76cbf22e70d1ec1bd69ecee99882d84db5799d501c996bec12b9e8aaf1"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "size": 303134,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:c30d74cb558652168c1a0fcbedfe8aeab22d9a31e4ac30026778f6d7a5a129f8"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:6019e98c27e8c718791ad01f289f112ce9ddf5d497c589c2b6472421c0cead09"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.deb",
+              "size": 50359372,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb",
+              "digest": "sha256:86e732287afeb640f6ef77d823f4291dc9b8cd045de6ae1137cd3729156291dd"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb.asc",
+              "digest": "sha256:99dcac63788e00b8e29b33371dc3f2392248f992cbc666833aaecdd222407941"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak",
+              "size": 40561288,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak",
+              "digest": "sha256:8f899c94f0c41fb1553c66fc6b4d3ac0763f4c034bfb06fe9f0d60426c153f7b"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:2e4ba0c04b08f105079abf0c105d596c459197e14666d40ecf6718d9a29692a7"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:7f98a1663bb25745f3733a7bb53ae82c11abc22793a07fa98bcd0548a76324f5"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.oci.sig",
+              "size": 387,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci.sig",
+              "digest": "sha256:284289ee7ca2b64eb91a7daa0dc8de6610f709d29b6780b6ac522cad8b500e75"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "size": 43824067,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:d435e7f7fd8c6a0cf60acd535558ed507ca0bdf8ce2b9d1ff6c992a751d352d8"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:6b5489b3b545c7232d53c690b5943eda3a62ef5744c84dfee1069dc1c88fdc04"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.rpm",
+              "size": 50362331,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm",
+              "digest": "sha256:3701481f6193770f97f45eacff84dc2ff1e3df92c2c526d918d2f31e6b315205"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:5839d7e88b151c310d7284e558b72539eb2064e9e5349bba7ebb5d22cbaddfdc"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz",
+              "size": 49710171,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz",
+              "digest": "sha256:cb780e02e87234927d339c87dee03b224e1641320758be813d31d442d9a691ae"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:b83ddda68ab7a6cddfcdccdc38cb5cc0827a42e85056fb9add30cbaede9cb26d"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.deb",
+              "size": 48852800,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb",
+              "digest": "sha256:7ffdf1ec4c99401cff821b0998cb4e7cd0644b39befa418f5adb4a2749352ff0"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb.asc",
+              "digest": "sha256:2e1ccfe26d7b5d6f0a39616628385629b8ae8894231447e47425f789ee16e9b7"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.rpm",
+              "size": 48857171,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm",
+              "digest": "sha256:72f11bfc6f0bee941226ce00808fcf427b12be626ee9c28512bcf4498dab1eae"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:aa3da34c710d8ff07110b656b434b37436e0dbd30b7c7bade61ee0dbf2d2f7b2"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz",
+              "size": 48491446,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz",
+              "digest": "sha256:d32edc5ac3320f6789154fcd89552f0650d6d396c8cb576d1197d1e11bbc0745"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:e45fa0cae51309ee524322d1b65ba49b4f01225e2057cf18928803d7453da843"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage",
+              "size": 182495736,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage",
+              "digest": "sha256:bb32657b6e81e8e47da44ca4e764b1af14d77d8690b248a263a4acd1218b7d2d"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:770a5e86dd56a3822adb8385ad80534f039983361bc0abc5f9a9ccc81fc2974b"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "size": 312204,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:8b1d9e3806b0a63e4149d7b899c35dafcdd2d76828a2960c971eb00eddc5db06"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:d524fb0943a2338e9c288a5a275d14002b1d1e07fd27a19b0bc5de304979ba05"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.deb",
+              "size": 49873314,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb",
+              "digest": "sha256:91b3d69c2e707b60c4cad6c14eca6b3dc8bf62570738cdf10f0acbe3570b74a2"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb.asc",
+              "digest": "sha256:e3786418d32622cbead96ce19917fa2c8e38d82082f2fdc91fbb499f68cb1887"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak",
+              "size": 41755576,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak",
+              "digest": "sha256:7351e1bad48006b251ab943372fa15f1829d8b92ca944adb7f312b4e5c7e9912"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:cf9e4cd7bd120a6591f6f13b82d4d9c03b067dbbb58d0fb123e4cf2ccf9bd40e"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:39576e754b702bba58c5af983ea5c07042f30a71dcd6a64d0e3916eaccb9e8a4"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.oci.sig",
+              "size": 387,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci.sig",
+              "digest": "sha256:7c6bfc47603bb835b44c706b52b475e4eb116ff0390ea4f1f2dec713562b4df9"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "size": 43960303,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:8f7b1b0d7069ec1143102ab5c9d3cb639d7e833fca5b210c705cfe7e5d1f9db1"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:764a24249ad2fafd1d7e982a74fa2649311feb6ecc65938455f9331e9bcc3b31"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.rpm",
+              "size": 49875206,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm",
+              "digest": "sha256:f408402ea008adae7077f3e8a8e8799e63a6baa4f2fec138226f309e1de32dfc"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:d7eec47d390afbf53daf5cc123c396c6805ef4b3a560f5d502b15316b0b5ba61"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz",
+              "size": 49365185,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz",
+              "digest": "sha256:149f9748ea33553177c021e1ade47a195fad25b881129d4178fe5bd922a94eb4"
+            },
+            {
+              "name": "artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:967fb6dcdcc86636e0c2825af43d58525b4b07dc3d5f1ff553c9c819b0d9cc30"
+            },
+            {
+              "name": "ArtCraft_0.41.1_universal.dmg",
+              "size": 94884865,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_universal.dmg",
+              "digest": "sha256:89009b8983d88919481ac936e2ada0409dff0e0fc73f487cce3e7324699866a6"
+            },
+            {
+              "name": "ArtCraft_0.41.1_x64-setup.exe",
+              "size": 41991072,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64-setup.exe",
+              "digest": "sha256:fb80cad705a182fdd7bbc17bb2bd34f1bd74561c539d97e69ba6143b616ab038"
+            },
+            {
+              "name": "ArtCraft_0.41.1_x64_en-US.msi",
+              "size": 47058944,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64_en-US.msi",
+              "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 94791060,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:d1e4e9623ebf506fbc8d7476b69b2db957125761e7908624b3eb031ce044413e"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 4108,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt",
+              "digest": "sha256:5450801c2342f8ea05d9aa71cd31cb4b02462cebd9cab7abbe8884e17de6f075"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:11d6e4c827592c407c5fb85b774fa196698e7b42e2bc791b6caa38825b13ef9f"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.41.0",
+          "name": "ArtCraft v0.41.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.41.0_universal.dmg",
+              "size": 94852055,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_universal.dmg",
+              "digest": "sha256:3cf1df2e56345e603c5d0180e5b563dd5eca25d9e3c3959d9554012f510916c1"
+            },
+            {
+              "name": "ArtCraft_0.41.0_x64-setup.exe",
+              "size": 41791713,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64-setup.exe",
+              "digest": "sha256:cb15da474ae36a7a7f930a6e9916be2794e7cc84c3340b531c38eabc82f4363e"
+            },
+            {
+              "name": "ArtCraft_0.41.0_x64_en-US.msi",
+              "size": 46837760,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64_en-US.msi",
+              "digest": "sha256:255f963ba8acb799b231ac23a5ef04ca157a8d26f9b9b279b3e55a59db29be77"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 94658582,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:812d7b4e570df95dee769761b6afc53d82cbb1e4911aed360d9bd23fc830d673"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.37.0",
+          "name": "ArtCraft v0.37.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.37.0_universal.dmg",
+              "size": 98550398,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_universal.dmg",
+              "digest": "sha256:c038a0826f1411858e9ec2e0b4631a6bf6d4b83df619d49b4c47e204deffcd47"
+            },
+            {
+              "name": "ArtCraft_0.37.0_x64-setup.exe",
+              "size": 43823220,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_x64-setup.exe",
+              "digest": "sha256:bc737a3a5060c11398f0f7fdd1a97ae78b513747beb71f82bb7ba86d66a485ba"
+            },
+            {
+              "name": "ArtCraft_0.37.0_x64_en-US.msi",
+              "size": 48676864,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_x64_en-US.msi",
+              "digest": "sha256:fb84e12392eed0aab7d11b17010d69499079f281df1f723d3aac35481e2ca23a"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 98347612,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:6a9af1675ae804142d195c3532d6c214fb75e38484760dd92bde64a93c1a81e1"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.32.0",
+          "name": "ArtCraft v0.32.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.32.0_universal.dmg",
+              "size": 871194972,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_universal.dmg",
+              "digest": "sha256:5beff78efbeb3476e2f2dd11b8738bac41b03e7bb8273377b62bcf595be27d3d"
+            },
+            {
+              "name": "ArtCraft_0.32.0_x64-setup.exe",
+              "size": 430592038,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_x64-setup.exe",
+              "digest": "sha256:5465ac081dfb7b45e161e8f05ad6de009400384dd34e7e161dffe33f72536f0a"
+            },
+            {
+              "name": "ArtCraft_0.32.0_x64_en-US.msi",
+              "size": 432218112,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_x64_en-US.msi",
+              "digest": "sha256:1134a7ba9407a47e997ed607a1ccf78d7c162cc405e2b9c287c14d299e99e432"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870529319,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:2250c3637d13813e14e55c2e0e0dece0bc11311e48a77b6b94e34fd920743dd8"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.29.0",
+          "name": "ArtCraft v0.29.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.29.0_universal.dmg",
+              "size": 870878035,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_universal.dmg",
+              "digest": "sha256:d7db6c85a97af97080b0802b6c53e16f2a70f3285d446c1dd31389ff873527c3"
+            },
+            {
+              "name": "ArtCraft_0.29.0_x64-setup.exe",
+              "size": 430510055,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_x64-setup.exe",
+              "digest": "sha256:5531e0987e256b3a71ff52e83fc9efbbebde786b1d439586ab5686644ad3f6c8"
+            },
+            {
+              "name": "ArtCraft_0.29.0_x64_en-US.msi",
+              "size": 432054272,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_x64_en-US.msi",
+              "digest": "sha256:7b89b4bbd702a931c48cfe7532fabd5c41a28414ff2ca3b1d73cf2e55043ee65"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870214129,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:46b4a0c0c4ebbaf94987fa5671fabf85745e321a567b1ac7305efbfd2e5ebd1a"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.28.0",
+          "name": "ArtCraft v0.28.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.28.0_universal.dmg",
+              "size": 872218588,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_universal.dmg",
+              "digest": "sha256:bb81ff8d74613430c644372d8411fa8c45fede761bb59f90618e12ca34be3e64"
+            },
+            {
+              "name": "ArtCraft_0.28.0_x64-setup.exe",
+              "size": 430432164,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_x64-setup.exe",
+              "digest": "sha256:f8b7890d0a19ed4829e58b44f22cf5407ab969e6659dbf945658bd867d5fe843"
+            },
+            {
+              "name": "ArtCraft_0.28.0_x64_en-US.msi",
+              "size": 431960064,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_x64_en-US.msi",
+              "digest": "sha256:0fb072d1704c041eeaa0846a8fa8611cca47f05ee214fb0b7c0c50ecbf620519"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 871550969,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:9c9fd74385aff34b5e5a9a759abbe40825d667fbbbf39fb87d7228657727dc7e"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.27.0",
+          "name": "ArtCraft v0.27.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.27.0_universal.dmg",
+              "size": 872169387,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_universal.dmg",
+              "digest": "sha256:88787955e7044bc08b6de2e76a3260cb6606b77a7f209b5684148e60bc9f08ce"
+            },
+            {
+              "name": "ArtCraft_0.27.0_x64-setup.exe",
+              "size": 430430526,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_x64-setup.exe",
+              "digest": "sha256:df807a2332919417ae50c4bc58b8a9ad71f9f275d0b1ec6363a3a8955a1f3aed"
+            },
+            {
+              "name": "ArtCraft_0.27.0_x64_en-US.msi",
+              "size": 431935488,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_x64_en-US.msi",
+              "digest": "sha256:0197c608329fe2f4dde31351b2ce8ec732e7935c967bf67fcf092f75dfcb41fd"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 871503800,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:d9595c8cdd495a2ebcc3454e1791e5769101d1fb41cf3cd33370a1b2d3d7aac8"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.24.0",
+          "name": "ArtCraft v0.24.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.24.0_universal.dmg",
+              "size": 871627094,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_universal.dmg",
+              "digest": "sha256:09923859d0c1a91d7f9f317b0dd3f3e6303e24e7d483fb1316175a6b593f0b76"
+            },
+            {
+              "name": "ArtCraft_0.24.0_x64-setup.exe",
+              "size": 430209530,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_x64-setup.exe",
+              "digest": "sha256:67b838fb5aab411ae0bfe0daa2489327986dcc4baa89d25eb6de4af774f31d01"
+            },
+            {
+              "name": "ArtCraft_0.24.0_x64_en-US.msi",
+              "size": 431644672,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_x64_en-US.msi",
+              "digest": "sha256:3a030710e73e70be5eb36fa583b678808f208ec0baaab7a536bbc5e65e24d469"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870951140,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:5dbf14dbd9e69f7a8a7aab2b3efe0f217a5eb9d17a164b35f614b91d5a5608e2"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.23.0",
+          "name": "ArtCraft v0.23.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.23.0_universal.dmg",
+              "size": 871624384,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_universal.dmg",
+              "digest": "sha256:2c5f5e26fc033d7b6268710919dc5cf91f28c882ef4a6124b7e2143beebde35d"
+            },
+            {
+              "name": "ArtCraft_0.23.0_x64-setup.exe",
+              "size": 430226003,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_x64-setup.exe",
+              "digest": "sha256:59f178b649d0ce0cda6e76317a85cdb4967b6cc219fc0bcaaa0405eb149a5d54"
+            },
+            {
+              "name": "ArtCraft_0.23.0_x64_en-US.msi",
+              "size": 431644672,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_x64_en-US.msi",
+              "digest": "sha256:852c7d5f5e4e557bacaffbefb2fff9e0a0a41f087a6dad505660d6bf29ca1ddb"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870950427,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:8947136c2373e3c5342b9ff706fce0a34b22bb1ec0eeb5e81db34e64b91f42bc"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.22.0",
+          "name": "ArtCraft v0.22.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.22.0_universal.dmg",
+              "size": 871621454,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_universal.dmg",
+              "digest": "sha256:44452770666aed219032366d6cb96d671504891c442e1d0b10de0611d5471a44"
+            },
+            {
+              "name": "ArtCraft_0.22.0_x64-setup.exe",
+              "size": 430205997,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_x64-setup.exe",
+              "digest": "sha256:5f149753fea7884a10abc7295bea6c77f56c908e9579d2f39b9633488d932b13"
+            },
+            {
+              "name": "ArtCraft_0.22.0_x64_en-US.msi",
+              "size": 431640576,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_x64_en-US.msi",
+              "digest": "sha256:600d664797b2143a0625ea613541d63c894b839c7deebf85f9eddaa5f8f7f7db"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870943331,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:09f0d543536ea633be6afeed92f90db9a20b97b2c0f9d74f0164dc2ed25ef74a"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.20.0",
+          "name": "ArtCraft v0.20.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.20.0_universal.dmg",
+              "size": 871360381,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_universal.dmg",
+              "digest": "sha256:a36c11bb066fbfd7ba0abf274edc3a2c008bec2c810590a99c4a2fda50cd9bd2"
+            },
+            {
+              "name": "ArtCraft_0.20.0_x64-setup.exe",
+              "size": 430150894,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_x64-setup.exe",
+              "digest": "sha256:effddd133692080de569ff5658c293914fb8c6d0a5345ddf39cad8ebf6319b2d"
+            },
+            {
+              "name": "ArtCraft_0.20.0_x64_en-US.msi",
+              "size": 431579136,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_x64_en-US.msi",
+              "digest": "sha256:2363f1459818e4324034ca77e3bc89566c644135b1e641c6e0ea63df8c59e57f"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870701362,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:45382c5ef9c079284c303dbb70cc405f62b6e2f124d3fe2f7397f93f784802e2"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.19.0",
+          "name": "ArtCraft v0.19.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.19.0_universal.dmg",
+              "size": 871346554,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_universal.dmg",
+              "digest": "sha256:a477540ec375e4d9cc0edc0d94970bcfe91f4da6540e6c952824c2112296d4f7"
+            },
+            {
+              "name": "ArtCraft_0.19.0_x64-setup.exe",
+              "size": 430193903,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_x64-setup.exe",
+              "digest": "sha256:b9b6885c21990f7172e5c249310fdad98935a103cbb8d05fd94e9cab35c718f5"
+            },
+            {
+              "name": "ArtCraft_0.19.0_x64_en-US.msi",
+              "size": 431583232,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_x64_en-US.msi",
+              "digest": "sha256:b46fae2d9e617003c1ee67c7892f612cdd7e28e1d053145521acae1dffd337bd"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870696453,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:455fe497530721f24075acc1e1106a894c48e0d4c6052e0a7f5f6904d6260f29"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.15.0",
+          "name": "ArtCraft v0.15.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.15.0_universal.dmg",
+              "size": 871245630,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_universal.dmg",
+              "digest": "sha256:1a75b933c83701b0d42a3557ce62333ea13781fa920775931b78076ecfb6b1d7"
+            },
+            {
+              "name": "ArtCraft_0.15.0_x64-setup.exe",
+              "size": 430119371,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_x64-setup.exe",
+              "digest": "sha256:77937da910c99bdf75a2789f4cef562f98cd6235bd57ca15a0c80484a17127f9"
+            },
+            {
+              "name": "ArtCraft_0.15.0_x64_en-US.msi",
+              "size": 431505408,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_x64_en-US.msi",
+              "digest": "sha256:f5bff8b1238d43e3a9cdd43716807bbb1b80cbbb44f88ac14cab2f685ae6ad5c"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870561884,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:aab04b6f8bcd0dac9725f116e026ec46d71857872f425c4cc67d86999452f2f2"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.14.0",
+          "name": "ArtCraft v0.14.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.14.0_universal.dmg",
+              "size": 871194997,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_universal.dmg",
+              "digest": "sha256:d6267f87d0b01fa6e24dc94a3b33bfbed728c2b7f37c925e24fe08a050670909"
+            },
+            {
+              "name": "ArtCraft_0.14.0_x64-setup.exe",
+              "size": 430104709,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_x64-setup.exe",
+              "digest": "sha256:82ba130ef4c79fa020e133b6d444623bf1f4be428edb4856d966e88ffaa933e6"
+            },
+            {
+              "name": "ArtCraft_0.14.0_x64_en-US.msi",
+              "size": 431484928,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_x64_en-US.msi",
+              "digest": "sha256:c7341a4fdea43a90bd2e25b8c2d2b2ff7f4ef9936d6bc94a86a7ebd136df7924"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870509924,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:04cf428ac0719cca87ff606dd6b79e6061941d5a9626da19e8d06543b6857bf3"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.12.0",
+          "name": "ArtCraft v0.12.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.12.0_universal.dmg",
+              "size": 871223464,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_universal.dmg",
+              "digest": "sha256:e17e85dc9beef973ae092a120d9a49df3d6c99c548a9329f3a63baeb261141e3"
+            },
+            {
+              "name": "ArtCraft_0.12.0_x64-setup.exe",
+              "size": 430028944,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_x64-setup.exe",
+              "digest": "sha256:0e72e96257716a31085c12257751f9264f3409acc6797c35b05dc16dc398f852"
+            },
+            {
+              "name": "ArtCraft_0.12.0_x64_en-US.msi",
+              "size": 431390720,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_x64_en-US.msi",
+              "digest": "sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870502264,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:93de0f00703014d6f434c8b8e1bb35426dd38b1c61bee7beff11223207f17ce6"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.11.0",
+          "name": "ArtCraft v0.11.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.11.0_universal.dmg",
+              "size": 871169005,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_universal.dmg",
+              "digest": "sha256:2860eef51cbedc095abf325f7cf793236b69596c40c9cf743d82fa06a8e612ff"
+            },
+            {
+              "name": "ArtCraft_0.11.0_x64-setup.exe",
+              "size": 430036973,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_x64-setup.exe",
+              "digest": "sha256:d5bb2cecb7d768df1b14589d2d04108da977ef82856ae7c637727e68ef718a3f"
+            },
+            {
+              "name": "ArtCraft_0.11.0_x64_en-US.msi",
+              "size": 431403008,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_x64_en-US.msi",
+              "digest": "sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870481040,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:16c11baba9f2c820e1cc9d9ce9d32a5daec439c008817e5d17d292f7fbb476d1"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.10.0",
+          "name": "ArtCraft v0.10.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.10.0_universal.dmg",
+              "size": 871027408,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_universal.dmg",
+              "digest": "sha256:c896f4b35f68c2abe7ea1b17907f7dd7144c407d2092ea27b49af784ac8c6f35"
+            },
+            {
+              "name": "ArtCraft_0.10.0_x64-setup.exe",
+              "size": 429965923,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_x64-setup.exe",
+              "digest": "sha256:a2459f29ec0392997e434665eacbdad669dd6b6176c024356bd4ee6a08fd5bdb"
+            },
+            {
+              "name": "ArtCraft_0.10.0_x64_en-US.msi",
+              "size": 431325184,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_x64_en-US.msi",
+              "digest": "sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870357499,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:c679a104055b6fa704103ce0aa0086a9a722ad4b0360ba73ced09e2e7bfc950d"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.8.0",
+          "name": "ArtCraft v0.8.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.8.0_universal.dmg",
+              "size": 870957735,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_universal.dmg",
+              "digest": "sha256:681ee208efc6821e0bf17f8c001f963c660c0b7579dae506d0fad83fafac8074"
+            },
+            {
+              "name": "ArtCraft_0.8.0_x64-setup.exe",
+              "size": 429929611,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_x64-setup.exe",
+              "digest": "sha256:e2e87c8d16e80192f6333172b0aab7856f7995d9dcad97505853653eab4e0c83"
+            },
+            {
+              "name": "ArtCraft_0.8.0_x64_en-US.msi",
+              "size": 431271936,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_x64_en-US.msi",
+              "digest": "sha256:acee5ec82523c83f38892c1639030b82345508999f0e04e12f5e9b4be0d7cbf5"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870297604,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:0c3e8a34a805f25913740dcd7bd0854802860dacb5f11a999dbc883bc5ba3ece"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.7.0",
+          "name": "ArtCraft v0.7.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.7.0_universal.dmg",
+              "size": 870979366,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_universal.dmg",
+              "digest": "sha256:53a4e514805a297efdd1b48165754bdbdb2ecb6fb2ed7763781b3e9b6c41ee96"
+            },
+            {
+              "name": "ArtCraft_0.7.0_x64-setup.exe",
+              "size": 429908986,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_x64-setup.exe",
+              "digest": "sha256:ea11456a1eb0e4c5cb96dcbe703becf69c7a1ffe0b189fb147bbf566fd724f4c"
+            },
+            {
+              "name": "ArtCraft_0.7.0_x64_en-US.msi",
+              "size": 431255552,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_x64_en-US.msi",
+              "digest": "sha256:892b2bbad75079edbff4607f64219cf67e7bf0491d9ce3df97d114a65f389f91"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870283186,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:2b10593132c023718b9771484c08c84ca5f15e0f6fcbfd615db9d5d4dc200012"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-windows-v0.5.0",
+          "name": "Artcraft Windows v0.5.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.5.0_x64-setup.exe",
+              "size": 429918679,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.5.0/ArtCraft_0.5.0_x64-setup.exe",
+              "digest": "sha256:cbf96b55c88436037d1953a15a5dffca21296e2f9f30d67e0ac691aca3a021ef"
+            },
+            {
+              "name": "ArtCraft_0.5.0_x64_en-US.msi",
+              "size": 431214592,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.5.0/ArtCraft_0.5.0_x64_en-US.msi",
+              "digest": "sha256:95ca0fa9c4abd244f4a103e1b23b8a4e4be609bd1cb8112a7e33c4f3e1efedf6"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.5.0",
+          "name": "Artcraft macOS v0.5.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.5.0_universal.dmg",
+              "size": 870880667,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.5.0/ArtCraft_0.5.0_universal.dmg",
+              "digest": "sha256:0fc9906478b8aa6c1947d42f601c976b2465cb12a510511b7fa0ef274c97bb1d"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 870161859,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.5.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:aa3ba6a6b8fdc19e59d4be052b2b0eb7dd67944e5b2a2ca93d7f173329f5588f"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-windows-v0.4.0",
+          "name": "Artcraft Windows v0.4.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.4.0_x64-setup.exe",
+              "size": 430977400,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.4.0/ArtCraft_0.4.0_x64-setup.exe",
+              "digest": "sha256:9d18c062573680dc1821ee582d1e7154546f03d48537767ab8b7beafd215a727"
+            },
+            {
+              "name": "ArtCraft_0.4.0_x64_en-US.msi",
+              "size": 432300032,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.4.0/ArtCraft_0.4.0_x64_en-US.msi",
+              "digest": "sha256:fff019c8e138203ad09bccd7bc7036eced680efebf1ed66199d94ef97f86294b"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.4.0",
+          "name": "Artcraft macOS v0.4.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.4.0_universal.dmg",
+              "size": 873045682,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.4.0/ArtCraft_0.4.0_universal.dmg",
+              "digest": "sha256:bc0bc112e682e6b623569bc797893c57cb3258e4cba36e33a0c108ee43b7335e"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 872371505,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.4.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:3078708f130d49f5e2efd53876de5b738a11709b49607261e01b1cadab267ac4"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-windows-v0.3.0",
+          "name": "Artcraft Windows v0.3.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.3.0_x64-setup.exe",
+              "size": 430905762,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.3.0/ArtCraft_0.3.0_x64-setup.exe",
+              "digest": "sha256:ab5be133e0b25a365b698b930d1d0c35692d3c8bd2eb003b8bb99ec662b52165"
+            },
+            {
+              "name": "ArtCraft_0.3.0_x64_en-US.msi",
+              "size": 432263168,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.3.0/ArtCraft_0.3.0_x64_en-US.msi",
+              "digest": "sha256:5ce3b80e89512be323c5ad779e10d523861e2d1d7275c4b9632c926299b32d69"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.3.0",
+          "name": "Artcraft macOS v0.3.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.3.0_universal.dmg",
+              "size": 872961189,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.3.0/ArtCraft_0.3.0_universal.dmg",
+              "digest": "sha256:d2206501d69fbc332f94805644c62d2a77645d03c4b6480f3648a2038e830710"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 872320179,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.3.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:27f02adf72ae958d1752e288dcd2deda483b9a3257222465c1969c508621371f"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-windows-v0.2.0",
+          "name": "Artcraft Windows v0.2.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.2.0_x64-setup.exe",
+              "size": 430920909,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.2.0/ArtCraft_0.2.0_x64-setup.exe",
+              "digest": "sha256:3f4fa079eef55462f0c21e7bc618f0d8e0d9405376991a17196a9feda6d2cec3"
+            },
+            {
+              "name": "ArtCraft_0.2.0_x64_en-US.msi",
+              "size": 432246784,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.2.0/ArtCraft_0.2.0_x64_en-US.msi",
+              "digest": "sha256:a599f883721ee304f71367ca62fb3a50ee1e7a7662b9e25cf437e057ed6ca58f"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.2.0",
+          "name": "Artcraft macOS v0.2.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.2.0_universal.dmg",
+              "size": 872936323,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.2.0/ArtCraft_0.2.0_universal.dmg",
+              "digest": "sha256:9b5f98ab6200296214d2e13a4eb7ed1c801335898247c819d26e7405d8286673"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 872271437,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.2.0/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:57867a4e53c6519ebb5ec3b5b71a35466277460be4327975935161594d7706a1"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-windows-v0.0.1",
+          "name": "Artcraft Windows v0.0.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.0.1_x64-setup.exe",
+              "size": 430932499,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64-setup.exe",
+              "digest": "sha256:f96d6aaafcd69b53557e56d7a4bc3f1611ae46e86272feca90135d07637f71c8"
+            },
+            {
+              "name": "ArtCraft_0.0.1_x64-setup_windows.exe",
+              "size": 415337228,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64-setup_windows.exe",
+              "digest": "sha256:f5ee7df6b8e4865a676d142d168b9915a0bf644aa22269e0fbea7bd8aba68af3"
+            },
+            {
+              "name": "ArtCraft_0.0.1_x64_en-US.msi",
+              "size": 432242688,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64_en-US.msi",
+              "digest": "sha256:d8ca2803063e12d86d4c589083b12cd50201c6249e19bba67452993816143a4c"
+            },
+            {
+              "name": "ArtCraft_0.0.1_x64_en-US_windows.msi",
+              "size": 416821248,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64_en-US_windows.msi",
+              "digest": "sha256:59969d60ca5435c1d3b90a481833ae1dc88ef5c08790cafd0f85ee0f37b237a0"
+            }
+          ]
+        },
+        {
+          "tag_name": "artcraft-v0.0.1",
+          "name": "Artcraft macOS v0.0.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "ArtCraft_0.0.1_universal.dmg",
+              "size": 872944556,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_0.0.1_universal.dmg",
+              "digest": "sha256:6e03113fb805497a35a86bbff330d5679b2f517a35ef7840a9ee8a21c03b1ee1"
+            },
+            {
+              "name": "ArtCraft_0.0.1_universal_darwin.dmg",
+              "size": 841775560,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_0.0.1_universal_darwin.dmg",
+              "digest": "sha256:11e3b8ad5b361a50092c7c1763857b00500f916f2dba7461021e5a00f8c84e55"
+            },
+            {
+              "name": "ArtCraft_darwin_universal.app.tar.gz",
+              "size": 841121903,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_darwin_universal.app.tar.gz",
+              "digest": "sha256:b313a187a607a86f47806ef6c0324aa3262030818e3d93c365b9cc7810a27d83"
+            },
+            {
+              "name": "ArtCraft_universal.app.tar.gz",
+              "size": 872264957,
+              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_universal.app.tar.gz",
+              "digest": "sha256:47d8cabefcd403df1418544eb4c7c00052a9e948766f9300ccd31d4e5f023773"
+            }
+          ]
+        }
+      ],
+      "scopes": [
+        {
+          "tag": "artcraft-v0.10.0",
+          "asset_name": "ArtCraft_0.10.0_x64_en-US.msi",
+          "digest": "sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0",
+          "size": 431325184,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.11.0",
+          "asset_name": "ArtCraft_0.11.0_x64_en-US.msi",
+          "digest": "sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e",
+          "size": 431403008,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.12.0",
+          "asset_name": "ArtCraft_0.12.0_x64_en-US.msi",
+          "digest": "sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2",
+          "size": 431390720,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.14.0",
+          "asset_name": "ArtCraft_0.14.0_x64_en-US.msi",
+          "digest": "sha256:c7341a4fdea43a90bd2e25b8c2d2b2ff7f4ef9936d6bc94a86a7ebd136df7924",
+          "size": 431484928,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.15.0",
+          "asset_name": "ArtCraft_0.15.0_x64_en-US.msi",
+          "digest": "sha256:f5bff8b1238d43e3a9cdd43716807bbb1b80cbbb44f88ac14cab2f685ae6ad5c",
+          "size": 431505408,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.19.0",
+          "asset_name": "ArtCraft_0.19.0_x64_en-US.msi",
+          "digest": "sha256:b46fae2d9e617003c1ee67c7892f612cdd7e28e1d053145521acae1dffd337bd",
+          "size": 431583232,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.20.0",
+          "asset_name": "ArtCraft_0.20.0_x64_en-US.msi",
+          "digest": "sha256:2363f1459818e4324034ca77e3bc89566c644135b1e641c6e0ea63df8c59e57f",
+          "size": 431579136,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.22.0",
+          "asset_name": "ArtCraft_0.22.0_x64_en-US.msi",
+          "digest": "sha256:600d664797b2143a0625ea613541d63c894b839c7deebf85f9eddaa5f8f7f7db",
+          "size": 431640576,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.23.0",
+          "asset_name": "ArtCraft_0.23.0_x64_en-US.msi",
+          "digest": "sha256:852c7d5f5e4e557bacaffbefb2fff9e0a0a41f087a6dad505660d6bf29ca1ddb",
+          "size": 431644672,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.24.0",
+          "asset_name": "ArtCraft_0.24.0_x64_en-US.msi",
+          "digest": "sha256:3a030710e73e70be5eb36fa583b678808f208ec0baaab7a536bbc5e65e24d469",
+          "size": 431644672,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.27.0",
+          "asset_name": "ArtCraft_0.27.0_x64_en-US.msi",
+          "digest": "sha256:0197c608329fe2f4dde31351b2ce8ec732e7935c967bf67fcf092f75dfcb41fd",
+          "size": 431935488,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.28.0",
+          "asset_name": "ArtCraft_0.28.0_x64_en-US.msi",
+          "digest": "sha256:0fb072d1704c041eeaa0846a8fa8611cca47f05ee214fb0b7c0c50ecbf620519",
+          "size": 431960064,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.29.0",
+          "asset_name": "ArtCraft_0.29.0_x64_en-US.msi",
+          "digest": "sha256:7b89b4bbd702a931c48cfe7532fabd5c41a28414ff2ca3b1d73cf2e55043ee65",
+          "size": 432054272,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.32.0",
+          "asset_name": "ArtCraft_0.32.0_x64_en-US.msi",
+          "digest": "sha256:1134a7ba9407a47e997ed607a1ccf78d7c162cc405e2b9c287c14d299e99e432",
+          "size": 432218112,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.37.0",
+          "asset_name": "ArtCraft_0.37.0_x64_en-US.msi",
+          "digest": "sha256:fb84e12392eed0aab7d11b17010d69499079f281df1f723d3aac35481e2ca23a",
+          "size": 48676864,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.41.0",
+          "asset_name": "ArtCraft_0.41.0_x64_en-US.msi",
+          "digest": "sha256:255f963ba8acb799b231ac23a5ef04ca157a8d26f9b9b279b3e55a59db29be77",
+          "size": 46837760,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.41.1",
+          "asset_name": "ArtCraft_0.41.1_x64_en-US.msi",
+          "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d",
+          "size": 47058944,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.7.0",
+          "asset_name": "ArtCraft_0.7.0_x64_en-US.msi",
+          "digest": "sha256:892b2bbad75079edbff4607f64219cf67e7bf0491d9ce3df97d114a65f389f91",
+          "size": 431255552,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-v0.8.0",
+          "asset_name": "ArtCraft_0.8.0_x64_en-US.msi",
+          "digest": "sha256:acee5ec82523c83f38892c1639030b82345508999f0e04e12f5e9b4be0d7cbf5",
+          "size": 431271936,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.0.1",
+          "asset_name": "ArtCraft_0.0.1_x64_en-US.msi",
+          "digest": "sha256:d8ca2803063e12d86d4c589083b12cd50201c6249e19bba67452993816143a4c",
+          "size": 432242688,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.0.1",
+          "asset_name": "ArtCraft_0.0.1_x64_en-US_windows.msi",
+          "digest": "sha256:59969d60ca5435c1d3b90a481833ae1dc88ef5c08790cafd0f85ee0f37b237a0",
+          "size": 416821248,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.2.0",
+          "asset_name": "ArtCraft_0.2.0_x64_en-US.msi",
+          "digest": "sha256:a599f883721ee304f71367ca62fb3a50ee1e7a7662b9e25cf437e057ed6ca58f",
+          "size": 432246784,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.3.0",
+          "asset_name": "ArtCraft_0.3.0_x64_en-US.msi",
+          "digest": "sha256:5ce3b80e89512be323c5ad779e10d523861e2d1d7275c4b9632c926299b32d69",
+          "size": 432263168,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.4.0",
+          "asset_name": "ArtCraft_0.4.0_x64_en-US.msi",
+          "digest": "sha256:fff019c8e138203ad09bccd7bc7036eced680efebf1ed66199d94ef97f86294b",
+          "size": 432300032,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        },
+        {
+          "tag": "artcraft-windows-v0.5.0",
+          "asset_name": "ArtCraft_0.5.0_x64_en-US.msi",
+          "digest": "sha256:95ca0fa9c4abd244f4a103e1b23b8a4e4be609bd1cb8112a7e33c4f3e1efedf6",
+          "size": 431214592,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "machine_only",
+          "inspector_version": 1
+        }
+      ]
+    },
+    "c3e45ef3a024c4e39e9399e3ce0b516a88ec071e4c63ca2ad202a240e35ba7ca": {
       "schema": 1,
       "repository": "storytold/vectorcraft",
-      "latest_tag": "v0.23.0",
+      "latest_tag": "v0.24.0",
       "releases": [
+        {
+          "tag_name": "v0.24.0",
+          "name": "VectorCraft v0.24.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5170,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/SHA256SUMS.txt",
+              "digest": "sha256:91d191b93cdb5900644f31a60df73cfee4c5f646c938a247739226d4e9685e8c"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:17a05c4ef9f6b396c4194dc514904df417041a956b112eb3595fad2a7277a493"
+            },
+            {
+              "name": "vectorcraft-0.24.0-freebsd-aarch64.tar.gz",
+              "size": 147664815,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:3c97081f527aa45821c4abdabc6582f92d2e67b97616777f5e44135d7ff9df41"
+            },
+            {
+              "name": "vectorcraft-0.24.0-freebsd-x86_64.tar.gz",
+              "size": 156359195,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:5474f5a61bbd66c3dd58afef52a113fa958b4e0c8a1ef3f2c3cd574e7e11e220"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.AppImage",
+              "size": 140974600,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.AppImage",
+              "digest": "sha256:998a28e55a00120d6193f3751a8b4c7f444f6181dbbb2ee8ecff4798437d6341"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:0863a9d76b684e577ef6f94e283598afcf0ac715cfe4d05337347b53cd463827"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.AppImage.zsync",
+              "size": 241180,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:b0c74d627398de91bd9946059b0db6ecd572cea31ddc19df88d4a679b1c118eb"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:d6b2263f9c4423f3aa5ae7f72599d44813fa0011f74788cda350453d18a410df"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.deb",
+              "size": 154190960,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.deb",
+              "digest": "sha256:017714512ed01587ac1effcbf628d6d901f36d4259ab490885f3f9f1e45dbe65"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.deb.asc",
+              "digest": "sha256:a8d2a2c6711fcfbc30b60c6e0338b734064b6044ae552b5f4ffd2ae2d5429d9d"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.flatpak",
+              "size": 101307032,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.flatpak",
+              "digest": "sha256:a206f02c3b2d05fc5fb5bbcf19cb442a850e6f739d5e02396a3f17c77154f244"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:ce70789dba6f03c2a88fe50b5862ae49da77774686a5a671321ca86d10980fd0"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:433770df7326c1542b948343c6fd9a201604b80fdb0745d76d957edd422f04ee"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.oci.sig",
+              "size": 388,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.oci.sig",
+              "digest": "sha256:6e2aa58cbd67c36620e421d0383dc5c4a780f55c2dd30d91d64cb3c2a55348bf"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.pkg.tar.zst",
+              "size": 111590459,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:2d07485d9d952379814f8e0c652873cebbc67dafe212bcd5220b4c2719aa6487"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:7281a08395bd408a631a491a7f20eeac51d52ee2aa55f9a46b05b52ed1f368dd"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.rpm",
+              "size": 152737406,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.rpm",
+              "digest": "sha256:613fc4a92bbf97ce9c326299bcd910a2a3a229300a6ff5e1651f9052ac5ac7ab"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:67f9a46e1d8e5042661f29a22791fb121c8d4c08b64f404b8db8d799029d6490"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.tar.gz",
+              "size": 149756860,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.tar.gz",
+              "digest": "sha256:dd617566316caf703884de1edbf109f70df03eb949ef9354623eaed5a822bc3e"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:eb170ecc2bdd6381e48cc1346ab0bdeacf9c1a60bae8d1b0f8fabcaf6d016c74"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.deb",
+              "size": 156235368,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.deb",
+              "digest": "sha256:10a3ae6413375d31259d11eaf74fdcbb9afba9b5ba7410012b37bd53c24f5c79"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.deb.asc",
+              "digest": "sha256:0b09d428eec8dee790c4aa1bc3ebf8b801b70dc4f41e0b2ba15ac1d72824e929"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.rpm",
+              "size": 155521564,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.rpm",
+              "digest": "sha256:cddc35f57f316a3c0a761525b3489ace067a0daef196027c60196995d0b4e8de"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:d60f3b51ec3c76a9ac785942efcb691843e34830050bba137f3dfcb676784456"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.tar.gz",
+              "size": 153996585,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.tar.gz",
+              "digest": "sha256:d040814ddf292e64d486f8238f8da755a35e58a1815a9ca265a5cb85694f2a2f"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:c638d5f16cf00d2e2e3b3684c1c938920db50f1e197ffa5127e3ff445efd0298"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.AppImage",
+              "size": 147462648,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.AppImage",
+              "digest": "sha256:a13720750a2afaa2f411ed7ebf95adc60dc336eca26352b15a14e429d7baf7f0"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:4d113f8c3eaa92f3ffcae7fe5d8e0bc5d245a039cbf568b6e9d3eec073f47031"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.AppImage.zsync",
+              "size": 252266,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:98dd7f083a329c17cc727fc850f2766ab9d026976a9277b363ca05445412f843"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:d15c3557cef6853394f4d0ad6efdc0eef209c28b9ac7fd88076727bb303b196d"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.deb",
+              "size": 159366942,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.deb",
+              "digest": "sha256:08ce5a17a761cb9327056ba7663c0b1a9606d8cce9996081c08130b19477b218"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.deb.asc",
+              "digest": "sha256:ffc54187108a6c8b45daa4fa0f13db5a330ddcde9a94b12639572d25ad0b5e55"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.flatpak",
+              "size": 108928184,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.flatpak",
+              "digest": "sha256:5fe146db0d76ca08b5f945cbb3d416301a2914e88dfe6d6b9b957b0d5f08132d"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:104f3b61870767ca3422d99969a13907aab53ea794b5e8f92d9a57f3b045c169"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:f6056c968978c594a0da5931ed414ec4486ac51c761416b3e03f07905687914c"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.oci.sig",
+              "size": 383,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.oci.sig",
+              "digest": "sha256:eba6a4c5ca147734fdede8db9e4cf3d5b33d03b7c9e988f5d2d1c20e2a1f7433"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.pkg.tar.zst",
+              "size": 116327773,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:c0ca5a646152aa8e79a135dee81b857a0130fbbc53da594223b95accd203824c"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:56cbfe4cfc6e83b811e986760f9ee8655eee720ac655ab1bd10ce07139d4c86d"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.rpm",
+              "size": 158223506,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.rpm",
+              "digest": "sha256:daae7320abf49600544733bace3cb39e2ea2cbb25633b44f953e3ae3445f4d07"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:cad066137f0e31062005c299be4acb46cd7003baf8158f30dba6f936f0643158"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.tar.gz",
+              "size": 156862239,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.tar.gz",
+              "digest": "sha256:9c6171ca007a6f835c368b592fe9ee90c985d65057edc9dcd2bc4c4efc50ad2b"
+            },
+            {
+              "name": "vectorcraft-0.24.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:0eb753d6e4160772fe9890956d885c7446ad0b6a590505461afa8510bf00a377"
+            },
+            {
+              "name": "vectorcraft-0.24.0-macos-universal.dmg",
+              "size": 177522295,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-macos-universal.dmg",
+              "digest": "sha256:f1a0471273742dad0d4d37934b5a60cd75ae163d8e5e1b8cf3739a47197baf12"
+            },
+            {
+              "name": "vectorcraft-0.24.0-windows-arm64-portable.zip",
+              "size": 153688012,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-windows-arm64-portable.zip",
+              "digest": "sha256:a48f3f45f65c1a399bdbaea57b6bad003f62fe30933a732ac63bf781d71ce8a2"
+            },
+            {
+              "name": "vectorcraft-0.24.0-windows-arm64.msi",
+              "size": 120508416,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-windows-arm64.msi",
+              "digest": "sha256:330be54cb7ef93c8f6698661bc4b480d66fb3bc50dacec3c54f1d34529312d15"
+            },
+            {
+              "name": "vectorcraft-0.24.0-windows-x64-portable.zip",
+              "size": 162093694,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-windows-x64-portable.zip",
+              "digest": "sha256:0a234230fe281f289fb1a4dea078dec55b2fdf1ac3212aa06112b57286ad1fa6"
+            },
+            {
+              "name": "vectorcraft-0.24.0-windows-x64.msi",
+              "size": 129368064,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-0.24.0-windows-x64.msi",
+              "digest": "sha256:76c02477095f5b97c56927edb24b1e04bdeb780c323f3ba532c88d933e73a7ce"
+            },
+            {
+              "name": "vectorcraft-cli-0.24.0-macos-universal.zip",
+              "size": 133350782,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-cli-0.24.0-macos-universal.zip",
+              "digest": "sha256:c94847b994b0d6d75bf1c948d8c1dd834c5383806066505f0ba055719107e296"
+            },
+            {
+              "name": "vectorcraft-web-0.24.0.zip",
+              "size": 38064020,
+              "browser_download_url": "https://github.com/storytold/vectorcraft/releases/download/v0.24.0/vectorcraft-web-0.24.0.zip",
+              "digest": "sha256:902ce32c5ff2e8bb003c8815ae2a0972ca470fac0cd7fda1ae3b97773d93e43b"
+            }
+          ]
+        },
         {
           "tag_name": "v0.23.0",
           "name": "VectorCraft v0.23.0",
@@ -50449,6 +52094,26 @@
           "inspector_version": 1
         },
         {
+          "tag": "v0.24.0",
+          "asset_name": "vectorcraft-0.24.0-windows-arm64.msi",
+          "digest": "sha256:330be54cb7ef93c8f6698661bc4b480d66fb3bc50dacec3c54f1d34529312d15",
+          "size": 120508416,
+          "os": "windows",
+          "architecture": "arm64",
+          "policy": "dual",
+          "inspector_version": 1
+        },
+        {
+          "tag": "v0.24.0",
+          "asset_name": "vectorcraft-0.24.0-windows-x64.msi",
+          "digest": "sha256:76c02477095f5b97c56927edb24b1e04bdeb780c323f3ba532c88d933e73a7ce",
+          "size": 129368064,
+          "os": "windows",
+          "architecture": "x64",
+          "policy": "dual",
+          "inspector_version": 1
+        },
+        {
           "tag": "v0.3.0",
           "asset_name": "vectorcraft-0.3.0-windows-x64.msi",
           "digest": "sha256:23f3e4c04bbce0f3a7b6040e06b07f5e4bcf00dea744d391e0e5becb03a83df6",
@@ -50665,1343 +52330,6 @@
           "size": 65241088,
           "os": "windows",
           "architecture": "x86",
-          "policy": "machine_only",
-          "inspector_version": 1
-        }
-      ]
-    },
-    "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b": {
-      "schema": 1,
-      "repository": "storytold/artcraft",
-      "latest_tag": "artcraft-v0.41.1",
-      "releases": [
-        {
-          "tag_name": "artcraft-v0.41.1",
-          "name": "ArtCraft v0.41.1",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.AppImage",
-              "size": 177187336,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage",
-              "digest": "sha256:31a4071758ce7989c6548e3976839aaf6010be414d0a1b5cc9a913537bbc88de"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.AppImage.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.asc",
-              "digest": "sha256:b31e7b76cbf22e70d1ec1bd69ecee99882d84db5799d501c996bec12b9e8aaf1"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync",
-              "size": 303134,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync",
-              "digest": "sha256:c30d74cb558652168c1a0fcbedfe8aeab22d9a31e4ac30026778f6d7a5a129f8"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.AppImage.zsync.asc",
-              "digest": "sha256:6019e98c27e8c718791ad01f289f112ce9ddf5d497c589c2b6472421c0cead09"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.deb",
-              "size": 50359372,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb",
-              "digest": "sha256:86e732287afeb640f6ef77d823f4291dc9b8cd045de6ae1137cd3729156291dd"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.deb.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.deb.asc",
-              "digest": "sha256:99dcac63788e00b8e29b33371dc3f2392248f992cbc666833aaecdd222407941"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.flatpak",
-              "size": 40561288,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak",
-              "digest": "sha256:8f899c94f0c41fb1553c66fc6b4d3ac0763f4c034bfb06fe9f0d60426c153f7b"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.flatpak.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.flatpak.asc",
-              "digest": "sha256:2e4ba0c04b08f105079abf0c105d596c459197e14666d40ecf6718d9a29692a7"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.oci-manifest.json",
-              "size": 493,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci-manifest.json",
-              "digest": "sha256:7f98a1663bb25745f3733a7bb53ae82c11abc22793a07fa98bcd0548a76324f5"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.oci.sig",
-              "size": 387,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.oci.sig",
-              "digest": "sha256:284289ee7ca2b64eb91a7daa0dc8de6610f709d29b6780b6ac522cad8b500e75"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
-              "size": 43824067,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst",
-              "digest": "sha256:d435e7f7fd8c6a0cf60acd535558ed507ca0bdf8ce2b9d1ff6c992a751d352d8"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
-              "size": 119,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.pkg.tar.zst.sig",
-              "digest": "sha256:6b5489b3b545c7232d53c690b5943eda3a62ef5744c84dfee1069dc1c88fdc04"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.rpm",
-              "size": 50362331,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm",
-              "digest": "sha256:3701481f6193770f97f45eacff84dc2ff1e3df92c2c526d918d2f31e6b315205"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.rpm.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.rpm.asc",
-              "digest": "sha256:5839d7e88b151c310d7284e558b72539eb2064e9e5349bba7ebb5d22cbaddfdc"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.tar.gz",
-              "size": 49710171,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz",
-              "digest": "sha256:cb780e02e87234927d339c87dee03b224e1641320758be813d31d442d9a691ae"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-aarch64.tar.gz.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-aarch64.tar.gz.asc",
-              "digest": "sha256:b83ddda68ab7a6cddfcdccdc38cb5cc0827a42e85056fb9add30cbaede9cb26d"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.deb",
-              "size": 48852800,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb",
-              "digest": "sha256:7ffdf1ec4c99401cff821b0998cb4e7cd0644b39befa418f5adb4a2749352ff0"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.deb.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.deb.asc",
-              "digest": "sha256:2e1ccfe26d7b5d6f0a39616628385629b8ae8894231447e47425f789ee16e9b7"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.rpm",
-              "size": 48857171,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm",
-              "digest": "sha256:72f11bfc6f0bee941226ce00808fcf427b12be626ee9c28512bcf4498dab1eae"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.rpm.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.rpm.asc",
-              "digest": "sha256:aa3da34c710d8ff07110b656b434b37436e0dbd30b7c7bade61ee0dbf2d2f7b2"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.tar.gz",
-              "size": 48491446,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz",
-              "digest": "sha256:d32edc5ac3320f6789154fcd89552f0650d6d396c8cb576d1197d1e11bbc0745"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-riscv64.tar.gz.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-riscv64.tar.gz.asc",
-              "digest": "sha256:e45fa0cae51309ee524322d1b65ba49b4f01225e2057cf18928803d7453da843"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.AppImage",
-              "size": 182495736,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage",
-              "digest": "sha256:bb32657b6e81e8e47da44ca4e764b1af14d77d8690b248a263a4acd1218b7d2d"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.AppImage.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.asc",
-              "digest": "sha256:770a5e86dd56a3822adb8385ad80534f039983361bc0abc5f9a9ccc81fc2974b"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync",
-              "size": 312204,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync",
-              "digest": "sha256:8b1d9e3806b0a63e4149d7b899c35dafcdd2d76828a2960c971eb00eddc5db06"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.AppImage.zsync.asc",
-              "digest": "sha256:d524fb0943a2338e9c288a5a275d14002b1d1e07fd27a19b0bc5de304979ba05"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.deb",
-              "size": 49873314,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb",
-              "digest": "sha256:91b3d69c2e707b60c4cad6c14eca6b3dc8bf62570738cdf10f0acbe3570b74a2"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.deb.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.deb.asc",
-              "digest": "sha256:e3786418d32622cbead96ce19917fa2c8e38d82082f2fdc91fbb499f68cb1887"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.flatpak",
-              "size": 41755576,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak",
-              "digest": "sha256:7351e1bad48006b251ab943372fa15f1829d8b92ca944adb7f312b4e5c7e9912"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.flatpak.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.flatpak.asc",
-              "digest": "sha256:cf9e4cd7bd120a6591f6f13b82d4d9c03b067dbbb58d0fb123e4cf2ccf9bd40e"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.oci-manifest.json",
-              "size": 493,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci-manifest.json",
-              "digest": "sha256:39576e754b702bba58c5af983ea5c07042f30a71dcd6a64d0e3916eaccb9e8a4"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.oci.sig",
-              "size": 387,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.oci.sig",
-              "digest": "sha256:7c6bfc47603bb835b44c706b52b475e4eb116ff0390ea4f1f2dec713562b4df9"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
-              "size": 43960303,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst",
-              "digest": "sha256:8f7b1b0d7069ec1143102ab5c9d3cb639d7e833fca5b210c705cfe7e5d1f9db1"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
-              "size": 119,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.pkg.tar.zst.sig",
-              "digest": "sha256:764a24249ad2fafd1d7e982a74fa2649311feb6ecc65938455f9331e9bcc3b31"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.rpm",
-              "size": 49875206,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm",
-              "digest": "sha256:f408402ea008adae7077f3e8a8e8799e63a6baa4f2fec138226f309e1de32dfc"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.rpm.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.rpm.asc",
-              "digest": "sha256:d7eec47d390afbf53daf5cc123c396c6805ef4b3a560f5d502b15316b0b5ba61"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.tar.gz",
-              "size": 49365185,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz",
-              "digest": "sha256:149f9748ea33553177c021e1ade47a195fad25b881129d4178fe5bd922a94eb4"
-            },
-            {
-              "name": "artcraft-0.41.1-linux-x86_64.tar.gz.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/artcraft-0.41.1-linux-x86_64.tar.gz.asc",
-              "digest": "sha256:967fb6dcdcc86636e0c2825af43d58525b4b07dc3d5f1ff553c9c819b0d9cc30"
-            },
-            {
-              "name": "ArtCraft_0.41.1_universal.dmg",
-              "size": 94884865,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_universal.dmg",
-              "digest": "sha256:89009b8983d88919481ac936e2ada0409dff0e0fc73f487cce3e7324699866a6"
-            },
-            {
-              "name": "ArtCraft_0.41.1_x64-setup.exe",
-              "size": 41991072,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64-setup.exe",
-              "digest": "sha256:fb80cad705a182fdd7bbc17bb2bd34f1bd74561c539d97e69ba6143b616ab038"
-            },
-            {
-              "name": "ArtCraft_0.41.1_x64_en-US.msi",
-              "size": 47058944,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_0.41.1_x64_en-US.msi",
-              "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 94791060,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:d1e4e9623ebf506fbc8d7476b69b2db957125761e7908624b3eb031ce044413e"
-            },
-            {
-              "name": "release-signing-key.asc",
-              "size": 803,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/release-signing-key.asc",
-              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
-            },
-            {
-              "name": "SHA256SUMS.txt",
-              "size": 4108,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt",
-              "digest": "sha256:5450801c2342f8ea05d9aa71cd31cb4b02462cebd9cab7abbe8884e17de6f075"
-            },
-            {
-              "name": "SHA256SUMS.txt.asc",
-              "size": 228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.1/SHA256SUMS.txt.asc",
-              "digest": "sha256:11d6e4c827592c407c5fb85b774fa196698e7b42e2bc791b6caa38825b13ef9f"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.41.0",
-          "name": "ArtCraft v0.41.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.41.0_universal.dmg",
-              "size": 94852055,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_universal.dmg",
-              "digest": "sha256:3cf1df2e56345e603c5d0180e5b563dd5eca25d9e3c3959d9554012f510916c1"
-            },
-            {
-              "name": "ArtCraft_0.41.0_x64-setup.exe",
-              "size": 41791713,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64-setup.exe",
-              "digest": "sha256:cb15da474ae36a7a7f930a6e9916be2794e7cc84c3340b531c38eabc82f4363e"
-            },
-            {
-              "name": "ArtCraft_0.41.0_x64_en-US.msi",
-              "size": 46837760,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_0.41.0_x64_en-US.msi",
-              "digest": "sha256:255f963ba8acb799b231ac23a5ef04ca157a8d26f9b9b279b3e55a59db29be77"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 94658582,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.41.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:812d7b4e570df95dee769761b6afc53d82cbb1e4911aed360d9bd23fc830d673"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.37.0",
-          "name": "ArtCraft v0.37.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.37.0_universal.dmg",
-              "size": 98550398,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_universal.dmg",
-              "digest": "sha256:c038a0826f1411858e9ec2e0b4631a6bf6d4b83df619d49b4c47e204deffcd47"
-            },
-            {
-              "name": "ArtCraft_0.37.0_x64-setup.exe",
-              "size": 43823220,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_x64-setup.exe",
-              "digest": "sha256:bc737a3a5060c11398f0f7fdd1a97ae78b513747beb71f82bb7ba86d66a485ba"
-            },
-            {
-              "name": "ArtCraft_0.37.0_x64_en-US.msi",
-              "size": 48676864,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_0.37.0_x64_en-US.msi",
-              "digest": "sha256:fb84e12392eed0aab7d11b17010d69499079f281df1f723d3aac35481e2ca23a"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 98347612,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.37.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:6a9af1675ae804142d195c3532d6c214fb75e38484760dd92bde64a93c1a81e1"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.32.0",
-          "name": "ArtCraft v0.32.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.32.0_universal.dmg",
-              "size": 871194972,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_universal.dmg",
-              "digest": "sha256:5beff78efbeb3476e2f2dd11b8738bac41b03e7bb8273377b62bcf595be27d3d"
-            },
-            {
-              "name": "ArtCraft_0.32.0_x64-setup.exe",
-              "size": 430592038,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_x64-setup.exe",
-              "digest": "sha256:5465ac081dfb7b45e161e8f05ad6de009400384dd34e7e161dffe33f72536f0a"
-            },
-            {
-              "name": "ArtCraft_0.32.0_x64_en-US.msi",
-              "size": 432218112,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_0.32.0_x64_en-US.msi",
-              "digest": "sha256:1134a7ba9407a47e997ed607a1ccf78d7c162cc405e2b9c287c14d299e99e432"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870529319,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.32.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:2250c3637d13813e14e55c2e0e0dece0bc11311e48a77b6b94e34fd920743dd8"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.29.0",
-          "name": "ArtCraft v0.29.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.29.0_universal.dmg",
-              "size": 870878035,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_universal.dmg",
-              "digest": "sha256:d7db6c85a97af97080b0802b6c53e16f2a70f3285d446c1dd31389ff873527c3"
-            },
-            {
-              "name": "ArtCraft_0.29.0_x64-setup.exe",
-              "size": 430510055,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_x64-setup.exe",
-              "digest": "sha256:5531e0987e256b3a71ff52e83fc9efbbebde786b1d439586ab5686644ad3f6c8"
-            },
-            {
-              "name": "ArtCraft_0.29.0_x64_en-US.msi",
-              "size": 432054272,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_0.29.0_x64_en-US.msi",
-              "digest": "sha256:7b89b4bbd702a931c48cfe7532fabd5c41a28414ff2ca3b1d73cf2e55043ee65"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870214129,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.29.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:46b4a0c0c4ebbaf94987fa5671fabf85745e321a567b1ac7305efbfd2e5ebd1a"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.28.0",
-          "name": "ArtCraft v0.28.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.28.0_universal.dmg",
-              "size": 872218588,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_universal.dmg",
-              "digest": "sha256:bb81ff8d74613430c644372d8411fa8c45fede761bb59f90618e12ca34be3e64"
-            },
-            {
-              "name": "ArtCraft_0.28.0_x64-setup.exe",
-              "size": 430432164,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_x64-setup.exe",
-              "digest": "sha256:f8b7890d0a19ed4829e58b44f22cf5407ab969e6659dbf945658bd867d5fe843"
-            },
-            {
-              "name": "ArtCraft_0.28.0_x64_en-US.msi",
-              "size": 431960064,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_0.28.0_x64_en-US.msi",
-              "digest": "sha256:0fb072d1704c041eeaa0846a8fa8611cca47f05ee214fb0b7c0c50ecbf620519"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 871550969,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.28.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:9c9fd74385aff34b5e5a9a759abbe40825d667fbbbf39fb87d7228657727dc7e"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.27.0",
-          "name": "ArtCraft v0.27.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.27.0_universal.dmg",
-              "size": 872169387,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_universal.dmg",
-              "digest": "sha256:88787955e7044bc08b6de2e76a3260cb6606b77a7f209b5684148e60bc9f08ce"
-            },
-            {
-              "name": "ArtCraft_0.27.0_x64-setup.exe",
-              "size": 430430526,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_x64-setup.exe",
-              "digest": "sha256:df807a2332919417ae50c4bc58b8a9ad71f9f275d0b1ec6363a3a8955a1f3aed"
-            },
-            {
-              "name": "ArtCraft_0.27.0_x64_en-US.msi",
-              "size": 431935488,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_0.27.0_x64_en-US.msi",
-              "digest": "sha256:0197c608329fe2f4dde31351b2ce8ec732e7935c967bf67fcf092f75dfcb41fd"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 871503800,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.27.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:d9595c8cdd495a2ebcc3454e1791e5769101d1fb41cf3cd33370a1b2d3d7aac8"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.24.0",
-          "name": "ArtCraft v0.24.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.24.0_universal.dmg",
-              "size": 871627094,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_universal.dmg",
-              "digest": "sha256:09923859d0c1a91d7f9f317b0dd3f3e6303e24e7d483fb1316175a6b593f0b76"
-            },
-            {
-              "name": "ArtCraft_0.24.0_x64-setup.exe",
-              "size": 430209530,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_x64-setup.exe",
-              "digest": "sha256:67b838fb5aab411ae0bfe0daa2489327986dcc4baa89d25eb6de4af774f31d01"
-            },
-            {
-              "name": "ArtCraft_0.24.0_x64_en-US.msi",
-              "size": 431644672,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_0.24.0_x64_en-US.msi",
-              "digest": "sha256:3a030710e73e70be5eb36fa583b678808f208ec0baaab7a536bbc5e65e24d469"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870951140,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.24.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:5dbf14dbd9e69f7a8a7aab2b3efe0f217a5eb9d17a164b35f614b91d5a5608e2"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.23.0",
-          "name": "ArtCraft v0.23.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.23.0_universal.dmg",
-              "size": 871624384,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_universal.dmg",
-              "digest": "sha256:2c5f5e26fc033d7b6268710919dc5cf91f28c882ef4a6124b7e2143beebde35d"
-            },
-            {
-              "name": "ArtCraft_0.23.0_x64-setup.exe",
-              "size": 430226003,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_x64-setup.exe",
-              "digest": "sha256:59f178b649d0ce0cda6e76317a85cdb4967b6cc219fc0bcaaa0405eb149a5d54"
-            },
-            {
-              "name": "ArtCraft_0.23.0_x64_en-US.msi",
-              "size": 431644672,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_0.23.0_x64_en-US.msi",
-              "digest": "sha256:852c7d5f5e4e557bacaffbefb2fff9e0a0a41f087a6dad505660d6bf29ca1ddb"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870950427,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.23.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:8947136c2373e3c5342b9ff706fce0a34b22bb1ec0eeb5e81db34e64b91f42bc"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.22.0",
-          "name": "ArtCraft v0.22.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.22.0_universal.dmg",
-              "size": 871621454,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_universal.dmg",
-              "digest": "sha256:44452770666aed219032366d6cb96d671504891c442e1d0b10de0611d5471a44"
-            },
-            {
-              "name": "ArtCraft_0.22.0_x64-setup.exe",
-              "size": 430205997,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_x64-setup.exe",
-              "digest": "sha256:5f149753fea7884a10abc7295bea6c77f56c908e9579d2f39b9633488d932b13"
-            },
-            {
-              "name": "ArtCraft_0.22.0_x64_en-US.msi",
-              "size": 431640576,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_0.22.0_x64_en-US.msi",
-              "digest": "sha256:600d664797b2143a0625ea613541d63c894b839c7deebf85f9eddaa5f8f7f7db"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870943331,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.22.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:09f0d543536ea633be6afeed92f90db9a20b97b2c0f9d74f0164dc2ed25ef74a"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.20.0",
-          "name": "ArtCraft v0.20.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.20.0_universal.dmg",
-              "size": 871360381,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_universal.dmg",
-              "digest": "sha256:a36c11bb066fbfd7ba0abf274edc3a2c008bec2c810590a99c4a2fda50cd9bd2"
-            },
-            {
-              "name": "ArtCraft_0.20.0_x64-setup.exe",
-              "size": 430150894,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_x64-setup.exe",
-              "digest": "sha256:effddd133692080de569ff5658c293914fb8c6d0a5345ddf39cad8ebf6319b2d"
-            },
-            {
-              "name": "ArtCraft_0.20.0_x64_en-US.msi",
-              "size": 431579136,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_0.20.0_x64_en-US.msi",
-              "digest": "sha256:2363f1459818e4324034ca77e3bc89566c644135b1e641c6e0ea63df8c59e57f"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870701362,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.20.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:45382c5ef9c079284c303dbb70cc405f62b6e2f124d3fe2f7397f93f784802e2"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.19.0",
-          "name": "ArtCraft v0.19.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.19.0_universal.dmg",
-              "size": 871346554,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_universal.dmg",
-              "digest": "sha256:a477540ec375e4d9cc0edc0d94970bcfe91f4da6540e6c952824c2112296d4f7"
-            },
-            {
-              "name": "ArtCraft_0.19.0_x64-setup.exe",
-              "size": 430193903,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_x64-setup.exe",
-              "digest": "sha256:b9b6885c21990f7172e5c249310fdad98935a103cbb8d05fd94e9cab35c718f5"
-            },
-            {
-              "name": "ArtCraft_0.19.0_x64_en-US.msi",
-              "size": 431583232,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_0.19.0_x64_en-US.msi",
-              "digest": "sha256:b46fae2d9e617003c1ee67c7892f612cdd7e28e1d053145521acae1dffd337bd"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870696453,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.19.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:455fe497530721f24075acc1e1106a894c48e0d4c6052e0a7f5f6904d6260f29"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.15.0",
-          "name": "ArtCraft v0.15.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.15.0_universal.dmg",
-              "size": 871245630,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_universal.dmg",
-              "digest": "sha256:1a75b933c83701b0d42a3557ce62333ea13781fa920775931b78076ecfb6b1d7"
-            },
-            {
-              "name": "ArtCraft_0.15.0_x64-setup.exe",
-              "size": 430119371,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_x64-setup.exe",
-              "digest": "sha256:77937da910c99bdf75a2789f4cef562f98cd6235bd57ca15a0c80484a17127f9"
-            },
-            {
-              "name": "ArtCraft_0.15.0_x64_en-US.msi",
-              "size": 431505408,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_0.15.0_x64_en-US.msi",
-              "digest": "sha256:f5bff8b1238d43e3a9cdd43716807bbb1b80cbbb44f88ac14cab2f685ae6ad5c"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870561884,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.15.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:aab04b6f8bcd0dac9725f116e026ec46d71857872f425c4cc67d86999452f2f2"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.14.0",
-          "name": "ArtCraft v0.14.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.14.0_universal.dmg",
-              "size": 871194997,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_universal.dmg",
-              "digest": "sha256:d6267f87d0b01fa6e24dc94a3b33bfbed728c2b7f37c925e24fe08a050670909"
-            },
-            {
-              "name": "ArtCraft_0.14.0_x64-setup.exe",
-              "size": 430104709,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_x64-setup.exe",
-              "digest": "sha256:82ba130ef4c79fa020e133b6d444623bf1f4be428edb4856d966e88ffaa933e6"
-            },
-            {
-              "name": "ArtCraft_0.14.0_x64_en-US.msi",
-              "size": 431484928,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_0.14.0_x64_en-US.msi",
-              "digest": "sha256:c7341a4fdea43a90bd2e25b8c2d2b2ff7f4ef9936d6bc94a86a7ebd136df7924"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870509924,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.14.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:04cf428ac0719cca87ff606dd6b79e6061941d5a9626da19e8d06543b6857bf3"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.12.0",
-          "name": "ArtCraft v0.12.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.12.0_universal.dmg",
-              "size": 871223464,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_universal.dmg",
-              "digest": "sha256:e17e85dc9beef973ae092a120d9a49df3d6c99c548a9329f3a63baeb261141e3"
-            },
-            {
-              "name": "ArtCraft_0.12.0_x64-setup.exe",
-              "size": 430028944,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_x64-setup.exe",
-              "digest": "sha256:0e72e96257716a31085c12257751f9264f3409acc6797c35b05dc16dc398f852"
-            },
-            {
-              "name": "ArtCraft_0.12.0_x64_en-US.msi",
-              "size": 431390720,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_0.12.0_x64_en-US.msi",
-              "digest": "sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870502264,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.12.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:93de0f00703014d6f434c8b8e1bb35426dd38b1c61bee7beff11223207f17ce6"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.11.0",
-          "name": "ArtCraft v0.11.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.11.0_universal.dmg",
-              "size": 871169005,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_universal.dmg",
-              "digest": "sha256:2860eef51cbedc095abf325f7cf793236b69596c40c9cf743d82fa06a8e612ff"
-            },
-            {
-              "name": "ArtCraft_0.11.0_x64-setup.exe",
-              "size": 430036973,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_x64-setup.exe",
-              "digest": "sha256:d5bb2cecb7d768df1b14589d2d04108da977ef82856ae7c637727e68ef718a3f"
-            },
-            {
-              "name": "ArtCraft_0.11.0_x64_en-US.msi",
-              "size": 431403008,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_0.11.0_x64_en-US.msi",
-              "digest": "sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870481040,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.11.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:16c11baba9f2c820e1cc9d9ce9d32a5daec439c008817e5d17d292f7fbb476d1"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.10.0",
-          "name": "ArtCraft v0.10.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.10.0_universal.dmg",
-              "size": 871027408,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_universal.dmg",
-              "digest": "sha256:c896f4b35f68c2abe7ea1b17907f7dd7144c407d2092ea27b49af784ac8c6f35"
-            },
-            {
-              "name": "ArtCraft_0.10.0_x64-setup.exe",
-              "size": 429965923,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_x64-setup.exe",
-              "digest": "sha256:a2459f29ec0392997e434665eacbdad669dd6b6176c024356bd4ee6a08fd5bdb"
-            },
-            {
-              "name": "ArtCraft_0.10.0_x64_en-US.msi",
-              "size": 431325184,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_0.10.0_x64_en-US.msi",
-              "digest": "sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870357499,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.10.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:c679a104055b6fa704103ce0aa0086a9a722ad4b0360ba73ced09e2e7bfc950d"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.8.0",
-          "name": "ArtCraft v0.8.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.8.0_universal.dmg",
-              "size": 870957735,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_universal.dmg",
-              "digest": "sha256:681ee208efc6821e0bf17f8c001f963c660c0b7579dae506d0fad83fafac8074"
-            },
-            {
-              "name": "ArtCraft_0.8.0_x64-setup.exe",
-              "size": 429929611,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_x64-setup.exe",
-              "digest": "sha256:e2e87c8d16e80192f6333172b0aab7856f7995d9dcad97505853653eab4e0c83"
-            },
-            {
-              "name": "ArtCraft_0.8.0_x64_en-US.msi",
-              "size": 431271936,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_0.8.0_x64_en-US.msi",
-              "digest": "sha256:acee5ec82523c83f38892c1639030b82345508999f0e04e12f5e9b4be0d7cbf5"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870297604,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.8.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:0c3e8a34a805f25913740dcd7bd0854802860dacb5f11a999dbc883bc5ba3ece"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.7.0",
-          "name": "ArtCraft v0.7.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.7.0_universal.dmg",
-              "size": 870979366,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_universal.dmg",
-              "digest": "sha256:53a4e514805a297efdd1b48165754bdbdb2ecb6fb2ed7763781b3e9b6c41ee96"
-            },
-            {
-              "name": "ArtCraft_0.7.0_x64-setup.exe",
-              "size": 429908986,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_x64-setup.exe",
-              "digest": "sha256:ea11456a1eb0e4c5cb96dcbe703becf69c7a1ffe0b189fb147bbf566fd724f4c"
-            },
-            {
-              "name": "ArtCraft_0.7.0_x64_en-US.msi",
-              "size": 431255552,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_0.7.0_x64_en-US.msi",
-              "digest": "sha256:892b2bbad75079edbff4607f64219cf67e7bf0491d9ce3df97d114a65f389f91"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870283186,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.7.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:2b10593132c023718b9771484c08c84ca5f15e0f6fcbfd615db9d5d4dc200012"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-windows-v0.5.0",
-          "name": "Artcraft Windows v0.5.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.5.0_x64-setup.exe",
-              "size": 429918679,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.5.0/ArtCraft_0.5.0_x64-setup.exe",
-              "digest": "sha256:cbf96b55c88436037d1953a15a5dffca21296e2f9f30d67e0ac691aca3a021ef"
-            },
-            {
-              "name": "ArtCraft_0.5.0_x64_en-US.msi",
-              "size": 431214592,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.5.0/ArtCraft_0.5.0_x64_en-US.msi",
-              "digest": "sha256:95ca0fa9c4abd244f4a103e1b23b8a4e4be609bd1cb8112a7e33c4f3e1efedf6"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.5.0",
-          "name": "Artcraft macOS v0.5.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.5.0_universal.dmg",
-              "size": 870880667,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.5.0/ArtCraft_0.5.0_universal.dmg",
-              "digest": "sha256:0fc9906478b8aa6c1947d42f601c976b2465cb12a510511b7fa0ef274c97bb1d"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 870161859,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.5.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:aa3ba6a6b8fdc19e59d4be052b2b0eb7dd67944e5b2a2ca93d7f173329f5588f"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-windows-v0.4.0",
-          "name": "Artcraft Windows v0.4.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.4.0_x64-setup.exe",
-              "size": 430977400,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.4.0/ArtCraft_0.4.0_x64-setup.exe",
-              "digest": "sha256:9d18c062573680dc1821ee582d1e7154546f03d48537767ab8b7beafd215a727"
-            },
-            {
-              "name": "ArtCraft_0.4.0_x64_en-US.msi",
-              "size": 432300032,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.4.0/ArtCraft_0.4.0_x64_en-US.msi",
-              "digest": "sha256:fff019c8e138203ad09bccd7bc7036eced680efebf1ed66199d94ef97f86294b"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.4.0",
-          "name": "Artcraft macOS v0.4.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.4.0_universal.dmg",
-              "size": 873045682,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.4.0/ArtCraft_0.4.0_universal.dmg",
-              "digest": "sha256:bc0bc112e682e6b623569bc797893c57cb3258e4cba36e33a0c108ee43b7335e"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 872371505,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.4.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:3078708f130d49f5e2efd53876de5b738a11709b49607261e01b1cadab267ac4"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-windows-v0.3.0",
-          "name": "Artcraft Windows v0.3.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.3.0_x64-setup.exe",
-              "size": 430905762,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.3.0/ArtCraft_0.3.0_x64-setup.exe",
-              "digest": "sha256:ab5be133e0b25a365b698b930d1d0c35692d3c8bd2eb003b8bb99ec662b52165"
-            },
-            {
-              "name": "ArtCraft_0.3.0_x64_en-US.msi",
-              "size": 432263168,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.3.0/ArtCraft_0.3.0_x64_en-US.msi",
-              "digest": "sha256:5ce3b80e89512be323c5ad779e10d523861e2d1d7275c4b9632c926299b32d69"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.3.0",
-          "name": "Artcraft macOS v0.3.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.3.0_universal.dmg",
-              "size": 872961189,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.3.0/ArtCraft_0.3.0_universal.dmg",
-              "digest": "sha256:d2206501d69fbc332f94805644c62d2a77645d03c4b6480f3648a2038e830710"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 872320179,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.3.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:27f02adf72ae958d1752e288dcd2deda483b9a3257222465c1969c508621371f"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-windows-v0.2.0",
-          "name": "Artcraft Windows v0.2.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.2.0_x64-setup.exe",
-              "size": 430920909,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.2.0/ArtCraft_0.2.0_x64-setup.exe",
-              "digest": "sha256:3f4fa079eef55462f0c21e7bc618f0d8e0d9405376991a17196a9feda6d2cec3"
-            },
-            {
-              "name": "ArtCraft_0.2.0_x64_en-US.msi",
-              "size": 432246784,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.2.0/ArtCraft_0.2.0_x64_en-US.msi",
-              "digest": "sha256:a599f883721ee304f71367ca62fb3a50ee1e7a7662b9e25cf437e057ed6ca58f"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.2.0",
-          "name": "Artcraft macOS v0.2.0",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.2.0_universal.dmg",
-              "size": 872936323,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.2.0/ArtCraft_0.2.0_universal.dmg",
-              "digest": "sha256:9b5f98ab6200296214d2e13a4eb7ed1c801335898247c819d26e7405d8286673"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 872271437,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.2.0/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:57867a4e53c6519ebb5ec3b5b71a35466277460be4327975935161594d7706a1"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-windows-v0.0.1",
-          "name": "Artcraft Windows v0.0.1",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.0.1_x64-setup.exe",
-              "size": 430932499,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64-setup.exe",
-              "digest": "sha256:f96d6aaafcd69b53557e56d7a4bc3f1611ae46e86272feca90135d07637f71c8"
-            },
-            {
-              "name": "ArtCraft_0.0.1_x64-setup_windows.exe",
-              "size": 415337228,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64-setup_windows.exe",
-              "digest": "sha256:f5ee7df6b8e4865a676d142d168b9915a0bf644aa22269e0fbea7bd8aba68af3"
-            },
-            {
-              "name": "ArtCraft_0.0.1_x64_en-US.msi",
-              "size": 432242688,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64_en-US.msi",
-              "digest": "sha256:d8ca2803063e12d86d4c589083b12cd50201c6249e19bba67452993816143a4c"
-            },
-            {
-              "name": "ArtCraft_0.0.1_x64_en-US_windows.msi",
-              "size": 416821248,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-windows-v0.0.1/ArtCraft_0.0.1_x64_en-US_windows.msi",
-              "digest": "sha256:59969d60ca5435c1d3b90a481833ae1dc88ef5c08790cafd0f85ee0f37b237a0"
-            }
-          ]
-        },
-        {
-          "tag_name": "artcraft-v0.0.1",
-          "name": "Artcraft macOS v0.0.1",
-          "draft": false,
-          "prerelease": false,
-          "assets": [
-            {
-              "name": "ArtCraft_0.0.1_universal.dmg",
-              "size": 872944556,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_0.0.1_universal.dmg",
-              "digest": "sha256:6e03113fb805497a35a86bbff330d5679b2f517a35ef7840a9ee8a21c03b1ee1"
-            },
-            {
-              "name": "ArtCraft_0.0.1_universal_darwin.dmg",
-              "size": 841775560,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_0.0.1_universal_darwin.dmg",
-              "digest": "sha256:11e3b8ad5b361a50092c7c1763857b00500f916f2dba7461021e5a00f8c84e55"
-            },
-            {
-              "name": "ArtCraft_darwin_universal.app.tar.gz",
-              "size": 841121903,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_darwin_universal.app.tar.gz",
-              "digest": "sha256:b313a187a607a86f47806ef6c0324aa3262030818e3d93c365b9cc7810a27d83"
-            },
-            {
-              "name": "ArtCraft_universal.app.tar.gz",
-              "size": 872264957,
-              "browser_download_url": "https://github.com/storytold/artcraft/releases/download/artcraft-v0.0.1/ArtCraft_universal.app.tar.gz",
-              "digest": "sha256:47d8cabefcd403df1418544eb4c7c00052a9e948766f9300ccd31d4e5f023773"
-            }
-          ]
-        }
-      ],
-      "scopes": [
-        {
-          "tag": "artcraft-v0.10.0",
-          "asset_name": "ArtCraft_0.10.0_x64_en-US.msi",
-          "digest": "sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0",
-          "size": 431325184,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.11.0",
-          "asset_name": "ArtCraft_0.11.0_x64_en-US.msi",
-          "digest": "sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e",
-          "size": 431403008,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.12.0",
-          "asset_name": "ArtCraft_0.12.0_x64_en-US.msi",
-          "digest": "sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2",
-          "size": 431390720,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.14.0",
-          "asset_name": "ArtCraft_0.14.0_x64_en-US.msi",
-          "digest": "sha256:c7341a4fdea43a90bd2e25b8c2d2b2ff7f4ef9936d6bc94a86a7ebd136df7924",
-          "size": 431484928,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.15.0",
-          "asset_name": "ArtCraft_0.15.0_x64_en-US.msi",
-          "digest": "sha256:f5bff8b1238d43e3a9cdd43716807bbb1b80cbbb44f88ac14cab2f685ae6ad5c",
-          "size": 431505408,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.19.0",
-          "asset_name": "ArtCraft_0.19.0_x64_en-US.msi",
-          "digest": "sha256:b46fae2d9e617003c1ee67c7892f612cdd7e28e1d053145521acae1dffd337bd",
-          "size": 431583232,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.20.0",
-          "asset_name": "ArtCraft_0.20.0_x64_en-US.msi",
-          "digest": "sha256:2363f1459818e4324034ca77e3bc89566c644135b1e641c6e0ea63df8c59e57f",
-          "size": 431579136,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.22.0",
-          "asset_name": "ArtCraft_0.22.0_x64_en-US.msi",
-          "digest": "sha256:600d664797b2143a0625ea613541d63c894b839c7deebf85f9eddaa5f8f7f7db",
-          "size": 431640576,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.23.0",
-          "asset_name": "ArtCraft_0.23.0_x64_en-US.msi",
-          "digest": "sha256:852c7d5f5e4e557bacaffbefb2fff9e0a0a41f087a6dad505660d6bf29ca1ddb",
-          "size": 431644672,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.24.0",
-          "asset_name": "ArtCraft_0.24.0_x64_en-US.msi",
-          "digest": "sha256:3a030710e73e70be5eb36fa583b678808f208ec0baaab7a536bbc5e65e24d469",
-          "size": 431644672,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.27.0",
-          "asset_name": "ArtCraft_0.27.0_x64_en-US.msi",
-          "digest": "sha256:0197c608329fe2f4dde31351b2ce8ec732e7935c967bf67fcf092f75dfcb41fd",
-          "size": 431935488,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.28.0",
-          "asset_name": "ArtCraft_0.28.0_x64_en-US.msi",
-          "digest": "sha256:0fb072d1704c041eeaa0846a8fa8611cca47f05ee214fb0b7c0c50ecbf620519",
-          "size": 431960064,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.29.0",
-          "asset_name": "ArtCraft_0.29.0_x64_en-US.msi",
-          "digest": "sha256:7b89b4bbd702a931c48cfe7532fabd5c41a28414ff2ca3b1d73cf2e55043ee65",
-          "size": 432054272,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.32.0",
-          "asset_name": "ArtCraft_0.32.0_x64_en-US.msi",
-          "digest": "sha256:1134a7ba9407a47e997ed607a1ccf78d7c162cc405e2b9c287c14d299e99e432",
-          "size": 432218112,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.37.0",
-          "asset_name": "ArtCraft_0.37.0_x64_en-US.msi",
-          "digest": "sha256:fb84e12392eed0aab7d11b17010d69499079f281df1f723d3aac35481e2ca23a",
-          "size": 48676864,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.41.0",
-          "asset_name": "ArtCraft_0.41.0_x64_en-US.msi",
-          "digest": "sha256:255f963ba8acb799b231ac23a5ef04ca157a8d26f9b9b279b3e55a59db29be77",
-          "size": 46837760,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.41.1",
-          "asset_name": "ArtCraft_0.41.1_x64_en-US.msi",
-          "digest": "sha256:450b15e53d8ccc9afde2d3644a547ab5f900167b837b861571ea4c833166417d",
-          "size": 47058944,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.7.0",
-          "asset_name": "ArtCraft_0.7.0_x64_en-US.msi",
-          "digest": "sha256:892b2bbad75079edbff4607f64219cf67e7bf0491d9ce3df97d114a65f389f91",
-          "size": 431255552,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-v0.8.0",
-          "asset_name": "ArtCraft_0.8.0_x64_en-US.msi",
-          "digest": "sha256:acee5ec82523c83f38892c1639030b82345508999f0e04e12f5e9b4be0d7cbf5",
-          "size": 431271936,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.0.1",
-          "asset_name": "ArtCraft_0.0.1_x64_en-US.msi",
-          "digest": "sha256:d8ca2803063e12d86d4c589083b12cd50201c6249e19bba67452993816143a4c",
-          "size": 432242688,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.0.1",
-          "asset_name": "ArtCraft_0.0.1_x64_en-US_windows.msi",
-          "digest": "sha256:59969d60ca5435c1d3b90a481833ae1dc88ef5c08790cafd0f85ee0f37b237a0",
-          "size": 416821248,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.2.0",
-          "asset_name": "ArtCraft_0.2.0_x64_en-US.msi",
-          "digest": "sha256:a599f883721ee304f71367ca62fb3a50ee1e7a7662b9e25cf437e057ed6ca58f",
-          "size": 432246784,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.3.0",
-          "asset_name": "ArtCraft_0.3.0_x64_en-US.msi",
-          "digest": "sha256:5ce3b80e89512be323c5ad779e10d523861e2d1d7275c4b9632c926299b32d69",
-          "size": 432263168,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.4.0",
-          "asset_name": "ArtCraft_0.4.0_x64_en-US.msi",
-          "digest": "sha256:fff019c8e138203ad09bccd7bc7036eced680efebf1ed66199d94ef97f86294b",
-          "size": 432300032,
-          "os": "windows",
-          "architecture": "x64",
-          "policy": "machine_only",
-          "inspector_version": 1
-        },
-        {
-          "tag": "artcraft-windows-v0.5.0",
-          "asset_name": "ArtCraft_0.5.0_x64_en-US.msi",
-          "digest": "sha256:95ca0fa9c4abd244f4a103e1b23b8a4e4be609bd1cb8112a7e33c4f3e1efedf6",
-          "size": 431214592,
-          "os": "windows",
-          "architecture": "x64",
           "policy": "machine_only",
           "inspector_version": 1
         }
