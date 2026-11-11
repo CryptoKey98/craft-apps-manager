@@ -15386,9 +15386,39 @@
         "inspector_version": 1
       },
       "used": 1794271989
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.1.0",
+        "asset_name": "anicraft-0.1.0-windows-arm64.msi",
+        "digest": "sha256:3da9e703140e047a1a877f1012d2adffda50121f690cac93a21a5d352f8c6488",
+        "size": 11534336,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794361626
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.1.0",
+        "asset_name": "anicraft-0.1.0-windows-x64.msi",
+        "digest": "sha256:4761fc9765077602200f83b594d05bf6b4c43497f62dc268a841b8f22866ddef",
+        "size": 12726272,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794361626
     }
   ],
   "attempts": {
+    "storytold/anicraft:v0.1.0:anicraft-0.1.0-windows-arm64.msi:sha256:3da9e703140e047a1a877f1012d2adffda50121f690cac93a21a5d352f8c6488": 1794361626,
+    "storytold/anicraft:v0.1.0:anicraft-0.1.0-windows-x64.msi:sha256:4761fc9765077602200f83b594d05bf6b4c43497f62dc268a841b8f22866ddef": 1794361626,
     "storytold/artcraft:artcraft-v0.10.0:ArtCraft_0.10.0_x64_en-US.msi:sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0": 1793535983,
     "storytold/artcraft:artcraft-v0.11.0:ArtCraft_0.11.0_x64_en-US.msi:sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e": 1793535975,
     "storytold/artcraft:artcraft-v0.12.0:ArtCraft_0.12.0_x64_en-US.msi:sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2": 1793535967,
