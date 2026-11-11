@@ -22,7 +22,7 @@ pub const BUILD_REVISION: u32 = match u32::from_str_radix(env!("CRAFT_BUILD_REVI
 
 pub fn display_version(version: &str, revision: u32) -> String {
     if revision >= 2 {
-        format!("{version} · Rev. {revision}")
+        format!("{version} · rev. {revision}")
     } else {
         version.to_owned()
     }
@@ -187,7 +187,7 @@ mod tests {
     #[test]
     fn version_display_omits_the_baseline_revision() {
         assert_eq!(display_version("0.8.3", 1), "0.8.3");
-        assert_eq!(display_version("0.8.3", 2), "0.8.3 · Rev. 2");
+        assert_eq!(display_version("0.8.3", 2), "0.8.3 · rev. 2");
     }
     #[test]
     fn legacy_compatible_filenames_are_selected_from_signed_metadata() {

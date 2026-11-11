@@ -193,6 +193,12 @@ pub fn builtin() -> Vec<Entry> {
 }
 
 static CURRENT: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
+static REVISION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Changes when discovery or custom registrations replace the catalog.
+pub fn revision() -> u64 {
+    REVISION.load(std::sync::atomic::Ordering::Acquire)
+}
 
 pub fn all() -> Vec<Entry> {
     known_entries()
@@ -406,11 +412,16 @@ fn reload(root: &Path, cache: &Cache) {
         .and_then(|v| v.as_str())
         .unwrap_or("portable")
         .to_string();
-    *CURRENT.write().unwrap() = merge(
+    let entries = merge(
         cache.entries.clone(),
         &cache.learned,
         &custom_apps_for_format_migration(root, &format),
     );
+    let mut current = CURRENT.write().unwrap();
+    if *current != entries {
+        *current = entries;
+        REVISION.fetch_add(1, std::sync::atomic::Ordering::Release);
+    }
 }
 /// Apps the user added from GitHub links in Settings, newest last.
 pub fn custom_apps(root: &Path) -> Vec<Entry> {

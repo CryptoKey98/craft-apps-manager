@@ -345,68 +345,50 @@ impl App {
     }
 
     fn app_list(&mut self, ui: &mut egui::Ui, state: &State) {
+        let list = self.app_list_snapshot();
         let needle = self.search.trim().to_lowercase();
         let matches = |name: &str| {
             needle.is_empty()
-                || format!("{} {}", model::title(name), model::category(name))
-                    .to_lowercase()
-                    .contains(&needle)
+                || list
+                    .search_text
+                    .get(name)
+                    .is_some_and(|text| text.contains(&needle))
         };
-        let order = model::ordered_release_apps(
-            &self.preferences.app_order,
-            &self.preferences.release_format,
-        );
+        let order = &list.sidebar;
         let now = ui.input(|input| input.time);
         let arrival_id = ui.id().with("sidebar-install-arrivals");
         let mut arrivals = ui
             .ctx()
-            .data_mut(|data| data.get_temp::<arrival::Arrivals>(arrival_id))
+            .data_mut(|data| data.remove_temp::<arrival::Arrivals>(arrival_id))
             .unwrap_or_default();
         arrivals.update(
-            model::apps()
-                .into_iter()
-                .filter(|name| self.status(name).installed.is_some())
-                .collect(),
+            &list.installed,
             self.display_config.is_some(),
             now,
             ui.style().animation_time > 0.0,
         );
-        ui.ctx()
-            .data_mut(|data| data.insert_temp(arrival_id, arrivals.clone()));
         let visibility_id = ui.id().with("sidebar-app-visibility");
         let mut visibility = ui
             .ctx()
-            .data_mut(|data| data.get_temp::<arrival::Visibility>(visibility_id))
+            .data_mut(|data| data.remove_temp::<arrival::Visibility>(visibility_id))
             .unwrap_or_default();
         visibility.update(
-            order
-                .iter()
-                .filter(|name| !self.preferences.hidden_apps.contains(name))
-                .cloned()
-                .collect(),
+            &list.sidebar_visible,
             self.display_config.is_some(),
             now,
             ui.style().animation_time > 0.0,
         );
-        ui.ctx()
-            .data_mut(|data| data.insert_temp(visibility_id, visibility.clone()));
-        let updates = order
-            .iter()
-            .filter(|name| self.status(name).update.is_some())
-            .count();
-        if self.overview_row(ui, updates) {
+        if self.overview_row(ui, list.sidebar_updates) {
             self.page = Page::Overview;
         }
         let mut reorder = None;
         let (installed, available): (Vec<_>, Vec<_>) = order
             .iter()
             .filter(|name| matches(name))
-            .filter(|name| {
-                visibility.visible(name, !self.preferences.hidden_apps.contains(name), now)
-            })
-            .cloned()
+            .filter(|name| visibility.visible(name, list.sidebar_visible.contains(*name), now))
+            .map(String::as_str)
             .partition(|name| {
-                arrivals.displayed_installed(name, self.status(name).installed.is_some(), now)
+                arrivals.displayed_installed(name, list.installed.contains(*name), now)
             });
         let arrival_visible = (arrivals.active()
             && installed
@@ -447,11 +429,11 @@ impl App {
         // Until the first snapshot loads nothing is known to be installed or not.
         let groups = if self.display_config.is_some() {
             vec![
-                ("Installed", installed.clone(), true),
-                ("Not installed", available.clone(), false),
+                ("Installed", installed.as_slice(), true),
+                ("Not installed", available.as_slice(), false),
             ]
         } else {
-            vec![("Apps", available.clone(), false)]
+            vec![("Apps", available.as_slice(), false)]
         };
         for (label, group, is_installed) in groups {
             if group.is_empty() {
@@ -501,7 +483,7 @@ impl App {
             );
             let pointer = ui.ctx().input(|i| i.pointer.interact_pos());
             let drag = egui::DragAndDrop::payload::<SidebarDrag>(ui.ctx()).filter(|drag| {
-                drag.installed == is_installed && group.contains(&drag.name) && !state.busy
+                drag.installed == is_installed && group.contains(&drag.name.as_str()) && !state.busy
             });
             let motion_id = ui.id().with(("sidebar-drag-motion", is_installed));
             let now = ui.ctx().input(|input| input.time);
@@ -519,25 +501,28 @@ impl App {
             } else {
                 0.0
             };
-            let mut preview = group.clone();
+            let mut preview = std::borrow::Cow::Borrowed(group);
             let drop_id = ui.id().with(("sidebar-drop-position", is_installed));
             if let Some(drag) = &drag {
+                let source = group.iter().position(|name| *name == drag.name).unwrap();
                 let mut destination = ui
                     .ctx()
                     .data_mut(|data| data.get_temp::<usize>(drop_id))
-                    .unwrap_or_else(|| group.iter().position(|name| *name == drag.name).unwrap());
+                    .unwrap_or(source);
                 if let Some(pos) = pointer.filter(|pos| area.contains(*pos)) {
                     destination = (((pos.y - area.top()) / step).floor().max(0.0) as usize)
                         .min(group.len() - 1);
                     ui.ctx()
                         .data_mut(|data| data.insert_temp(drop_id, destination));
                 }
+                let preview = preview.to_mut();
                 preview.retain(|name| *name != drag.name);
-                preview.insert(destination.min(preview.len()), drag.name.clone());
+                preview.insert(destination.min(preview.len()), group[source]);
             } else {
                 ui.ctx().data_mut(|data| data.remove::<usize>(drop_id));
             }
-            for (index, name) in preview.iter().enumerate() {
+            let popup_open = ui.memory(|memory| memory.any_popup_open());
+            for (index, &name) in preview.iter().enumerate() {
                 let y = ui.ctx().animate_value_with_time(
                     ui.id().with(("sidebar-row-position", is_installed, name)),
                     index as f32 * step,
@@ -547,7 +532,7 @@ impl App {
                     area.min + egui::vec2(0.0, y),
                     egui::vec2(area.width(), height),
                 );
-                if drag.as_ref().is_some_and(|drag| drag.name == *name) {
+                if drag.as_ref().is_some_and(|drag| drag.name == name) {
                     let placeholder = Rect::from_min_size(
                         area.min + egui::vec2(0.0, index as f32 * step),
                         rect.size(),
@@ -579,9 +564,25 @@ impl App {
                     );
                     continue;
                 }
-                ui.ctx()
-                    .animate_bool_with_time(ui.id().with(("sidebar-lift", name)), false, 0.12);
+                if animate {
+                    ui.ctx().animate_bool_with_time(
+                        ui.id().with(("sidebar-lift", name)),
+                        false,
+                        0.12,
+                    );
+                }
                 let progress = arrivals.progress(name, now);
+                let rect = rect.translate(egui::vec2(
+                    0.0,
+                    if arrivals.departing(name, now) {
+                        0.0
+                    } else {
+                        6.0 * (1.0 - progress)
+                    },
+                ));
+                if !ui.is_rect_visible(rect) && !popup_open {
+                    continue;
+                }
                 ui.scope(|ui| {
                     if arrivals.moving(name) || visibility.moving(name) {
                         ui.multiply_opacity(
@@ -589,21 +590,7 @@ impl App {
                         );
                         ui.disable();
                     }
-                    self.app_row(
-                        ui,
-                        state,
-                        name,
-                        is_installed,
-                        rect.translate(egui::vec2(
-                            0.0,
-                            if arrivals.departing(name, now) {
-                                0.0
-                            } else {
-                                6.0 * (1.0 - progress)
-                            },
-                        )),
-                        false,
-                    );
+                    self.app_row(ui, state, name, is_installed, rect, false);
                 });
             }
             if let (Some(drag), Some(pos)) = (&drag, pointer) {
@@ -635,16 +622,15 @@ impl App {
                     .rect_filled(rect, CornerRadius::same(8), theme::palette().card);
                 floating.disable();
                 self.app_row(&mut floating, state, &drag.name, is_installed, rect, true);
-                ui.ctx().request_repaint();
             }
             if ui.ctx().input(|i| i.pointer.any_released()) {
-                if let Some(drag) = drag {
-                    if pointer.is_some_and(|pos| area.contains(pos)) && preview != group {
+                if let Some(drag) = &drag {
+                    if pointer.is_some_and(|pos| area.contains(pos)) && preview.as_ref() != group {
                         let index = preview.iter().position(|name| *name == drag.name).unwrap();
                         let (target, before) = if index + 1 < preview.len() {
-                            (preview[index + 1].clone(), true)
+                            (preview[index + 1], true)
                         } else {
-                            (preview[index - 1].clone(), false)
+                            (preview[index - 1], false)
                         };
                         reorder = Some((drag.name.clone(), target, before));
                     }
@@ -653,6 +639,10 @@ impl App {
                 }
             }
         }
+        ui.ctx().data_mut(|data| {
+            data.insert_temp(arrival_id, arrivals);
+            data.insert_temp(visibility_id, visibility);
+        });
         if installed.is_empty() && available.is_empty() {
             ui.add_space(14.0 + 8.0);
             ui.horizontal(|ui| {
@@ -666,7 +656,7 @@ impl App {
             });
         }
         if let Some((dragged, target, before)) = reorder {
-            match settings::reorder(&self.paths, &dragged, &target, before) {
+            match settings::reorder(&self.paths, &dragged, target, before) {
                 Ok(preferences) => {
                     if self.preferences.app_install_options != preferences.app_install_options {
                         self.check_generation += 1;
@@ -757,7 +747,7 @@ impl App {
         if !floating && !ui.is_rect_visible(rect) && !ui.memory(|memory| memory.any_popup_open()) {
             return;
         }
-        let status = self.status(name);
+        let status = self.app_list_status(name);
         let install_available = self.install_available(name, ui.ctx());
         let unavailable_message = if install_available {
             String::new()

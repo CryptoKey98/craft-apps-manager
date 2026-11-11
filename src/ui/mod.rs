@@ -15,6 +15,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+mod app_list;
 mod dialogs;
 mod manager_handoff;
 mod resources;
@@ -179,9 +180,12 @@ type SharedWindowSnapshot = (
     PathBuf,
     Option<(model::Theme, bool)>,
     std::collections::HashMap<String, String>,
+    Vec<craft_apps_manager::operations::Operation>,
+    Option<PathBuf>,
 );
 
 pub struct App {
+    app_list_cache: app_list::AppListCache,
     icons: BTreeMap<String, egui::TextureHandle>,
     icon_receiver: std::sync::mpsc::Receiver<(String, Option<Vec<u8>>)>,
     icon_sender: std::sync::mpsc::Sender<(String, Option<Vec<u8>>)>,
@@ -361,6 +365,7 @@ pub struct App {
     plan_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, (bool, String)>>>,
     operation_records: Vec<craft_apps_manager::operations::Operation>,
     operation_refresh: Instant,
+    activity_log: Option<PathBuf>,
     shared_window_receiver: Option<std::sync::mpsc::Receiver<SharedWindowSnapshot>>,
     shared_build_logs: std::collections::HashMap<String, String>,
     activity_open: bool,
@@ -610,6 +615,7 @@ impl App {
             versions_receiver: None,
             versions_result: None,
             compatibility_info: None,
+            app_list_cache: Default::default(),
             release_checks: Default::default(),
             known_updates: Default::default(),
             check_receiver,
@@ -656,6 +662,7 @@ impl App {
             activity_notifications,
             operation_records: startup_operations,
             operation_refresh: Instant::now() - Duration::from_secs(2),
+            activity_log: None,
             shared_window_receiver: None,
             shared_build_logs: Default::default(),
         };
@@ -1833,10 +1840,12 @@ impl App {
         }
         if let Some(receiver) = &self.shared_window_receiver {
             match receiver.try_recv() {
-                Ok((root, appearance, logs)) => {
+                Ok((root, appearance, logs, records, activity_log)) => {
                     self.shared_window_receiver = None;
                     if root == self.paths.root {
                         self.shared_build_logs = logs;
+                        self.activity_log = activity_log;
+                        self.observe_operations(records, ctx);
                         if let Some((_, badge)) = appearance {
                             self.preferences.hide_activity_badge = badge;
                             if !self.settings {
@@ -1862,98 +1871,54 @@ impl App {
                 Err(std::sync::mpsc::TryRecvError::Empty) => {}
             }
         }
-        if self.operation_refresh.elapsed() >= Duration::from_secs(1) {
-            let records = self.job.operations.list();
-            if self.shared_window_receiver.is_none() {
-                let paths = self.paths.clone();
-                let records: Vec<_> = Job::latest_builder_operation(&records, &self.app)
-                    .filter(|op| op.owner != std::process::id())
-                    .cloned()
-                    .into_iter()
-                    .collect();
-                let context = ctx.clone();
-                let (sender, receiver) = std::sync::mpsc::channel();
-                self.shared_window_receiver = Some(receiver);
-                std::thread::spawn(move || {
-                    use std::io::{Read, Seek, SeekFrom};
-                    let appearance = paths
-                        .read_preferences()
-                        .ok()
-                        .map(|p| (p.theme, p.hide_activity_badge));
-                    let mut logs = std::collections::HashMap::new();
-                    for operation in records.iter().filter(|op| {
-                        matches!(
-                            op.kind.as_str(),
-                            "Build" | "Source download" | "Set up tools"
-                        )
-                    }) {
-                        if let Some(path) = operation.facts.get("Log file") {
-                            // Read a bounded tail outside the UI thread, including completed builds.
-                            if let Ok(mut file) = std::fs::File::open(path) {
-                                if let Ok(metadata) = file.metadata() {
-                                    let _ = file.seek(SeekFrom::Start(
-                                        metadata.len().saturating_sub(200_000),
-                                    ));
-                                    let mut bytes = Vec::new();
-                                    if file.take(200_000).read_to_end(&mut bytes).is_ok() {
-                                        logs.insert(
-                                            operation.id.clone(),
-                                            String::from_utf8_lossy(&bytes).into_owned(),
-                                        );
-                                    }
+        if self.operation_refresh.elapsed() >= Duration::from_secs(1)
+            && self.shared_window_receiver.is_none()
+        {
+            self.operation_refresh = Instant::now();
+            let paths = self.paths.clone();
+            let operations = self.job.operations.clone();
+            let log_path = self.job.log_path.clone();
+            let app = self.app.clone();
+            let context = ctx.clone();
+            let (sender, receiver) = std::sync::mpsc::channel();
+            self.shared_window_receiver = Some(receiver);
+            std::thread::spawn(move || {
+                use std::io::{Read, Seek, SeekFrom};
+                let records = operations.list();
+                let build = Job::latest_builder_operation(&records, &app)
+                    .filter(|op| op.owner != std::process::id());
+                let activity_log = log_path.is_file().then_some(log_path);
+                let appearance = paths
+                    .read_preferences()
+                    .ok()
+                    .map(|p| (p.theme, p.hide_activity_badge));
+                let mut logs = std::collections::HashMap::new();
+                for operation in build.into_iter().filter(|op| {
+                    matches!(
+                        op.kind.as_str(),
+                        "Build" | "Source download" | "Set up tools"
+                    )
+                }) {
+                    if let Some(path) = operation.facts.get("Log file") {
+                        // Read a bounded tail outside the UI thread, including completed builds.
+                        if let Ok(mut file) = std::fs::File::open(path) {
+                            if let Ok(metadata) = file.metadata() {
+                                let _ = file
+                                    .seek(SeekFrom::Start(metadata.len().saturating_sub(200_000)));
+                                let mut bytes = Vec::new();
+                                if file.take(200_000).read_to_end(&mut bytes).is_ok() {
+                                    logs.insert(
+                                        operation.id.clone(),
+                                        String::from_utf8_lossy(&bytes).into_owned(),
+                                    );
                                 }
                             }
                         }
                     }
-                    let _ = sender.send((paths.root, appearance, logs));
-                    context.request_repaint();
-                });
-            }
-            self.activity_notifications.observe(&records);
-            if records.iter().any(|record| {
-                record.lifecycle.terminal()
-                    && !self
-                        .operation_records
-                        .iter()
-                        .any(|old| old.id == record.id && old.lifecycle.terminal())
-            }) {
-                self.config_refresh_at = Instant::now();
-                // Another window/process may have refreshed release metadata.
-                // Reopen the list through the shared cache rather than keeping
-                // a window-local list indefinitely.
-                if self.versions_receiver.is_none()
-                    && records.iter().any(|record| {
-                        record.lifecycle.terminal()
-                            && !record.kind.starts_with("Review ")
-                            && !self
-                                .operation_records
-                                .iter()
-                                .any(|old| old.id == record.id && old.lifecycle.terminal())
-                    })
-                {
-                    self.versions_app = None;
-                    if let Some(app) = self.confirm_install.clone() {
-                        if self.install_receiver.is_none()
-                            && self.custom_receiver.is_none()
-                            && !self.job.snapshot().busy
-                        {
-                            self.load_install(&app, ctx);
-                        }
-                    }
                 }
-            }
-            if records.iter().any(|record| {
-                is_installation_operation(record)
-                    && record.lifecycle.terminal()
-                    && !self
-                        .operation_records
-                        .iter()
-                        .any(|old| old.id == record.id && old.lifecycle.terminal())
-            }) {
-                self.inventory_refresh_pending = true;
-            }
-            self.operation_records = records;
-            self.operation_refresh = Instant::now();
+                let _ = sender.send((paths.root, appearance, logs, records, activity_log));
+                context.request_repaint();
+            });
         }
         if let Some(receiver) = &self.catalog_receiver {
             if let Some(result) =
@@ -2444,6 +2409,57 @@ impl App {
         }
     }
 
+    fn observe_operations(
+        &mut self,
+        records: Vec<craft_apps_manager::operations::Operation>,
+        ctx: &egui::Context,
+    ) {
+        self.activity_notifications.observe(&records);
+        if records.iter().any(|record| {
+            record.lifecycle.terminal()
+                && !self
+                    .operation_records
+                    .iter()
+                    .any(|old| old.id == record.id && old.lifecycle.terminal())
+        }) {
+            self.config_refresh_at = Instant::now();
+            // Another window/process may have refreshed release metadata.
+            // Reopen the list through the shared cache rather than keeping
+            // a window-local list indefinitely.
+            if self.versions_receiver.is_none()
+                && records.iter().any(|record| {
+                    record.lifecycle.terminal()
+                        && !record.kind.starts_with("Review ")
+                        && !self
+                            .operation_records
+                            .iter()
+                            .any(|old| old.id == record.id && old.lifecycle.terminal())
+                })
+            {
+                self.versions_app = None;
+                if let Some(app) = self.confirm_install.clone() {
+                    if self.install_receiver.is_none()
+                        && self.custom_receiver.is_none()
+                        && !self.job.snapshot().busy
+                    {
+                        self.load_install(&app, ctx);
+                    }
+                }
+            }
+        }
+        if records.iter().any(|record| {
+            is_installation_operation(record)
+                && record.lifecycle.terminal()
+                && !self
+                    .operation_records
+                    .iter()
+                    .any(|old| old.id == record.id && old.lifecycle.terminal())
+        }) {
+            self.inventory_refresh_pending = true;
+        }
+        self.operation_records = records;
+    }
+
     fn completed_progress_opacity(&self, ctx: &egui::Context) -> f32 {
         let Some(at) = self.operation_completed_at else {
             return 0.0;
@@ -2452,7 +2468,8 @@ impl App {
         if elapsed >= 2.2 {
             return 0.0;
         }
-        ctx.request_repaint_after(Duration::from_millis(16));
+        let until_fade = (2.0 - elapsed).max(0.0);
+        ctx.request_repaint_after(Duration::from_secs_f32(until_fade.max(0.016)));
         let fade = ((elapsed - 2.0) / 0.2).clamp(0.0, 1.0);
         1.0 - fade * fade * (3.0 - 2.0 * fade)
     }
@@ -2866,6 +2883,58 @@ mod outcome_tests {
 #[cfg(test)]
 mod catalog_update_tests {
     use super::*;
+    #[test]
+    fn app_lists_reuse_unchanged_data_and_refresh_order_visibility_and_updates() {
+        let root = std::env::temp_dir().join(format!("craft-app-list-{}", uuid::Uuid::new_v4()));
+        let cc = eframe::CreationContext::_new_kittest(egui::Context::default());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            false,
+        )
+        .unwrap();
+        app.preferences.app_order = vec!["filmcraft".into(), "designcraft".into()];
+        app.preferences.home_app_order = app.preferences.app_order.clone();
+        let initial = app.app_list_snapshot();
+        assert_eq!(initial.home_available, ["filmcraft", "designcraft"]);
+        assert!(std::rc::Rc::ptr_eq(&initial, &app.app_list_snapshot()));
+
+        app.preferences.app_order.reverse();
+        app.preferences.home_app_order.reverse();
+        app.preferences.hidden_apps.push("designcraft".into());
+        let installed = model::Installed {
+            name: "filmcraft".into(),
+            version: "1.0.0".into(),
+            path: root.join("film").display().to_string(),
+            ..Default::default()
+        };
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: vec![installed.clone()],
+            installations: vec![installed.clone()],
+            portable_label_counters: Default::default(),
+        });
+        app.apply_release_check(
+            &cc.egui_ctx,
+            app.check_generation,
+            installed,
+            Ok(Some("2.0.0".into())),
+        );
+        let refreshed = app.app_list_snapshot();
+        assert_eq!(refreshed.sidebar, ["designcraft", "filmcraft"]);
+        assert!(!refreshed.sidebar_visible.contains("designcraft"));
+        assert_eq!(refreshed.home_installed, ["filmcraft"]);
+        assert!(refreshed.home_available.is_empty());
+        assert_eq!(refreshed.home_updates, 1);
+        assert_eq!(refreshed.sidebar_updates, 1);
+
+        app.display_config.as_mut().unwrap().apps[0].version = "2.0.0".into();
+        assert_eq!(app.app_list_snapshot().home_updates, 0);
+        drop(app);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn failed_check_keeps_known_update_and_other_copy_cannot_inherit_it() {
         let root = std::env::temp_dir().join(format!(

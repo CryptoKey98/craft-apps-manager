@@ -20,7 +20,7 @@ macos = 1
 [publishing]
 enabled = true
 profiles_file = "update-service/catalog/supported-clients.json"
-next_catalog_file = "update-service/catalog/release-1.1.1.json"
+next_catalog_file = "update-service/catalog/release-1.1.2.json"
 mirror_tag = "v0.9.0"
 catalog_validity_days = 30
 renew_before_days = 7

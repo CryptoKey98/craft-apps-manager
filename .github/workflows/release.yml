@@ -7,7 +7,7 @@ on:
       tag:
         description: Release tag to create or update
         required: true
-        default: v1.1.1
+        default: v1.1.2
       revision:
         description: Build revision (1 publishes a full release)
         required: true
@@ -248,7 +248,7 @@ jobs:
       # Keep the compiler stack consistent with the Arch CI build.
       RUST_MIN_STACK: "33554432"
     steps:
-      - run: pacman -Syu --needed --noconfirm git rust python pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils
+      - run: pacman -Syu --needed --noconfirm git rust python pkgconf openssl libx11 libxi libxrandr libxcursor libxkbcommon wayland libglvnd libarchive polkit libnotify xdg-utils squashfs-tools
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref || github.ref }}

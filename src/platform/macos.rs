@@ -111,7 +111,14 @@ pub fn bundle_value(bundle: &Path, key: &str) -> Option<String> {
         .then(|| String::from_utf8_lossy(&out.stdout).trim().to_owned())
 }
 pub fn executable_version(bundle: &Path) -> Option<String> {
-    bundle_value(bundle, "CFBundleShortVersionString")
+    let version = plist::Value::from_file(bundle.join("Contents/Info.plist")).ok()?;
+    version
+        .as_dictionary()?
+        .get("CFBundleShortVersionString")?
+        .as_string()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
 }
 pub fn running_app(name: &str) -> Result<bool> {
     let out = Command::new("/bin/ps")

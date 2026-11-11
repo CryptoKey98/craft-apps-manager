@@ -61,34 +61,12 @@ impl App {
     }
 
     fn overview_main(&mut self, ui: &mut Ui, state: &State) {
-        let order = model::ordered_release_apps(
-            &self.preferences.home_app_order,
-            &self.preferences.release_format,
-        );
-        let statuses: Vec<_> = order.iter().map(|name| self.status(name)).collect();
-        let installed = statuses
-            .iter()
-            .filter(|status| status.installed.is_some())
-            .count();
-        let chosen = self.display_config.as_ref().map_or(0, |config| {
-            config
-                .apps
-                .iter()
-                .filter(|app| {
-                    self.preferences.selected_apps.contains(&app.name)
-                        && craft_apps_manager::updates::installed_for_updates(
-                            app,
-                            &self.preferences,
-                        )
-                })
-                .count()
-        });
-        let updates = statuses
-            .iter()
-            .filter(|status| status.update.is_some())
-            .count();
-        let checking = statuses.iter().any(|status| status.checking);
-        let checked = statuses.iter().any(|status| status.check.is_some());
+        let list = self.app_list_snapshot();
+        let installed = list.home_installed_count;
+        let chosen = list.chosen;
+        let updates = list.home_updates;
+        let checking = list.home_checking;
+        let checked = list.home_checked;
         ui.spacing_mut().item_spacing = egui::vec2(0.0, 4.0);
         text_line(ui, "Home", theme::bold(26.0), theme::palette().text, 31.2);
         ui.add_space(4.0);
@@ -186,18 +164,12 @@ impl App {
                 });
         });
         ui.add_space(28.0);
-        self.home_tiles(ui, state, &order, true);
+        self.home_tiles(ui, state, &list.home_installed, true);
         ui.add_space(24.0);
-        self.home_tiles(ui, state, &order, false);
+        self.home_tiles(ui, state, &list.home_available, false);
     }
 
-    fn home_tiles(&mut self, ui: &mut Ui, state: &State, order: &[String], installed: bool) {
-        let names: Vec<_> = order
-            .iter()
-            .filter(|name| self.status(name).installed.is_some() == installed)
-            .filter(|name| !self.preferences.hidden_apps.contains(name))
-            .cloned()
-            .collect();
+    fn home_tiles(&mut self, ui: &mut Ui, state: &State, names: &[String], installed: bool) {
         ui.label(
             RichText::new(format!(
                 "{} · {}",
@@ -263,7 +235,7 @@ impl App {
             .data_mut(|data| data.get_temp::<f64>(motion_id))
             .is_some_and(|time| now - time < 0.22);
         let duration = if animate { 0.16 } else { 0.0 };
-        let mut preview = names.clone();
+        let mut preview = std::borrow::Cow::Borrowed(names);
         let preview_id = ui.id().with(("home-drop-slot", installed));
         if let Some(drag) = &payload {
             let mut destination = ui
@@ -277,6 +249,7 @@ impl App {
                 ui.ctx()
                     .data_mut(|data| data.insert_temp(preview_id, destination));
             }
+            let preview = preview.to_mut();
             preview.retain(|name| *name != drag.name);
             preview.insert(destination.min(preview.len()), drag.name.clone());
         } else {
@@ -311,8 +284,10 @@ impl App {
                 ui.interact(grip_rect, ui.id().with(("home-grip", name)), Sense::drag());
                 continue;
             }
-            ui.ctx()
-                .animate_bool_with_time(ui.id().with(("home-lift", name)), false, 0.12);
+            if animate {
+                ui.ctx()
+                    .animate_bool_with_time(ui.id().with(("home-lift", name)), false, 0.12);
+            }
             self.home_tile(ui, state, name, installed, rect, false);
         }
         if let (Some(drag), Some(pos)) = (&payload, pointer) {
@@ -344,11 +319,10 @@ impl App {
                 );
             }
             self.home_tile(&mut floating, state, &drag.name, installed, rect, true);
-            ui.ctx().request_repaint();
         }
         if ui.ctx().input(|i| i.pointer.any_released()) {
             if let Some(drag) = payload {
-                if pointer.is_some_and(|pos| grid.contains(pos)) && preview != names {
+                if pointer.is_some_and(|pos| grid.contains(pos)) && preview.as_ref() != names {
                     let index = preview.iter().position(|name| *name == drag.name).unwrap();
                     let (target, before) = if index + 1 < preview.len() {
                         (&preview[index + 1], true)
@@ -390,7 +364,7 @@ impl App {
         if !floating && !ui.is_rect_visible(rect) && !ui.memory(|memory| memory.any_popup_open()) {
             return;
         }
-        let status = self.status(name);
+        let status = self.app_list_status(name);
         let install_available = self.install_available(name, ui.ctx());
         let unavailable_message = if install_available {
             String::new()
@@ -848,7 +822,10 @@ impl App {
                 .layout(Layout::right_to_left(Align::Center)),
         );
 
-        let exists = self.job.log_path.is_file();
+        let exists = self
+            .activity_log
+            .as_ref()
+            .is_some_and(|path| path == &self.job.log_path);
 
         let response = right
             .add_enabled(

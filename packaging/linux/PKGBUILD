@@ -7,7 +7,7 @@ url='https://github.com/CryptoKey98/craft-apps-manager'
 license=('MIT')
 depends=('glibc' 'gcc-libs' 'libx11' 'libxrandr' 'libxi' 'libxcursor'
          'libxkbcommon' 'wayland' 'libglvnd' 'polkit' 'libnotify'
-         'xdg-utils' 'libarchive')
+         'xdg-utils' 'libarchive' 'squashfs-tools')
 optdepends=('systemd: scheduled update checks')
 options=('!strip' '!debug')
 source=('payload.tar.gz')

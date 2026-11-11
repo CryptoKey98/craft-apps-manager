@@ -185,7 +185,7 @@ impl App {
                             .id_salt("whats-new-notes").show(ui, |ui| {
                                 for section in release_notes(env!("CARGO_PKG_VERSION")) {
                                     let fallback = format!("New in {}", env!("CARGO_PKG_VERSION"));
-                                    theme::heading(ui, section.title.unwrap_or(&fallback), 13.0);
+                                    theme::heading(ui, section.title.unwrap_or(&fallback).replace("Rev. ", "rev. "), 13.0);
                                     ui.add_space(10.0);
                                     for note in section.notes {
                                         body_text(ui, &format!("• {note}"));
@@ -193,13 +193,16 @@ impl App {
                                     }
                                     ui.add_space(8.0);
                                 }
-                                if env!("CARGO_PKG_VERSION") != "1.1.0" {
+                                for version in ["1.1.1", "1.1.0"]
+                                    .into_iter()
+                                    .filter(|version| *version != env!("CARGO_PKG_VERSION"))
+                                {
                                     ui.add_space(16.0);
-                                    theme::heading(ui, "Also included from 1.1.0", 13.0);
+                                    theme::heading(ui, format!("Also included from {version}"), 13.0);
                                     ui.add_space(10.0);
-                                    for section in release_notes("1.1.0") {
+                                    for section in release_notes(version) {
                                         if let Some(title) = section.title {
-                                            theme::heading(ui, title, 13.0);
+                                            theme::heading(ui, title.replace("Rev. ", "rev. "), 13.0);
                                             ui.add_space(10.0);
                                         }
                                         for note in section.notes {
@@ -256,7 +259,7 @@ impl App {
                                 #[cfg(target_os = "linux")]
                                 {
                                     ui.add_space(16.0);
-                                    theme::heading(ui, "Also included from 0.8.3 Rev. 2 · Linux", 13.0);
+                                    theme::heading(ui, "Also included from 0.8.3 rev. 2 · Linux", 13.0);
                                     ui.add_space(10.0);
                                     for note in [
                                         "Close Manager to the tray on X11 or XWayland. On native Wayland, the unsupported setting is disabled and closing quits normally.",

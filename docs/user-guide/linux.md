@@ -58,6 +58,8 @@ New portable libraries use `data` beside the executable. Native installations us
 
 Choose each app's available format and architecture in its installation dialog. AppImages run in extraction mode, so FUSE is not required. Installer mode uses the distribution's native package family; DEB and RPM are not installed on Arch. Upstream apps must publish the selected format.
 
+The Manager uses `unsquashfs` to detect when a supported AppImage updates itself. The DEB, RPM, and Arch packages pull in `squashfs-tools` automatically. If you use the portable Manager, install `squashfs-tools` with your distribution's package manager to enable this detection. When the tool or version metadata is unavailable, the Manager keeps the last known version.
+
 Custom native packages need inspection tools:
 
 | Package | Tools used |

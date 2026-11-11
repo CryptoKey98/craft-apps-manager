@@ -144,7 +144,10 @@ impl Paths {
                     && copy.install_kind != "installer"
                     && installed_executable(Path::new(&copy.path), &copy.name).is_some()
             });
-            let detected = detect(&app.name)?;
+            let mut detected = detect(&app.name)?;
+            if let Some(native) = &mut detected {
+                native.refresh_self_updated_version(None);
+            }
             if let Some(native) = &detected {
                 config
                     .installations
@@ -169,6 +172,8 @@ impl Paths {
                     if copy.version.is_empty() {
                         copy.version = crate::platform::executable_version(&executable)
                             .unwrap_or_else(|| "0.0.0".into());
+                    } else {
+                        copy.refresh_self_updated_version(Some(&executable));
                     }
                     if copy.architecture.is_empty() {
                         copy.architecture =
@@ -343,7 +348,8 @@ impl Paths {
                 app.name == name && !app.path.is_empty() && app.install_kind == "installer"
             });
             if !installer {
-                if let Some(record) = detect(name)? {
+                if let Some(mut record) = detect(name)? {
+                    record.refresh_self_updated_version(None);
                     records.push(record);
                 }
             } else {

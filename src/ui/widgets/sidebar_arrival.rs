@@ -12,7 +12,7 @@ pub(super) struct Visibility {
 impl Visibility {
     pub(super) fn update(
         &mut self,
-        visible: BTreeSet<String>,
+        visible: &BTreeSet<String>,
         ready: bool,
         now: f64,
         enabled: bool,
@@ -21,11 +21,11 @@ impl Visibility {
             return;
         }
         if enabled {
-            if let Some(previous) = self.previous.clone() {
+            if let Some(previous) = self.previous.as_ref().filter(|old| *old != visible) {
                 for (name, showing) in visible
-                    .difference(&previous)
+                    .difference(previous)
                     .map(|name| (name, true))
-                    .chain(previous.difference(&visible).map(|name| (name, false)))
+                    .chain(previous.difference(visible).map(|name| (name, false)))
                 {
                     let from = if self.started.contains_key(name) {
                         self.opacity(name, now)
@@ -49,7 +49,9 @@ impl Visibility {
                         DEPARTURE_DURATION + f64::from(DURATION)
                     }
         });
-        self.previous = Some(visible);
+        if self.previous.as_ref() != Some(visible) {
+            self.previous = Some(visible.clone());
+        }
     }
 
     pub(super) fn visible(&self, name: &str, actual: bool, now: f64) -> bool {
@@ -93,7 +95,7 @@ pub(super) struct Arrivals {
 impl Arrivals {
     pub(super) fn update(
         &mut self,
-        installed: BTreeSet<String>,
+        installed: &BTreeSet<String>,
         ready: bool,
         now: f64,
         enabled: bool,
@@ -102,11 +104,11 @@ impl Arrivals {
             return;
         }
         if enabled {
-            if let Some(previous) = self.previous.clone() {
+            if let Some(previous) = self.previous.as_ref().filter(|old| *old != installed) {
                 for (name, destination) in installed
-                    .difference(&previous)
+                    .difference(previous)
                     .map(|name| (name, true))
-                    .chain(previous.difference(&installed).map(|name| (name, false)))
+                    .chain(previous.difference(installed).map(|name| (name, false)))
                 {
                     if self.displayed_installed(name, previous.contains(name), now) == destination {
                         self.started.remove(name);
@@ -147,7 +149,9 @@ impl Arrivals {
         {
             self.last_section = None;
         }
-        self.previous = Some(installed);
+        if self.previous.as_ref() != Some(installed) {
+            self.previous = Some(installed.clone());
+        }
     }
 
     pub(super) fn progress(&self, name: &str, now: f64) -> f32 {
@@ -216,9 +220,9 @@ mod tests {
     #[test]
     fn hide_fades_before_removal_and_unhide_fades_in_without_startup_replay() {
         let mut visibility = Visibility::default();
-        visibility.update(names(&["filmcraft"]), true, 0.0, true);
+        visibility.update(&names(&["filmcraft"]), true, 0.0, true);
         assert!(!visibility.active_matching(|_| true));
-        visibility.update(names(&[]), true, 1.0, true);
+        visibility.update(&names(&[]), true, 1.0, true);
         assert!(visibility.visible("filmcraft", false, 1.0));
         assert_eq!(visibility.opacity("filmcraft", 1.0), 1.0);
         assert!(visibility.opacity("filmcraft", 1.07) < 1.0);
@@ -227,18 +231,18 @@ mod tests {
             visibility.active_matching(|_| true),
             "leave time for the vacated gap to close"
         );
-        visibility.update(names(&[]), true, 1.6, true);
+        visibility.update(&names(&[]), true, 1.6, true);
         assert!(!visibility.active_matching(|_| true));
-        visibility.update(names(&["filmcraft"]), true, 2.0, true);
+        visibility.update(&names(&["filmcraft"]), true, 2.0, true);
         assert!(visibility.visible("filmcraft", true, 2.0));
         assert_eq!(visibility.opacity("filmcraft", 2.0), 0.0);
         assert!(visibility.opacity("filmcraft", 2.13) > 0.5);
-        visibility.update(names(&[]), true, 2.13, true);
+        visibility.update(&names(&[]), true, 2.13, true);
         assert!(
             visibility.opacity("filmcraft", 2.13) > 0.5,
             "reversing a partial fade must not jump"
         );
-        visibility.update(names(&[]), true, 2.2, false);
+        visibility.update(&names(&[]), true, 2.2, false);
         assert!(!visibility.visible("filmcraft", false, 2.2));
         assert!(!visibility.active_matching(|_| true));
     }
@@ -247,7 +251,7 @@ mod tests {
         for initially_installed in [false, true] {
             let mut motion = Arrivals::default();
             motion.update(
-                if initially_installed {
+                &if initially_installed {
                     names(&["filmcraft"])
                 } else {
                     names(&[])
@@ -257,7 +261,7 @@ mod tests {
                 true,
             );
             motion.update(
-                if initially_installed {
+                &if initially_installed {
                     names(&[])
                 } else {
                     names(&["filmcraft"])
@@ -283,13 +287,13 @@ mod tests {
     #[test]
     fn uninstall_fades_into_available_and_collapses_the_last_installed_section() {
         let mut motion = Arrivals::default();
-        motion.update(names(&["filmcraft"]), true, 0.0, true);
-        motion.update(names(&[]), true, 1.0, true);
+        motion.update(&names(&["filmcraft"]), true, 0.0, true);
+        motion.update(&names(&[]), true, 1.0, true);
         assert!(motion.active());
         assert_eq!(motion.progress("filmcraft", 1.0), 0.0);
         assert_eq!(motion.header_progress(1.0), 1.0);
         assert!(motion.header_progress(1.27) < 0.5);
-        motion.update(names(&[]), true, 1.5, true);
+        motion.update(&names(&[]), true, 1.5, true);
         assert!(!motion.active());
     }
     fn names(values: &[&str]) -> BTreeSet<String> {
@@ -299,26 +303,26 @@ mod tests {
     #[test]
     fn initial_inventory_does_not_animate_but_first_install_does() {
         let mut motion = Arrivals::default();
-        motion.update(names(&[]), false, 0.0, true);
-        motion.update(names(&[]), true, 1.0, true);
-        motion.update(names(&["filmcraft"]), true, 2.0, true);
+        motion.update(&names(&[]), false, 0.0, true);
+        motion.update(&names(&[]), true, 1.0, true);
+        motion.update(&names(&["filmcraft"]), true, 2.0, true);
         assert_eq!(motion.progress("filmcraft", 2.0), 0.0);
         assert_eq!(motion.header_progress(2.0), 0.0);
         assert!(motion.progress("filmcraft", 2.27) > 0.5);
-        motion.update(names(&["filmcraft"]), true, 2.5, true);
+        motion.update(&names(&["filmcraft"]), true, 2.5, true);
         assert!(!motion.active());
         assert_eq!(motion.progress("filmcraft", 2.4), 1.0);
         let mut reopened = Arrivals::default();
-        reopened.update(names(&["filmcraft"]), true, 1.0, true);
+        reopened.update(&names(&["filmcraft"]), true, 1.0, true);
         assert!(!reopened.active());
     }
 
     #[test]
     fn additional_and_batch_installs_only_fade_new_rows() {
         let mut motion = Arrivals::default();
-        motion.update(names(&["soundcraft"]), true, 0.0, true);
+        motion.update(&names(&["soundcraft"]), true, 0.0, true);
         motion.update(
-            names(&["soundcraft", "filmcraft", "photocraft"]),
+            &names(&["soundcraft", "filmcraft", "photocraft"]),
             true,
             1.0,
             true,
@@ -327,23 +331,23 @@ mod tests {
         assert_eq!(motion.header_progress(1.0), 1.0);
         assert_eq!(motion.progress("filmcraft", 1.0), 0.0);
         assert_eq!(motion.progress("photocraft", 1.0), 0.0);
-        motion.update(names(&["soundcraft"]), true, 1.1, true);
+        motion.update(&names(&["soundcraft"]), true, 1.1, true);
         assert!(
             !motion.active(),
             "reversal before departure finishes keeps the original rows visible"
         );
         assert_eq!(motion.progress("filmcraft", 1.1), 1.0);
-        motion.update(names(&["soundcraft"]), true, 1.5, true);
+        motion.update(&names(&["soundcraft"]), true, 1.5, true);
         assert!(!motion.active());
     }
 
     #[test]
     fn disabled_motion_and_unchanged_installation_do_not_replay() {
         let mut motion = Arrivals::default();
-        motion.update(names(&[]), true, 0.0, true);
-        motion.update(names(&["filmcraft"]), true, 1.0, false);
+        motion.update(&names(&[]), true, 0.0, true);
+        motion.update(&names(&["filmcraft"]), true, 1.0, false);
         assert!(!motion.active());
-        motion.update(names(&["filmcraft"]), true, 2.0, true);
+        motion.update(&names(&["filmcraft"]), true, 2.0, true);
         assert!(!motion.active());
     }
 }

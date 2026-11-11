@@ -660,7 +660,11 @@ fn publisher_enrolls_only_verified_new_craft_apps_without_removing_existing_entr
                     {"name":"archivedcraft","archived":true},{"name":"forkcraft","fork":true},
                     {"name":"disabledcraft","disabled":true},{"name":"unrelated"}
                 ])
-            } else if url.contains("/sourcecraft/") || url.contains("/repos/tangency-labs/") {
+            } else if url.contains("/sourcecraft/")
+                || crate::catalog::EXTERNAL_APPS.iter().any(|source| {
+                    url.strip_prefix("https://api.github.com/repos/") == Some(source.repository)
+                })
+            {
                 return Ok(None);
             } else {
                 assert!(
@@ -880,6 +884,12 @@ fn publisher_automatically_enrolls_verified_supported_external_app() {
                 "https://api.github.com/repos/tangency-labs/solidcraft/releases/latest" => {
                     serde_json::json!({"tag_name":"v0.29.0","draft":false,"prerelease":false,"assets":[{"name":"solidcraft-0.29.0-windows-x64.msi","size":42,"browser_download_url":"https://github.com/tangency-labs/solidcraft/releases/download/v0.29.0/solidcraft-0.29.0-windows-x64.msi"}]})
                 }
+                "https://api.github.com/repos/ucs-care-group/mailcraft" => {
+                    serde_json::json!({"name":"mailcraft","full_name":"UCS-Care-Group/mailcraft"})
+                }
+                "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest" => {
+                    serde_json::json!({"tag_name":"v0.11.1","draft":false,"prerelease":false,"assets":[{"name":"mailcraft-0.11.1-windows-x64.msi","size":42,"browser_download_url":"https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.11.1/mailcraft-0.11.1-windows-x64.msi"}]})
+                }
                 _ => panic!("Unexpected probe: {url}"),
             };
             Ok(Some(publisher::Page { etag: None, body }))
@@ -887,7 +897,7 @@ fn publisher_automatically_enrolls_verified_supported_external_app() {
     }
     assert_eq!(
         publisher::enroll(&[], &External).unwrap(),
-        vec!["tangency-labs/solidcraft"]
+        vec!["tangency-labs/solidcraft", "ucs-care-group/mailcraft"]
     );
 }
 

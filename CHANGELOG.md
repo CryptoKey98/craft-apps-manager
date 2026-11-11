@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2
+
+- Reduce CPU use when scrolling Home and the sidebar by reusing app lists and update status between frames.
+- Use a new graphics renderer with an automatic OpenGL fallback if graphics initialization fails.
+- Recognize supported Craft apps that update themselves, so the Manager can show the installed version and remove outdated update badges.
+- Add MailCraft to app discovery.
+
 ## 1.1.1
 
 - Optionally compress portable rollback versions to save space, and remove retained rollback versions together from Settings.
