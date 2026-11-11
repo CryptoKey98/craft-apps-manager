@@ -152,6 +152,9 @@ pub fn open(path: &Path) -> Result<()> {
 pub fn executable_version(_: &Path) -> Option<String> {
     None
 }
+#[path = "linux_version.rs"]
+mod linux_version;
+pub(crate) use linux_version::portable_version;
 pub fn running_app(name: &str) -> Result<bool> {
     let mut names = crate::model::executable_names(name);
     names.extend(crate::app_identity::running_executables(name));

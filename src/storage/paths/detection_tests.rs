@@ -281,6 +281,182 @@ fn release_fixture(folder: &Path, app: &str) {
         std::fs::write(executable, b"fixture").unwrap();
     }
 }
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[test]
+fn unix_inventory_detects_self_update_of_only_the_replaced_copy() {
+    let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+    let paths = Paths::new(root.clone(), None);
+    let first = root.join("first");
+    let second = root.join("second");
+    let app = "filmcraft";
+    for folder in [&first, &second] {
+        release_fixture(folder, app);
+    }
+    let write_version = |folder: &Path, version: &str| {
+        #[cfg(target_os = "linux")]
+        {
+            let metadata = folder.join("share/metainfo/ai.storyteller.filmcraft.metainfo.xml");
+            std::fs::create_dir_all(metadata.parent().unwrap()).unwrap();
+            std::fs::write(folder.join(executable_name(app)), b"\x7fELF\0\0\0\0\0\0\0").unwrap();
+            std::fs::write(metadata, format!(
+                "<component><id>ai.storyteller.filmcraft</id><releases><release version=\"{version}\"/></releases></component>"
+            )).unwrap();
+        }
+        #[cfg(target_os = "macos")]
+        std::fs::write(
+            folder.join(executable_name(app)).join("Contents/Info.plist"),
+            format!("<?xml version=\"1.0\"?><plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>ai.storyteller.{app}</string><key>CFBundleShortVersionString</key><string>{version}</string></dict></plist>"),
+        ).unwrap();
+    };
+    write_version(&first, "1.0.0");
+    write_version(&second, "1.0.0");
+    let installed = |folder: &Path| Installed {
+        name: app.into(),
+        version: "1.0.0".into(),
+        path: folder.display().to_string(),
+        architecture: "x64".into(),
+        install_kind: "portable".into(),
+        ..Default::default()
+    };
+    paths
+        .save_config(&Config {
+            apps_root: root.display().to_string(),
+            apps: vec![installed(&first)],
+            installations: vec![installed(&first), installed(&second)],
+            portable_label_counters: Default::default(),
+        })
+        .unwrap();
+    let read = || paths.config_with_detector(|_| Ok(None)).unwrap();
+    let before = read();
+    write_version(&first, "1.1.0");
+    let after = read();
+    std::fs::remove_dir_all(root).unwrap();
+    let selected = |config: &Config| {
+        config
+            .apps
+            .iter()
+            .find(|entry| entry.name == app)
+            .unwrap()
+            .clone()
+    };
+    assert_eq!(selected(&after).version, "1.1.0");
+    assert_eq!(selected(&after).path, selected(&before).path);
+    assert_eq!(
+        selected(&after).installation_label,
+        selected(&before).installation_label
+    );
+    assert_eq!(
+        after
+            .installations
+            .iter()
+            .find(|entry| Path::new(&entry.path) == second)
+            .unwrap()
+            .version,
+        "1.0.0"
+    );
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn refresh_reads_new_version_after_portable_app_updates_itself() {
+    use super::*;
+    let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+    let paths = Paths::new(root.clone(), None);
+    let folder = root.join("first");
+    let other_folder = root.join("second");
+    release_fixture(&folder, "filmcraft");
+    release_fixture(&other_folder, "filmcraft");
+    let first = Installed {
+        name: "filmcraft".into(),
+        path: folder.display().to_string(),
+        version: "0.0.1".into(),
+        architecture: "x64".into(),
+        install_kind: "portable".into(),
+        ..Default::default()
+    };
+    let other = Installed {
+        path: other_folder.display().to_string(),
+        ..first.clone()
+    };
+    paths
+        .save_config(&Config {
+            apps_root: root.display().to_string(),
+            apps: vec![first],
+            installations: vec![other.clone()],
+            portable_label_counters: Default::default(),
+        })
+        .unwrap();
+    let before = paths.config_with_detector(|_| Ok(None)).unwrap();
+    let versioned_exe = std::env::current_exe().unwrap();
+    let observed = crate::platform::executable_version(&versioned_exe).unwrap();
+    std::fs::copy(versioned_exe, folder.join(executable_name("filmcraft"))).unwrap();
+    let after = paths.config_with_detector(|_| Ok(None)).unwrap();
+    let selected = |config: &Config| {
+        config
+            .apps
+            .iter()
+            .find(|app| app.name == "filmcraft")
+            .unwrap()
+            .clone()
+    };
+    let unchanged = after
+        .installations
+        .iter()
+        .find(|copy| copy.path == other.path)
+        .unwrap()
+        .clone();
+    std::fs::remove_dir_all(root).unwrap();
+    assert_eq!(selected(&before).version, "0.0.1");
+    assert_eq!(selected(&after).version, observed);
+    assert_eq!(selected(&after).path, selected(&before).path);
+    assert_eq!(
+        selected(&after).installation_label,
+        selected(&before).installation_label
+    );
+    assert_eq!(unchanged.version, other.version);
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn refresh_reads_self_updated_msi_executable_without_changing_registration_identity() {
+    use super::*;
+    let root = std::env::temp_dir().join(uuid::Uuid::new_v4().to_string());
+    let paths = Paths::new(root.clone(), None);
+    let folder = root.join("installed");
+    release_fixture(&folder, "filmcraft");
+    let binary = std::env::current_exe().unwrap();
+    let observed = crate::platform::executable_version(&binary).unwrap();
+    std::fs::copy(binary, folder.join(executable_name("filmcraft"))).unwrap();
+    let registered = Installed {
+        name: "filmcraft".into(),
+        path: folder.display().to_string(),
+        version: "0.0.1".into(),
+        architecture: "x64".into(),
+        install_kind: "installer".into(),
+        product_code: "{00000000-0000-0000-0000-000000000001}".into(),
+        windows_msi_scope: Some("user".into()),
+        ..Default::default()
+    };
+    let scan = || {
+        paths
+            .config_with_detector(|name| Ok((name == "filmcraft").then(|| registered.clone())))
+            .unwrap()
+            .apps
+            .into_iter()
+            .find(|app| app.name == "filmcraft")
+            .unwrap()
+    };
+    let ordinary = scan();
+    std::fs::write(folder.join("portable.txt"), b"").unwrap();
+    let updated = scan();
+    std::fs::remove_dir_all(root).unwrap();
+    assert_eq!(ordinary.version, registered.version);
+    assert_eq!(updated.version, observed);
+    assert_eq!(updated.install_kind, "installer");
+    assert_eq!(updated.product_code, registered.product_code);
+    assert_eq!(updated.windows_msi_scope, registered.windows_msi_scope);
+}
 #[test]
 fn uninstalling_one_format_preserves_other_copy_across_restart() {
     for removed_kind in ["installer", "portable"] {

@@ -270,6 +270,10 @@ fn measure_discovery_without_releases() {
             "/repos/tangency-labs/solidcraft".into(),
             (404, serde_json::json!({"message":"Not Found"})),
         ),
+        (
+            "/repos/ucs-care-group/mailcraft".into(),
+            (404, serde_json::json!({"message":"Not Found"})),
+        ),
     ]));
     for label in ["Startup discovery cold", "Startup discovery warm"] {
         server

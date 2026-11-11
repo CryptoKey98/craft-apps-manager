@@ -10,7 +10,7 @@ Available for **Windows, Linux, and macOS**. This is an independent community pr
 
 **[Download](https://github.com/CryptoKey98/craft-apps-manager/releases/latest)** · [Documentation](https://github.com/CryptoKey98/craft-apps-manager/wiki) · [Changelog](CHANGELOG.md) · [Report a problem](https://github.com/CryptoKey98/craft-apps-manager/issues)
 
-Version **1.1.1** includes smoother scrolling, more efficient automatic update checks, and version lists that stay in sync when GitHub finds a newer release. See the [changelog](CHANGELOG.md) for the full release notes.
+Version **1.1.2** includes more efficient scrolling, an automatic graphics fallback, and better detection when a Craft app updates itself. See the [changelog](CHANGELOG.md) for the full release notes.
 
 ![PhotoCraft's page in Craft Apps Manager](docs/images/main.png?v=0.8.0)
 

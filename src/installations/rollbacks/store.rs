@@ -128,11 +128,12 @@ pub(super) fn selected(paths: &Paths, expected: &Installed) -> Result<Installed>
         Path::new(&config.apps_root) == paths.root,
         "Installation inventory belongs to another library"
     );
-    let current = config
+    let mut current = config
         .apps
         .into_iter()
         .find(|a| a.name == expected.name)
         .context("Installation is no longer selected")?;
+    current.refresh_self_updated_version(None);
     ensure!(
         same_selected_installation(&current, expected, crate::model::release_os())?,
         "Installation changed. Reopen the Rollback dialog."

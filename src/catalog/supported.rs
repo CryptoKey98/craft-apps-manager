@@ -9,15 +9,26 @@ pub(crate) struct ExternalApp {
     pub icon_path: &'static str,
 }
 
-pub(crate) const EXTERNAL_APPS: &[ExternalApp] = &[ExternalApp {
-    key: "solidcraft",
-    repository: "tangency-labs/solidcraft",
-    category: "Parametric 3D CAD",
-    // SolidCraft's former executable name; its upstream MSI retains that identity.
-    aliases: &["solvecraft"],
-    bundle_ids: &["io.tangencylabs.solidcraft"],
-    icon_path: "assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png",
-}];
+pub(crate) const EXTERNAL_APPS: &[ExternalApp] = &[
+    ExternalApp {
+        key: "solidcraft",
+        repository: "tangency-labs/solidcraft",
+        category: "Parametric 3D CAD",
+        // SolidCraft's former executable name; its upstream MSI retains that identity.
+        aliases: &["solvecraft"],
+        bundle_ids: &["io.tangencylabs.solidcraft"],
+        icon_path:
+            "assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png",
+    },
+    ExternalApp {
+        key: "mailcraft",
+        repository: "ucs-care-group/mailcraft",
+        category: "Email, calendar and contacts",
+        aliases: &[],
+        bundle_ids: &["io.github.billsecond.mailcraft"],
+        icon_path: "assets/app-icon/hicolor/64x64/apps/io.github.billsecond.mailcraft.png",
+    },
+];
 
 /// Resolve managed keys without changing explicit user-added repository slugs.
 pub fn repository_slug(value: &str) -> String {

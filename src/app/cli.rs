@@ -322,7 +322,7 @@ pub(crate) fn run() -> Result<()> {
         return Ok(());
     }
     let builder = args.iter().any(|s| s == "--builder");
-    let instance = instance.context("Missing GUI window ownership")?;
+    let mut instance = Some(instance.context("Missing GUI window ownership")?);
     let icon = image::load_from_memory(include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/assets/icon.png"
@@ -340,7 +340,8 @@ pub(crate) fn run() -> Result<()> {
             let (width, height) = size.split_once('x')?;
             Some([width.parse::<f32>().ok()?, height.parse::<f32>().ok()?])
         });
-    let options = eframe::NativeOptions {
+    let options = |renderer| eframe::NativeOptions {
+        renderer,
         #[cfg(target_os = "linux")]
         event_loop_builder: Some(Box::new(move |event_loop| {
             // Wayland cannot hide a winit window. Prefer XWayland when present
@@ -352,7 +353,7 @@ pub(crate) fn run() -> Result<()> {
         })),
         viewport: {
             let viewport = eframe::egui::ViewportBuilder::default()
-                .with_icon(icon)
+                .with_icon(icon.clone())
                 .with_inner_size(screenshot_size.unwrap_or(if builder {
                     [1050.0, 740.0]
                 } else {
@@ -379,19 +380,108 @@ pub(crate) fn run() -> Result<()> {
             }
         });
     }
-    eframe::run_native(
-        if builder {
-            "Craft Apps Builder"
-        } else {
-            "Craft Apps Manager"
-        },
-        options,
-        Box::new(move |cc| {
-            let mut app = ui::App::new(cc, paths, home, builder)?;
-            app.attach_instance(instance, cc);
-            Ok(Box::new(app))
-        }),
-    )
-    .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-    Ok(())
+    let title = if builder {
+        "Craft Apps Builder"
+    } else {
+        "Craft Apps Manager"
+    };
+    let prefer_opengl = args.iter().any(|arg| arg == "--opengl");
+    run_with_renderer(prefer_opengl, |renderer, app_creation_started| {
+        eframe::run_native(
+            title,
+            options(renderer),
+            Box::new(|cc| {
+                *app_creation_started = true;
+                let mut app = ui::App::new(cc, paths.clone(), home.clone(), builder)?;
+                app.attach_instance(instance.take().context("Missing GUI window ownership")?, cc);
+                Ok(Box::new(app))
+            }),
+        )
+    })
+}
+
+fn run_with_renderer(
+    prefer_opengl: bool,
+    mut run: impl FnMut(eframe::Renderer, &mut bool) -> eframe::Result,
+) -> Result<()> {
+    use eframe::Renderer::{Glow, Wgpu};
+
+    let mut app_creation_started = false;
+    let renderer = if prefer_opengl { Glow } else { Wgpu };
+    match run(renderer, &mut app_creation_started) {
+        Err(error @ eframe::Error::Wgpu(_)) if renderer == Wgpu && !app_creation_started => {
+            eprintln!("wgpu initialization failed, retrying with OpenGL: {error}");
+            // eframe reuses the event loop when run_and_return is enabled.
+            // The GUI instance lock stays with this process across both attempts.
+            run(Glow, &mut app_creation_started)
+                .map_err(|fallback| anyhow::anyhow!("OpenGL startup failed: {fallback}"))
+                .with_context(|| format!("wgpu initialization failed: {error}"))
+        }
+        result => result.map_err(|error| anyhow::anyhow!(error.to_string())),
+    }
+}
+
+#[cfg(test)]
+mod renderer_tests {
+    use super::*;
+    use eframe::Renderer::{Glow, Wgpu};
+
+    fn unavailable_gpu() -> eframe::Error {
+        eframe::egui_wgpu::WgpuError::NoSuitableAdapterFound("no compatible adapter".into()).into()
+    }
+
+    #[test]
+    fn retries_startup_graphics_error_with_opengl_once() {
+        let mut attempts = Vec::new();
+        run_with_renderer(false, |renderer, _| {
+            attempts.push(renderer);
+            match renderer {
+                Wgpu => Err(unavailable_gpu()),
+                Glow => Ok(()),
+            }
+        })
+        .unwrap();
+        assert_eq!(attempts, [Wgpu, Glow]);
+    }
+
+    #[test]
+    fn reports_both_errors_when_opengl_fallback_also_fails() {
+        let error = run_with_renderer(false, |renderer, _| match renderer {
+            Wgpu => Err(unavailable_gpu()),
+            Glow => Err(eframe::Error::AppCreation("OpenGL failed".into())),
+        })
+        .unwrap_err();
+        let message = format!("{error:#}");
+        assert!(message.contains("wgpu initialization failed"));
+        assert!(message.contains("OpenGL failed"));
+    }
+
+    #[test]
+    fn leaves_app_creation_and_later_graphics_errors_to_the_normal_error_handler() {
+        for creation_started in [false, true] {
+            let mut attempts = Vec::new();
+            let result = run_with_renderer(false, |renderer, started| {
+                attempts.push(renderer);
+                *started = creation_started;
+                if creation_started {
+                    Err(unavailable_gpu())
+                } else {
+                    Err(eframe::Error::AppCreation("settings could not load".into()))
+                }
+            });
+            assert!(result.is_err());
+            assert_eq!(attempts, [Wgpu]);
+        }
+    }
+
+    #[test]
+    fn explicit_opengl_skips_wgpu() {
+        let mut attempts = Vec::new();
+        run_with_renderer(true, |renderer, _| {
+            attempts.push(renderer);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(attempts, [Glow]);
+    }
 }

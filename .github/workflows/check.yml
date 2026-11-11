@@ -263,6 +263,11 @@ jobs:
       - run: cargo test --locked --target ${{ matrix.target }} --all-targets -- --test-threads=1
         env:
           CRAFT_TEST_TOOLS: /tmp/craft-test-tools
+      - name: Test version detection after an AppImage is replaced
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          sudo apt-get install -y squashfs-tools
+          cargo test --locked --target ${{ matrix.target }} --lib replacing_appimage_at_the_same_path_refreshes_its_version -- --ignored --test-threads=1
       - run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
       - run: cargo test --locked --target ${{ matrix.target }} --features service-updater,app-catalog-tools --all-targets -- --test-threads=1
         env:
@@ -443,7 +448,7 @@ jobs:
     steps:
       - name: Install Arch build and runtime dependencies
         run: |
-          pacman -Syu --noconfirm --needed base-devel git rust python pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl libarchive polkit libnotify xdg-utils
+          pacman -Syu --noconfirm --needed base-devel git rust python pkgconf libxkbcommon wayland libx11 libxi libxrandr libxcursor libxinerama libglvnd openssl libarchive polkit libnotify xdg-utils squashfs-tools
           useradd --create-home builder
       - uses: actions/checkout@v4
       - name: Prepare unprivileged build workspace

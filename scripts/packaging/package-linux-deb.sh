@@ -47,9 +47,10 @@ linked=$(cd "$work" && dpkg-shlibdeps -O -e"$binary")
 linked=$(printf '%s\n' "$linked" | sed -n 's/^shlibs:Depends=//p')
 [ -n "$linked" ] || { echo "Could not determine ELF dependencies" >&2; exit 1; }
 # Command-line helpers run on the host, even with a 32-bit manager on
-# a 64-bit desktop. libnotify-bin is not Multi-Arch: foreign, so list
-# supported host architectures explicitly rather than replacing it.
+# a 64-bit desktop. List supported host architectures explicitly for
+# helpers that are not Multi-Arch: foreign.
 notification_helper='libnotify-bin:amd64 | libnotify-bin:i386 | libnotify-bin:arm64'
+squashfs_helper='squashfs-tools:amd64 | squashfs-tools:i386 | squashfs-tools:arm64'
 cat > "$work/package/DEBIAN/control" <<EOF
 Package: craft-apps-manager
 Version: $package_version
@@ -58,7 +59,7 @@ Section: utils
 Priority: optional
 Maintainer: CryptoKey98 <cryptokey98@users.noreply.github.com>
 Homepage: https://github.com/CryptoKey98/craft-apps-manager
-Depends: $linked, libx11-6, libxcursor1, libxi6, libxrandr2, libxkbcommon0, libwayland-client0, libwayland-cursor0, libwayland-egl1, libegl1, libgl1, $notification_helper, xdg-utils, pkexec, libarchive-tools
+Depends: $linked, libx11-6, libxcursor1, libxi6, libxrandr2, libxkbcommon0, libwayland-client0, libwayland-cursor0, libwayland-egl1, libegl1, libgl1, $notification_helper, xdg-utils, pkexec, libarchive-tools, $squashfs_helper
 Description: Manage Craft app releases, sources and builds
  Download Craft releases, check for updates, manage source archives,
  and build executables. Settings and libraries remain in each user's

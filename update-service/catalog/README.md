@@ -7,8 +7,8 @@ For maintainers editing update policy. Start with [Release preparation](../../do
 | File | Purpose |
 | --- | --- |
 | `standby.json` | Bootstrap records for published 0.9.0 packages, with no routes; not the current production policy |
-| `release-1.1.1.json` | Next release policy: package identities, supported layouts, and update routes for 1.1.1 Rev. 1 |
-| `release-1.0.0.json`, `release-1.1.0.json` | Previous release policy inputs, retained for reference |
+| `release-1.1.2.json` | Next release policy: package identities, supported layouts, and update routes for 1.1.2 |
+| `release-1.0.0.json`, `release-1.1.0.json`, `release-1.1.1.json` | Previous release policy inputs, retained for reference |
 | `supported-clients.json` | Client profiles checked with the actual Rust router before signing |
 | `../../updater.production.toml` | Official build, publication, hosting, mirror, and renewal configuration |
 
