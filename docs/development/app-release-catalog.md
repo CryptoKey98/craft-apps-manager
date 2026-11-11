@@ -33,7 +33,7 @@ There is no separate catalog polling timer while the Manager sits idle. The next
 The three clocks serve different purposes:
 
 - **60 seconds:** the normal minimum interval between client catalog refresh attempts. Failures back off to 5, 15, then 60 minutes. Manual GitHub checks have a separate 60-second successful-response cache.
-- **Publication cadence:** an external scheduler or the daily GitHub fallback requests a refresh. Client refresh intervals do not control when the feed is published; queued or failed workflows can delay publication.
+- **Publication cadence:** the production VPS checks every 10 minutes and requests a refresh when it detects changes or the last successful publication is at least 12 hours old. GitHub Actions queues and publishes those requests. Maintainers can also dispatch a refresh manually.
 - **24 hours:** the maximum age of each app's last successful upstream observation for catalog-backed browsing and automatic checks. A successful check can renew that app's timestamp even when its releases are unchanged. Republishing the root, downloading it again, or failing to check an app does not renew that app's timestamp.
 
 For example, a publication containing a successful FilmCraft scan from 25 hours ago cannot supply its release history to a client. That query falls back to GitHub even if the signed root was published just now. This rule concerns app metadata, not the separate Manager self-update catalog's validity period.
@@ -70,9 +70,9 @@ Retain the previous publication and discovery checkpoint between runs. Losing pu
 
 The public feed uses the separate `app-release-catalog` branch of the same repository. Application code and the publisher workflow stay on `main`; the data branch contains signed `v1/index.json`, immutable `v1/apps/<sha256>.json`, retained `v1/roots/<sequence>.json`, and incremental publisher checkpoints. Installer packages and compiled publisher tools are not committed to that branch.
 
-The workflow provides a daily fallback at 08:37 UTC and supports manual validation or external dispatch. External schedulers are maintained separately from this repository. Merging source or releasing the Manager does not install or replace one. Older Managers retain their 30-minute freshness threshold and may use more API fallback if publication becomes less frequent; choose a transition cadence deliberately.
+The workflow supports manual validation and external dispatch. The production scheduler is maintained separately from this repository and dispatches from `main` with the publication input enabled. Older Managers retain their 30-minute freshness threshold and may use the GitHub API more often when publication is less frequent.
 
-GitHub can delay scheduled or externally triggered runs. An external dispatch requests a workflow run; it is not a signing authority or proof of publication. Actions independently collects, admits, inspects, signs and verifies. Check the successful run and verified hosted feed before considering a publication complete. Each collection run inspects at most eight previously unverified MSI files, without installing or executing them.
+GitHub can queue externally triggered runs. Actions independently collects, admits, inspects, signs and verifies. Check the successful run and verified hosted feed before considering a publication complete. Each collection run inspects at most eight previously unverified MSI files, without installing or executing them.
 
 Collection has read-only repository access and no signing secret. Publication runs only from `main`, behind the `CRAFT_APP_CATALOG_ENABLED=true` repository variable and the `app-release-catalog-production` environment. Store the dedicated private key as that environment's `APP_RELEASE_CATALOG_SIGNING_KEY` secret. The corresponding public key belongs in `assets/app-release-catalog/source.json`. When more than one public key is trusted during rotation, select the active key with `CRAFT_APP_CATALOG_KEY_ID`.
 
