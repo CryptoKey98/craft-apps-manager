@@ -91,7 +91,7 @@ The app-release catalog is separate from the signed Manager update catalog and i
 
 External scheduling is a separate deployment, with its source and operational instructions maintained outside this repository. Older Managers use a 30-minute catalog freshness limit; reducing publication frequency can make them fall back to GitHub more often. The 1.1.1 client accepts each app's successful observation for up to 24 hours and checks GitHub directly for a manual update check.
 
-Coordinate any external scheduler change separately from publication, and keep the daily GitHub fallback enabled. Verify actual successful publications and their signed metadata after a scheduling change. A merged workflow or a successful local test does not deploy an external service.
+Coordinate external scheduler changes separately from publication. Verify the dispatched workflow succeeds and its signed metadata reaches the hosted feed after a scheduling change.
 
 ## Confirm publication
 

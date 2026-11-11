@@ -6,9 +6,6 @@ on:
         description: Publish verified metadata to the dedicated catalog branch
         type: boolean
         default: false
-  schedule:
-    # Daily fallback; more frequent refreshes can use workflow_dispatch.
-    - cron: '37 8 * * *'
 permissions:
   contents: read
 concurrency:
@@ -16,7 +13,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   collect:
-    if: github.event_name == 'workflow_dispatch' || vars.CRAFT_APP_CATALOG_ENABLED == 'true'
     name: Collect metadata and inspect changed packages
     runs-on: windows-2022
     timeout-minutes: 40
@@ -126,7 +122,7 @@ jobs:
   publish:
     name: Sign and publish verified catalog
     needs: collect
-    if: vars.CRAFT_APP_CATALOG_ENABLED == 'true' && github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.publish)
+    if: vars.CRAFT_APP_CATALOG_ENABLED == 'true' && github.ref == 'refs/heads/main' && inputs.publish
     environment: app-release-catalog-production
     runs-on: windows-2022
     timeout-minutes: 20
