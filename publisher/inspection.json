@@ -16254,11 +16254,69 @@
         "inspector_version": 1
       },
       "used": 1794390239
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.2.0",
+        "asset_name": "anicraft-0.2.0-windows-arm64.msi",
+        "digest": "sha256:ef4683122f80fc87063d325691f82aa6207514eb9b0f6c150244b92089df6366",
+        "size": 12099584,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794413874
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.2.0",
+        "asset_name": "anicraft-0.2.0-windows-x64.msi",
+        "digest": "sha256:2f9ff59004858e14cade205609f44928ddba8001a9c12ca21ed82d2492f8accb",
+        "size": 13340672,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794413874
+    },
+    {
+      "repository": "storytold/deckcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "deckcraft-0.18.0-windows-arm64.msi",
+        "digest": "sha256:99245c554762bd8a95b9e0bc9319e37da5366a3d67a1d84528333c25b3c950f2",
+        "size": 79908864,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794413876
+    },
+    {
+      "repository": "storytold/deckcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "deckcraft-0.18.0-windows-x64.msi",
+        "digest": "sha256:90d0a3528bf1a0ca02636c0163e6280db9be10d38d1cbc8284ffe0e0e8f298dc",
+        "size": 82915328,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794413877
     }
   ],
   "attempts": {
     "storytold/anicraft:v0.1.0:anicraft-0.1.0-windows-arm64.msi:sha256:3da9e703140e047a1a877f1012d2adffda50121f690cac93a21a5d352f8c6488": 1794361626,
     "storytold/anicraft:v0.1.0:anicraft-0.1.0-windows-x64.msi:sha256:4761fc9765077602200f83b594d05bf6b4c43497f62dc268a841b8f22866ddef": 1794361626,
+    "storytold/anicraft:v0.2.0:anicraft-0.2.0-windows-arm64.msi:sha256:ef4683122f80fc87063d325691f82aa6207514eb9b0f6c150244b92089df6366": 1794413874,
+    "storytold/anicraft:v0.2.0:anicraft-0.2.0-windows-x64.msi:sha256:2f9ff59004858e14cade205609f44928ddba8001a9c12ca21ed82d2492f8accb": 1794413874,
     "storytold/artcraft:artcraft-v0.10.0:ArtCraft_0.10.0_x64_en-US.msi:sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0": 1793535983,
     "storytold/artcraft:artcraft-v0.11.0:ArtCraft_0.11.0_x64_en-US.msi:sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e": 1793535975,
     "storytold/artcraft:artcraft-v0.12.0:ArtCraft_0.12.0_x64_en-US.msi:sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2": 1793535967,
@@ -16365,6 +16423,8 @@
     "storytold/deckcraft:v0.16.0:deckcraft-0.16.0-windows-x86.msi:sha256:a51a5aa05a5b70beef1a6ad9b56607c2b20462d2bb9d2dcb2c608930cbcadeeb": 1793997796,
     "storytold/deckcraft:v0.17.0:deckcraft-0.17.0-windows-arm64.msi:sha256:5b507c5ebeb179631e9042e4f5bf7d65a097544a23e5965120c33161dbfe0bb6": 1794226744,
     "storytold/deckcraft:v0.17.0:deckcraft-0.17.0-windows-x64.msi:sha256:57847b658554e3587fa0cacbd89e0061c1b14037ae9c52daff423f7c3f04f96c": 1794226745,
+    "storytold/deckcraft:v0.18.0:deckcraft-0.18.0-windows-arm64.msi:sha256:99245c554762bd8a95b9e0bc9319e37da5366a3d67a1d84528333c25b3c950f2": 1794413874,
+    "storytold/deckcraft:v0.18.0:deckcraft-0.18.0-windows-x64.msi:sha256:90d0a3528bf1a0ca02636c0163e6280db9be10d38d1cbc8284ffe0e0e8f298dc": 1794413876,
     "storytold/deckcraft:v0.3.0:deckcraft-0.3.0-windows-arm64.msi:sha256:e18eff23cd16c250091a6e5641de5aff84a465ef21ae045f6a89240ccfa77746": 1793539870,
     "storytold/deckcraft:v0.3.0:deckcraft-0.3.0-windows-x64.msi:sha256:707ad46d6a17428291a0193cb7f1aaf8d5bf103d2202381f770b233845586b4d": 1793536133,
     "storytold/deckcraft:v0.3.0:deckcraft-0.3.0-windows-x86.msi:sha256:9201ef1d337b47e99bf638d5477cbd41f41cfba4c4660c213b510e3233dc7467": 1793536134,
