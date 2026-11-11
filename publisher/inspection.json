@@ -16674,6 +16674,34 @@
         "inspector_version": 1
       },
       "used": 1794436337
+    },
+    {
+      "repository": "storytold/figcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "figcraft-0.18.0-windows-arm64.msi",
+        "digest": "sha256:480cccfa7d339b2b278997f14a9bcb7c952118373e476fd8d0acf359ad03901c",
+        "size": 77537280,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794438742
+    },
+    {
+      "repository": "storytold/figcraft",
+      "evidence": {
+        "tag": "v0.18.0",
+        "asset_name": "figcraft-0.18.0-windows-x64.msi",
+        "digest": "sha256:2cace2cd43a4a0eba989525045a4dfe6077faebfa354dce235a7c0a461993053",
+        "size": 81408000,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794438743
     }
   ],
   "attempts": {
@@ -16971,6 +16999,8 @@
     "storytold/figcraft:v0.16.0:figcraft-0.16.0-windows-x86.msi:sha256:ab92fa218d5b30004500d64ba9c44f12cd22d6db6a4f3cb34385c97136473020": 1793999306,
     "storytold/figcraft:v0.17.0:figcraft-0.17.0-windows-arm64.msi:sha256:779313ee89aa98ac1d4d52985341ba5fdcb702800b2cd0a9b4512bf307856ad7": 1794228257,
     "storytold/figcraft:v0.17.0:figcraft-0.17.0-windows-x64.msi:sha256:145fa6008eeea58366f80d26126a7ccbddf2b822bab6bb122272ea10916fa1b3": 1794228258,
+    "storytold/figcraft:v0.18.0:figcraft-0.18.0-windows-arm64.msi:sha256:480cccfa7d339b2b278997f14a9bcb7c952118373e476fd8d0acf359ad03901c": 1794438741,
+    "storytold/figcraft:v0.18.0:figcraft-0.18.0-windows-x64.msi:sha256:2cace2cd43a4a0eba989525045a4dfe6077faebfa354dce235a7c0a461993053": 1794438742,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-arm64.msi:sha256:379eba5fed8abe5f796cff5737702930b2b37b4447bda8093384d520744069d6": 1793539908,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-x64.msi:sha256:c8f2495950fe7abbe3f0f7b93e2f25133e532004e5a9dbef7876bbe1345dfdc3": 1793536313,
     "storytold/figcraft:v0.2.0:figcraft-0.2.0-windows-x86.msi:sha256:ff47cb69dc7293f789bd406fefd27299d9a58ff5490d2947319a3d7c4b7ff165": 1793536315,
