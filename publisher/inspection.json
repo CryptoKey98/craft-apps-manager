@@ -17080,6 +17080,34 @@
         "inspector_version": 1
       },
       "used": 1794449688
+    },
+    {
+      "repository": "storytold/pdfcraft",
+      "evidence": {
+        "tag": "v0.21.1",
+        "asset_name": "pdfcraft-0.21.1-windows-arm64.msi",
+        "digest": "sha256:030614d549bbb2c23dfde5e6f42b7a8f963b8c3500b55b06022a6a484f1cebbc",
+        "size": 95019008,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794452133
+    },
+    {
+      "repository": "storytold/pdfcraft",
+      "evidence": {
+        "tag": "v0.21.1",
+        "asset_name": "pdfcraft-0.21.1-windows-x64.msi",
+        "digest": "sha256:b28c4c8aa88910293f7a09a82e893db74759b9afc7860fc114c0cba56cf0830a",
+        "size": 99958784,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1794452135
     }
   ],
   "attempts": {
@@ -17664,6 +17692,8 @@
     "storytold/pdfcraft:v0.20.0:pdfcraft-0.20.0-windows-x64.msi:sha256:98345372909c1f0890e23d0828cf8aefbe83b3ef6b46a4fd03c83a1313e46312": 1794228264,
     "storytold/pdfcraft:v0.21.0:pdfcraft-0.21.0-windows-arm64.msi:sha256:34df5999027edeb05d0ec64919f5f1f363b30f0c6f72272a9f36b7ee590dd19f": 1794419348,
     "storytold/pdfcraft:v0.21.0:pdfcraft-0.21.0-windows-x64.msi:sha256:acce7eff1d23b96ff09d89b6d31d5b6b8335f3bdae62656f8ea62f09e7c84cbb": 1794419349,
+    "storytold/pdfcraft:v0.21.1:pdfcraft-0.21.1-windows-arm64.msi:sha256:030614d549bbb2c23dfde5e6f42b7a8f963b8c3500b55b06022a6a484f1cebbc": 1794452131,
+    "storytold/pdfcraft:v0.21.1:pdfcraft-0.21.1-windows-x64.msi:sha256:b28c4c8aa88910293f7a09a82e893db74759b9afc7860fc114c0cba56cf0830a": 1794452133,
     "storytold/pdfcraft:v0.4.0:pdfcraft-0.4.0-windows-arm64.msi:sha256:15a564bcde1b848cfaf4fed3e7f109df26aef1024369ddd5410868eab0d02ff8": 1793539958,
     "storytold/pdfcraft:v0.4.0:pdfcraft-0.4.0-windows-x64.msi:sha256:76e61e2791cab97273c0d900dc95411c1114699386e9c381a07e5fe31a643e3a": 1793536518,
     "storytold/pdfcraft:v0.4.0:pdfcraft-0.4.0-windows-x86.msi:sha256:1fb6f55ac82bad3e268f8f1af4d0dbc64f0f27f2817e505bf4f94971b0aab4d7": 1793536519,
