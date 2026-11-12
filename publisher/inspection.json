@@ -17010,6 +17010,76 @@
         "inspector_version": 1
       },
       "used": 1794447859
+    },
+    {
+      "repository": "storytold/texturecraft",
+      "evidence": {
+        "tag": "v0.6.1",
+        "asset_name": "texturecraft-0.6.1-windows-arm64.msi",
+        "digest": "sha256:cd917a3d72f8d35998332327bda5e65900b888925a9333386b747a9ba96beb79",
+        "size": 33234944,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "machine_only",
+        "inspector_version": 1
+      },
+      "used": 1794449685
+    },
+    {
+      "repository": "storytold/texturecraft",
+      "evidence": {
+        "tag": "v0.6.1",
+        "asset_name": "texturecraft-0.6.1-windows-x64.msi",
+        "digest": "sha256:c06fb85f81a1568b02d50bdacea197450a18825f1d113f2d0c88d9cdd1462eed",
+        "size": 35463168,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "machine_only",
+        "inspector_version": 1
+      },
+      "used": 1794449686
+    },
+    {
+      "repository": "ucs-care-group/mailcraft",
+      "evidence": {
+        "tag": "v0.12.0",
+        "asset_name": "mailcraft-0.12.0-windows-arm64.msi",
+        "digest": "sha256:e2206b339fc68207fb575e05ee6d18ea5fc5eae05b6625e01ad5d32390956da5",
+        "size": 23465984,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "machine_only",
+        "inspector_version": 1
+      },
+      "used": 1794449687
+    },
+    {
+      "repository": "ucs-care-group/mailcraft",
+      "evidence": {
+        "tag": "v0.12.0",
+        "asset_name": "mailcraft-0.12.0-windows-x64.msi",
+        "digest": "sha256:e6d4d74efcdaf7fefa504c3b79d4f5327c0ff706acb87bd1aba8e3a916388ca2",
+        "size": 25694208,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "machine_only",
+        "inspector_version": 1
+      },
+      "used": 1794449687
+    },
+    {
+      "repository": "ucs-care-group/mailcraft",
+      "evidence": {
+        "tag": "v0.12.0",
+        "asset_name": "mailcraft-0.12.0-windows-x86.msi",
+        "digest": "sha256:6cbcba27a512a4ec8a825d56779ed8352efc7305a712c9795c2c54fc70bf1bb7",
+        "size": 24788992,
+        "os": "windows",
+        "architecture": "x86",
+        "policy": "machine_only",
+        "inspector_version": 1
+      },
+      "used": 1794449688
     }
   ],
   "attempts": {
@@ -17759,6 +17829,8 @@
     "storytold/texturecraft:v0.5.0:texturecraft-0.5.0-windows-x64.msi:sha256:28538f55af61c8300758fd4afc9d45b64700e5802aca4eba95576f619e6f3163": 1794225246,
     "storytold/texturecraft:v0.6.0:texturecraft-0.6.0-windows-arm64.msi:sha256:2d7f43cbe06c3f633325406dcf1a3132f286af8f7e4a09e5a8678d6be1240d2b": 1794419350,
     "storytold/texturecraft:v0.6.0:texturecraft-0.6.0-windows-x64.msi:sha256:9da7b303ac4027c2972aad655b9c89b294bb70c23758962f3a31310c8e8339d0": 1794419351,
+    "storytold/texturecraft:v0.6.1:texturecraft-0.6.1-windows-arm64.msi:sha256:cd917a3d72f8d35998332327bda5e65900b888925a9333386b747a9ba96beb79": 1794449685,
+    "storytold/texturecraft:v0.6.1:texturecraft-0.6.1-windows-x64.msi:sha256:c06fb85f81a1568b02d50bdacea197450a18825f1d113f2d0c88d9cdd1462eed": 1794449685,
     "storytold/vectorcraft:v0.1.0:vectorcraft-0.1.0-windows-x64.msi:sha256:a5dfa6fdb845e6d028c02231f8008a55207f89d8e25c17af604fa4b46fddfc32": 1793536714,
     "storytold/vectorcraft:v0.1.0:vectorcraft-0.1.0-windows-x86.msi:sha256:2c9fad577aeba8ffc674c8a525d22e7fe6da70f181508802ced7b4f3536d8719": 1793536716,
     "storytold/vectorcraft:v0.1.1:vectorcraft-0.1.1-windows-x64.msi:sha256:07cabe681220d18bd2b958e43cdc74bcd1576ab02d38465d7e94e538f3a42bb0": 1793536713,
@@ -18181,6 +18253,9 @@
     "ucs-care-group/mailcraft:v0.11.1:mailcraft-0.11.1-windows-arm64.msi:sha256:18e59b48ff0a2a9551ac032fae5acf47cf9fe4f99cf86ed7650ea497171f8d2b": 1794378915,
     "ucs-care-group/mailcraft:v0.11.1:mailcraft-0.11.1-windows-x64.msi:sha256:8c2a59de7d39c3e7c0426d8537b7878f38458f4ba7a8e4166ec928c6708d1d37": 1794378916,
     "ucs-care-group/mailcraft:v0.11.1:mailcraft-0.11.1-windows-x86.msi:sha256:2dd548944b1e0c25ed646250ed11e7f950ec2584e768e97e777ceaa0d1f2dfe1": 1794378916,
+    "ucs-care-group/mailcraft:v0.12.0:mailcraft-0.12.0-windows-arm64.msi:sha256:e2206b339fc68207fb575e05ee6d18ea5fc5eae05b6625e01ad5d32390956da5": 1794449686,
+    "ucs-care-group/mailcraft:v0.12.0:mailcraft-0.12.0-windows-x64.msi:sha256:e6d4d74efcdaf7fefa504c3b79d4f5327c0ff706acb87bd1aba8e3a916388ca2": 1794449687,
+    "ucs-care-group/mailcraft:v0.12.0:mailcraft-0.12.0-windows-x86.msi:sha256:6cbcba27a512a4ec8a825d56779ed8352efc7305a712c9795c2c54fc70bf1bb7": 1794449687,
     "ucs-care-group/mailcraft:v0.2.0:mailcraft-0.2.0-windows-arm64.msi:sha256:00abaff0332176ffbb61b4a963a0d5a387206e98b3761772c28b6f99de1ffc00": 1794388395,
     "ucs-care-group/mailcraft:v0.2.0:mailcraft-0.2.0-windows-x64.msi:sha256:e8c1599afccd4b7df54d4ce19ef5bce3527807194e08d29c805d424c98f29f58": 1794388395,
     "ucs-care-group/mailcraft:v0.2.0:mailcraft-0.2.0-windows-x86.msi:sha256:c1fddcef660a9323de8a96876018ed1e2b07d6b126af15cc76db08ad25339f5e": 1794388396,
