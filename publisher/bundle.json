@@ -2,107 +2,107 @@
   "index": {
     "schema": 1,
     "purpose": "app-release-catalog",
-    "sequence": 451,
-    "generated_at": 1794544172,
+    "sequence": 452,
+    "generated_at": 1794545131,
     "repositories": {
       "storytold/anicraft": {
         "sha256": "63fcacc4fc01871fe174b3e3db779c2c938b7c0dff20b6c2896670e72deb09cf",
         "size": 43129,
-        "checked_at": 1794544138,
+        "checked_at": 1794545109,
         "discovery_added_at": 1794361626
       },
       "storytold/artcraft": {
         "sha256": "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b",
         "size": 48040,
-        "checked_at": 1794544138
+        "checked_at": 1794545110
       },
       "storytold/cadcraft": {
         "sha256": "084e484e7b2c27f3c4130d41d3c58a27f06804a2df8a7ff35108fd61a4b7dad2",
         "size": 191104,
-        "checked_at": 1794544139
+        "checked_at": 1794545111
       },
       "storytold/deckcraft": {
         "sha256": "bb8e4a740b102c8371acedc795103d97045e0aed39bdff4bd851984885205339",
         "size": 184085,
-        "checked_at": 1794544140
+        "checked_at": 1794545112
       },
       "storytold/designcraft": {
         "sha256": "6cc523c5a0d953bb583ab2d337a2f495e5bc1180dbe09e14c7a5ff2c40215aba",
         "size": 221365,
-        "checked_at": 1794544142
+        "checked_at": 1794545113
       },
       "storytold/effectcraft": {
         "sha256": "1c8e449141d07e39e49127d2bd56c5d2da97238b6ec5016d32a729899eedc597",
         "size": 244956,
-        "checked_at": 1794544143
+        "checked_at": 1794545115
       },
       "storytold/figcraft": {
         "sha256": "bf6e91996fe94863962af8ef5a1a486ac737a2297e0a3eca38a6029225f830fb",
         "size": 204982,
-        "checked_at": 1794544144
+        "checked_at": 1794545116
       },
       "storytold/filmcraft": {
         "sha256": "2b3a50d155ff0f234dbfc28526aec4e4d4b985d2e04f21dc6327a558dc7b4f2f",
         "size": 206709,
-        "checked_at": 1794544145
+        "checked_at": 1794545117
       },
       "storytold/gridcraft": {
         "sha256": "58abe8596b74bfbbbaeb24f65664280a9239ea9b7a96f05571e0ed3575b5029e",
         "size": 193224,
-        "checked_at": 1794544146
+        "checked_at": 1794545118
       },
       "storytold/lightcraft": {
         "sha256": "19c7f156c2aed4661f217308320da201d2ec58d19da5e9191387233fd77a3a5f",
         "size": 216460,
-        "checked_at": 1794544147
+        "checked_at": 1794545119
       },
       "storytold/materialcraft": {
         "sha256": "3373abfba4bb3587adc63937c792280315c4d4fea91ab9cf175d38f94015f932",
         "size": 100317,
-        "checked_at": 1794544147,
+        "checked_at": 1794545120,
         "discovery_added_at": 1793675300
       },
       "storytold/pdfcraft": {
         "sha256": "c1c12cd9b06251b8f370d4fe82b91d0cde43c969d084b2c58beb53705196d589",
         "size": 237124,
-        "checked_at": 1794544149
+        "checked_at": 1794545121
       },
       "storytold/photocraft": {
         "sha256": "d21791374a65983a420b364139fbc3efc59a9ed225447e3a7324cf862ed53773",
         "size": 246076,
-        "checked_at": 1794544150
+        "checked_at": 1794545123
       },
       "storytold/soundcraft": {
         "sha256": "ba995f16219ed53ff69122232154e55eaa1e781a3974d2644fb89424996e4b63",
         "size": 189243,
-        "checked_at": 1794544151
+        "checked_at": 1794545124
       },
       "storytold/texturecraft": {
         "sha256": "89e7b911ab944c3447372c208c1429099676033c611f874f936cb4330ad64e57",
         "size": 109673,
-        "checked_at": 1794544151,
+        "checked_at": 1794545125,
         "discovery_added_at": 1793516400
       },
       "storytold/vectorcraft": {
         "sha256": "806f06ea2437a686de4cbe212fc604579d206df6331b8e2dc2c3d8f24c69593b",
         "size": 242624,
-        "checked_at": 1794544153
+        "checked_at": 1794545126
       },
       "storytold/wordcraft": {
         "sha256": "fee5a06322400301c83deebcf65fd5855577b7725b912e30c32f61ad06b232f9",
         "size": 194044,
-        "checked_at": 1794544153
+        "checked_at": 1794545127
       },
       "tangency-labs/solidcraft": {
         "sha256": "3a34e403c6f741d94a0d6c0d8652657f61aff39f62abe3e223a660c91990f787",
         "size": 692768,
-        "checked_at": 1794544156,
+        "checked_at": 1794545130,
         "discovery_added_at": 1793516400
       },
       "ucs-care-group/mailcraft": {
         "sha256": "136b4837440d54ac0b8dd06b7de0d22a9d12c8a075968a2a517f7d6b126676a8",
         "size": 156427,
-        "checked_at": 1794544156,
+        "checked_at": 1794545131,
         "discovery_added_at": 1794294000
       }
     }
