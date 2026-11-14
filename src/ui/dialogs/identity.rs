@@ -11,7 +11,11 @@ impl App {
 }
 
 fn draw_choice(ctx: &egui::Context, choice: &craft_apps_manager::jobs::IdentityChoice) {
-    let title = "Choose application";
+    let title = if choice.continue_batch {
+        "Some downloads failed"
+    } else {
+        "Choose application"
+    };
     modal(ctx, title, 520.0, |ui| {
         let mut close = false;
         title_bar(ui, title, |ui| {
@@ -24,13 +28,18 @@ fn draw_choice(ctx: &egui::Context, choice: &craft_apps_manager::jobs::IdentityC
                 .max_height(260.0)
                 .show(ui, |ui| {
                     for (index, candidate) in choice.candidates.iter().enumerate() {
-                        if ui.selectable_label(false, candidate).clicked() {
+                        if choice.continue_batch {
+                            paragraph(ui, candidate);
+                        } else if ui.selectable_label(false, candidate).clicked() {
                             choice.answer(Some(index));
                         }
                     }
                 });
         });
         footer(ui, |ui| {
+            if choice.continue_batch && action(ui, "Continue", Kind::Primary, true).clicked() {
+                choice.answer(Some(0));
+            }
             if action(ui, "Cancel", Kind::Secondary, true).clicked() {
                 choice.answer(None);
             }

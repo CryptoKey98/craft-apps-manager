@@ -685,8 +685,62 @@ pub fn dot(ui: &mut Ui, color: Color32) {
 
 /// A thin progress bar; `None` animates an indeterminate segment.
 pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
+    draw_progress(ui, progress, height, Duration::from_millis(16), false);
+}
+
+pub const BUILD_FRAME_INTERVAL_MS: u32 = 33;
+
+pub fn build_progress(ui: &mut Ui, progress: Option<f32>, height: f32, spinner_visible: bool) {
+    draw_progress(
+        ui,
+        progress,
+        height,
+        Duration::from_millis(u64::from(BUILD_FRAME_INTERVAL_MS)),
+        spinner_visible,
+    );
+}
+
+/// The Builder's status spinner uses the build progress bar's repaint schedule.
+pub fn build_spinner(ui: &mut Ui) -> bool {
+    let size = ui.spacing().interact_size.y;
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
+    response.widget_info(|| egui::WidgetInfo::new(egui::WidgetType::ProgressIndicator));
+    if !ui.is_rect_visible(rect) {
+        return false;
+    }
+    // Match egui's default spinner without requesting a repaint of its own.
+    let radius = size / 2.0 - 2.0;
+    let time = ui.input(|input| input.time);
+    let start = time * std::f64::consts::TAU;
+    let end = start + 240_f64.to_radians() * time.sin();
+    let points = (0..20)
+        .map(|point| {
+            let angle = egui::lerp(start..=end, point as f64 / 20.0);
+            let (sin, cos) = angle.sin_cos();
+            rect.center() + egui::vec2(cos as f32, sin as f32) * radius
+        })
+        .collect();
+    ui.painter().add(egui::Shape::line(
+        points,
+        Stroke::new(3.0_f32, ui.visuals().strong_text_color()),
+    ));
+    true
+}
+
+fn draw_progress(
+    ui: &mut Ui,
+    progress: Option<f32>,
+    height: f32,
+    interval: Duration,
+    spinner_visible: bool,
+) {
     let (rect, _) =
         ui.allocate_exact_size(egui::vec2(ui.available_width(), height), Sense::hover());
+    if (spinner_visible || progress.is_none() && ui.is_rect_visible(rect))
+        && !ui.input(|input| input.viewport().minimized == Some(true))
+    {
+        ui.ctx().request_repaint_after(interval);
+    }
     let radius = CornerRadius::same((height / 2.0) as u8);
     ui.painter()
         .rect_filled(rect, radius, palette().progress_track);
@@ -699,7 +753,6 @@ pub fn progress(ui: &mut Ui, progress: Option<f32>, height: f32) {
             let time = ui.ctx().input(|i| i.time);
             let position = (time as f32 * 0.7).fract();
             let width = rect.width() * 0.22;
-            ui.ctx().request_repaint_after(Duration::from_millis(16));
             Rect::from_min_size(
                 rect.min + egui::vec2((rect.width() + width) * position - width, 0.0),
                 egui::vec2(width, height),
@@ -791,6 +844,69 @@ pub fn checkbox(
 /// up to the space left, then scrolling and following new lines. `wrap` breaks long
 /// lines; otherwise they scroll sideways.
 pub fn log_view(ui: &mut Ui, text: &str, wrap: bool) {
+    log_panel(ui, wrap, |ui, line_height| {
+        let label = egui::Label::new(
+            egui::RichText::new(text.trim_end_matches('\n'))
+                .monospace()
+                .size(12.0)
+                .line_height(Some(line_height))
+                .color(palette().text_3),
+        )
+        .selectable(true);
+        ui.add(if wrap {
+            label.wrap()
+        } else {
+            label.wrap_mode(egui::TextWrapMode::Extend)
+        });
+    });
+}
+
+#[derive(Clone)]
+struct BuildLogLayout {
+    text: std::sync::Weak<String>,
+    atlas: std::sync::Arc<egui::epaint::mutex::Mutex<egui::epaint::TextureAtlas>>,
+    galley: std::sync::Arc<egui::Galley>,
+}
+
+pub fn build_log_view(ui: &mut Ui, log: &std::sync::Arc<String>, empty: &'static str) {
+    if log.is_empty() {
+        log_view(ui, empty, false);
+        return;
+    }
+    let id = ui.id().with("build-log-layout");
+    log_panel(ui, false, |ui, line_height| {
+        let cached = ui.data(|data| data.get_temp::<BuildLogLayout>(id));
+        let layout = ui.fonts(|fonts| {
+            let atlas = fonts.texture_atlas();
+            if let Some(cached) = cached.filter(|cached| {
+                std::ptr::eq(cached.text.as_ptr(), std::sync::Arc::as_ptr(log))
+                    && std::sync::Arc::ptr_eq(&cached.atlas, &atlas)
+            }) {
+                return cached;
+            }
+            let mut job = egui::text::LayoutJob::simple(
+                log.trim_end_matches('\n').to_owned(),
+                FontId::monospace(12.0),
+                egui::Color32::PLACEHOLDER,
+                f32::INFINITY,
+            );
+            job.sections[0].format.line_height = Some(line_height);
+            BuildLogLayout {
+                text: std::sync::Arc::downgrade(log),
+                atlas,
+                galley: fonts.layout_job(job),
+            }
+        });
+        let galley = layout.galley.clone();
+        ui.data_mut(|data| data.insert_temp(id, layout));
+        ui.scope(|ui| {
+            ui.visuals_mut().override_text_color = Some(palette().text_3);
+            ui.add(egui::Label::new(egui::WidgetText::Galley(galley)).selectable(true));
+        });
+    });
+}
+
+fn log_panel(ui: &mut Ui, wrap: bool, render: impl FnOnce(&mut Ui, f32)) {
     let line_height = 12.0 * 1.7;
     let available = ui.available_height();
     egui::Frame::new()
@@ -812,21 +928,33 @@ pub fn log_view(ui: &mut Ui, text: &str, wrap: bool) {
                     // As in CSS, half the extra line height goes above each line.
                     let row = ui.fonts(|f| f.row_height(&FontId::monospace(12.0)));
                     ui.add_space((line_height - row) / 2.0);
-                    let label = egui::Label::new(
-                        egui::RichText::new(text.trim_end_matches('\n'))
-                            .monospace()
-                            .size(12.0)
-                            .line_height(Some(line_height))
-                            .color(palette().text_3),
-                    )
-                    .selectable(true);
-                    ui.add(if wrap {
-                        label.wrap()
-                    } else {
-                        label.wrap_mode(egui::TextWrapMode::Extend)
-                    });
+                    render(ui, line_height);
                 });
         });
+}
+
+#[cfg(test)]
+#[test]
+fn build_log_layout_reuses_the_same_text_until_output_changes() {
+    let context = egui::Context::default();
+    let initial = std::sync::Arc::new("first line\n".to_owned());
+    let updated = std::sync::Arc::new("first line\nsecond line\n".to_owned());
+    let render = |text: &std::sync::Arc<String>| {
+        let mut result = None;
+        let _ = context.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                let id = ui.id().with("build-log-layout");
+                build_log_view(ui, text, "Waiting…");
+                result = ui.data(|data| data.get_temp::<BuildLogLayout>(id));
+            });
+        });
+        result.unwrap().galley
+    };
+    let first = render(&initial);
+    assert!(std::sync::Arc::ptr_eq(&first, &render(&initial)));
+    let next = render(&updated);
+    assert!(!std::sync::Arc::ptr_eq(&first, &next));
+    assert_eq!(next.text(), "first line\nsecond line");
 }
 
 pub fn painter_text(

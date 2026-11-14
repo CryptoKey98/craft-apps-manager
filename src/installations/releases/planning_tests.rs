@@ -165,7 +165,7 @@ fn fixture() -> (Paths, Job) {
 }
 
 #[test]
-fn preview_uses_supplied_inventory_and_execution_still_rejects_changed_state() {
+fn single_app_preview_uses_supplied_inventory_and_ignores_unrelated_changes() {
     let (paths, job) = fixture();
     let mut config = paths.config().unwrap();
     let original = config.clone();
@@ -183,16 +183,186 @@ fn preview_uses_supplied_inventory_and_execution_still_rejects_changed_state() {
     );
     assert_eq!(plan.entries[0].action, "Install");
     paths.save_config(&original).unwrap();
-    let mut executed = false;
-    assert!(execute_validated(&paths, &plan, |_| {
-        executed = true;
+    let base = paths.read_preferences().unwrap();
+    let mut edited = base.clone();
+    edited.app_order.reverse();
+    edited.home_app_order.reverse();
+    edited.app_install_options.insert(
+        crate::install_options::identity("filmcraft"),
+        crate::install_options::InstallOptions {
+            release_format: "portable".into(),
+            architecture: crate::model::MANAGER_ARCH.into(),
+        },
+    );
+    crate::storage::settings::save_preferences_patch(&paths, &base, &edited).unwrap();
+    execute_validated(&paths, &plan, |fresh| {
+        assert!(fresh.apps.iter().any(|app| app.name == "filmcraft"));
         Ok(())
     })
-    .is_err());
-    assert!(
-        !executed,
-        "Fresh execution validation cannot accept changed inventory"
+    .unwrap();
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn portable_plan_survives_another_install_reordering_its_copy_records() {
+    let (paths, job) = installed_fixture();
+    let mut observed = paths.config().unwrap();
+    let selected = observed
+        .apps
+        .iter()
+        .find(|app| app.name == "photocraft")
+        .unwrap()
+        .clone();
+    let alternate = paths.at("releases/photocraft-2");
+    fs::create_dir_all(&alternate).unwrap();
+    observed.installations.push(crate::model::Installed {
+        path: alternate.display().to_string(),
+        installation_label: "2".into(),
+        ..selected
+    });
+    crate::installation_labels::assign(&mut observed).unwrap();
+    let plan = plan_preview_with(
+        &paths,
+        &job,
+        "photocraft",
+        Some("0.0.9"),
+        false,
+        observed.clone(),
+        |_| Ok(release("photocraft", "0.0.9")),
+    )
+    .unwrap();
+    observed
+        .apps
+        .iter_mut()
+        .find(|app| app.name == "filmcraft")
+        .unwrap()
+        .version = "0.2.0".into();
+    paths.save_config(&observed).unwrap();
+    execute_validated(&paths, &plan, |_| Ok(())).unwrap();
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn portable_downgrade_tolerates_app_settings_writes_but_rejects_payload_replacement() {
+    let (paths, job) = installed_fixture();
+    let folder = paths.at("releases/photocraft");
+    crate::portable::mark(&paths, "photocraft", &folder).unwrap();
+    let plan =
+        plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.0.9")).unwrap();
+    assert_eq!(plan.entries[0].action, "Update");
+    fs::write(folder.join("app-settings.json"), "{}").unwrap();
+    let mut options = fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        options
+            .access_mode(0x100) // FILE_WRITE_ATTRIBUTES
+            .custom_flags(0x02000000); // FILE_FLAG_BACKUP_SEMANTICS (open directory)
+    }
+    options
+        .open(&folder)
+        .unwrap()
+        .set_modified(std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(86400))
+        .unwrap();
+    execute_validated(&paths, &plan, |_| Ok(())).unwrap();
+    let marker = folder.join(crate::installations::portable::MARKER);
+    let original_marker = fs::read(&marker).unwrap();
+    fs::remove_file(&marker).unwrap();
+    assert!(execute_validated(&paths, &plan, |_| panic!("ownership changed")).is_err());
+    fs::write(marker, original_marker).unwrap();
+    let plan =
+        plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.0.9")).unwrap();
+    let executable = crate::model::installed_executable(&folder, "photocraft").unwrap();
+    if executable.is_dir() {
+        fs::rename(&executable, folder.join("old-payload")).unwrap();
+    } else {
+        fs::write(executable, "different executable payload").unwrap();
+    }
+    assert!(execute_validated(&paths, &plan, |_| panic!("payload changed")).is_err());
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn single_app_downgrade_rejects_changed_selected_payload_and_preferences() {
+    let (paths, job) = installed_fixture();
+    let plan =
+        plan_selected_version(&paths, &job, "photocraft", release("photocraft", "0.0.9")).unwrap();
+    let base = paths.read_preferences().unwrap();
+    let mut edited = base.clone();
+    edited.batch_admin = !base.batch_admin;
+    crate::storage::settings::save_preferences_patch(&paths, &base, &edited).unwrap();
+    assert!(execute_validated(&paths, &plan, |_| panic!("approval settings changed")).is_err());
+    crate::storage::settings::save_preferences_patch(&paths, &edited, &base).unwrap();
+    let folder = paths.at("releases/photocraft");
+    let executable = crate::model::installed_executable(&folder, "photocraft").unwrap();
+    if executable.is_dir() {
+        fs::write(executable.join("changed"), b"changed payload").unwrap();
+    } else {
+        fs::write(executable, b"replaced payload").unwrap();
+    }
+    assert!(execute_validated(&paths, &plan, |_| panic!("selected payload changed")).is_err());
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn installer_downgrade_ignores_unrelated_inventory_but_rejects_scope_changes() {
+    let root = std::env::temp_dir()
+        .canonicalize()
+        .unwrap()
+        .join(format!("craft-native-plan-{}", uuid::Uuid::new_v4()));
+    let paths = Paths::new(root, None);
+    let job = Job::new(paths.at("log"), &Default::default());
+    let mut config = paths.config().unwrap();
+    let app = config
+        .apps
+        .iter_mut()
+        .find(|app| app.name == "photocraft")
+        .unwrap();
+    app.path = paths.at("native-fixture").display().to_string();
+    app.version = "0.2.0".into();
+    app.install_kind = "installer".into();
+    app.architecture = crate::model::MANAGER_ARCH.into();
+    app.windows_msi_scope = Some("machine".into());
+    fs::create_dir_all(&app.path).unwrap();
+    fs::write(
+        Path::new(&app.path).join(crate::model::executable_name(&app.name)),
+        b"installed fixture",
+    )
+    .unwrap();
+    config.installations.push(app.clone());
+    let mut older = release("photocraft", "0.1.0");
+    older.assets[0].name = format!(
+        "photocraft-0.1.0-windows-{}.msi",
+        crate::model::MANAGER_ARCH
     );
+    older.assets[0].browser_download_url = format!(
+        "https://github.com/storytold/photocraft/releases/download/v0.1.0/{}",
+        older.assets[0].name
+    );
+    let plan = plan_preview_with(
+        &paths,
+        &job,
+        "photocraft",
+        Some("0.1.0"),
+        false,
+        config.clone(),
+        |_| Ok(older.clone()),
+    )
+    .unwrap();
+    assert!(plan.installer_downgrade(), "{:?}", plan.entries[0]);
+
+    let prefs = paths.read_preferences().unwrap();
+    config.apps.retain(|app| app.name == "photocraft");
+    let current = state_snapshot(&paths, &prefs, &config).unwrap();
+    assert_ne!(plan.snapshot, current);
+    assert!(super::validation::single_app_state_matches(&plan, &current).unwrap());
+
+    config.apps[0].windows_msi_scope = Some("user".into());
+    config.installations.last_mut().unwrap().windows_msi_scope = Some("user".into());
+    let changed = state_snapshot(&paths, &prefs, &config).unwrap();
+    assert!(!super::validation::single_app_state_matches(&plan, &changed).unwrap());
     fs::remove_dir_all(paths.root).unwrap();
 }
 
@@ -453,10 +623,20 @@ fn mixed_bulk_updates_pin_each_installed_package_and_report_missing_matches() {
     assert_eq!(photo.preferences.architecture, crate::model::MANAGER_ARCH);
     assert_eq!(film.preferences.release_format, "installer");
     assert_eq!(film.preferences.architecture, "x86");
+    prefs.app_order = vec!["filmcraft".into(), "photocraft".into()];
+    prefs.home_app_order = vec!["photocraft".into(), "filmcraft".into()];
     let missing = plan_from_config(&paths, &job, None, prefs, config, |app| {
         Ok(release(app, "0.2.0"))
     })
     .unwrap();
+    assert_eq!(
+        missing
+            .entries
+            .iter()
+            .map(|entry| entry.app.as_str())
+            .collect::<Vec<_>>(),
+        ["filmcraft", "photocraft"]
+    );
     assert_eq!(missing.executable_count(), 1);
     assert!(missing
         .entries
@@ -1063,6 +1243,132 @@ fn custom_destination_keeps_pinned_release_and_rejects_a_late_folder_collision()
     fs::remove_dir_all(paths.root).unwrap();
 }
 #[test]
+#[cfg(target_os = "windows")]
+fn native_staging_requires_confirmation_before_continuing_after_a_bad_checksum() {
+    let (paths, mut job) = installed_fixture();
+    let mut plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+    for entry in &mut plan.entries {
+        entry.preferences.release_format = "installer".into();
+        let asset = entry.asset.as_mut().unwrap();
+        asset.name = format!("{}.msi", entry.app);
+        let fixture = paths.at("fixture.msi");
+        files::write_bytes(&fixture, b"good").unwrap();
+        asset.digest = Some(format!("sha256:{}", files::hash(&fixture).unwrap()));
+        asset.size = 4;
+        let path = installer_cache_paths(&paths, &entry.app, asset).unwrap()[1].clone();
+        let bytes = if entry.app == "filmcraft" {
+            b"bad!"
+        } else {
+            b"good"
+        };
+        files::write_bytes(&path, bytes).unwrap();
+    }
+    job.enable_identity_choices();
+    let entries: Vec<_> = plan.entries.iter().collect();
+    std::thread::scope(|scope| {
+        let worker = scope.spawn(|| {
+            let staged = super::staging::stage_packages(&paths, &plan, &entries, &job)?;
+            let mut verified_plan = plan.clone();
+            staged.apply_failures(&mut verified_plan);
+            assert_eq!(
+                verified_plan
+                    .entries
+                    .iter()
+                    .filter(|entry| entry.error.is_some())
+                    .map(|entry| entry.app.as_str())
+                    .collect::<Vec<_>>(),
+                ["filmcraft"]
+            );
+            Ok::<_, anyhow::Error>(())
+        });
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        loop {
+            if let Some(choice) = job.identity_choice() {
+                assert!(choice.continue_batch);
+                assert_eq!(choice.candidates.len(), 1);
+                choice.answer(Some(0));
+                break;
+            }
+            if std::time::Instant::now() >= deadline {
+                job.cancel.store(true, Ordering::Relaxed);
+                panic!("Partial batch confirmation did not appear");
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        worker.join().unwrap().unwrap();
+    });
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
+fn bulk_packages_are_all_verified_before_install_and_cancel_clears_staging() {
+    let (paths, job) = installed_fixture();
+    let mut plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
+    plan.entries.retain(|entry| entry.action == "Update");
+    let mut third = plan.entries[0].clone();
+    third.app = "designcraft".into();
+    third.asset.as_mut().unwrap().browser_download_url =
+        "https://github.com/storytold/designcraft/releases/download/v0.4.0/setup.zip".into();
+    plan.entries.push(third);
+    for entry in &mut plan.entries {
+        let asset = entry.asset.as_mut().unwrap();
+        asset.name = "setup.zip".into();
+        let bytes = asset.browser_download_url.as_bytes();
+        let fixture = paths.at("package-fixture");
+        files::write_bytes(&fixture, bytes).unwrap();
+        asset.size = bytes.len() as u64;
+        asset.digest = Some(format!("sha256:{}", files::hash(&fixture).unwrap()));
+    }
+    let entries: Vec<_> = plan.entries.iter().collect();
+    let verified = std::sync::atomic::AtomicUsize::new(0);
+    let first_pair = std::sync::Barrier::new(2);
+    let result = job.tracked("Bulk update", "Application library", |job| {
+        let staged = super::staging::stage_packages_with(
+            &paths,
+            &plan,
+            &entries,
+            job,
+            &|asset, archive, child| {
+                if !asset.browser_download_url.contains("designcraft") {
+                    first_pair.wait();
+                } else {
+                    assert_eq!(verified.load(Ordering::SeqCst), 2);
+                }
+                child.check()?;
+                fs::write(archive, &asset.browser_download_url)?;
+                crate::network::verify_asset(archive, asset)?;
+                verified.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            },
+        )?;
+        assert_eq!(verified.load(Ordering::SeqCst), 3);
+        let mut installed = Vec::new();
+        execute_with(&plan, job, |entry, _| {
+            assert_eq!(verified.load(Ordering::SeqCst), 3);
+            assert!(staged.portable_archive(&entry.app).unwrap().is_file());
+            installed.push(entry.app.as_str().to_owned());
+            Ok(true)
+        })?;
+        assert!(installed
+            .iter()
+            .eq(plan.entries.iter().map(|entry| &entry.app)));
+        for entry in &plan.entries {
+            assert_eq!(
+                fs::read_to_string(staged.portable_archive(&entry.app).unwrap())?,
+                entry.asset.as_ref().unwrap().browser_download_url
+            );
+        }
+        job.cancel.store(true, Ordering::Relaxed);
+        execute_with(&plan, job, |_, _| {
+            panic!("cancelled batch must not start installation")
+        })
+    });
+    assert!(crate::jobs::is_cancelled(&result.unwrap_err()));
+    assert!(!paths.at("runtime/downloads").exists());
+    fs::remove_dir_all(paths.root).unwrap();
+}
+
+#[test]
 fn cancellation_counts_completed_work_and_keeps_real_errors() {
     let (paths, job) = installed_fixture();
     let plan = plan_with(&paths, &job, None, |app| Ok(release(app, "0.4.0"))).unwrap();
@@ -1164,6 +1470,7 @@ fn incompatible_msi_scope_is_rejected_before_identity_or_recovery_preparation() 
     let plan = ReleasePlan {
         native_rollback: None,
         additional_installation: false,
+        single_app: true,
         entries: vec![ReleaseEntry {
             app: installed.name.clone(),
             action: "Update".into(),
@@ -1184,7 +1491,7 @@ fn incompatible_msi_scope_is_rejected_before_identity_or_recovery_preparation() 
         desktop_shortcut: false,
         installer_destination: None,
     };
-    assert!(execute_entries(&paths, &plan, &mut config, &job, None, None).is_err());
+    assert!(execute_entries(&paths, &plan, &mut config, &job, None, None, None).is_err());
     let log = fs::read_to_string(paths.at("log")).unwrap();
     assert!(
         log.contains("current copy is installed for everyone"),

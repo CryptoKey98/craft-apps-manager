@@ -178,8 +178,9 @@ impl App {
                         self.operation_was_busy = true;
                         let plan = plan.clone();
                         self.job.describe("Bulk update", "Application library");
-                        self.job
-                            .spawn(move |job| updates::execute_plan(&paths, &plan, &job));
+                        self.job.spawn_background(move |job| {
+                            updates::execute_plan(&paths, &plan, &job)
+                        });
                     }
                     if action(ui, "Cancel", Kind::Secondary, true).clicked() {
                         self.release_plan = None;

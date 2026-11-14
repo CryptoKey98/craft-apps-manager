@@ -12,15 +12,39 @@ pub struct LaunchSettings {
 }
 
 pub fn settings(paths: &Paths, app: &str) -> Result<LaunchSettings> {
-    let all: BTreeMap<String, LaunchSettings> = crate::storage::config::document::section(
-        &crate::storage::config::ConfigStore::new(paths.root.clone())
-            .load()?
-            .document,
-        "launch",
-    )?;
-    let (key, folder) = launch_settings_key(paths, app);
+    let config = crate::storage::config::ConfigStore::new(paths.root.clone()).load()?;
+    let all = crate::storage::config::document::section(&config.document, "launch")?;
+    let inventory = paths.read_inventory().ok().flatten();
+    Ok(resolve_settings(&all, inventory.as_ref(), app))
+}
+
+/// Resolve all display rows against the same saved selections and settings.
+pub fn settings_for_apps(
+    paths: &Paths,
+    config: &crate::storage::config::ConfigSnapshot,
+    names: &[String],
+) -> Result<BTreeMap<String, LaunchSettings>> {
+    let all = crate::storage::config::document::section(&config.document, "launch")?;
+    let inventory = paths.read_inventory().ok().flatten();
+    Ok(names
+        .iter()
+        .map(|name| {
+            (
+                name.clone(),
+                resolve_settings(&all, inventory.as_ref(), name),
+            )
+        })
+        .collect())
+}
+
+fn resolve_settings(
+    all: &BTreeMap<String, LaunchSettings>,
+    inventory: Option<&crate::model::Config>,
+    app: &str,
+) -> LaunchSettings {
+    let (key, folder) = launch_settings_key(inventory, app);
     if let Some(settings) = all.get(&key) {
-        return Ok(settings.clone());
+        return settings.clone();
     }
     let mut settings = all
         .get(app)
@@ -44,21 +68,21 @@ pub fn settings(paths: &Paths, app: &str) -> Result<LaunchSettings> {
             settings.executable.clear();
         }
     }
-    Ok(settings)
+    settings
 }
 
-fn launch_settings_key(paths: &Paths, app: &str) -> (String, Option<PathBuf>) {
-    let folder = paths
-        .read_inventory()
-        .ok()
-        .flatten()
+fn launch_settings_key(
+    inventory: Option<&crate::model::Config>,
+    app: &str,
+) -> (String, Option<PathBuf>) {
+    let folder = inventory
         .and_then(|config| {
             config
                 .apps
-                .into_iter()
+                .iter()
                 .find(|copy| copy.name == app && !copy.path.is_empty())
         })
-        .map(|copy| PathBuf::from(copy.path));
+        .map(|copy| PathBuf::from(&copy.path));
     (
         folder
             .as_ref()
@@ -70,7 +94,8 @@ fn launch_settings_key(paths: &Paths, app: &str) -> (String, Option<PathBuf>) {
 
 pub fn save(paths: &Paths, app: &str, value: &LaunchSettings) -> Result<()> {
     crate::model::valid_app(app)?;
-    let key = launch_settings_key(paths, app).0;
+    let inventory = paths.read_inventory().ok().flatten();
+    let key = launch_settings_key(inventory.as_ref(), app).0;
     crate::storage::config::ConfigStore::new(paths.root.clone())
         .mutate_section::<BTreeMap<String, LaunchSettings>>("launch", |all| {
             all.insert(key, value.clone());
@@ -385,6 +410,55 @@ mod linux_launch_tests {
 
 #[cfg(test)]
 mod launch_name_tests {
+    use super::*;
+
+    #[test]
+    fn bulk_launch_settings_follow_saved_copy_and_legacy_fallback() {
+        let root = std::env::temp_dir().join(format!("craft-launch-{}", uuid::Uuid::new_v4()));
+        let paths = Paths::new(root.clone(), None);
+        let store = crate::storage::config::ConfigStore::new(root.clone());
+        let selected = root.join("releases/filmcraft-2");
+        let other = root.join("releases/filmcraft");
+        crate::files::write_json(
+            &paths.at("installations.json"),
+            &crate::model::Config {
+                apps_root: root.display().to_string(),
+                apps: vec![Installed {
+                    name: "filmcraft".into(),
+                    path: selected.display().to_string(),
+                    ..Default::default()
+                }],
+                installations: Vec::new(),
+                portable_label_counters: Default::default(),
+            },
+        )
+        .unwrap();
+        store
+            .mutate_section::<BTreeMap<String, LaunchSettings>>("launch", |settings| {
+                for (key, arg) in [
+                    (format!("filmcraft|{}", other.display()), "--other"),
+                    (format!("filmcraft|{}", selected.display()), "--selected"),
+                    ("soundcraft".to_owned(), "--legacy"),
+                ] {
+                    settings.insert(
+                        key,
+                        LaunchSettings {
+                            executable: String::new(),
+                            arguments: vec![arg.into()],
+                        },
+                    );
+                }
+                Ok(())
+            })
+            .unwrap();
+
+        let names = ["filmcraft".into(), "soundcraft".into()];
+        let settings = settings_for_apps(&paths, &store.load().unwrap(), &names).unwrap();
+        assert_eq!(settings["filmcraft"].arguments, ["--selected"]);
+        assert_eq!(settings["soundcraft"].arguments, ["--legacy"]);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn launch_names_follow_platform_case_rules_without_matching_other_programs() {
         assert_eq!(

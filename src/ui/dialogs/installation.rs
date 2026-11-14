@@ -777,7 +777,7 @@ impl App {
             let new_draft = self.install_draft_app.as_deref() != Some(&app);
             if new_draft {
                 self.install_draft_app = Some(app.clone());
-                self.install_shortcut = true;
+                self.install_shortcut = None;
                 self.load_install(&app, ctx);
             }
             let location_context = (
@@ -1028,7 +1028,12 @@ impl App {
                                 ui.separator();
                             }
                             ui.add_space(16.0);
-                            desktop_shortcut_option(ui, &mut self.install_shortcut);
+                            let previous = self.install_shortcut.unwrap_or(false);
+                            let mut shortcut = previous;
+                            desktop_shortcut_option(ui, &mut shortcut);
+                            if shortcut != previous {
+                                self.install_shortcut = Some(shortcut);
+                            }
                             ui.add_space(10.0);
                             note(
                                 ui,
@@ -1101,7 +1106,7 @@ impl App {
                                 && !self.job.snapshot().busy;
                             if action(ui, install_action, Kind::Primary, ready).clicked() {
                                 if let Some(mut plan) = plan.clone() {
-                                    plan.desktop_shortcut = self.install_shortcut;
+                                    plan.desktop_shortcut = self.install_shortcut.unwrap_or(false);
                                     self.run_install_plan(app.clone(), plan);
                                 }
                             }
@@ -1118,6 +1123,7 @@ impl App {
             if self.confirm_install.is_none() {
                 self.additional_installation = false;
                 self.install_draft_app = None;
+                self.install_shortcut = None;
                 self.install_location_context = None;
                 self.install_destination_preview = DestinationPreview::default();
                 self.install_receiver = None;

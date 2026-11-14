@@ -11,7 +11,49 @@ use eframe::egui::{
     self, pos2, vec2, Align, Color32, CornerRadius, FontId, Layout, Rect, Response, RichText,
     Sense, Stroke, Ui, UiBuilder,
 };
-use std::{path::PathBuf, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
+
+#[test]
+fn installation_location_does_not_probe_disk_while_rendering() {
+    let source = include_str!("app_page.rs");
+    let facts = source.rsplit_once("\n    fn facts(").unwrap().1;
+    let end = facts.find("\n    fn ").unwrap_or(facts.len());
+    let facts = &facts[..end];
+    assert!(
+        [".is_dir()", ".is_file()", ".exists()", ".metadata()"]
+            .iter()
+            .all(|probe| !facts.contains(probe)),
+        "Rendering the installation location must use background filesystem results"
+    );
+}
+
+#[test]
+fn installation_location_resolves_folders_executables_and_bundles() {
+    let root = std::env::temp_dir().join(format!("craft-location-{}", uuid::Uuid::new_v4()));
+    let folder = root.join("installed");
+    let executable = folder.join("app.exe");
+    let bundle = root.join("Example.app");
+    std::fs::create_dir_all(&folder).unwrap();
+    std::fs::create_dir(&bundle).unwrap();
+    std::fs::write(&executable, []).unwrap();
+    let locations = [
+        installation_folder(&folder),
+        installation_folder(&executable),
+        installation_folder(&bundle),
+        installation_folder(&root.join("missing")),
+    ];
+    std::fs::remove_file(&executable).unwrap();
+    std::fs::remove_dir(&folder).unwrap();
+    std::fs::remove_dir(&bundle).unwrap();
+    std::fs::remove_dir(&root).unwrap();
+    assert_eq!(
+        locations,
+        [Some(folder.clone()), Some(folder), Some(root), None]
+    );
+}
 
 fn location_label(installed: &model::Installed) -> &'static str {
     if installed.install_kind == "installer" {
@@ -25,6 +67,24 @@ fn location_label(installed: &model::Installed) -> &'static str {
     } else {
         "Installed portable release"
     }
+}
+
+pub(in crate::ui) fn installation_folder(path: &Path) -> Option<PathBuf> {
+    let bundle = path.extension().is_some_and(|extension| extension == "app");
+    let folder = if bundle || path.is_file() {
+        path.parent()?
+    } else {
+        path
+    };
+    folder.is_dir().then(|| folder.to_owned())
+}
+
+fn open_installation_folder(folder: &Path) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        folder.is_dir(),
+        "The installation folder is no longer available."
+    );
+    platform::open(folder)
 }
 
 fn short_date(rfc3339: &str) -> String {
@@ -492,31 +552,16 @@ impl App {
                 theme::palette().text_3,
             );
         }
-        let mut other_copies: Vec<_> = self
-            .display_config
-            .as_ref()
+        let other_copies: Vec<_> = self
+            .installation_copies(&app, state.busy)
             .into_iter()
-            .flat_map(|config| config.installations.iter())
-            .chain(self.alternates.iter())
             .filter(|copy| {
-                copy.name == app
-                    && !copy.path.is_empty()
-                    && status.installed.as_ref().is_none_or(|selected| {
-                        craft_apps_manager::installation_labels::path_identity(&copy.path)
-                            != craft_apps_manager::installation_labels::path_identity(
-                                &selected.path,
-                            )
-                    })
-                    && std::path::Path::new(&copy.path).exists()
+                status.installed.as_ref().is_none_or(|selected| {
+                    craft_apps_manager::installation_labels::path_identity(&copy.path)
+                        != craft_apps_manager::installation_labels::path_identity(&selected.path)
+                })
             })
             .collect();
-        other_copies.sort_by_cached_key(|copy| {
-            craft_apps_manager::installation_labels::path_identity(&copy.path)
-        });
-        other_copies.dedup_by(|a, b| {
-            craft_apps_manager::installation_labels::path_identity(&a.path)
-                == craft_apps_manager::installation_labels::path_identity(&b.path)
-        });
         if !other_copies.is_empty() {
             ui.add_space(12.0);
             ui.spacing_mut().item_spacing.y = 4.0;
@@ -526,7 +571,7 @@ impl App {
                     egui::Label::new(
                         RichText::new(format!(
                             "• {} — {}",
-                            craft_apps_manager::installation_labels::version_summary(copy),
+                            craft_apps_manager::installation_labels::version_summary(&copy),
                             copy.path
                         ))
                         .size(12.0)
@@ -624,7 +669,11 @@ impl App {
         });
     }
 
-    pub(in crate::ui) fn installation_copies(&self, app: &str) -> Vec<model::Installed> {
+    pub(in crate::ui) fn installation_copies(
+        &self,
+        app: &str,
+        busy: bool,
+    ) -> Vec<model::Installed> {
         let Some(config) = self.display_config.as_ref() else {
             return Vec::new();
         };
@@ -635,7 +684,10 @@ impl App {
             .filter(|copy| {
                 copy.name == app
                     && !copy.path.is_empty()
-                    && std::path::Path::new(&copy.path).exists()
+                    // MSI can lock or replace a registered folder during the
+                    // transaction. Render the inventory until it completes.
+                    && (cfg!(target_os = "windows") && busy
+                        || std::path::Path::new(&copy.path).exists())
             })
             .cloned()
             .collect();
@@ -708,7 +760,7 @@ impl App {
 
     fn installation_selector(&mut self, ui: &mut Ui, state: &State, selected: model::Installed) {
         let app = self.app.clone();
-        let copies = self.installation_copies(&app);
+        let copies = self.installation_copies(&app, state.busy);
         let label = craft_apps_manager::installation_labels::version_summary;
         theme::text(ui, "Installation", 12.0, theme::palette().muted);
         ui.add_space(6.0);
@@ -1196,20 +1248,18 @@ impl App {
             (None, _, Some(_)) => ("—".into(), "Not checked yet".into()),
             _ => ("—".into(), "At install".into()),
         };
-        let location = installed
+        let open_folder = installed
             .as_ref()
-            .map(|i| {
-                let path = PathBuf::from(&i.path);
-                // The folder holding the executable or the macOS app bundle.
-                let bundle = path.extension().is_some_and(|e| e == "app");
-                let folder = if bundle || path.is_file() {
-                    path.parent().map(|p| p.to_path_buf()).unwrap_or(path)
-                } else {
-                    path
-                };
-                folder.display().to_string()
-            })
-            .unwrap_or_else(|| "—".into());
+            .and_then(|copy| self.display_installation_folders.get(&copy.path))
+            .cloned();
+        let location = open_folder.as_ref().map_or_else(
+            || {
+                installed
+                    .as_ref()
+                    .map_or_else(|| "—".into(), |copy| copy.path.clone())
+            },
+            |folder| folder.display().to_string(),
+        );
         // Each cell is a label over one line, "value · detail" as in the design; a
         // value it cannot show in full shows it on hover.
         let joined = |value: &str, detail: &str| match (value, detail) {
@@ -1290,41 +1340,39 @@ impl App {
             );
             ui.spacing_mut().item_spacing.y = 4.0;
             theme::text(&mut ui, *label, 12.0, theme::palette().muted);
-            let openable = *label == "Location"
-                && installed.is_some()
-                && !location.is_empty()
-                && location != "—"
-                && PathBuf::from(&location).is_dir();
-            if openable {
+            if let Some(folder) = open_folder.as_deref().filter(|_| *label == "Location") {
+                let value_height = ui.fonts(|fonts| fonts.row_height(&FontId::proportional(14.0)));
                 let response = ui
-                    .horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 6.0;
-                        let (rect, icon_response) =
-                            ui.allocate_exact_size(vec2(16.0, line(14.0)), Sense::click());
-                        theme::paint_icon(
-                            ui.painter(),
-                            Rect::from_center_size(rect.center(), vec2(14.0, 14.0)),
-                            Icon::Folder,
-                            theme::palette().link,
-                        );
-                        // Paint the truncated label directly: Label::ui adds its
-                        // own tooltip, which overlaps our full-path tooltip.
-                        let (text_pos, galley, text_response) = egui::Label::new(
-                            RichText::new(value).size(14.0).color(theme::palette().link),
-                        )
-                        .truncate()
-                        .sense(Sense::click())
-                        .layout_in_ui(ui);
-                        ui.painter().galley(text_pos, galley, theme::palette().link);
-                        icon_response.union(text_response)
-                    })
+                    .allocate_ui_with_layout(
+                        vec2(ui.available_width(), value_height),
+                        Layout::left_to_right(Align::Center),
+                        |ui| {
+                            ui.spacing_mut().item_spacing.x = 6.0;
+                            let (rect, icon_response) =
+                                ui.allocate_exact_size(vec2(16.0, value_height), Sense::click());
+                            theme::paint_icon(
+                                ui.painter(),
+                                Rect::from_center_size(rect.center(), vec2(14.0, 14.0)),
+                                Icon::Folder,
+                                theme::palette().link,
+                            );
+                            // Paint the truncated label directly: Label::ui adds its
+                            // own tooltip, which overlaps our full-path tooltip.
+                            let (text_pos, galley, text_response) = egui::Label::new(
+                                RichText::new(value).size(14.0).color(theme::palette().link),
+                            )
+                            .truncate()
+                            .sense(Sense::click())
+                            .layout_in_ui(ui);
+                            ui.painter().galley(text_pos, galley, theme::palette().link);
+                            icon_response.union(text_response)
+                        },
+                    )
                     .inner
                     .on_hover_cursor(egui::CursorIcon::PointingHand)
                     .on_hover_text(format!("Open folder\n{location}"));
                 if response.clicked() {
-                    self.result(craft_apps_manager::platform::open(std::path::Path::new(
-                        &location,
-                    )));
+                    self.result(open_installation_folder(folder));
                 }
             } else {
                 let response = ui.add(
@@ -1665,7 +1713,7 @@ impl App {
                         });
                     });
                     if running {
-                        theme::progress(ui, build.progress, 4.0);
+                        theme::build_progress(ui, build.progress, 4.0, false);
                     }
                     ui.add_space(6.0);
                     ui.horizontal(|ui| {
@@ -1686,22 +1734,11 @@ impl App {
                     });
                 });
         });
-        let shared_log = self.operation_records.iter().any(|operation| {
-            operation.resource == app && self.shared_build_logs.contains_key(&operation.id)
-        });
-        if building_here || shared_log {
+        if building_here || !build.log.is_empty() {
             ui.add_space(16.0);
             theme::section_label(ui, "Build log");
             ui.add_space(8.0);
-            theme::log_view(
-                ui,
-                if build.log.is_empty() {
-                    "Waiting for build output…"
-                } else {
-                    &build.log
-                },
-                false,
-            );
+            theme::build_log_view(ui, &build.log, "Waiting for build output…");
         }
     }
 }

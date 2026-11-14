@@ -258,6 +258,33 @@ pub fn installed_check_targets(config: &crate::model::Config) -> Vec<crate::mode
         .collect()
 }
 
+/// Follow the saved view order. Hidden apps keep their eligibility but run after visible apps.
+pub(super) fn sort_update_targets<T: std::borrow::Borrow<crate::model::Installed>>(
+    apps: &mut [T],
+    order: &[String],
+    hidden: &[String],
+) {
+    apps.sort_by_cached_key(|app| {
+        let app = app.borrow();
+        (
+            hidden.contains(&app.name),
+            order
+                .iter()
+                .position(|name| name == &app.name)
+                .unwrap_or(usize::MAX),
+        )
+    });
+}
+
+pub fn automatic_check_targets(
+    config: &crate::model::Config,
+    prefs: &Preferences,
+) -> Vec<crate::model::Installed> {
+    let mut apps = installed_check_targets(config);
+    sort_update_targets(&mut apps, &prefs.app_order, &prefs.hidden_apps);
+    apps
+}
+
 /// Chooses the release file for this system, architecture and release format.
 pub fn select_asset<'a>(r: &'a Release, name: &str, p: &Preferences) -> Result<&'a Asset> {
     let release = release_version(&r.tag_name)?;

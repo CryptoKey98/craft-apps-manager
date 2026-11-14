@@ -174,13 +174,13 @@ impl App {
                 egui::ScrollArea::vertical().id_salt("whats-new-content")
                     .max_height((ctx.screen_rect().height() - 260.0).clamp(160.0, 490.0))
                     .show(ui, |ui| {
-                        body_text(ui, "Safer rollbacks, quicker installs, and clearer settings.");
+                        body_text(ui, "Faster app checks and clearer progress when you install or update.");
                         ui.add_space(22.0);
-                        feature(ui, theme::Icon::Rollback, "Roll back with confidence", "Review and restore a verified previous version when you need it.");
-                        feature(ui, theme::Icon::Layers, "Meet SolidCraft", "Parametric 3D CAD, now available alongside your Craft apps.");
-                        feature(ui, theme::Icon::Gear, "Settings that save together", "Review your changes, then apply them with Save. Your existing preferences move over safely.");
-                        feature(ui, theme::Icon::Activity, "Clearer GitHub activity", "See connection and token status, with help when GitHub limits requests.");
-                        feature(ui, theme::Icon::Trash, "Less clutter, more space", "Unused cache clears automatically, with better cleanup after installs and removals.");
+                        feature(ui, theme::Icon::Refresh, "Faster update checks", "The Manager checks your installed apps together at startup and on your schedule.");
+                        feature(ui, theme::Icon::Download, "Update All prepares downloads first", "Packages are downloaded and verified before apps install in sidebar order.");
+                        feature(ui, theme::Icon::Activity, "See what each app is doing", "Follow downloads, verification, and installation in the sidebar.");
+                        feature(ui, theme::Icon::Check, "Fewer interrupted installs", "Changes to other apps or settings no longer interrupt an install or downgrade you’ve already reviewed.");
+                        feature(ui, theme::Icon::ArrowUp, "Remember desktop shortcut choices", "Each installation keeps its own desktop shortcut choice when you update or change versions.");
                         let notes = egui::CollapsingHeader::new(RichText::new(format!("Patch notes for {}", craft_apps_manager::update_revisions::display_version(env!("CARGO_PKG_VERSION"), craft_apps_manager::update_revisions::BUILD_REVISION))).size(13.0).color(p.link))
                             .id_salt("whats-new-notes").show(ui, |ui| {
                                 for section in release_notes(env!("CARGO_PKG_VERSION")) {
@@ -193,7 +193,7 @@ impl App {
                                     }
                                     ui.add_space(8.0);
                                 }
-                                for version in ["1.1.1", "1.1.0"]
+                                for version in ["1.1.2", "1.1.1", "1.1.0"]
                                     .into_iter()
                                     .filter(|version| *version != env!("CARGO_PKG_VERSION"))
                                 {

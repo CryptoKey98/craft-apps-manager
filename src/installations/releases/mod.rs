@@ -17,13 +17,17 @@ mod execution;
 mod planning;
 mod recovery;
 mod scope;
+mod staging;
 pub use scope::{check_installer_scope_preview, downgrade_scope_decision, downgrade_scope_error};
+pub(crate) use staging::StagedPackages;
 mod selection;
 mod validation;
 pub use execution::*;
 pub use planning::*;
 pub use recovery::*;
 pub use selection::*;
+mod check_batch;
+pub use check_batch::check_installation_batch;
 
 #[cfg(test)]
 #[path = "planning_tests.rs"]

@@ -4,6 +4,59 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+/// Read the saved shortcut for this copy. Older Windows installers may have
+/// supplied a launch link themselves without creating a manager record.
+pub fn installed_desktop_shortcut(paths: &Paths, copy: &crate::model::Installed) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        if copy.install_kind != "installer" || copy.path.is_empty() {
+            return recorded_installation_shortcut(paths, copy);
+        }
+        let desktops: Vec<_> = [
+            desktop().ok(),
+            crate::profiles::known_folder(&windows::Win32::UI::Shell::FOLDERID_PublicDesktop).ok(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        let candidates: Vec<_> = desktops.iter().map(PathBuf::as_path).collect();
+        installed_desktop_shortcut_at(paths, copy, &candidates)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        recorded_installation_shortcut(paths, copy)
+    }
+}
+
+fn recorded_installation_shortcut(paths: &Paths, copy: &crate::model::Installed) -> bool {
+    if copy.path.is_empty() || crate::model::valid_app(&copy.name).is_err() {
+        return false;
+    }
+    let marker = match copy.install_kind.as_str() {
+        "portable" => Path::new(&copy.path).join(MARKER),
+        "installer" => paths.at(format!("runtime/desktop-shortcuts/{}.json", copy.name)),
+        _ => return false,
+    };
+    files::read_json::<Ownership>(&marker).is_ok_and(|owner| {
+        owner.app == copy.name
+            && owner.shortcut.is_some()
+            && crate::portable_mode::same_library(&owner.library, &paths.root)
+    })
+}
+
+#[cfg(target_os = "windows")]
+fn installed_desktop_shortcut_at(
+    paths: &Paths,
+    copy: &crate::model::Installed,
+    candidates: &[&Path],
+) -> bool {
+    recorded_installation_shortcut(paths, copy)
+        || (copy.install_kind == "installer"
+            && !copy.path.is_empty()
+            && crate::model::installed_executable(Path::new(&copy.path), &copy.name)
+                .is_some_and(|executable| installer_link_exists(&executable, candidates, None)))
+}
+
 pub fn desktop_shortcut(paths: &Paths, app: &str, target: &Path) -> Result<()> {
     validate(paths, app, target)?;
     let marker = target.join(MARKER);
@@ -86,23 +139,11 @@ fn reuse_installer_shortcut(
 ) -> Result<bool> {
     let executable = crate::model::installed_executable(target, &owner.app)
         .context("Missing installed executable")?;
-    let found = candidates.iter().any(|directory| {
-        std::fs::read_dir(directory)
-            .into_iter()
-            .flatten()
-            .flatten()
-            .any(|entry| {
-                let path = entry.path();
-                entry.file_type().is_ok_and(|kind| kind.is_file())
-                && path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("lnk"))
-                && !files::linked(&path).unwrap_or(true)
-                && !owner.shortcut.as_ref().is_some_and(|(owned, _)| owned == &path)
-                // shortcut_target rejects arguments and resolves advertised MSI links.
-                && crate::platform::shortcut_target(&path)
-                    .is_some_and(|actual| same_shortcut_target(&actual, &executable))
-            })
-    });
-    if !found {
+    if !installer_link_exists(
+        &executable,
+        candidates,
+        owner.shortcut.as_ref().map(|(path, _)| path.as_path()),
+    ) {
         return Ok(false);
     }
     if let Some((old, proof)) = owner.shortcut.take() {
@@ -116,6 +157,26 @@ fn reuse_installer_shortcut(
         files::write_json(marker, owner)?;
     }
     Ok(true)
+}
+
+#[cfg(target_os = "windows")]
+fn installer_link_exists(executable: &Path, candidates: &[&Path], excluded: Option<&Path>) -> bool {
+    candidates.iter().any(|directory| {
+        std::fs::read_dir(directory)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .any(|entry| {
+                let path = entry.path();
+                entry.file_type().is_ok_and(|kind| kind.is_file())
+                && path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("lnk"))
+                && !files::linked(&path).unwrap_or(true)
+                && excluded != Some(path.as_path())
+                // shortcut_target rejects arguments and resolves advertised MSI links.
+                && crate::platform::shortcut_target(&path)
+                    .is_some_and(|actual| same_shortcut_target(&actual, executable))
+            })
+    })
 }
 
 /// Upgrade only unchanged, manager-owned portable desktop shortcuts.

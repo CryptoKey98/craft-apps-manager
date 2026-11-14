@@ -175,31 +175,38 @@ fn await_helper(listener: &UnixListener, child: &mut Child, job: &Job) -> Result
         std::thread::sleep(Duration::from_millis(100));
     }
 }
-pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
+pub(crate) fn execute(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    job: &Job,
+    staged: &mut updates::StagedPackages<'_>,
+) -> Result<()> {
     ensure!(
         eligible(plan),
         "Batch approval requires a supported installer operation"
     );
-    let network = crate::network::Network::new(&paths.root)?;
     let mut packages = Vec::new();
     let config = paths.config()?;
-    for entry in plan.entries.iter().filter(|e| {
-        e.preferences.release_format == "installer"
-            && matches!(e.action.as_str(), "Install" | "Update")
-            && e.error.is_none()
+    for entry in plan.entries.iter().filter(|entry| {
+        entry.preferences.release_format == "installer"
+            && matches!(entry.action.as_str(), "Install" | "Update")
+            && entry.error.is_none()
     }) {
         job.check()?;
         let asset = entry.asset.as_ref().context("Missing approved package")?;
         files::safe_relative(&asset.name)?;
         crate::model::valid_app(&entry.app)?;
         let path = updates::planned_installer_path(paths, plan, &entry.app, asset)?;
-        if !path.exists() {
-            network.asset(asset, &path, job)?;
-        }
-        crate::network::verify_asset(&path, asset)?;
         packages.push(Package {
             path: path.canonicalize()?,
-            checksum: files::hash(&path)?,
+            // Preparation already verified the bytes. The elevated helper
+            // checks this approved digest again on its private copy.
+            checksum: asset
+                .digest
+                .as_deref()
+                .and_then(|digest| digest.strip_prefix("sha256:"))
+                .context("Missing verified installer checksum")?
+                .to_ascii_lowercase(),
             downgrade: plan.native_rollback.is_some()
                 && config
                     .apps
@@ -284,7 +291,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         });
         let _scope = Scope;
         // Existing execution retains locks, configuration, detection and child-operation results.
-        updates::execute_plan_direct(paths, plan, job)
+        updates::execute_plan_direct(paths, plan, job, Some(staged))
     })();
     // The socket closes after the last transaction; never terminate a live package manager.
     std::thread::spawn(move || {

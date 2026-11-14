@@ -3,6 +3,11 @@ use super::*;
 use eframe::App as _;
 
 fn tick(app: &mut App, ctx: &egui::Context, close: bool) -> Vec<egui::ViewportCommand> {
+    // Saving settings makes the inventory refresh due again. These tests
+    // exercise tray and save events, so don't start disk workers on each tick.
+    let now = std::time::Instant::now();
+    app.config_refresh_at = now + std::time::Duration::from_secs(3600);
+    app.operation_refresh = now;
     let mut input = egui::RawInput::default();
     if close {
         input
@@ -25,9 +30,6 @@ fn no_background_checks(app: &mut App) {
     app.manager_startup_pending = false;
     app.token_check_started = true;
     app.tray_notice_shown = true;
-    // These tests drive tray/save events, not inventory polling. A snapshot
-    // worker can otherwise still create new-apps.json after App is dropped.
-    app.config_refresh_at = std::time::Instant::now() + std::time::Duration::from_secs(3600);
 }
 
 #[test]

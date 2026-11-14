@@ -1,6 +1,108 @@
 //! A long-lived browsing preview cannot authorize changed release packages.
 use super::*;
 
+pub(super) fn single_app_state_matches(plan: &ReleasePlan, current: &[u8]) -> Result<bool> {
+    let [entry] = plan.entries.as_slice() else {
+        return Ok(false);
+    };
+    if !plan.single_app || plan.native_rollback.is_some() {
+        return Ok(false);
+    }
+
+    type Snapshot = (Preferences, crate::model::Config, Vec<serde_json::Value>);
+    let (before_prefs, before, before_destinations): Snapshot =
+        serde_json::from_slice(&plan.snapshot)?;
+    let (after_prefs, after, after_destinations): Snapshot = serde_json::from_slice(current)?;
+    let app = &entry.app;
+    let identity = crate::install_options::identity(app);
+    if before.apps_root != after.apps_root
+        || before_prefs.app_install_options.get(&identity)
+            != after_prefs.app_install_options.get(&identity)
+        || before_prefs.batch_admin != after_prefs.batch_admin
+        || before_prefs.rollback_enabled() != after_prefs.rollback_enabled()
+        || before_prefs.compress_rollbacks != after_prefs.compress_rollbacks
+        || before.portable_label_counters.get(app) != after.portable_label_counters.get(app)
+    {
+        return Ok(false);
+    }
+
+    let Some(before_index) = before.apps.iter().position(|copy| &copy.name == app) else {
+        return Ok(false);
+    };
+    let Some(after_index) = after.apps.iter().position(|copy| &copy.name == app) else {
+        return Ok(false);
+    };
+    let selected = &before.apps[before_index];
+    let before_destination = before_destinations.get(before_index);
+    let after_destination = after_destinations.get(after_index);
+    if selected != &after.apps[after_index]
+        || !same_destination(selected, before_destination, after_destination)
+    {
+        return Ok(false);
+    }
+
+    let targets: Vec<_> = entry
+        .destination
+        .iter()
+        .chain(plan.installer_destination.iter())
+        .map(|path| crate::installation_labels::path_identity(&path.to_string_lossy()))
+        .chain(
+            (!selected.path.is_empty())
+                .then(|| crate::installation_labels::path_identity(&selected.path)),
+        )
+        .collect();
+    let relevant = |copy: &&crate::model::Installed| {
+        &copy.name == app
+            || (!copy.path.is_empty() && {
+                let path = crate::installation_labels::path_identity(&copy.path);
+                targets.iter().any(|target| {
+                    Path::new(&path).starts_with(target) || Path::new(target).starts_with(&path)
+                })
+            })
+    };
+    // Inventory saves move the selected copy to the end of the records even
+    // when its installation did not change. The selected copy is checked above.
+    let mut before_copies: Vec<_> = before.installations.iter().filter(relevant).collect();
+    let mut after_copies: Vec<_> = after.installations.iter().filter(relevant).collect();
+    for copies in [&mut before_copies, &mut after_copies] {
+        copies.sort_by(|a, b| {
+            (&a.name, &a.path, &a.install_kind).cmp(&(&b.name, &b.path, &b.install_kind))
+        });
+    }
+    // Rollback per-copy overrides are read from current settings under the
+    // operation lock by the recovery code.
+    Ok(before_copies == after_copies)
+}
+
+fn same_destination(
+    selected: &crate::model::Installed,
+    before: Option<&serde_json::Value>,
+    after: Option<&serde_json::Value>,
+) -> bool {
+    let (Some(before), Some(after)) = (before, after) else {
+        return false;
+    };
+    if before == after {
+        return true;
+    }
+    // Portable apps can write profiles and caches beside their executable.
+    // Ignore the folder timestamp/size only for an existing portable copy.
+    selected.install_kind == "portable"
+        && !selected.path.is_empty()
+        && before.get(0) == after.get(0)
+        && before.get(1).is_some_and(|exe| !exe.is_null())
+        && before.get(1) == after.get(1)
+        && [before, after].into_iter().all(|state| {
+            state
+                .get(2)
+                .and_then(|folder| folder.get(2))
+                .and_then(serde_json::Value::as_bool)
+                == Some(false)
+        })
+        && before.get(3).is_some()
+        && before.get(3) == after.get(3)
+}
+
 pub(super) fn revalidate_plan(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     if plan.native_rollback.is_some() {
         job.check()?;

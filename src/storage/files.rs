@@ -147,31 +147,73 @@ pub fn no_links(root: &Path) -> Result<()> {
     Ok(())
 }
 pub fn extract_zip(archive: &Path, dest: &Path, job: &crate::jobs::Job) -> Result<()> {
+    extract_zip_entries(archive, dest, job, false)
+}
+
+pub(crate) fn extract_source_zip(
+    archive: &Path,
+    dest: &Path,
+    job: &crate::jobs::Job,
+) -> Result<()> {
+    extract_zip_entries(archive, dest, job, true)
+}
+
+fn extract_zip_entries(
+    archive: &Path,
+    dest: &Path,
+    job: &crate::jobs::Job,
+    source: bool,
+) -> Result<()> {
     if dest.exists() {
         bail!("Extraction destination already exists");
     }
     let mut zip = zip::ZipArchive::new(File::open(archive)?)?;
+    let aliases = if source {
+        source_documentation_aliases(&mut zip)?
+    } else {
+        Default::default()
+    };
+    let mut archive_root = None;
     for i in 0..zip.len() {
         let e = zip.by_index(i)?;
         safe_relative(e.name().trim_end_matches('/'))?;
-        if e.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000) {
+        if is_zip_link(&e) && !aliases.contains(&i) {
             bail!("Linked archive entry");
+        }
+        if source {
+            source_relative(e.name(), &mut archive_root)?;
         }
     }
     fs::create_dir_all(dest)?;
     let n = zip.len();
     for i in 0..n {
         job.check()?;
+        if aliases.contains(&i) {
+            continue;
+        }
         let mut e = zip.by_index(i)?;
-        let target = dest.join(e.name());
-        if e.is_dir() {
-            fs::create_dir_all(&target)?
+        // Source ZIPs have already been checked against their pinned commit root.
+        // Extract straight into the build directory to avoid the long GitHub wrapper path.
+        let relative = if source {
+            let (_, relative) = e.name().split_once('/').context("Missing source root")?;
+            if relative.is_empty() {
+                continue;
+            }
+            relative
         } else {
-            fs::create_dir_all(target.parent().unwrap())?;
+            e.name()
+        };
+        let target = dest.join(relative);
+        if e.is_dir() {
+            fs::create_dir_all(&target).with_context(|| format!("Extract {}", target.display()))?;
+        } else {
+            fs::create_dir_all(target.parent().unwrap())
+                .with_context(|| format!("Create parent of {}", target.display()))?;
             let mut f = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
-                .open(&target)?;
+                .open(&target)
+                .with_context(|| format!("Extract {}", target.display()))?;
             std::io::copy(&mut e, &mut f)?;
             #[cfg(unix)]
             if let Some(mode) = e.unix_mode() {
@@ -189,26 +231,96 @@ pub fn extract_zip(archive: &Path, dest: &Path, job: &crate::jobs::Job) -> Resul
     }
     Ok(())
 }
+
+fn source_relative<'a>(name: &'a str, archive_root: &mut Option<String>) -> Result<&'a str> {
+    let (root, relative) = name.split_once('/').context("Missing source root")?;
+    anyhow::ensure!(
+        archive_root.get_or_insert_with(|| root.to_owned()) == root,
+        "Source ZIP contains multiple roots"
+    );
+    if !relative.is_empty() {
+        safe_relative(relative.trim_end_matches('/'))?;
+    }
+    Ok(relative)
+}
+
+fn is_zip_link(entry: &zip::read::ZipFile<'_>) -> bool {
+    entry.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000)
+}
+
+// Omit redundant documentation aliases only when their original is a regular file
+// in the same archive root. Never materialize or follow links on disk.
+fn source_documentation_aliases(
+    zip: &mut zip::ZipArchive<File>,
+) -> Result<std::collections::BTreeSet<usize>> {
+    let mut aliases = std::collections::BTreeSet::new();
+    for index in 0..zip.len() {
+        let mut entry = zip.by_index(index)?;
+        if !is_zip_link(&entry) {
+            continue;
+        }
+        let name = entry.name().to_owned();
+        let relative = source_relative(&name, &mut None)?;
+        let (parent, file) = relative.rsplit_once('/').unwrap_or(("", relative));
+        let mut target = String::new();
+        (&mut entry).take(1025).read_to_string(&mut target)?;
+        drop(entry);
+        let mut parts: Vec<_> = parent.split('/').filter(|part| !part.is_empty()).collect();
+        let (target_parent, target_file) = target.rsplit_once('/').unwrap_or(("", target.as_str()));
+        anyhow::ensure!(
+            (file.ends_with(".md") && target_file.ends_with(".md"))
+                || (matches!(file, "LICENSE" | "NOTICE") && target_file == file),
+            "Linked source entry: {name}"
+        );
+        safe_relative(target_file)?;
+        if !target_parent.is_empty() {
+            for part in target_parent.split('/') {
+                if part == ".." {
+                    anyhow::ensure!(parts.pop().is_some(), "Linked source entry: {name}");
+                } else {
+                    safe_relative(part)?;
+                    parts.push(part);
+                }
+            }
+        } else if target.starts_with('/') {
+            bail!("Linked source entry: {name}");
+        }
+        parts.push(target_file);
+        let root = name.split_once('/').unwrap().0;
+        let original_path = format!("{root}/{}", parts.join("/"));
+        let original_entry = zip
+            .by_name(&original_path)
+            .with_context(|| format!("Missing original for source documentation alias: {name}"))?;
+        anyhow::ensure!(
+            original_entry.is_file() && !is_zip_link(&original_entry),
+            "Linked source entry: {name}"
+        );
+        aliases.insert(index);
+    }
+    Ok(aliases)
+}
+
 pub fn verify_source(p: &Path, name: &str, sha: &str) -> Result<()> {
     if sha.len() != 40 || !sha.bytes().all(|b| b.is_ascii_hexdigit()) {
         bail!("Invalid source commit");
     }
     let mut zip = zip::ZipArchive::new(File::open(p)?)?;
+    let aliases = source_documentation_aliases(&mut zip)?;
     let prefix = format!("{name}-{sha}/");
     let renamed_prefix = format!("{}-{sha}/", crate::model::repository_name(name));
     let mut cargo = false;
+    let mut root = None;
     for i in 0..zip.len() {
         let mut e = zip.by_index(i)?;
         if !e.name().starts_with(&prefix) && !e.name().starts_with(&renamed_prefix) {
             bail!("Source has an unexpected root");
         }
         safe_relative(e.name().trim_end_matches('/'))?;
-        if e.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000) {
-            bail!("Linked source entry");
+        let relative = source_relative(e.name(), &mut root)?;
+        if aliases.contains(&i) {
+            continue;
         }
-        if e.name() == format!("{prefix}Cargo.toml")
-            || e.name() == format!("{renamed_prefix}Cargo.toml")
-        {
+        if relative == "Cargo.toml" && e.is_file() {
             cargo = true;
         }
         std::io::copy(&mut e, &mut std::io::sink())?;
@@ -217,6 +329,81 @@ pub fn verify_source(p: &Path, name: &str, sha: &str) -> Result<()> {
         bail!("Source ZIP has no expected Cargo.toml");
     }
     Ok(())
+}
+
+#[cfg(test)]
+#[test]
+fn source_archive_skips_only_contained_documentation_aliases() {
+    let root = std::env::temp_dir().join(format!("craft-source-alias-{}", uuid::Uuid::new_v4()));
+    fs::create_dir(&root).unwrap();
+    let sha = "a".repeat(40);
+    let prefix = format!("mailcraft-{sha}");
+    let archive = root.join("source.zip");
+    let options = zip::write::SimpleFileOptions::default();
+    let make_zip = |link: &str, target: &str| {
+        let mut zip = zip::ZipWriter::new(File::create(&archive).unwrap());
+        zip.start_file(format!("{prefix}/Cargo.toml"), options)
+            .unwrap();
+        zip.write_all(b"[workspace]\n").unwrap();
+        zip.start_file(format!("{prefix}/README.md"), options)
+            .unwrap();
+        zip.write_all(b"Documentation\n").unwrap();
+        zip.start_file(format!("{prefix}/docs/LICENSE"), options)
+            .unwrap();
+        zip.write_all(b"License\n").unwrap();
+        zip.add_symlink(format!("{prefix}/{link}"), target, options)
+            .unwrap();
+        zip.finish().unwrap();
+    };
+    make_zip("GUIDE.md", "README.md");
+    let project = root.join("src");
+    let job = crate::jobs::Job::new(root.join("extract.log"), &Default::default());
+    let valid = verify_source(&archive, "mailcraft", &sha);
+    let extracted = extract_source_zip(&archive, &project, &job);
+    let source_files = (
+        project.join("Cargo.toml").is_file(),
+        project.join("README.md").is_file(),
+        project.join("GUIDE.md").exists(),
+        project.join(&prefix).exists(),
+    );
+    let generic_result = extract_zip(&archive, &root.join("generic"), &job);
+    make_zip("crates/core/LICENSE", "../../docs/LICENSE");
+    let nested_license = verify_source(&archive, "mailcraft", &sha);
+    make_zip("GUIDE.md", "../README.md");
+    let unsafe_target = verify_source(&archive, "mailcraft", &sha);
+    make_zip("src/GUIDE.md", "missing/README.md");
+    let missing_target = verify_source(&archive, "mailcraft", &sha);
+    make_zip("src/main.rs", "../README.md");
+    let source_link = verify_source(&archive, "mailcraft", &sha);
+    fs::remove_dir_all(&root).unwrap();
+    valid.unwrap();
+    extracted.unwrap();
+    assert_eq!(source_files, (true, true, false, false));
+    assert!(generic_result.is_err());
+    nested_license.unwrap();
+    assert!(unsafe_target.is_err());
+    assert!(missing_target.is_err());
+    assert!(source_link.is_err());
+}
+
+#[cfg(test)]
+#[test]
+#[ignore = "Explicit check of externally downloaded source ZIPs"]
+fn verifies_and_extracts_pinned_source_fixture() {
+    let path = std::path::PathBuf::from(std::env::var_os("CRAFT_SOURCE_ZIP_FIXTURE").unwrap());
+    let name = std::env::var("CRAFT_SOURCE_ZIP_APP").unwrap();
+    let sha = std::env::var("CRAFT_SOURCE_ZIP_COMMIT").unwrap();
+    let root = std::env::temp_dir().join(format!("craft-source-{}", uuid::Uuid::new_v4()));
+    let project = root.join("src");
+    let job = crate::jobs::Job::new(root.join("extract.log"), &Default::default());
+    verify_source(&path, &name, &sha).unwrap();
+    let extracted = extract_source_zip(&path, &project, &job);
+    let manifest = project.join("Cargo.toml").is_file();
+    if root.exists() {
+        fs::remove_dir_all(&root).unwrap();
+    }
+    extracted.unwrap();
+    assert!(manifest);
 }
 pub fn verify_trees(a: &Path, b: &Path) -> Result<()> {
     let af: Vec<_> = WalkDir::new(a)

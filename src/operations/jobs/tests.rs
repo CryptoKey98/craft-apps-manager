@@ -1,4 +1,56 @@
 use super::*;
+
+#[test]
+fn build_display_wakes_on_stage_output_and_completion() {
+    let root = std::env::temp_dir().join(format!("craft-build-wake-{}", uuid::Uuid::new_v4()));
+    let (send, receive) = std::sync::mpsc::channel();
+    let job = Job::new(root.join("logs/build.log"), &Default::default())
+        .with_display_wake(move || send.send(()).unwrap());
+    let handle = job.begin().unwrap();
+    job.stage("Compiling", None, "First crate");
+    receive.try_recv().unwrap();
+    job.log("first line");
+    receive.try_recv().unwrap();
+    let first = job.snapshot();
+    assert!(Arc::ptr_eq(&first.log, &job.snapshot().log));
+    job.log("second line");
+    receive.try_recv().unwrap();
+    assert_eq!(first.log.as_str(), "first line\n");
+    assert_eq!(job.snapshot().log.as_str(), "first line\nsecond line\n");
+    job.complete(&handle, &Ok(()));
+    receive.try_recv().unwrap();
+    assert!(!job.snapshot().busy);
+    fs::remove_dir_all(root).unwrap();
+}
+#[test]
+fn job_snapshot_stays_responsive_while_installer_details_are_saved() {
+    let root = std::env::temp_dir().join(format!("craft-job-report-{}", uuid::Uuid::new_v4()));
+    let job = Job::new(root.join("logs/test.log"), &Default::default());
+    let handle = job.begin().unwrap();
+    let disk_lock = job.operations.activity_lock(true).unwrap();
+    let worker_job = job.clone();
+    let writer = std::thread::spawn(move || worker_job.report("Version", "2.0.0"));
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while !handle.snapshot().facts.contains_key("Version") {
+        assert!(std::time::Instant::now() < deadline);
+        std::thread::yield_now();
+    }
+    let (tx, rx) = std::sync::mpsc::channel();
+    let reader_job = job.clone();
+    let reader = std::thread::spawn(move || tx.send(reader_job.snapshot().busy).unwrap());
+    let snapshot = rx.recv_timeout(Duration::from_secs(1));
+    drop(disk_lock);
+    writer.join().unwrap();
+    reader.join().unwrap();
+    job.complete(&handle, &Ok(()));
+    assert_eq!(snapshot, Ok(true));
+    assert_eq!(
+        job.operations.read(&handle.id()).unwrap().facts["Version"],
+        "2.0.0"
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
 #[test]
 fn cancellation_before_background_registration_is_not_reset() {
     let root = std::env::temp_dir().join(format!("craft-reserved-cancel-{}", uuid::Uuid::new_v4()));
@@ -196,7 +248,7 @@ fn shared_build_terminal_outcomes_replace_stale_state_and_isolate_apps() {
     let unrelated = State {
         busy: true,
         stage: "Other app".into(),
-        log: "Unrelated output".into(),
+        log: "Unrelated output".to_owned().into(),
         ..Default::default()
     };
     let observed =
@@ -220,7 +272,7 @@ fn shared_build_terminal_outcomes_replace_stale_state_and_isolate_apps() {
         };
         let stale = State {
             stage: "Old result".into(),
-            log: "Old output".into(),
+            log: "Old output".to_owned().into(),
             output: Some(root.join("old")),
             ..Default::default()
         };

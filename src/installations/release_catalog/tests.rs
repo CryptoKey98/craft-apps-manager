@@ -197,6 +197,83 @@ fn catalog_fetches_one_app_and_reuses_verified_cache_without_network() {
     assert!(!root.0.join("runtime/app-release-catalog").exists());
 }
 #[test]
+fn batch_refresh_shares_index_and_isolates_a_failed_app_object() {
+    let root = Root::new();
+    let film = app_fixture();
+    let mut design = film.clone();
+    design.repository = "storytold/designcraft".into();
+    let film_body = serde_json::to_vec(&film).unwrap();
+    let design_body = serde_json::to_vec(&design).unwrap();
+    let now = chrono::Utc::now().timestamp();
+    let repositories = [
+        (film.repository.clone(), &film_body),
+        (design.repository.clone(), &design_body),
+    ]
+    .into_iter()
+    .map(|(repo, body)| {
+        (
+            repo,
+            AppReference {
+                sha256: verification::hash(body),
+                size: body.len() as u64,
+                checked_at: now,
+                discovery_added_at: None,
+            },
+        )
+    })
+    .collect();
+    let (source, index) = signed(
+        &serde_json::to_string(&Index {
+            schema: 1,
+            purpose: "app-release-catalog".into(),
+            sequence: 1,
+            generated_at: now,
+            repositories,
+        })
+        .unwrap(),
+    );
+    struct BatchTransport {
+        index: Vec<u8>,
+        film: Vec<u8>,
+        film_hash: String,
+        calls: std::sync::Mutex<Vec<String>>,
+    }
+    impl client::Transport for BatchTransport {
+        fn get(&self, url: &str, _: Option<&str>, _: usize) -> anyhow::Result<client::Reply> {
+            self.calls.lock().unwrap().push(url.into());
+            if url.ends_with("/index.json") {
+                Ok(client::Reply::Data(self.index.clone(), None))
+            } else if url.ends_with(&format!("/{}.json", self.film_hash)) {
+                Ok(client::Reply::Data(self.film.clone(), None))
+            } else {
+                Ok(client::Reply::Data(b"invalid object".to_vec(), None))
+            }
+        }
+    }
+    let transport = BatchTransport {
+        film_hash: verification::hash(&film_body),
+        film: film_body,
+        index,
+        calls: Default::default(),
+    };
+    let repos = [film.repository.as_str(), design.repository.as_str()];
+    for _ in 0..2 {
+        let snapshot = client::refresh_batch(&root.0, &source, &repos, &transport).unwrap();
+        assert!(snapshot.apps.contains_key(&film.repository));
+        assert!(!snapshot.apps.contains_key(&design.repository));
+    }
+    let calls = transport.calls.lock().unwrap();
+    assert_eq!(calls.len(), 3);
+    assert_eq!(
+        calls
+            .iter()
+            .filter(|url| url.ends_with("/index.json"))
+            .count(),
+        1
+    );
+}
+
+#[test]
 fn rejects_object_tampering_and_wrong_repository() {
     let app = app_fixture();
     let (source, index, body) = bundle(&app, chrono::Utc::now().timestamp(), 7);

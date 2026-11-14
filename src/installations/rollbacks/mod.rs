@@ -149,8 +149,26 @@ pub fn status(paths: &Paths, installed: &Installed) -> Result<RollbackStatus> {
     let prefs = crate::storage::config::ConfigStore::new(paths.root.clone())
         .load_locked()?
         .manager()?;
+    rollback_status(paths, installed, &prefs, true)
+}
+
+/// Display the recorded previous version. Review and restore verify package bytes.
+pub fn summary(
+    paths: &Paths,
+    installed: &Installed,
+    prefs: &crate::model::Preferences,
+) -> Result<RollbackStatus> {
+    rollback_status(paths, installed, prefs, false)
+}
+
+fn rollback_status(
+    paths: &Paths,
+    installed: &Installed,
+    prefs: &crate::model::Preferences,
+    verify_installer: bool,
+) -> Result<RollbackStatus> {
     if installed.install_kind == "installer" {
-        return native::status(paths, installed, &prefs);
+        return native::status(paths, installed, prefs, verify_installer);
     }
     let unsupported=(installed.install_kind!="portable").then(||"Native installations use verified installer version selection; folder rollback is unavailable.".into());
     let id = if unsupported.is_none() {

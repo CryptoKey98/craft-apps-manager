@@ -330,10 +330,25 @@ fn merge(
     learned: &BTreeMap<String, Vec<String>>,
     custom: &[Entry],
 ) -> Vec<Entry> {
+    merge_for_platform(discovered, learned, custom, std::env::consts::OS)
+}
+
+fn supports_discovery(key: &str, platform: &str) -> bool {
+    // MailCraft's macOS release is ad-hoc signed and fails Gatekeeper assessment.
+    platform != "macos" || key != "mailcraft"
+}
+
+fn merge_for_platform(
+    discovered: Vec<Entry>,
+    learned: &BTreeMap<String, Vec<String>>,
+    custom: &[Entry],
+    platform: &str,
+) -> Vec<Entry> {
     let mut entries = builtin();
     let mut found: Vec<Entry> = Vec::new();
     for entry in discovered {
-        if valid(&entry)
+        if supports_discovery(&entry.key, platform)
+            && valid(&entry)
             && !entries
                 .iter()
                 .chain(&found)
@@ -1197,7 +1212,10 @@ fn refresh_network(root: &Path, force: bool) -> Result<Vec<Entry>> {
             retain_discovery(&mut discovered, entry);
         }
     }
-    for source in super::EXTERNAL_APPS {
+    for source in super::EXTERNAL_APPS
+        .iter()
+        .filter(|source| supports_discovery(source.key, std::env::consts::OS))
+    {
         let entry = external_discovery_with(source, |url| {
             if force {
                 match network.json_fresh(url) {

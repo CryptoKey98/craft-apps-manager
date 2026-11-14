@@ -546,6 +546,7 @@ impl App {
                     self.confirm_install = None;
                     self.additional_installation = false;
                     self.install_draft_app = None;
+                    self.install_shortcut = None;
                     "Download selection cancelled.".into()
                 } else {
                     "App was not added.".into()
