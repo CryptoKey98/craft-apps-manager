@@ -429,18 +429,15 @@ fn custom_app(app: &str) -> bool {
     crate::catalog::get(app).is_some_and(|entry| entry.repository.contains('/'))
 }
 fn linux_executable(path: &Path) -> bool {
-    if !path.is_file() {
-        return false;
-    }
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         path.metadata()
-            .is_ok_and(|metadata| metadata.permissions().mode() & 0o111 != 0)
+            .is_ok_and(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
     }
     #[cfg(not(unix))]
     {
-        true
+        path.is_file()
     }
 }
 pub fn registered_launch_executable(folder: &Path, app: &str) -> Option<PathBuf> {
