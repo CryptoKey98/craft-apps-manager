@@ -281,6 +281,7 @@ pub(super) fn status(
     paths: &Paths,
     installed: &Installed,
     prefs: &crate::model::Preferences,
+    verify_installer: bool,
 ) -> Result<RollbackStatus> {
     let unsupported = supported(installed).err().map(|error| format!("{error:#}"));
     if unsupported.is_some() {
@@ -301,7 +302,16 @@ pub(super) fn status(
         None
     };
     if let Some(point) = &previous {
-        verify(paths, installed, point)?;
+        if verify_installer {
+            verify(paths, installed, point)?;
+        } else {
+            let (package, asset) = recorded_package(paths, installed, point)?;
+            let metadata = fs::metadata(&package)?;
+            ensure!(
+                metadata.is_file() && metadata.len() == asset.size,
+                "Retained installer size mismatch"
+            );
+        }
     }
     Ok(RollbackStatus {
         installed: installed.clone(),
@@ -716,18 +726,14 @@ pub(super) fn bound_folder(
     Ok(folder)
 }
 
-pub(super) fn verify(
+fn recorded_package<'a>(
     paths: &Paths,
     expected: &Installed,
-    point: &RollbackPoint,
-) -> Result<PathBuf> {
+    point: &'a RollbackPoint,
+) -> Result<(PathBuf, &'a Asset)> {
     let folder = bound_folder(paths, expected, point)?;
     let native = point.native.as_ref().context("Not an installer rollback")?;
     ensure!(native.original_migration.is_none(), "This rollback requires an installation scope change, which is no longer supported. Its retained installer is preserved for manual recovery; you can also remove this rollback.");
-    ensure!(
-        manifest(&folder)? == point.files,
-        "Retained installer files have changed"
-    );
     ensure!(
         point.executable == Path::new(&native.asset.name) && point.files.len() == 1,
         "Retained installer metadata is invalid"
@@ -737,6 +743,23 @@ pub(super) fn verify(
         "Retained installer repository mismatch"
     );
     let package = folder.join(&point.executable);
-    crate::network::verify_asset(&package, &native.asset)?;
+    files::inside(&package, &folder)?;
+    Ok((package, &native.asset))
+}
+
+pub(super) fn verify(
+    paths: &Paths,
+    expected: &Installed,
+    point: &RollbackPoint,
+) -> Result<PathBuf> {
+    let (package, asset) = recorded_package(paths, expected, point)?;
+    let folder = package
+        .parent()
+        .context("Missing retained installer folder")?;
+    ensure!(
+        manifest(folder)? == point.files,
+        "Retained installer files have changed"
+    );
+    crate::network::verify_asset(&package, asset)?;
     Ok(package)
 }

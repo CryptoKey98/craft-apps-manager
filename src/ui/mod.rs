@@ -9,7 +9,7 @@ use eframe::egui;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::Command,
     sync::atomic::Ordering,
     time::{Duration, Instant},
@@ -26,6 +26,8 @@ use widgets::operations_view;
 mod theme;
 mod tray;
 mod whats_new;
+#[cfg(target_os = "windows")]
+mod window_move;
 
 /// Per-app package work, including children of Update All. Queued items are not installing yet.
 fn sidebar_install_operation<'a>(
@@ -38,10 +40,10 @@ fn sidebar_install_operation<'a>(
         .filter(|record| {
             record.resource == app
                 && is_installation_operation(record)
-                && matches!(
+                && (matches!(
                     record.lifecycle,
                     Lifecycle::Running | Lifecycle::CancellationRequested
-                )
+                ) || record.lifecycle == Lifecycle::Queued && record.stage != "Queued")
         })
         .max_by_key(|record| (record.parent.is_some(), record.heartbeat))
 }
@@ -77,7 +79,12 @@ fn is_installation_operation(record: &craft_apps_manager::operations::Operation)
 
 /// Read committed facts only: detecting/reconstructing installations during an install
 /// could mistake temporary installer state for a removed application.
-fn completed_install_inventory(paths: &Paths) -> Result<Option<model::Config>, String> {
+struct CompletedInstallInventory {
+    config: model::Config,
+    checks: hourly::Checks,
+}
+
+fn completed_install_inventory(paths: &Paths) -> Result<Option<CompletedInstallInventory>, String> {
     let config = paths
         .read_inventory()
         .map_err(|error| format!("{error:#}"))?;
@@ -87,10 +94,14 @@ fn completed_install_inventory(paths: &Paths) -> Result<Option<model::Config>, S
     {
         return Err("Installation inventory points to a different data folder.".into());
     }
-    Ok(config)
+    Ok(config.map(|config| CompletedInstallInventory {
+        config,
+        checks: hourly::read(paths).unwrap_or_default(),
+    }))
 }
 
 type ReleaseCheck = Result<Option<String>, String>;
+type InstallPreview = (Result<updates::ReleasePlan, String>, Option<bool>);
 type CheckMessage = (u64, model::Installed, ReleaseCheck);
 struct InstallationSelection {
     app: String,
@@ -118,15 +129,24 @@ fn installation_check_id(
     ))
 }
 
-/// Everything the window shows that is read from disk, refreshed off the UI thread.
-struct Snapshot {
+struct InventorySnapshot {
     config: model::Config,
     alternates: Vec<model::Installed>,
+    checks: craft_apps_manager::hourly::Checks,
+}
+
+enum SnapshotUpdate {
+    Inventory(InventorySnapshot),
+    Details(SnapshotDetails),
+}
+
+/// Additional display data refreshed after the verified inventory.
+struct SnapshotDetails {
+    installation_folders: BTreeMap<String, PathBuf>,
     rollbacks: BTreeMap<
         String,
         Result<craft_apps_manager::installations::rollbacks::RollbackStatus, String>,
     >,
-    checks: craft_apps_manager::hourly::Checks,
     sources: BTreeMap<String, model::Source>,
     builds: BTreeMap<String, (PathBuf, Option<model::BuildInfo>)>,
     launch: BTreeMap<String, apps::LaunchSettings>,
@@ -176,15 +196,62 @@ struct CustomAppSetup {
 
 type BuildCacheSnapshot = (PathBuf, String, bool);
 
+const LIVE_BUILD_REFRESH: Duration = Duration::from_millis(125);
+type SharedBuildSnapshot = (
+    PathBuf,
+    String,
+    craft_apps_manager::operations::Operation,
+    Option<BuildLogTail>,
+);
+
+#[derive(Clone)]
+struct BuildLogTail {
+    path: PathBuf,
+    size: u64,
+    modified: Option<std::time::SystemTime>,
+    text: std::sync::Arc<String>,
+}
+
+impl BuildLogTail {
+    fn read(path: &Path, previous: Option<&Self>) -> Option<Self> {
+        use std::io::{Read, Seek, SeekFrom};
+
+        let mut file = std::fs::File::open(path).ok()?;
+        let metadata = file.metadata().ok()?;
+        let size = metadata.len();
+        let modified = metadata.modified().ok();
+        if let Some(previous) = previous.filter(|previous| {
+            previous.path == path
+                && previous.size == size
+                && modified.is_some()
+                && previous.modified == modified
+        }) {
+            return Some(previous.clone());
+        }
+        let start = size.saturating_sub(200_000);
+        file.seek(SeekFrom::Start(start)).ok()?;
+        let mut bytes = Vec::new();
+        file.take(size - start).read_to_end(&mut bytes).ok()?;
+        Some(Self {
+            path: path.to_owned(),
+            size,
+            modified,
+            text: std::sync::Arc::new(String::from_utf8_lossy(&bytes).into_owned()),
+        })
+    }
+}
+
 type SharedWindowSnapshot = (
     PathBuf,
+    String,
     Option<(model::Theme, bool)>,
-    std::collections::HashMap<String, String>,
+    Option<(String, BuildLogTail)>,
     Vec<craft_apps_manager::operations::Operation>,
     Option<PathBuf>,
 );
 
 pub struct App {
+    ui_context: egui::Context,
     app_list_cache: app_list::AppListCache,
     icons: BTreeMap<String, egui::TextureHandle>,
     icon_receiver: std::sync::mpsc::Receiver<(String, Option<Vec<u8>>)>,
@@ -306,9 +373,9 @@ pub struct App {
     install_location_context: Option<(String, String, String, bool)>,
     install_destination_preview: dialogs::DestinationPreview,
     install_parent: String,
-    install_shortcut: bool,
+    install_shortcut: Option<bool>,
     install_result: Option<Result<updates::ReleasePlan, String>>,
-    install_receiver: Option<std::sync::mpsc::Receiver<Result<updates::ReleasePlan, String>>>,
+    install_receiver: Option<std::sync::mpsc::Receiver<InstallPreview>>,
     folder_receiver: Option<std::sync::mpsc::Receiver<Result<Option<PathBuf>, String>>>,
     install_error: Option<String>,
     versions_app: Option<String>,
@@ -323,7 +390,7 @@ pub struct App {
     check_generation: u64,
     apps_startup_pending: bool,
     app_check_at: Instant,
-    periodic_receiver: Option<std::sync::mpsc::Receiver<Result<hourly::Checks, String>>>,
+    periodic_receiver: Option<std::sync::mpsc::Receiver<Result<(), String>>>,
     manager_receiver: Option<
         std::sync::mpsc::Receiver<
             Result<craft_apps_manager::manager_updates::coordinator::ManagerCheck, String>,
@@ -348,9 +415,11 @@ pub struct App {
         Result<craft_apps_manager::installations::rollbacks::RollbackStatus, String>,
     >,
     display_config: Option<model::Config>,
-    inventory_receiver: Option<std::sync::mpsc::Receiver<Result<Option<model::Config>, String>>>,
+    display_installation_folders: BTreeMap<String, PathBuf>,
+    inventory_receiver:
+        Option<std::sync::mpsc::Receiver<Result<Option<CompletedInstallInventory>, String>>>,
     inventory_refresh_pending: bool,
-    config_receiver: Option<std::sync::mpsc::Receiver<Result<Snapshot, String>>>,
+    config_receiver: Option<std::sync::mpsc::Receiver<Result<SnapshotUpdate, String>>>,
     installation_selection:
         Option<std::sync::mpsc::Receiver<Result<InstallationSelection, String>>>,
     display_sources: BTreeMap<String, model::Source>,
@@ -367,7 +436,9 @@ pub struct App {
     operation_refresh: Instant,
     activity_log: Option<PathBuf>,
     shared_window_receiver: Option<std::sync::mpsc::Receiver<SharedWindowSnapshot>>,
-    shared_build_logs: std::collections::HashMap<String, String>,
+    shared_build_log: Option<(String, BuildLogTail)>,
+    build_log_refresh: Instant,
+    build_log_receiver: Option<std::sync::mpsc::Receiver<SharedBuildSnapshot>>,
     activity_open: bool,
     activity_history: bool,
     activity_anchor: Option<egui::Pos2>,
@@ -482,6 +553,7 @@ impl App {
         activity_notifications.observe(&startup_operations);
         let resume_build_page = !builder && active_build.is_some_and(|op| op.resource == app);
         let mut window = Self {
+            ui_context: cc.egui_ctx.clone(),
             instance: None,
             icons,
             icon_receiver,
@@ -606,7 +678,7 @@ impl App {
             install_location_context: None,
             install_destination_preview: dialogs::DestinationPreview::default(),
             install_parent: String::new(),
-            install_shortcut: true,
+            install_shortcut: None,
             install_result: None,
             install_receiver: None,
             folder_receiver: None,
@@ -642,6 +714,7 @@ impl App {
             rollback_dialog: None,
             display_rollbacks: Default::default(),
             display_config: None,
+            display_installation_folders: Default::default(),
             inventory_receiver: None,
             inventory_refresh_pending: false,
             config_receiver: None,
@@ -664,9 +737,15 @@ impl App {
             operation_refresh: Instant::now() - Duration::from_secs(2),
             activity_log: None,
             shared_window_receiver: None,
-            shared_build_logs: Default::default(),
+            shared_build_log: None,
+            build_log_refresh: Instant::now(),
+            build_log_receiver: None,
         };
         window.previews();
+        #[cfg(target_os = "windows")]
+        if builder {
+            window_move::install(cc);
+        }
         Ok(window)
     }
     /// Opens a dialog or state directly, for screenshots of each part of the window:
@@ -742,7 +821,9 @@ impl App {
         if let Some(kind) = value("--preview-build") {
             self.build_app = self.app.clone();
             let mut state = self.build_job.state.lock().unwrap();
-            state.log = "Source commit: 8d0cede\nCompiling kurbo\nCompiling peniko\n".into();
+            state.log = "Source commit: 8d0cede\nCompiling kurbo\nCompiling peniko\n"
+                .to_owned()
+                .into();
             match kind.as_str() {
                 "running" => {
                     state.busy = true;
@@ -876,13 +957,57 @@ impl App {
         apps: Vec<model::Installed>,
         intent: craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent,
     ) {
+        let apps = self.begin_app_checks(ctx, apps);
+        if apps.is_empty() {
+            return;
+        }
+        let tx = self.check_sender.clone();
+        let generation = self.check_generation;
+        let paths = self.paths.clone();
+        let preferences = self.preferences.clone();
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            if intent.uses_catalog() {
+                updates::check_installation_batch(
+                    &paths,
+                    &apps,
+                    &preferences,
+                    |installed, result| {
+                        let _ = tx.send((
+                            generation,
+                            installed,
+                            result.map_err(|error| format!("{error:#}")),
+                        ));
+                        ctx.request_repaint();
+                    },
+                );
+                return;
+            }
+            for installed in apps {
+                let started = std::time::Instant::now();
+                let result =
+                    updates::check_installation_for(&paths, &installed, &preferences, intent)
+                        .map_err(|e| format!("{e:#}"));
+                // Acknowledge an explicit click without slowing automatic batches.
+                if intent == craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::ManualUpdate {
+                    std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
+                }
+                if tx.send((generation, installed, result)).is_err() {
+                    break;
+                }
+                ctx.request_repaint();
+            }
+        });
+    }
+    fn begin_app_checks(
+        &mut self,
+        ctx: &egui::Context,
+        apps: Vec<model::Installed>,
+    ) -> Vec<model::Installed> {
         let apps: Vec<_> = apps
             .into_iter()
             .filter(|copy| self.checking_apps.insert(copy.name.clone()))
             .collect();
-        if apps.is_empty() {
-            return;
-        }
         for copy in &apps {
             if let Some(update) = self.status(&copy.name).update {
                 self.known_updates.insert(
@@ -900,26 +1025,63 @@ impl App {
             });
             self.release_checks.remove(&copy.name);
         }
-        let tx = self.check_sender.clone();
+        apps
+    }
+
+    fn start_background_app_checks(&mut self, ctx: &egui::Context, periodic: bool) {
+        let Some(config) = &self.display_config else {
+            return;
+        };
+        let apps = updates::automatic_check_targets(config, &self.preferences);
+        let (tx, rx) = std::sync::mpsc::channel();
+        self.periodic_receiver = Some(rx);
+        let apps = self.begin_app_checks(ctx, apps);
         let generation = self.check_generation;
-        let paths = self.paths.clone();
+        let sender = self.check_sender.clone();
         let preferences = self.preferences.clone();
+        let paths = self.paths.clone();
         let ctx = ctx.clone();
         std::thread::spawn(move || {
-            for installed in apps {
-                let started = std::time::Instant::now();
-                let result =
-                    updates::check_installation_for(&paths, &installed, &preferences, intent)
-                        .map_err(|e| format!("{e:#}"));
-                // Keep fast cached checks visible long enough to acknowledge the click.
-                std::thread::sleep(Duration::from_millis(750).saturating_sub(started.elapsed()));
-                if tx.send((generation, installed, result)).is_err() {
-                    break;
-                }
-                ctx.request_repaint();
+            let job = Job::new(
+                paths.at(if periodic {
+                    "runtime/background-app-check.log"
+                } else {
+                    "runtime/tray-app-check.log"
+                }),
+                &Default::default(),
+            );
+            let mut pending: std::collections::BTreeSet<_> =
+                apps.iter().map(|app| app.name.clone()).collect();
+            let result = hourly::run_window_check(
+                &paths,
+                &job,
+                &preferences,
+                &apps,
+                periodic,
+                |app, result| {
+                    pending.remove(&app.name);
+                    let _ = sender.send((
+                        generation,
+                        app,
+                        result.map_err(|error| format!("{error:#}")),
+                    ));
+                    ctx.request_repaint();
+                },
+            )
+            .map_err(|error| format!("{error:#}"));
+            for app in apps.into_iter().filter(|app| pending.contains(&app.name)) {
+                let error = result
+                    .as_ref()
+                    .err()
+                    .cloned()
+                    .unwrap_or_else(|| "No saved update check result".into());
+                let _ = sender.send((generation, app, Err(error)));
             }
+            let _ = tx.send(result);
+            ctx.request_repaint();
         });
     }
+
     fn remember_installation_check(&self, ctx: &egui::Context, copy: &model::Installed) {
         let id = installation_check_id(&self.paths, copy, self.check_generation);
         if !self.display_config.as_ref().is_some_and(|config| {
@@ -1013,9 +1175,16 @@ impl App {
             "logs/updates.log".into()
         };
         let previous = self.job.state.lock().unwrap().output.clone();
-        self.job = Job::interactive(paths.at(log), &self.build_preferences);
-        self.job.enable_identity_choices();
-        self.job.history(&self.job.log_path);
+        let job = Job::interactive(paths.at(log), &self.build_preferences);
+        let is_builder = self.builder;
+        self.job = if is_builder {
+            self.wake_for_build(job)
+        } else {
+            job
+        };
+        if !is_builder {
+            self.job.history(&self.job.log_path);
+        }
         self.job.state.lock().unwrap().output = previous;
         self.job_target = matches!(
             action.as_str(),
@@ -1026,39 +1195,49 @@ impl App {
         let parent = PathBuf::from(&self.build_parent);
         let shortcut = self.build_shortcut;
         self.job.describe(&action, &app);
-        self.job.spawn(move |job| match action.as_str() {
-            "releases" => updates::releases(&paths, &job, false),
-            "install-app" => updates::install_app(&paths, &app, &job),
-            "uninstall-app" => {
-                apps::uninstall_with_profile(&paths, &app, delete_profile)?;
-                job.report(
-                    "App data",
-                    if delete_profile {
-                        "Deletion requested and removal completed"
-                    } else {
-                        "Kept"
-                    },
-                );
-                Ok(())
+        let work = move |job: Job| {
+            if is_builder {
+                job.history(&job.log_path);
             }
-            "sources" => updates::sources(&paths, &paths.preferences()?.selected_sources, &job),
-            "source-app" => updates::sources(&paths, &[app], &job),
-            "remove-source" => updates::remove_source(&paths, &app),
-            "clean-build" => {
-                let folder =
-                    builder::selected_build(&paths, &app)?.context("No completed local build")?;
-                job.stage(
-                    "Cleaning build files",
-                    None,
-                    "Keeping compiled builds and downloaded sources",
-                );
-                builder::clean_local(&paths, &app, &folder)
+            match action.as_str() {
+                "releases" => updates::releases(&paths, &job, false),
+                "install-app" => updates::install_app(&paths, &app, &job),
+                "uninstall-app" => {
+                    apps::uninstall_with_profile(&paths, &app, delete_profile)?;
+                    job.report(
+                        "App data",
+                        if delete_profile {
+                            "Deletion requested and removal completed"
+                        } else {
+                            "Kept"
+                        },
+                    );
+                    Ok(())
+                }
+                "sources" => updates::sources(&paths, &paths.preferences()?.selected_sources, &job),
+                "source-app" => updates::sources(&paths, &[app], &job),
+                "remove-source" => updates::remove_source(&paths, &app),
+                "clean-build" => {
+                    let folder = builder::selected_build(&paths, &app)?
+                        .context("No completed local build")?;
+                    job.stage(
+                        "Cleaning build files",
+                        None,
+                        "Keeping compiled builds and downloaded sources",
+                    );
+                    builder::clean_local(&paths, &app, &folder)
+                }
+                "build" => builder::build_to(&paths, &app, latest, Some(&parent), shortcut, &job),
+                "setup" => tools::setup(&paths, &app, &job),
+                "clean" => builder::clean(&paths),
+                _ => unreachable!(),
             }
-            "build" => builder::build_to(&paths, &app, latest, Some(&parent), shortcut, &job),
-            "setup" => tools::setup(&paths, &app, &job),
-            "clean" => builder::clean(&paths),
-            _ => unreachable!(),
-        });
+        };
+        if self.builder {
+            self.job.spawn_background(work);
+        } else {
+            self.job.spawn(work);
+        }
     }
     /// Builds or sets up tools for the selected app, beside any release job.
     fn start_build(&mut self, action: &str) {
@@ -1089,20 +1268,28 @@ impl App {
         let app = self.app.clone();
         let latest = self.latest;
         let action = action.to_string();
-        self.build_job = Job::new(paths.at(format!("logs/{app}.log")), &self.build_preferences);
-        self.build_job.history(&self.build_job.log_path);
-        self.build_job.state.lock().unwrap().output = builder::history(&paths, &app);
+        self.build_job = self.wake_for_build(Job::new(
+            paths.at(format!("logs/{app}.log")),
+            &self.build_preferences,
+        ));
         self.build_app = app.clone();
         self.build_action = action.clone();
         self.build_was_busy = true;
         let parent = PathBuf::from(&self.build_parent);
         let shortcut = self.build_shortcut;
         self.build_job.describe(&action, &app);
-        self.build_job.spawn(move |job| match action.as_str() {
-            "build" => builder::build_to(&paths, &app, latest, Some(&parent), shortcut, &job),
-            "setup" => tools::setup(&paths, &app, &job),
-            _ => unreachable!(),
+        self.build_job.spawn_background(move |job| {
+            job.history(&job.log_path);
+            match action.as_str() {
+                "build" => builder::build_to(&paths, &app, latest, Some(&parent), shortcut, &job),
+                "setup" => tools::setup(&paths, &app, &job),
+                _ => unreachable!(),
+            }
         });
+    }
+    fn wake_for_build(&self, job: Job) -> Job {
+        let context = self.ui_context.clone();
+        job.with_display_wake(move || context.request_repaint_after(Duration::from_millis(33)))
     }
     fn begin_custom_install(&mut self, app: &str, tag: Option<String>, ctx: &egui::Context) {
         if self.custom_receiver.is_some() || self.custom_download_choice.is_some() {
@@ -1173,6 +1360,7 @@ impl App {
         let ctx = ctx.clone();
         let preferences = self.build_preferences.clone();
         let additional = self.additional_installation;
+        let needs_shortcut_default = self.install_shortcut.is_none();
         let tag = self.install_selected_tag.clone();
         let config = self
             .display_config
@@ -1181,6 +1369,24 @@ impl App {
         let (tx, rx) = std::sync::mpsc::channel();
         self.install_receiver = Some(rx);
         std::thread::spawn(move || {
+            let shortcut = needs_shortcut_default.then(|| {
+                if additional {
+                    return false;
+                }
+                let fresh;
+                let config = match &config {
+                    Some(config) => Some(config),
+                    None => {
+                        fresh = paths.config().ok();
+                        fresh.as_ref()
+                    }
+                };
+                config
+                    .and_then(|config| config.apps.iter().find(|copy| copy.name == app))
+                    .is_some_and(|copy| {
+                        craft_apps_manager::portable::installed_desktop_shortcut(&paths, copy)
+                    })
+            });
             let job = Job::new(paths.at("logs/install-preview.log"), &preferences);
             let result = if let Some(config) = config {
                 updates::plan_install_preview(
@@ -1204,7 +1410,7 @@ impl App {
                 Ok(plan)
             })
             .map_err(|e| format!("{e:#}"));
-            let _ = tx.send(result);
+            let _ = tx.send((result, shortcut));
             ctx.request_repaint();
         });
     }
@@ -1214,6 +1420,7 @@ impl App {
         self.confirm_install = None;
         self.additional_installation = false;
         self.install_draft_app = None;
+        self.install_shortcut = None;
         self.install_result = None;
         self.app = app.clone();
         self.job = Job::interactive(paths.at("logs/updates.log"), &self.build_preferences);
@@ -1296,6 +1503,9 @@ impl App {
         }
         if catalog::get(&app).is_some_and(|entry| entry.repository.contains('/')) {
             self.confirm_install = Some(app.clone());
+            if self.install_draft_app.as_deref() != Some(&app) {
+                self.install_shortcut = None;
+            }
             self.install_draft_app = Some(app.clone());
             if self.versions_app.as_deref() != Some(&app) {
                 self.versions_app = None;
@@ -1314,7 +1524,9 @@ impl App {
             self.result(Err(error));
             return;
         }
-        self.install_shortcut = true;
+        if self.install_draft_app.as_deref() != Some(&app) {
+            self.install_shortcut = None;
+        }
         self.install_draft_app = Some(app.clone());
         self.confirm_install = Some(app.clone());
         self.install_error = None;
@@ -1500,7 +1712,12 @@ impl App {
             model::architecture_label(&options.architecture)
         )
     }
-    fn refresh_changed_installations(&mut self, config: &model::Config, ctx: &egui::Context) {
+    fn refresh_changed_installations(
+        &mut self,
+        config: &model::Config,
+        saved_checks: &hourly::Checks,
+        ctx: &egui::Context,
+    ) {
         self.known_updates.retain(|(name, path, version), _| {
             config
                 .apps
@@ -1534,20 +1751,23 @@ impl App {
             }
             // A check for the previous version must not suppress checking the new one.
             self.checking_apps.remove(&app.name);
+            let saved = craft_apps_manager::install_options::for_installed(&self.preferences, &app)
+                .ok()
+                .and_then(|options| saved_checks.get(&hourly::key(&options, &app.name)))
+                .filter(|check| check.installed == app.version && check.path == app.path);
             let cache_ctx = ctx.clone();
-            if let Some(result) = updates::cached_installation_check_ready(
-                &self.paths,
-                &app,
-                &self.preferences,
-                move || cache_ctx.request_repaint(),
-            ) {
-                self.release_checks.insert(
-                    app.name.clone(),
-                    (
-                        app.version.clone(),
-                        result.map_err(|error| format!("{error:#}")),
-                    ),
-                );
+            let result = saved.map(|check| Ok(check.latest.clone())).or_else(|| {
+                updates::cached_installation_check_ready(
+                    &self.paths,
+                    &app,
+                    &self.preferences,
+                    move || cache_ctx.request_repaint(),
+                )
+                .map(|result| result.map_err(|error| format!("{error:#}")))
+            });
+            if let Some(result) = result {
+                self.release_checks
+                    .insert(app.name.clone(), (app.version.clone(), result));
             } else {
                 unknown_versions.push(app);
             }
@@ -1713,28 +1933,142 @@ impl App {
         } else {
             (self.build_job.snapshot(), self.build_app.as_str())
         };
-        let mut observed =
+        let mut state =
             Job::observed_builder_state(&local, local_app, &self.operation_records, app);
-        self.apply_shared_build_log(&mut observed, app);
-        observed
-    }
-    fn apply_shared_build_log(&self, state: &mut craft_apps_manager::jobs::State, app: &str) {
-        let local_busy = if self.builder {
-            self.job.snapshot().busy
-        } else {
-            self.build_app == app && self.build_job.snapshot().busy
-        };
-        if local_busy {
-            return;
+        if !(local.busy && local_app == app) {
+            if let Some(log) = Job::latest_builder_operation(&self.operation_records, app)
+                .filter(|operation| operation.owner != std::process::id())
+                .and_then(|operation| self.build_log_for(&operation.id))
+            {
+                state.log.clone_from(&log.text);
+            }
         }
-        if let Some(operation) = Job::latest_builder_operation(&self.operation_records, app) {
-            if operation.owner != std::process::id() {
-                if let Some(log) = self.shared_build_logs.get(&operation.id) {
-                    state.log.clone_from(log);
+        state
+    }
+    fn build_log_for(&self, id: &str) -> Option<&BuildLogTail> {
+        self.shared_build_log
+            .as_ref()
+            .filter(|(current, _)| current == id)
+            .map(|(_, tail)| tail)
+    }
+    fn live_shared_build(&self) -> Option<&craft_apps_manager::operations::Operation> {
+        if self.tray_hidden
+            || self
+                .ui_context
+                .input(|input| input.viewport().minimized == Some(true))
+            || !(self.builder || self.page == Page::App)
+        {
+            return None;
+        }
+        Job::latest_builder_operation(&self.operation_records, &self.app)
+            .filter(|op| op.owner != std::process::id() && Job::builder_operation(op, &self.app))
+    }
+    fn poll_live_build(&mut self, ctx: &egui::Context) {
+        if let Some(receiver) = &self.build_log_receiver {
+            match receiver.try_recv() {
+                Ok((root, app, operation, tail)) => {
+                    self.build_log_receiver = None;
+                    if root == self.paths.root && app == self.app {
+                        if let Some(index) = self.operation_records.iter().position(|current| {
+                            current.id == operation.id
+                                && !current.lifecycle.terminal()
+                                && !operation.lifecycle.terminal()
+                                && current.heartbeat <= operation.heartbeat
+                        }) {
+                            if let Some(tail) = tail {
+                                self.shared_build_log = Some((operation.id.clone(), tail));
+                            }
+                            // Terminal changes use the full activity refresh so badges stay in sync.
+                            self.operation_records[index] = operation;
+                        } else if operation.lifecycle.terminal() {
+                            self.operation_refresh = Instant::now() - Duration::from_secs(1);
+                        }
+                    }
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => return,
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    self.build_log_receiver = None;
                 }
             }
         }
+        if self.shared_window_receiver.is_some() || Instant::now() < self.build_log_refresh {
+            return;
+        }
+        let Some(operation) = self.live_shared_build() else {
+            return;
+        };
+        let id = operation.id.clone();
+        self.build_log_refresh = Instant::now() + LIVE_BUILD_REFRESH;
+        let root = self.paths.root.clone();
+        let app = self.app.clone();
+        let operations = self.job.operations.clone();
+        let previous = self.shared_build_log.as_ref().map(|(_, tail)| tail.clone());
+        let context = ctx.clone();
+        let (sender, receiver) = std::sync::mpsc::channel();
+        self.build_log_receiver = Some(receiver);
+        std::thread::spawn(move || {
+            if let Ok(operation) = operations.read(&id) {
+                let tail = operation
+                    .facts
+                    .get("Log file")
+                    .and_then(|path| BuildLogTail::read(Path::new(path), previous.as_ref()));
+                let _ = sender.send((root, app, operation, tail));
+            }
+            context.request_repaint();
+        });
     }
+    fn poll_config_snapshot(&mut self, ctx: &egui::Context) {
+        while let Some(result) = self.config_receiver.as_ref().and_then(|receiver| {
+            poll_worker_result(receiver, || {
+                "Installation discovery worker stopped unexpectedly.".into()
+            })
+        }) {
+            match result {
+                Ok(SnapshotUpdate::Inventory(snapshot)) => {
+                    self.refresh_changed_installations(&snapshot.config, &snapshot.checks, ctx);
+                    if self.display_config.is_none() {
+                        for app in &snapshot.config.apps {
+                            if let Some(check) =
+                                snapshot.checks.get(&craft_apps_manager::hourly::key(
+                                    &craft_apps_manager::install_options::for_installed(
+                                        &self.preferences,
+                                        app,
+                                    )
+                                    .unwrap_or_else(|_| self.app_preferences(&app.name)),
+                                    &app.name,
+                                ))
+                            {
+                                if check.installed == app.version
+                                    && !app.path.is_empty()
+                                    && (check.path.is_empty() || check.path == app.path)
+                                {
+                                    self.release_checks.entry(app.name.clone()).or_insert((
+                                        check.installed.clone(),
+                                        Ok(check.latest.clone()),
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    self.alternates = snapshot.alternates;
+                    self.display_config = Some(snapshot.config);
+                    continue;
+                }
+                Ok(SnapshotUpdate::Details(snapshot)) => {
+                    self.display_installation_folders = snapshot.installation_folders;
+                    self.display_rollbacks = snapshot.rollbacks;
+                    self.display_sources = snapshot.sources;
+                    self.display_builds = snapshot.builds;
+                    self.display_build_cache = snapshot.build_cache;
+                    self.display_launch = snapshot.launch;
+                }
+                Err(error) => self.error = Some(error),
+            }
+            self.config_receiver = None;
+            self.inventory_receiver = None;
+        }
+    }
+
     fn poll(&mut self, ctx: &egui::Context) {
         if let Some(receiver) = &self.build_cache_receiver {
             match receiver.try_recv() {
@@ -1840,10 +2174,12 @@ impl App {
         }
         if let Some(receiver) = &self.shared_window_receiver {
             match receiver.try_recv() {
-                Ok((root, appearance, logs, records, activity_log)) => {
+                Ok((root, app, appearance, log, records, activity_log)) => {
                     self.shared_window_receiver = None;
                     if root == self.paths.root {
-                        self.shared_build_logs = logs;
+                        if app == self.app {
+                            self.shared_build_log = log;
+                        }
                         self.activity_log = activity_log;
                         self.observe_operations(records, ctx);
                         if let Some((_, badge)) = appearance {
@@ -1873,17 +2209,18 @@ impl App {
         }
         if self.operation_refresh.elapsed() >= Duration::from_secs(1)
             && self.shared_window_receiver.is_none()
+            && self.build_log_receiver.is_none()
         {
             self.operation_refresh = Instant::now();
             let paths = self.paths.clone();
             let operations = self.job.operations.clone();
             let log_path = self.job.log_path.clone();
             let app = self.app.clone();
+            let previous = self.shared_build_log.as_ref().map(|(_, tail)| tail.clone());
             let context = ctx.clone();
             let (sender, receiver) = std::sync::mpsc::channel();
             self.shared_window_receiver = Some(receiver);
             std::thread::spawn(move || {
-                use std::io::{Read, Seek, SeekFrom};
                 let records = operations.list();
                 let build = Job::latest_builder_operation(&records, &app)
                     .filter(|op| op.owner != std::process::id());
@@ -1892,34 +2229,16 @@ impl App {
                     .read_preferences()
                     .ok()
                     .map(|p| (p.theme, p.hide_activity_badge));
-                let mut logs = std::collections::HashMap::new();
-                for operation in build.into_iter().filter(|op| {
-                    matches!(
-                        op.kind.as_str(),
-                        "Build" | "Source download" | "Set up tools"
-                    )
-                }) {
-                    if let Some(path) = operation.facts.get("Log file") {
-                        // Read a bounded tail outside the UI thread, including completed builds.
-                        if let Ok(mut file) = std::fs::File::open(path) {
-                            if let Ok(metadata) = file.metadata() {
-                                let _ = file
-                                    .seek(SeekFrom::Start(metadata.len().saturating_sub(200_000)));
-                                let mut bytes = Vec::new();
-                                if file.take(200_000).read_to_end(&mut bytes).is_ok() {
-                                    logs.insert(
-                                        operation.id.clone(),
-                                        String::from_utf8_lossy(&bytes).into_owned(),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                let _ = sender.send((paths.root, appearance, logs, records, activity_log));
+                let log = build.and_then(|operation| {
+                    let path = operation.facts.get("Log file")?;
+                    let tail = BuildLogTail::read(Path::new(path), previous.as_ref())?;
+                    Some((operation.id.clone(), tail))
+                });
+                let _ = sender.send((paths.root, app, appearance, log, records, activity_log));
                 context.request_repaint();
             });
         }
+        self.poll_live_build(ctx);
         if let Some(receiver) = &self.catalog_receiver {
             if let Some(result) =
                 poll_worker_result(receiver, || "App list worker stopped unexpectedly.".into())
@@ -1983,8 +2302,9 @@ impl App {
         self.request_icons(ctx);
         if let Some(receiver) = &self.install_receiver {
             match receiver.try_recv() {
-                Ok(result) => {
+                Ok((result, shortcut)) => {
                     self.install_receiver = None;
+                    self.install_shortcut = self.install_shortcut.or(shortcut);
                     self.install_result = Some(result);
                 }
                 Err(std::sync::mpsc::TryRecvError::Disconnected) => {
@@ -2056,15 +2376,39 @@ impl App {
             if let Some(result) =
                 poll_worker_result(receiver, || "Inventory reader stopped unexpectedly.".into())
             {
-                if let Ok(Some(config)) = result {
-                    self.refresh_changed_installations(&config, ctx);
-                    self.display_config = Some(config);
+                if let Ok(Some(snapshot)) = result {
+                    self.refresh_changed_installations(&snapshot.config, &snapshot.checks, ctx);
+                    self.display_config = Some(snapshot.config);
                 }
                 self.inventory_receiver = None;
             }
         }
-        // A completed batch child has already persisted its verified installation.
-        // Adopt that inventory without waiting for the remaining apps or running discovery.
+        // Builds do not change installations, so only release jobs pause the
+        // snapshot; either kind finishing refreshes it.
+        let busy = self.job.snapshot().busy;
+        let building = self.build_job.snapshot().busy;
+        if self.operation_was_busy && !busy {
+            if self.job_action == "clean-build" && self.build_options_open {
+                self.refresh_build_cache();
+            }
+            self.catalog_changed();
+            if matches!(self.job_action.as_str(), "install-app" | "releases") {
+                self.inventory_refresh_pending = true;
+            }
+        }
+        if (self.operation_was_busy && !busy) || (self.build_was_busy && !building) {
+            self.config_refresh_at = std::time::Instant::now();
+        }
+        if busy {
+            self.operation_completed_at = None;
+        } else if self.operation_was_busy && self.job.state.lock().unwrap().stage == "Complete" {
+            self.operation_completed_at = Some(std::time::Instant::now());
+        }
+        self.operation_was_busy = busy;
+        self.build_was_busy = building;
+        self.poll_config_snapshot(ctx);
+        // Adopt committed inventory as soon as a local operation or a batch
+        // child finishes. A full scan can follow after the sidebar catches up.
         if self.inventory_refresh_pending
             && self.inventory_receiver.is_none()
             && self.config_receiver.is_none()
@@ -2080,68 +2424,6 @@ impl App {
                 context.request_repaint();
             });
         }
-        // Builds do not change installations, so only release jobs pause the
-        // snapshot; either kind finishing refreshes it.
-        let busy = self.job.snapshot().busy;
-        let building = self.build_job.snapshot().busy;
-        if self.operation_was_busy && !busy {
-            if self.job_action == "clean-build" && self.build_options_open {
-                self.refresh_build_cache();
-            }
-            self.catalog_changed();
-        }
-        if (self.operation_was_busy && !busy) || (self.build_was_busy && !building) {
-            self.config_refresh_at = std::time::Instant::now();
-        }
-        if busy {
-            self.operation_completed_at = None;
-        } else if self.operation_was_busy && self.job.state.lock().unwrap().stage == "Complete" {
-            self.operation_completed_at = Some(std::time::Instant::now());
-        }
-        self.operation_was_busy = busy;
-        self.build_was_busy = building;
-        if let Some(receiver) = &self.config_receiver {
-            if let Some(result) = poll_worker_result(receiver, || {
-                "Installation discovery worker stopped unexpectedly.".into()
-            }) {
-                match result {
-                    Ok(snapshot) => {
-                        self.refresh_changed_installations(&snapshot.config, ctx);
-                        if self.display_config.is_none() {
-                            for app in &snapshot.config.apps {
-                                if let Some(check) =
-                                    snapshot.checks.get(&craft_apps_manager::hourly::key(
-                                        &craft_apps_manager::install_options::for_installed(
-                                            &self.preferences,
-                                            app,
-                                        )
-                                        .unwrap_or_else(|_| self.app_preferences(&app.name)),
-                                        &app.name,
-                                    ))
-                                {
-                                    if check.installed == app.version && !app.path.is_empty() {
-                                        self.release_checks.entry(app.name.clone()).or_insert((
-                                            check.installed.clone(),
-                                            Ok(check.latest.clone()),
-                                        ));
-                                    }
-                                }
-                            }
-                        }
-                        self.alternates = snapshot.alternates;
-                        self.display_config = Some(snapshot.config);
-                        self.display_rollbacks = snapshot.rollbacks;
-                        self.display_sources = snapshot.sources;
-                        self.display_builds = snapshot.builds;
-                        self.display_build_cache = snapshot.build_cache;
-                        self.display_launch = snapshot.launch;
-                    }
-                    Err(error) => self.error = Some(error),
-                }
-                self.config_receiver = None;
-                self.inventory_receiver = None;
-            }
-        }
         if !busy
             && self.inventory_receiver.is_none()
             && self.installation_selection.is_none()
@@ -2154,40 +2436,75 @@ impl App {
             let paths = self.paths.clone();
             let ctx = ctx.clone();
             std::thread::spawn(move || {
-                let result = (|| -> Result<Snapshot> {
+                let result = (|| -> Result<Option<SnapshotDetails>> {
                     let config = paths.config()?;
                     let alternates = paths.alternate_installations(&config)?;
-                    let rollbacks = config
+                    let checks = craft_apps_manager::hourly::read(&paths)?;
+                    let installed_apps = config.apps.clone();
+                    let installation_paths: std::collections::BTreeSet<_> = config
                         .apps
                         .iter()
-                        .map(|installed| {
-                            (
-                                installed.name.clone(),
-                                craft_apps_manager::installations::rollbacks::status(
-                                    &paths, installed,
-                                )
-                                .map_err(|e| format!("{e:#}")),
-                            )
+                        .chain(&config.installations)
+                        .chain(&alternates)
+                        .filter(|copy| !copy.path.is_empty())
+                        .map(|copy| copy.path.clone())
+                        .collect();
+                    if tx
+                        .send(Ok(SnapshotUpdate::Inventory(InventorySnapshot {
+                            config,
+                            alternates,
+                            checks,
+                        })))
+                        .is_err()
+                    {
+                        return Ok(None);
+                    }
+                    ctx.request_repaint();
+
+                    // Display-only extras: an unreadable file just leaves its row empty.
+                    let installation_folders = installation_paths
+                        .into_iter()
+                        .filter_map(|path| {
+                            let folder = screens::app_page::installation_folder(Path::new(&path))?;
+                            Some((path, folder))
                         })
                         .collect();
-                    let checks = craft_apps_manager::hourly::read(&paths)?;
-                    // Display-only extras: an unreadable file just leaves its row empty.
+                    let settings =
+                        craft_apps_manager::storage::config::ConfigStore::new(paths.root.clone())
+                            .load()
+                            .ok();
+                    let names = model::apps();
+                    let rollbacks = settings
+                        .as_ref()
+                        .and_then(|settings| settings.manager().ok())
+                        .map(|preferences| {
+                            installed_apps
+                                .iter()
+                                .filter(|installed| !installed.path.is_empty())
+                                .map(|installed| {
+                                    (
+                                        installed.name.clone(),
+                                        craft_apps_manager::installations::rollbacks::summary(
+                                            &paths,
+                                            installed,
+                                            &preferences,
+                                        )
+                                        .map_err(|e| format!("{e:#}")),
+                                    )
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default();
                     let sources = craft_apps_manager::files::read_or_default(
                         &paths.at("sources/source-index.json"),
                     )
                     .unwrap_or_default();
-                    let builds: BTreeMap<String, (PathBuf, Option<model::BuildInfo>)> =
-                        model::apps()
-                            .into_iter()
-                            .filter_map(|name| {
-                                let folder = builder::selected_build(&paths, &name).ok()??;
-                                let info = craft_apps_manager::files::read_json(
-                                    &folder.join("build-info.json"),
-                                )
-                                .ok();
-                                Some((name, (folder, info)))
-                            })
-                            .collect();
+                    let builds = settings
+                        .as_ref()
+                        .and_then(|settings| {
+                            builder::selected_builds(&paths, settings, &names).ok()
+                        })
+                        .unwrap_or_default();
                     let build_cache = builds
                         .iter()
                         .filter(|(app, (folder, _))| {
@@ -2195,37 +2512,37 @@ impl App {
                         })
                         .map(|(app, _)| app.clone())
                         .collect();
-                    let launch = model::apps()
+                    let launch = settings
+                        .as_ref()
+                        .and_then(|settings| apps::settings_for_apps(&paths, settings, &names).ok())
+                        .unwrap_or_default();
+                    let builds = builds
                         .into_iter()
-                        .filter_map(|name| {
-                            apps::settings(&paths, &name)
-                                .ok()
-                                .map(|settings| (name, settings))
-                        })
+                        .map(|(name, (folder, info))| (name, (folder, Some(info))))
                         .collect();
-                    Ok(Snapshot {
-                        config,
-                        alternates,
+                    Ok(Some(SnapshotDetails {
+                        installation_folders,
                         rollbacks,
-                        checks,
                         sources,
                         builds,
                         build_cache,
                         launch,
-                    })
+                    }))
                 })();
-                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
+                let update = match result {
+                    Ok(Some(details)) => Ok(SnapshotUpdate::Details(details)),
+                    Ok(None) => return,
+                    Err(error) => Err(format!("{error:#}")),
+                };
+                let _ = tx.send(update);
                 ctx.request_repaint();
             });
         }
         if !self.builder && self.apps_startup_pending && !self.job.snapshot().busy {
             if let Some(config) = &self.display_config {
-                let apps = updates::installed_check_targets(config)
-                    .into_iter()
-                    .map(|app| (app.name, app.version))
-                    .collect();
+                let apps = updates::automatic_check_targets(config, &self.preferences);
                 self.apps_startup_pending = false;
-                self.check_apps_for(ctx, apps, craft_apps_manager::installations::release_catalog::resolution::ReleaseIntent::AutomaticUpdate);
+                self.check_installations(ctx, apps);
             }
         }
         if let Some(receiver) = &self.periodic_receiver {
@@ -2234,38 +2551,9 @@ impl App {
             }) {
                 self.periodic_receiver = None;
                 self.app_check_at = Instant::now();
-                match result {
-                    Ok(checks) => {
-                        for (key, check) in checks {
-                            if let Some(app) = key.rsplit(':').next() {
-                                if self
-                                    .display_config
-                                    .as_ref()
-                                    .and_then(|config| {
-                                        config.apps.iter().find(|copy| copy.name == app)
-                                    })
-                                    .is_some_and(|copy| {
-                                        copy.version == check.installed
-                                            && craft_apps_manager::install_options::for_installed(
-                                                &self.preferences,
-                                                copy,
-                                            )
-                                            .is_ok_and(|prefs| {
-                                                craft_apps_manager::hourly::key(&prefs, app) == key
-                                            })
-                                    })
-                                {
-                                    self.release_checks.insert(
-                                        app.to_owned(),
-                                        (check.installed, Ok(check.latest)),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                    Err(error) => self
-                        .job
-                        .log(&format!("Background app check failed: {error}")),
+                if let Err(error) = result {
+                    self.job
+                        .log(&format!("Background app check failed: {error}"));
                 }
             }
         }
@@ -2281,27 +2569,13 @@ impl App {
             && self.manager_plan.is_none()
             && self.display_config.is_some()
         {
-            let (tx, rx) = std::sync::mpsc::channel();
-            self.periodic_receiver = Some(rx);
             self.check_manager_trigger(
                 ctx,
                 craft_apps_manager::manager_updates::check_state::CheckTrigger::Periodic(
                     self.preferences.app_check_interval_minutes,
                 ),
             );
-            let paths = self.paths.clone();
-            let ctx = ctx.clone();
-            std::thread::spawn(move || {
-                let job = Job::new(
-                    paths.at("runtime/background-app-check.log"),
-                    &Default::default(),
-                );
-                let result = job.tracked("Background update check", "Application library", |job| {
-                    hourly::run_periodic(&paths, job).and_then(|_| hourly::read(&paths))
-                });
-                let _ = tx.send(result.map_err(|e| format!("{e:#}")));
-                ctx.request_repaint();
-            });
+            self.start_background_app_checks(ctx, true);
         }
         if self.manager_startup_pending {
             self.manager_startup_pending = false;
@@ -2600,14 +2874,13 @@ impl eframe::App for App {
         self.dialogs(ctx);
         self.whats_new_dialog(ctx);
         restore_dialog_focus(ctx);
-        if state.busy
-            || building
-            || self
-                .operation_records
-                .iter()
-                .any(|op| Job::builder_operation(op, &op.resource))
-        {
+        if state.busy || building {
             ctx.request_repaint_after(Duration::from_millis(100));
+        } else if self.live_shared_build().is_some() && self.build_log_receiver.is_none() {
+            ctx.request_repaint_after(
+                self.build_log_refresh
+                    .saturating_duration_since(Instant::now()),
+            );
         } else {
             ctx.request_repaint_after(Duration::from_secs(1));
         }
@@ -2737,7 +3010,49 @@ fn poll_custom_result(
 }
 #[cfg(test)]
 mod outcome_tests {
+    #[test]
+    fn shared_build_log_reuses_unchanged_tail_and_recovers_after_rotation() {
+        use super::*;
+        let root = std::env::temp_dir().join(format!("craft-build-log-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir(&root).unwrap();
+        let path = root.join("build.log");
+        std::fs::write(&path, "long first line\n").unwrap();
+        let first = BuildLogTail::read(&path, None).unwrap();
+        let same = BuildLogTail::read(&path, Some(&first)).unwrap();
+        assert!(std::sync::Arc::ptr_eq(&first.text, &same.text));
+        std::fs::write(&path, "new\n").unwrap();
+        let rotated = BuildLogTail::read(&path, Some(&same)).unwrap();
+        assert_eq!(rotated.text.as_str(), "new\n");
+        std::fs::remove_dir_all(root).unwrap();
+    }
     use super::*;
+    #[test]
+    fn sidebar_labels_reflect_package_stage_and_measured_progress() {
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Downloading", Some(0.62)),
+            "Downloading… 62%"
+        );
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Verifying checksum", Some(0.62)),
+            "Verifying…"
+        );
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Awaiting administrator approval", None),
+            "Waiting to install…"
+        );
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Uninstalling", None),
+            "Uninstalling…"
+        );
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Restoring previous version", None),
+            "Restoring previous version…"
+        );
+        assert_eq!(
+            super::widgets::sidebar::package_stage_label("Installing package", None),
+            "Installing…"
+        );
+    }
     #[test]
     fn sidebar_install_progress_tracks_only_running_package_operations() {
         use craft_apps_manager::operations::{Lifecycle, Manager};
@@ -2815,7 +3130,7 @@ mod outcome_tests {
         .unwrap();
         craft_apps_manager::files::write_json(&root.join("installations.json"), &config).unwrap();
         let before = std::fs::read(root.join("installations.json")).unwrap();
-        let read = completed_install_inventory(&paths).unwrap().unwrap();
+        let read = completed_install_inventory(&paths).unwrap().unwrap().config;
         assert_eq!(read.apps[0].version, "2.0.0");
         assert_eq!(read.apps[0].path, "not-yet-discoverable");
         assert_eq!(
@@ -2883,6 +3198,212 @@ mod outcome_tests {
 #[cfg(test)]
 mod catalog_update_tests {
     use super::*;
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn busy_windows_views_keep_alternate_copies_from_the_verified_inventory() {
+        let root = std::env::temp_dir().join(format!("craft-msi-view-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx);
+        let paths = Paths::new(root.clone(), None);
+        let mut app = App::new(&cc, paths, root.clone(), true).unwrap();
+        let selected = model::Installed {
+            name: "filmcraft".into(),
+            path: root.join("selected").display().to_string(),
+            version: "1.0.0".into(),
+            install_kind: "installer".into(),
+            ..Default::default()
+        };
+        let alternate = model::Installed {
+            path: root.join("temporarily-unavailable").display().to_string(),
+            ..selected.clone()
+        };
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: vec![selected.clone()],
+            installations: vec![selected.clone(), alternate.clone()],
+            portable_label_counters: Default::default(),
+        });
+        assert_eq!(
+            app.installation_copies("filmcraft", false).as_slice(),
+            std::slice::from_ref(&selected)
+        );
+        assert_eq!(
+            app.installation_copies("filmcraft", true),
+            [selected, alternate]
+        );
+        drop(app);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn update_batch_clears_only_the_finished_rows_and_keeps_existing_badges() {
+        let root = std::env::temp_dir().join(format!("craft-check-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            true,
+        )
+        .unwrap();
+        let copies: Vec<_> = ["filmcraft", "designcraft"]
+            .into_iter()
+            .map(|name| model::Installed {
+                name: name.into(),
+                version: "1.0.0".into(),
+                path: root.join(name).display().to_string(),
+                ..Default::default()
+            })
+            .collect();
+        app.display_config = Some(model::Config {
+            apps_root: root.display().to_string(),
+            apps: copies.clone(),
+            installations: copies.clone(),
+            portable_label_counters: Default::default(),
+        });
+        let generation = app.check_generation;
+        app.apply_release_check(
+            &ctx,
+            generation,
+            copies[0].clone(),
+            Ok(Some("2.0.0".into())),
+        );
+        assert_eq!(app.begin_app_checks(&ctx, copies.clone()).len(), 2);
+        assert!(app.status("filmcraft").checking);
+        assert!(app.status("designcraft").checking);
+        assert_eq!(app.status("filmcraft").update.as_deref(), Some("2.0.0"));
+
+        app.apply_release_check(&ctx, generation, copies[1].clone(), Ok(None));
+        assert!(!app.status("designcraft").checking);
+        assert!(app.status("filmcraft").checking);
+        app.apply_release_check(&ctx, generation, copies[0].clone(), Err("Offline".into()));
+        assert!(!app.status("filmcraft").checking);
+        assert_eq!(app.status("filmcraft").update.as_deref(), Some("2.0.0"));
+        drop(app);
+        std::fs::remove_dir_all(root).ok();
+    }
+
+    #[test]
+    fn completed_local_updates_and_downgrades_refresh_sidebar_before_full_discovery() {
+        let root =
+            std::env::temp_dir().join(format!("craft-update-sidebar-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let paths = Paths::new(root.clone(), None);
+        let mut app = App::new(&cc, paths.clone(), root.clone(), true).unwrap();
+        let mut copy = model::Installed {
+            name: "filmcraft".into(),
+            path: root.join("filmcraft").display().to_string(),
+            version: "1.0.0".into(),
+            install_kind: "portable".into(),
+            architecture: model::MANAGER_ARCH.into(),
+            ..Default::default()
+        };
+        let mut config = model::Config {
+            apps_root: root.display().to_string(),
+            apps: vec![copy.clone()],
+            installations: vec![copy.clone()],
+            portable_label_counters: Default::default(),
+        };
+        for (name, from, to, latest) in [
+            ("filmcraft", "1.0.0", "2.0.0", None),
+            ("solidcraft", "2.0.0", "1.0.0", Some("2.0.0".to_owned())),
+        ] {
+            copy.name = name.into();
+            copy.path = root.join(name).display().to_string();
+            copy.version = from.into();
+            config.apps[0] = copy.clone();
+            config.installations[0] = copy.clone();
+            app.display_config = Some(config.clone());
+            copy.version = to.into();
+            config.apps[0] = copy.clone();
+            config.installations[0] = copy.clone();
+            paths.save_config(&config).unwrap();
+            let effective =
+                craft_apps_manager::install_options::for_installed(&app.preferences, &copy)
+                    .unwrap();
+            let checks = hourly::Checks::from([(
+                hourly::key(&effective, &copy.name),
+                hourly::Availability {
+                    installed: copy.version.clone(),
+                    path: copy.path.clone(),
+                    latest: latest.clone(),
+                    notified: None,
+                },
+            )]);
+            craft_apps_manager::files::write_json(
+                &paths.at("runtime/app-update-checks.json"),
+                &checks,
+            )
+            .unwrap();
+            app.job_action = "install-app".into();
+            app.operation_was_busy = true;
+            app.operation_refresh = Instant::now();
+            app.poll(&ctx);
+            assert!(app.config_receiver.is_none());
+            let pending = app
+                .inventory_receiver
+                .take()
+                .expect("Read committed inventory first");
+            let result = pending.recv_timeout(Duration::from_secs(5)).unwrap();
+            let (send, receive) = std::sync::mpsc::channel();
+            send.send(result).unwrap();
+            app.inventory_receiver = Some(receive);
+            // Hold the full scan so the assertions depend only on the fast refresh.
+            app.config_refresh_at = Instant::now() + Duration::from_secs(60);
+            app.poll(&ctx);
+            let status = app.status(name);
+            assert_eq!(status.installed.unwrap().version, to);
+            assert_eq!(status.check, Some(Ok(latest.clone())));
+            assert_eq!(status.update, latest);
+            assert!(!status.checking);
+        }
+        drop(app);
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn verified_inventory_appears_while_app_details_are_pending() {
+        let root = std::env::temp_dir().join(format!("craft-startup-{}", uuid::Uuid::new_v4()));
+        let ctx = egui::Context::default();
+        let cc = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut app = App::new(
+            &cc,
+            model::Paths::new(root.clone(), None),
+            root.clone(),
+            true,
+        )
+        .unwrap();
+        let (tx, rx) = std::sync::mpsc::channel();
+        app.config_receiver = Some(rx);
+        let copy = model::Installed {
+            name: "filmcraft".into(),
+            path: root.join("filmcraft").display().to_string(),
+            version: "1.0.0".into(),
+            ..Default::default()
+        };
+        tx.send(Ok(SnapshotUpdate::Inventory(InventorySnapshot {
+            config: model::Config {
+                apps_root: root.display().to_string(),
+                apps: vec![copy.clone()],
+                installations: vec![copy],
+                portable_label_counters: Default::default(),
+            },
+            alternates: Vec::new(),
+            checks: Default::default(),
+        })))
+        .unwrap();
+
+        app.poll_config_snapshot(&ctx);
+        assert!(app.status("filmcraft").loaded);
+        assert_eq!(app.status("filmcraft").installed.unwrap().version, "1.0.0");
+        assert!(app.config_receiver.is_some());
+        drop(app);
+        std::fs::remove_dir_all(root).ok();
+    }
+
     #[test]
     fn app_lists_reuse_unchanged_data_and_refresh_order_visibility_and_updates() {
         let root = std::env::temp_dir().join(format!("craft-app-list-{}", uuid::Uuid::new_v4()));

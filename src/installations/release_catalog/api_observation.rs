@@ -411,10 +411,7 @@ pub(super) fn retire_resolved(state: &mut store::State) {
         let Some(reference) = index.repositories.get(&observation.repository) else {
             return true;
         };
-        if reference.checked_at > observation.at {
-            return false;
-        }
-        true
+        reference.checked_at <= observation.at
     });
 }
 #[cfg(test)]

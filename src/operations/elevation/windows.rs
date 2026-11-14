@@ -3,7 +3,6 @@ use crate::{
     files,
     jobs::Job,
     model::{BuilderPreferences, Paths},
-    network::Network,
     updates::{self, ReleasePlan},
 };
 use anyhow::{Context, Result};
@@ -47,9 +46,29 @@ fn approved_asset(entry: &crate::updates::ReleaseEntry) -> bool {
             || (name.ends_with(".exe") && crate::installers::batch_identity_ready(&entry.app))
     })
 }
+
+fn approved_installer(entry: &crate::updates::ReleaseEntry) -> bool {
+    entry.preferences.release_format == "installer"
+        && approved_asset(entry)
+        && matches!(entry.action.as_str(), "Install" | "Update")
+        && entry.error.is_none()
+}
+
+// The elevated worker runs its approved installers consecutively. Use it
+// only when those installers already lead the executable part of the plan.
+fn installer_prefix(plan: &ReleasePlan) -> bool {
+    let executable = plan.entries.iter().filter(|entry| {
+        entry.error.is_none() && matches!(entry.action.as_str(), "Install" | "Update")
+    });
+    !executable
+        .skip_while(|entry| approved_installer(entry))
+        .any(approved_installer)
+}
+
 pub fn eligible(plan: &ReleasePlan) -> bool {
     plan.preferences.batch_admin
         && ((plan.requested_tag.is_none()
+            && installer_prefix(plan)
             && plan
                 .entries
                 .iter()
@@ -68,28 +87,16 @@ pub fn eligible(plan: &ReleasePlan) -> bool {
                     .is_some_and(|asset| asset.name.to_ascii_lowercase().ends_with(".msi"))))
 }
 
-pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
+pub(crate) fn execute(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    job: &Job,
+    staged: &mut updates::StagedPackages<'_>,
+) -> Result<()> {
     let mut native = plan.clone();
-    native.entries.retain(|entry| {
-        entry.preferences.release_format == "installer"
-            && approved_asset(entry)
-            && matches!(entry.action.as_str(), "Install" | "Update")
-            && entry.error.is_none()
-    });
+    native.entries.retain(approved_installer);
     native.desktop_shortcut = false; // Shortcut ownership belongs to the unelevated user.
-    let network = Network::new(&paths.root)?;
-    for entry in &native.entries {
-        job.check()?;
-        let asset = entry.asset.as_ref().context("Missing approved installer")?;
-        files::safe_relative(&asset.name)?;
-        let destination = updates::planned_installer_path(paths, &native, &entry.app, asset)?;
-        if destination.exists() {
-            crate::network::verify_asset(&destination, asset)?;
-        } else {
-            network.asset(asset, &destination, job)?;
-        }
-    }
-    // Reject incompatible versions before recovery preparation and administrator approval.
+                                     // Reject incompatible versions before recovery preparation and administrator approval.
     let config = paths.config()?;
     for entry in &native.entries {
         let installed = config
@@ -188,7 +195,9 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
         None,
         "Approve access once for this installer batch",
     );
-    run_worker(&manifest, &checksum, job)?;
+    run_worker(&manifest, &checksum, job, &mut || {
+        staged.preserve_for_worker(&request.plan)
+    })?;
     let outcome: Outcome = files::read_json(&folder.join("result.json"))?;
     if let Ok(log) = std::fs::read_to_string(folder.join("installers.log")) {
         for line in log.lines() {
@@ -230,7 +239,7 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     });
     if !remaining.entries.is_empty() {
         updates::refresh_plan_snapshot(paths, &mut remaining)?;
-        if let Err(error) = updates::execute_plan_direct(paths, &remaining, job) {
+        if let Err(error) = updates::execute_plan_direct(paths, &remaining, job, Some(staged)) {
             errors.push(format!("{error:#}"));
         }
     }
@@ -238,7 +247,12 @@ pub fn execute(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
     Ok(())
 }
 
-fn run_worker(manifest: &Path, checksum: &str, job: &Job) -> Result<()> {
+fn run_worker(
+    manifest: &Path,
+    checksum: &str,
+    job: &Job,
+    on_launch: &mut dyn FnMut(),
+) -> Result<()> {
     use windows::{
         core::PCWSTR,
         Win32::{
@@ -265,6 +279,7 @@ fn run_worker(manifest: &Path, checksum: &str, job: &Job) -> Result<()> {
         ShellExecuteExW(&mut info)
             .context("Administrator approval was declined or the batch worker could not start")?;
     }
+    on_launch();
     // SHELLEXECUTEINFOW is packed on x86: copy its handle before borrowing it.
     let process = info.hProcess;
     let folder = manifest.parent().context("Missing batch folder")?;
@@ -515,6 +530,14 @@ mod tests {
         plan.entries[0].preferences.release_format = "portable".into();
         assert!(!super::eligible(&plan));
         plan.entries[0].preferences.release_format = "installer".into();
+        let mut portable = plan.entries[0].clone();
+        portable.app = "designcraft".into();
+        portable.preferences.release_format = "portable".into();
+        plan.entries.insert(1, portable.clone());
+        assert!(!super::eligible(&plan));
+        plan.entries.remove(1);
+        plan.entries.push(portable);
+        assert!(super::eligible(&plan));
         plan.entries[0].error = Some("No compatible update".into());
         assert!(!super::eligible(&plan));
     }

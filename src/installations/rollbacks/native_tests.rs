@@ -156,6 +156,22 @@ fn intel_msi_accepts_verified_anycpu_runtime_but_not_native_or_required_x86() {
 }
 
 #[test]
+fn sidebar_summary_leaves_installer_checksum_verification_to_rollback_review() {
+    let f = NativeFixture::new();
+    let point = f.point();
+    let package = native::verify(&f.paths, &f.current, &point).unwrap();
+    files::write_bytes(&package, b"bad fixture").unwrap();
+    let prefs = f.paths.read_preferences().unwrap();
+
+    let summary = summary(&f.paths, &f.current, &prefs).unwrap();
+    assert_eq!(summary.previous.unwrap().id, point.id);
+    assert!(status(&f.paths, &f.current).is_err());
+
+    fs::remove_file(package).unwrap();
+    assert!(super::summary(&f.paths, &f.current, &prefs).is_err());
+}
+
+#[test]
 fn damaged_native_point_can_be_explicitly_discarded_without_touching_current_app() {
     let f = NativeFixture::new();
     let point = f.point();

@@ -374,7 +374,7 @@ impl App {
         let palette = theme::palette();
         let actions_enabled = !state.busy && self.installation_selection.is_none();
         let copies = if installed && !floating {
-            self.installation_copies(name)
+            self.installation_copies(name, state.busy)
         } else {
             Vec::new()
         };

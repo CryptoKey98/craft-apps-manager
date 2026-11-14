@@ -49,6 +49,14 @@ fn build_selection_survives_restart_and_keeps_latest_independent() {
         Some(older.clone())
     );
     assert_eq!(history(&paths, "filmcraft"), Some(newer.clone()));
+    let settings = crate::storage::config::ConfigStore::new(root.clone())
+        .load()
+        .unwrap();
+    let names = ["filmcraft".into(), "soundcraft".into()];
+    let selected = selected_builds(&paths, &settings, &names).unwrap();
+    assert_eq!(selected.len(), 1);
+    assert_eq!(selected["filmcraft"].0, older);
+    assert_eq!(selected["filmcraft"].1.built_at, "2026-10-10T12:00:00Z");
     let newest = make("newest", "2026-10-12T12:00:00Z");
     assert_eq!(
         selected_build(&paths, "filmcraft").unwrap(),
@@ -56,6 +64,10 @@ fn build_selection_survives_restart_and_keeps_latest_independent() {
     );
     assert_eq!(completed_builds(&paths, "filmcraft").len(), 3);
     fs::remove_dir_all(&older).unwrap();
+    assert_eq!(
+        selected_builds(&paths, &settings, &names).unwrap()["filmcraft"].0,
+        newest
+    );
     assert_eq!(
         selected_build(&paths, "filmcraft").unwrap(),
         Some(newest.clone())

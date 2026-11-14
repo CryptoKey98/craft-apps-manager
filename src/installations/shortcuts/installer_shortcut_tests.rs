@@ -68,6 +68,61 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn shortcut_default_tracks_the_selected_copy_and_recognizes_installer_links() {
+    let f = Fixture::new();
+    let mut selected = crate::model::Installed {
+        name: "printcraft".into(),
+        path: f.folder.display().to_string(),
+        install_kind: "installer".into(),
+        ..Default::default()
+    };
+    assert!(!installed_desktop_shortcut_at(
+        &f.paths,
+        &selected,
+        &[&f.desktop]
+    ));
+    f.create();
+    assert!(installed_desktop_shortcut_at(
+        &f.paths,
+        &selected,
+        &[&f.desktop]
+    ));
+    let publisher = f.publisher_link("", &f.folder.join("pdfcraft.exe"));
+    f.create();
+    assert!(f.owner().shortcut.is_none());
+    assert!(installed_desktop_shortcut_at(
+        &f.paths,
+        &selected,
+        &[&f.desktop]
+    ));
+
+    let portable = f.root.join("portable");
+    std::fs::create_dir_all(&portable).unwrap();
+    std::fs::write(portable.join("pdfcraft.exe"), b"isolated fixture").unwrap();
+    selected.path = portable.display().to_string();
+    selected.install_kind = "portable".into();
+    assert!(!installed_desktop_shortcut_at(
+        &f.paths,
+        &selected,
+        &[&f.desktop]
+    ));
+    create_named_shortcut(
+        &portable.join(MARKER),
+        f.owner(),
+        &portable,
+        &f.desktop,
+        "PDFCraft (Portable x64)",
+    )
+    .unwrap();
+    assert!(installed_desktop_shortcut_at(
+        &f.paths,
+        &selected,
+        &[&f.desktop]
+    ));
+    assert!(publisher.exists());
+}
+
+#[test]
 fn installer_reuses_existing_pdfcraft_shortcut_without_creating_duplicate() {
     let f = Fixture::new();
     let link = f.publisher_link("", &f.folder.join("pdfcraft.exe"));
