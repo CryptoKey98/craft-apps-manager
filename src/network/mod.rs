@@ -343,7 +343,14 @@ impl Network {
         url: &str,
         policy: CachePolicy,
     ) -> Result<T> {
-        self.json_with_cache(url, false, policy)
+        self.json_with_cache(url, false, policy, true)
+    }
+    pub(crate) fn update_release_from_github<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        use_catalog_evidence: bool,
+    ) -> Result<T> {
+        self.json_with_cache(url, false, CachePolicy::Update, use_catalog_evidence)
     }
     pub fn json_optional_with_policy<T: DeserializeOwned>(
         &self,
@@ -357,15 +364,18 @@ impl Network {
         }
     }
     pub fn json_fresh<T: DeserializeOwned>(&self, url: &str) -> Result<T> {
-        self.json_with_cache(url, true, CachePolicy::Standard)
+        self.json_with_cache(url, true, CachePolicy::Standard, true)
     }
     fn json_with_cache<T: DeserializeOwned>(
         &self,
         url: &str,
         fresh: bool,
         policy: CachePolicy,
+        use_catalog_evidence: bool,
     ) -> Result<T> {
-        let catalog_epoch = crate::installations::release_catalog::api_epoch(&self.root, url);
+        let catalog_epoch = use_catalog_evidence
+            .then(|| crate::installations::release_catalog::api_epoch(&self.root, url))
+            .flatten();
         let token = url
             .starts_with("https://api.github.com/")
             .then(github_token)
@@ -531,7 +541,9 @@ impl Network {
         let record = match response {
             Ok(record) => record,
             Err(error) => {
-                if cache::status(&error).is_some_and(|status| status.as_u16() == 404) {
+                if use_catalog_evidence
+                    && cache::status(&error).is_some_and(|status| status.as_u16() == 404)
+                {
                     crate::installations::release_catalog::observe_withdrawal(
                         &self.root,
                         url,
@@ -543,13 +555,15 @@ impl Network {
         };
         // Publish the UI generation only after dependent invalidation finishes.
         cache::observe_completed(key, record.generation.clone());
-        crate::installations::release_catalog::observe_api(
-            &self.root,
-            url,
-            &record.value,
-            record.at,
-            catalog_epoch.as_deref(),
-        );
+        if use_catalog_evidence {
+            crate::installations::release_catalog::observe_api(
+                &self.root,
+                url,
+                &record.value,
+                record.at,
+                catalog_epoch.as_deref(),
+            );
+        }
         match decoded.into_inner() {
             Some(value) => Ok(value),
             None => Ok(serde_json::from_value(record.value.clone())?),
@@ -560,6 +574,7 @@ impl Network {
     }
     pub fn download(&self, url: &str, dest: &Path, job: &Job) -> Result<()> {
         job.check()?;
+        job.stage("Downloading", None, "Connecting to the download server");
         fs::create_dir_all(dest.parent().unwrap())?;
         let partial = dest.with_extension(format!("{}.partial", uuid::Uuid::new_v4().simple()));
         let result = (|| -> Result<()> {

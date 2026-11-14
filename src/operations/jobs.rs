@@ -27,7 +27,7 @@ pub struct State {
     pub stage: String,
     pub detail: String,
     pub progress: Option<f32>,
-    pub log: String,
+    pub log: Arc<String>,
     pub output: Option<PathBuf>,
     pub outcome: String,
     pub executable: Option<PathBuf>,
@@ -37,6 +37,7 @@ pub struct State {
 pub struct IdentityChoice {
     pub title: String,
     pub candidates: Vec<String>,
+    pub continue_batch: bool,
     answer: std::sync::mpsc::Sender<Option<usize>>,
 }
 impl IdentityChoice {
@@ -60,6 +61,7 @@ pub struct Job {
     children: Arc<Mutex<std::collections::BTreeMap<String, Job>>>,
     relay: Option<Arc<Mutex<State>>>,
     executing_thread: Arc<Mutex<Option<std::thread::ThreadId>>>,
+    wake_display: Option<Arc<dyn Fn() + Send + Sync>>,
 }
 impl Job {
     pub fn new(log_path: PathBuf, prefs: &crate::model::BuilderPreferences) -> Self {
@@ -82,11 +84,21 @@ impl Job {
             children: Arc::new(Mutex::new(Default::default())),
             relay: None,
             executing_thread: Arc::new(Mutex::new(None)),
+            wake_display: None,
             state: Arc::new(Mutex::new(State::default())),
             cancel: Arc::new(AtomicBool::new(false)),
             log_path,
             max_bytes: prefs.log_size_mb * 1024 * 1024,
             archives: prefs.log_archives,
+        }
+    }
+    pub fn with_display_wake(mut self, wake: impl Fn() + Send + Sync + 'static) -> Self {
+        self.wake_display = Some(Arc::new(wake));
+        self
+    }
+    fn notify_display(&self) {
+        if let Some(wake) = &self.wake_display {
+            wake();
         }
     }
     pub fn interactive(log_path: PathBuf, prefs: &crate::model::BuilderPreferences) -> Self {
@@ -112,14 +124,42 @@ impl Job {
             !candidates.is_empty(),
             "No compatible desktop executable found"
         );
+        self.ask_choice(title, candidates, false)
+    }
+
+    pub(crate) fn confirm_partial_batch(&self, failed: Vec<String>) -> Result<()> {
+        self.ask_choice("Continue with the verified packages?", failed, true)?;
+        Ok(())
+    }
+
+    fn ask_choice(
+        &self,
+        title: &str,
+        candidates: Vec<String>,
+        continue_batch: bool,
+    ) -> Result<usize> {
+        anyhow::ensure!(
+            self.interactive,
+            "This operation needs a choice from the manager window."
+        );
+        anyhow::ensure!(!candidates.is_empty(), "No choices available");
         let count = candidates.len();
         let (tx, rx) = std::sync::mpsc::channel();
         *self.choice.lock().unwrap() = Some(IdentityChoice {
             title: title.into(),
             candidates,
+            continue_batch,
             answer: tx,
         });
-        self.stage("Choose application", None, title);
+        self.stage(
+            if continue_batch {
+                "Waiting to install"
+            } else {
+                "Choose application"
+            },
+            None,
+            title,
+        );
         let result = (|| loop {
             self.check()?;
             match rx.recv_timeout(Duration::from_millis(100)) {
@@ -152,7 +192,10 @@ impl Job {
         );
     }
     pub fn report(&self, key: &str, value: impl AsRef<str>) {
-        if let Some(handle) = self.active.lock().unwrap().as_ref() {
+        // Publishing can wait on disk. Keep the active handle available to
+        // the UI while the worker saves its operation details.
+        let handle = self.active.lock().unwrap().clone();
+        if let Some(handle) = handle {
             handle.report(key, value.as_ref());
         }
     }
@@ -258,7 +301,7 @@ impl Job {
             state.progress = operation.progress;
             state.output = operation.facts.get("Output location").map(PathBuf::from);
             state.executable = None;
-            state.log.clear();
+            state.log = Default::default();
         }
         state
     }
@@ -412,6 +455,8 @@ impl Job {
         } else {
             None
         };
+        drop(state);
+        self.notify_display();
     }
     /// Synchronous/headless work has the same lifecycle as spawned GUI work.
     pub fn tracked<T>(
@@ -473,6 +518,7 @@ impl Job {
                 child.interactive = self.interactive;
                 child.choice = self.choice.clone();
                 child.relay = Some(self.state.clone());
+                child.wake_display = self.wake_display.clone();
                 child
             })
             .clone()
@@ -550,6 +596,50 @@ impl Job {
             state.detail = format!("{} · {detail}", self.descriptor.1);
             state.progress = None; // A child's percentage is not overall batch progress.
         }
+        self.notify_display();
+    }
+    /// Report download preparation on its queued row without changing the
+    /// batch's foreground installer or completing its child operation.
+    pub(crate) fn prepare_package<T>(&self, work: impl FnOnce(&Job) -> Result<T>) -> Result<T> {
+        let mut staging = self.clone();
+        staging.relay = None;
+        staging.state = Arc::new(Mutex::new(State::default()));
+        let handle = staging.active.lock().unwrap().clone();
+        let done = AtomicBool::new(false);
+        std::thread::scope(|scope| {
+            let done_ref = &done;
+            let publisher = scope.spawn(|| {
+                while !done_ref.load(Ordering::Acquire) {
+                    staging.publish_package_stage(handle.as_ref());
+                    std::thread::park_timeout(Duration::from_millis(250));
+                }
+            });
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(&staging)))
+                .unwrap_or_else(|_| {
+                    Err(anyhow::anyhow!("Package preparation stopped unexpectedly"))
+                });
+            done.store(true, Ordering::Release);
+            publisher.thread().unpark();
+            let _ = publisher.join();
+            staging.publish_package_stage(handle.as_ref());
+            result
+        })
+    }
+
+    fn publish_package_stage(&self, handle: Option<&crate::operations::Handle>) {
+        if let Some(handle) = handle {
+            let state = self.state.lock().unwrap();
+            let progress = State {
+                stage: state.stage.clone(),
+                detail: state.detail.clone(),
+                progress: state.progress,
+                ..Default::default()
+            };
+            drop(state);
+            if !progress.stage.is_empty() {
+                handle.update(&progress, false);
+            }
+        }
     }
     pub fn log(&self, line: &str) {
         static ANSI: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
@@ -558,18 +648,24 @@ impl Job {
         });
         let line = regex.replace_all(line, "");
         let line = line.replace('\x07', "");
-        {
-            let mut s = self.state.lock().unwrap();
-            s.log.push_str(&line);
-            s.log.push('\n');
-            if s.log.len() > 200_000 {
-                let mut cut = s.log.len() - 200_000;
-                while !s.log.is_char_boundary(cut) {
+        let append = |state: &Mutex<State>| {
+            let mut state = state.lock().unwrap();
+            let log = Arc::make_mut(&mut state.log);
+            log.push_str(&line);
+            log.push('\n');
+            if log.len() > 200_000 {
+                let mut cut = log.len() - 200_000;
+                while !log.is_char_boundary(cut) {
                     cut += 1;
                 }
-                s.log.drain(..cut);
+                log.drain(..cut);
             }
+        };
+        append(&self.state);
+        if let Some(parent) = self.relay.as_ref().filter(|_| self.wake_display.is_some()) {
+            append(parent);
         }
+        self.notify_display();
         if let Err(e) = self.write_log(&line) {
             let mut s = self.state.lock().unwrap();
             s.detail = format!("Log write warning: {e}");
@@ -717,7 +813,7 @@ impl Job {
             }
         });
         let code = loop {
-            for line in rx.try_iter() {
+            for line in rx.try_iter().take(128) {
                 self.line(&line, cargo);
             }
             if let Some(status) = child.try_wait()? {
@@ -733,7 +829,13 @@ impl Job {
                 }
                 return Err(Cancelled.into());
             }
-            std::thread::sleep(Duration::from_millis(100));
+            match rx.recv_timeout(Duration::from_millis(100)) {
+                Ok(line) => self.line(&line, cargo),
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {}
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    std::thread::sleep(Duration::from_millis(100));
+                }
+            }
         };
         drop(group);
         let _ = t1.join();
@@ -804,9 +906,18 @@ impl Job {
         job.complete(&handle, &result);
     }
     pub fn history(&self, path: &Path) {
-        if let Ok(bytes) = fs::read(path) {
-            let start = bytes.len().saturating_sub(200_000);
-            self.state.lock().unwrap().log = String::from_utf8_lossy(&bytes[start..]).into_owned();
+        use std::io::{Read, Seek, SeekFrom};
+        let tail = (|| -> std::io::Result<Vec<u8>> {
+            let mut file = fs::File::open(path)?;
+            let end = file.metadata()?.len();
+            let start = end.saturating_sub(200_000);
+            file.seek(SeekFrom::Start(start))?;
+            let mut bytes = Vec::new();
+            file.take(end - start).read_to_end(&mut bytes)?;
+            Ok(bytes)
+        })();
+        if let Ok(bytes) = tail {
+            self.state.lock().unwrap().log = String::from_utf8_lossy(&bytes).into_owned().into();
         }
     }
 }

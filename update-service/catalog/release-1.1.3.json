@@ -1,0 +1,4070 @@
+{
+  "schema": 2,
+  "repository": "CryptoKey98/craft-apps-manager",
+  "channel": "stable",
+  "sequence": 8,
+  "issued": 1794380505,
+  "expires": 1796972505,
+  "releases": [
+    {
+      "id": "baseline-090",
+      "version": "0.9.0",
+      "tag": "v0.9.0"
+    },
+    {
+      "id": "release-100",
+      "version": "1.0.0",
+      "tag": "v1.0.0"
+    },
+    {
+      "id": "release-110",
+      "version": "1.1.0",
+      "tag": "v1.1.0"
+    },
+    {
+      "id": "release-111",
+      "version": "1.1.1",
+      "tag": "v1.1.1"
+    },
+    {
+      "id": "release-112",
+      "version": "1.1.2",
+      "tag": "v1.1.2"
+    },
+    {
+      "id": "release-113",
+      "version": "1.1.3",
+      "tag": "v1.1.3"
+    }
+  ],
+  "packages": [
+    {
+      "id": "baseline-linux-x64-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-linux-x64.zip",
+      "size": 14269659,
+      "sha256": "e4eed15d97ffebd74005054b2d756f15e91646d6e417992b84dce8e104b1456b",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "baseline-linux-x86-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-linux-x86.zip",
+      "size": 13539938,
+      "sha256": "9922b241d29c8dfb0ec84d4049dca7616a64376446d39e4b4cc3fd3bff4ade3a",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "baseline-macos-x64-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-macos-universal.zip",
+      "size": 19790825,
+      "sha256": "44caa9fc4cbe0b442f406407c2e9ddc7b8a198ac737f7911020fffe2db416bf3",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "baseline-macos-arm64-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-macos-universal.zip",
+      "size": 19790825,
+      "sha256": "44caa9fc4cbe0b442f406407c2e9ddc7b8a198ac737f7911020fffe2db416bf3",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "baseline-windows-x64-msi",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-windows-x64.msi",
+      "size": 8458240,
+      "sha256": "e6c7375e40ffa76eb52bd05a807908a6dbe4a152b19270fdcf30a2f8c16a2243",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "0.9.0"
+    },
+    {
+      "id": "baseline-windows-x64-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-windows-x64.zip",
+      "size": 11019552,
+      "sha256": "90dc5a2d2ba38169b509b84c8fa8939237db945a59bd93cb5cc7f145f20ca375",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      }
+    },
+    {
+      "id": "baseline-windows-x86-msi",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-windows-x86.msi",
+      "size": 8003584,
+      "sha256": "c9cba94842a1bdb45df274c025271cbae908d35e512f2892f75387d35a60b749",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "0.9.0"
+    },
+    {
+      "id": "baseline-windows-x86-zip",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-0.9.0-windows-x86.zip",
+      "size": 8967593,
+      "sha256": "8d13dec3abad2e250b2801a399ab95e867454434a3af74fe1cefaacdf92df513",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/Craft-Apps-Manager-0.9.0-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      }
+    },
+    {
+      "id": "baseline-linux-x86-rpm",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-0.9.0-0.2.i686.rpm",
+      "size": 13481384,
+      "sha256": "8985ed1e54902ac00320bcf751d19d96a3412620d51d713cf2e634d57ccbab26",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/craft-apps-manager-0.9.0-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "0.9.0-0.2"
+    },
+    {
+      "id": "baseline-linux-x64-rpm",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-0.9.0-0.2.x86_64.rpm",
+      "size": 14211473,
+      "sha256": "98a87a676c2cae4f7053821cf14b9005113e3fefe470d88c222658821b696cce",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/craft-apps-manager-0.9.0-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "0.9.0-0.2"
+    },
+    {
+      "id": "baseline-linux-x64-arch",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-0.9.0-1-x86_64.pkg.tar.zst",
+      "size": 12418749,
+      "sha256": "690e9eb122ace3c1ffa35d8a27b4c248ee5b732ed85228931b2a6bbab5577189",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/craft-apps-manager-0.9.0-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "0.9.0-1"
+    },
+    {
+      "id": "baseline-linux-x64-deb",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_0.9.0_amd64.deb",
+      "size": 7513060,
+      "sha256": "2f37ca37f6a7bba40ca73260e8d5fc2e89889212851ec8aabc69ff9bf71979a2",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/craft-apps-manager_0.9.0_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "0.9.0"
+    },
+    {
+      "id": "baseline-linux-x86-deb",
+      "release": "baseline-090",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_0.9.0_i386.deb",
+      "size": 7984960,
+      "sha256": "33d788f2c12c54af2dbc3959cd31e8294109c68d255a6bec36dfbe0528e678c9",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v0.9.0/craft-apps-manager_0.9.0_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "0.9.0"
+    },
+    {
+      "id": "release-100-linux-x86-rpm",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.0.0-0.2.i686.rpm",
+      "size": 15200073,
+      "sha256": "04b5f9cde7f2e1ae553e593c808a7f8997fae1a11a6933041d59407e977de8cb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.0.0-0.2"
+    },
+    {
+      "id": "release-100-linux-x64-rpm",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.0.0-0.2.x86_64.rpm",
+      "size": 14485207,
+      "sha256": "b22d45f545650bb68784dd729bcbd452149d434b3419359dfd87179260e41459",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.0.0-0.2"
+    },
+    {
+      "id": "release-100-linux-x64-arch",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.0.0-1-x86_64.pkg.tar.zst",
+      "size": 12694668,
+      "sha256": "586cf060b4c86894a8e54bd25c21bed851d31ef13fe9d29c35964a81cb210cbd",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager-1.0.0-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.0.0-1"
+    },
+    {
+      "id": "release-100-linux-x64-tar-gz",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x64.tar.gz",
+      "size": 14484592,
+      "sha256": "b2a58d0944818150f6b3217daacb3b6f2d97af2cf48d050742ab3514fb291324",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-linux-x64-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x64.zip",
+      "size": 14549007,
+      "sha256": "9a7d6f42c29c099f9a7b780d83df895d925e1749cb75781955de9f86765dc15d",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-linux-x86-tar-gz",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x86.tar.gz",
+      "size": 15198746,
+      "sha256": "26b3544cc56809e67739b11d0c6db78e17a91b6f5b410f3b8ab413845981768b",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-linux-x86-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-linux-x86.zip",
+      "size": 15263767,
+      "sha256": "33816fdc56bfc7921dd1191a0946435d0fef650d523015b18642a3e42baf235b",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-macos-x64-dmg",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.dmg",
+      "size": 24372461,
+      "sha256": "d0c70b17b5c6544266a01352ee7af2a9362b28f467d2e1056596c053b812afd5",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-macos-arm64-dmg",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.dmg",
+      "size": 24372461,
+      "sha256": "d0c70b17b5c6544266a01352ee7af2a9362b28f467d2e1056596c053b812afd5",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-macos-x64-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.zip",
+      "size": 23301332,
+      "sha256": "051894f6d4325576a6b333dd2184f3c93801ecfbcc0203eed0420bc4e3d9d6d8",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-macos-arm64-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-macos-universal.zip",
+      "size": 23301332,
+      "sha256": "051894f6d4325576a6b333dd2184f3c93801ecfbcc0203eed0420bc4e3d9d6d8",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      }
+    },
+    {
+      "id": "release-100-windows-x64-msi",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x64.msi",
+      "size": 7254016,
+      "sha256": "d60bc0935ac3e72882e38d8d0e5707bca5424a292f99828f91d0d4409dff3d97",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.0.0"
+    },
+    {
+      "id": "release-100-windows-x64-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x64.zip",
+      "size": 11303689,
+      "sha256": "abc3a84e4b9af760ae81cb0f06273b7ecf81d2d15a9f751ef1151332424dc450",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      }
+    },
+    {
+      "id": "release-100-windows-x86-msi",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x86.msi",
+      "size": 6803456,
+      "sha256": "1892340acaed958c5f7dc3c7cc46b7534b5eda092ac4d9ffd44ed963e2f72947",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.0.0"
+    },
+    {
+      "id": "release-100-windows-x86-zip",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.0.0-windows-x86.zip",
+      "size": 9234585,
+      "sha256": "ab7dab9f8433da7cf6f0efe5c4ec2b67c09ac2880b711cc9bc45f980570b50fe",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/Craft-Apps-Manager-1.0.0-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      }
+    },
+    {
+      "id": "release-100-linux-x64-deb",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.0.0_amd64.deb",
+      "size": 7706904,
+      "sha256": "e25bc732e5345cb915a250420fc93d54180a96bebae597c0f7f2072b58f96565",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.0.0"
+    },
+    {
+      "id": "release-100-linux-x86-deb",
+      "release": "release-100",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.0.0_i386.deb",
+      "size": 8216712,
+      "sha256": "e4265df1cd0fbc8d188350e926cc61707b8cfa26a941832e0324fcece903d8ab",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.0.0/craft-apps-manager_1.0.0_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.0.0"
+    },
+    {
+      "id": "release-110-linux-x86-rpm",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-0.2.i686.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-0.2",
+      "size": 15127750,
+      "sha256": "743190cd95dff90fcd9cf92ab9f4a4b1c7ca9f209f1f3f733bfdd234646904f6"
+    },
+    {
+      "id": "release-110-linux-x64-rpm",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-0.2.x86_64.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-0.2",
+      "size": 15691007,
+      "sha256": "0260493cadc42dcf2295cf9d257d6a4cdc0cf5d69848c091e7b5c0fe17663f4f"
+    },
+    {
+      "id": "release-110-linux-x64-arch",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-1-x86_64.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-1",
+      "size": 13879730,
+      "sha256": "78a4a4a5c797b53309eb2583205c53cf8e0d3beb04e3f4885fe0518a1b486e51"
+    },
+    {
+      "id": "release-110-linux-x64-tar-gz",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x64.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x64.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15688096,
+      "sha256": "947e1fc23bdabb137bb653d99d64ddb2d03571d10603ce2ef4a240ebcd2f31c3"
+    },
+    {
+      "id": "release-110-linux-x64-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15750007,
+      "sha256": "7d80f54619974bf89a390bbd712d1456b63c9ae9a3aa80fff212751a191ded58"
+    },
+    {
+      "id": "release-110-linux-x86-tar-gz",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x86.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x86.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15124950,
+      "sha256": "5328735f1ad974712a6238016237ca0851a48722de3129c746578059af6c49d1"
+    },
+    {
+      "id": "release-110-linux-x86-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15187261,
+      "sha256": "021c1e2968bed554d2a24aed0316c7b595380cbd76dac3feee2f9db69fd7adc5"
+    },
+    {
+      "id": "release-110-macos-x64-dmg",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 27249661,
+      "sha256": "e9b337d6512b83bc697168f2614d6e6dd53406d30f4dee2c39bc87dfa0f83aaa"
+    },
+    {
+      "id": "release-110-macos-arm64-dmg",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 27249661,
+      "sha256": "e9b337d6512b83bc697168f2614d6e6dd53406d30f4dee2c39bc87dfa0f83aaa"
+    },
+    {
+      "id": "release-110-macos-x64-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 25866883,
+      "sha256": "08e055242b740c8e71a9059f9920a78d026ed4c42d7e00f4479504b3e234c727"
+    },
+    {
+      "id": "release-110-macos-arm64-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 25866883,
+      "sha256": "08e055242b740c8e71a9059f9920a78d026ed4c42d7e00f4479504b3e234c727"
+    },
+    {
+      "id": "release-110-windows-x64-msi",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x64.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.0",
+      "size": 9293824,
+      "sha256": "1513a6dae3b44592554afb35886372e6addb7e031b4346992b7959b06b782050"
+    },
+    {
+      "id": "release-110-windows-x64-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 10496526,
+      "sha256": "8ec17c8867f7066263f63a2066e73864da7f1dc806a7802e5be9026054bf624d"
+    },
+    {
+      "id": "release-110-windows-x86-msi",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x86.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.0",
+      "size": 7495680,
+      "sha256": "339392376c841f6ac42380fdce6486c24dc21d34fcce7bf298210010cb7972bd"
+    },
+    {
+      "id": "release-110-windows-x86-zip",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 9927047,
+      "sha256": "183dc77e8a42ce7badbd058beb667cab64dba702f0206d88aadb0818431d6b8d"
+    },
+    {
+      "id": "release-110-linux-x64-deb",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.0_amd64.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager_1.1.0_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0",
+      "size": 8576324,
+      "sha256": "96fb9e67d6305f4aecbcaddf30113315a965d9dc920bedfdec931573adb48f60"
+    },
+    {
+      "id": "release-110-linux-x86-deb",
+      "release": "release-110",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.0_i386.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager_1.1.0_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0",
+      "size": 9177140,
+      "sha256": "45cbad97b4587608eec66cb272a9d6e7e8ec0f19bf5a1c035ee2d449dde83dd0"
+    },
+    {
+      "id": "release-110-linux-x86-rpm-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-0.2.i686-Rev-2.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-0.2.i686-Rev-2.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-0.2.2",
+      "size": 16531861,
+      "sha256": "66924ce8726665aa28e88528cc8973fb572dd706e3560cf5dfe1802b669aa2da"
+    },
+    {
+      "id": "release-110-linux-x64-rpm-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-0.2.x86_64-Rev-2.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-0.2.x86_64-Rev-2.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-0.2.2",
+      "size": 15705828,
+      "sha256": "ec84b47c0ed4ef0a2a6e5aa10e553b29fd2e390620bd3b03951b1380f957ef6c"
+    },
+    {
+      "id": "release-110-linux-x64-arch-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.0-1-x86_64-Rev-2.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager-1.1.0-1-x86_64-Rev-2.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-2",
+      "size": 13893387,
+      "sha256": "df7259b2bc3bfb3f192ca3dfde0239752f16c98ac13e6b549f77d7499435429b"
+    },
+    {
+      "id": "release-110-linux-x64-tar-gz-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x64-Rev-2.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x64-Rev-2.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15703763,
+      "sha256": "aa92b03bf7775d255618412c0f859d8b2d715be3eabb2352a8085dc5eba3e677"
+    },
+    {
+      "id": "release-110-linux-x64-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x64-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x64-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 15765826,
+      "sha256": "ab6d042f2a793a6e1c791ba730338eca8d7cbf9ee2b8a847cac6fd972d32e656"
+    },
+    {
+      "id": "release-110-linux-x86-tar-gz-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x86-Rev-2.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x86-Rev-2.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16529204,
+      "sha256": "059d1c17d065b3fc6d84710db25f9f60380f9c192e824110e4bdd147c027341c"
+    },
+    {
+      "id": "release-110-linux-x86-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-linux-x86-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-linux-x86-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16591468,
+      "sha256": "bf3a1868bbc6f4368ad00f2d149c6a566399413eedd1b40b3c3e829071519602"
+    },
+    {
+      "id": "release-110-macos-x64-dmg-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 24447053,
+      "sha256": "c2046b345d7c90a476f25d59358273e7b773558a0d05d483e49efa2e38b0295b"
+    },
+    {
+      "id": "release-110-macos-arm64-dmg-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 24447053,
+      "sha256": "c2046b345d7c90a476f25d59358273e7b773558a0d05d483e49efa2e38b0295b"
+    },
+    {
+      "id": "release-110-macos-x64-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 23066855,
+      "sha256": "558d444fbbd99fec440a271f9a45ee2978db228e90b94d47a6ae6d1d56679781"
+    },
+    {
+      "id": "release-110-macos-arm64-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-macos-universal-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 23066855,
+      "sha256": "558d444fbbd99fec440a271f9a45ee2978db228e90b94d47a6ae6d1d56679781"
+    },
+    {
+      "id": "release-110-windows-x64-msi-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x64-Rev-2.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x64-Rev-2.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.0",
+      "size": 7897088,
+      "sha256": "b514dd16ff22d46dedd2144669154e9540c6af68fb1b9e844ce1b3d4d80c0054"
+    },
+    {
+      "id": "release-110-windows-x64-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x64-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x64-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 10498543,
+      "sha256": "948584e04e1820fb9eef5d5860f797acbdb31dd4fc6786fd303cf83f676fd109"
+    },
+    {
+      "id": "release-110-windows-x86-msi-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x86-Rev-2.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x86-Rev-2.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.0",
+      "size": 7495680,
+      "sha256": "279f8afc6d7209ce0a57766dd31b79d4771bd7d66429befdfc3bf79601789495"
+    },
+    {
+      "id": "release-110-windows-x86-zip-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.0-windows-x86-Rev-2.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/Craft-Apps-Manager-1.1.0-windows-x86-Rev-2.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 9932438,
+      "sha256": "8af3df0dc1854bc3fecfa60d8c883a154513857f925d725430e8cc897e1e37b5"
+    },
+    {
+      "id": "release-110-linux-x64-deb-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.0_amd64-Rev-2.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager_1.1.0_amd64-Rev-2.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-2",
+      "size": 8583736,
+      "sha256": "5050b1cfa61200542fd5f419fedde88795fe38f0376e3dec2f5868a94f4d7245"
+    },
+    {
+      "id": "release-110-linux-x86-deb-rev2",
+      "release": "release-110",
+      "revision": 2,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.0_i386-Rev-2.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.0/craft-apps-manager_1.1.0_i386-Rev-2.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.0-2",
+      "size": 9185408,
+      "sha256": "271e465e7c0e51cb0be3f4d73fb20feb1245fa5d57dabd01c3daa85d53e097ef"
+    },
+    {
+      "id": "release-111-linux-x86-rpm",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.1-0.2.i686.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/craft-apps-manager-1.1.1-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.1-0.2",
+      "size": 16683196,
+      "sha256": "0141964ccb93351736b2a6008e3592ef2262ffef6a5fba02824533e6fb15a94b"
+    },
+    {
+      "id": "release-111-linux-x64-rpm",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.1-0.2.x86_64.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/craft-apps-manager-1.1.1-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.1-0.2",
+      "size": 14440917,
+      "sha256": "96164bb1cb0f0977b8c7ea4470bf242ed6f6ea087d80dcdcfb449eea11eff9de"
+    },
+    {
+      "id": "release-111-linux-x64-arch",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.1-1-x86_64.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/craft-apps-manager-1.1.1-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.1-1",
+      "size": 12615748,
+      "sha256": "aced299a19b3d280a99cfe359439f224c804eaa9fe4c5937ac42a98a8cd2c39f"
+    },
+    {
+      "id": "release-111-linux-x64-tar-gz",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-linux-x64.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-linux-x64.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 14438277,
+      "sha256": "5925d114cb7d42939918c80abf06100a35b02b4494e812276c6f55d2a053cfc9"
+    },
+    {
+      "id": "release-111-linux-x64-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-linux-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 14500977,
+      "sha256": "039fabe871f5797f7975e22a2612d759eacc32f7cdef580f4bcbc07949c88d2d"
+    },
+    {
+      "id": "release-111-linux-x86-tar-gz",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-linux-x86.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-linux-x86.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16680600,
+      "sha256": "64ab3ff71919f93b9bf2e8acfb7487455a163a82aea34ebbafd47bd87105d870"
+    },
+    {
+      "id": "release-111-linux-x86-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-linux-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16743400,
+      "sha256": "db064d1e737104e78f9e3cd67fec4b397913eaa5f074c205596e2caec8c196dd"
+    },
+    {
+      "id": "release-111-macos-x64-dmg",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 27589851,
+      "sha256": "b71547b2d7fd9166cbf82dbdb7113b927c689f223c3469fea59cb5e54c6d5d04"
+    },
+    {
+      "id": "release-111-macos-arm64-dmg",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 27589851,
+      "sha256": "b71547b2d7fd9166cbf82dbdb7113b927c689f223c3469fea59cb5e54c6d5d04"
+    },
+    {
+      "id": "release-111-macos-x64-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 26124902,
+      "sha256": "4d469f343771d7316d142275699972d894ff69e0489cdeae65d9300cba05f0a4"
+    },
+    {
+      "id": "release-111-macos-arm64-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 26124902,
+      "sha256": "4d469f343771d7316d142275699972d894ff69e0489cdeae65d9300cba05f0a4"
+    },
+    {
+      "id": "release-111-windows-x64-msi",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-windows-x64.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.1",
+      "size": 7987200,
+      "sha256": "63f865046af3e71b22fe9b20f35eeeb3f2d24f3b3e2529428ee8d291abf32d79"
+    },
+    {
+      "id": "release-111-windows-x64-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-windows-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 10623578,
+      "sha256": "e85bcd7685320c313f926f7aa70d9d8b5f74cf3a858f1e7277be79db76df5f78"
+    },
+    {
+      "id": "release-111-windows-x86-msi",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-windows-x86.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.1",
+      "size": 7585792,
+      "sha256": "0f5f258e3c61f76c55494535571b2341565d9b6fd607bb2e4dbd1c0ea4acca21"
+    },
+    {
+      "id": "release-111-windows-x86-zip",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.1-windows-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/Craft-Apps-Manager-1.1.1-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 11439760,
+      "sha256": "f4bf5d1a4d87f086af6d7499ecb40b94e5ae5d4fd1b84315deeb3781be973cbd"
+    },
+    {
+      "id": "release-111-linux-x64-deb",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.1_amd64.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/craft-apps-manager_1.1.1_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.1",
+      "size": 8674544,
+      "sha256": "a6572d1af057d01508edeca3d2343d7cd094e1344fffb22ddd1f8a16d9bf2dfb"
+    },
+    {
+      "id": "release-111-linux-x86-deb",
+      "release": "release-111",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.1_i386.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.1/craft-apps-manager_1.1.1_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.1",
+      "size": 9291208,
+      "sha256": "0d559a6f82b9f1f891c6a609357f960dbbb81ef1507038e60051baebde7fa92d"
+    },
+    {
+      "id": "release-112-linux-x86-rpm",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.2-0.2.i686.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/craft-apps-manager-1.1.2-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.2-0.2",
+      "size": 16842093,
+      "sha256": "766b8fff75ed753b2a3b763f6ececd9b0f811888ddaa9a8f314d5dd5b528d20d"
+    },
+    {
+      "id": "release-112-linux-x64-rpm",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.2-0.2.x86_64.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/craft-apps-manager-1.1.2-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.2-0.2",
+      "size": 17244561,
+      "sha256": "2f1f2a38b68c5bc89b8b7162761726a6d9fb5ed3cb0597a63456f75082754db4"
+    },
+    {
+      "id": "release-112-linux-x64-arch",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.2-1-x86_64.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/craft-apps-manager-1.1.2-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.2-1",
+      "size": 14747333,
+      "sha256": "4fcf6b8583af598967ee44ae5fd8c311aee9538a2ec515ac8fb37044b26b73ba"
+    },
+    {
+      "id": "release-112-linux-x64-tar-gz",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-linux-x64.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-linux-x64.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 17242189,
+      "sha256": "cc86af07d1c609c98174e749afefccf9e456ffdc3f481d96b33f45df7885c684"
+    },
+    {
+      "id": "release-112-linux-x64-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-linux-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 17304173,
+      "sha256": "d132ec860acc53f0e5569a109819d5ebaf33566364d8644faaae0a3c5328b1b7"
+    },
+    {
+      "id": "release-112-linux-x86-tar-gz",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-linux-x86.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-linux-x86.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16839778,
+      "sha256": "923e33ca1235831bce55b98aad90d7dcbb65e7aecd3a416938c5cafd51a2c8da"
+    },
+    {
+      "id": "release-112-linux-x86-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-linux-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 16902450,
+      "sha256": "0667c13e5f36c7395130ad5717dcb82f5edf79a4e368da545bb57ecfd6b1969e"
+    },
+    {
+      "id": "release-112-macos-x64-dmg",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 30076408,
+      "sha256": "a41320b8f2cdf24425b37ea6eab952f0b3a527f376f5d99ef4cd0fcc86ac7a42"
+    },
+    {
+      "id": "release-112-macos-arm64-dmg",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 30076408,
+      "sha256": "a41320b8f2cdf24425b37ea6eab952f0b3a527f376f5d99ef4cd0fcc86ac7a42"
+    },
+    {
+      "id": "release-112-macos-x64-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 28474230,
+      "sha256": "0629381bc98ac7446019a87f7d24d2ccdfe13279927923ac0dcdcc76e54b2548"
+    },
+    {
+      "id": "release-112-macos-arm64-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 28474230,
+      "sha256": "0629381bc98ac7446019a87f7d24d2ccdfe13279927923ac0dcdcc76e54b2548"
+    },
+    {
+      "id": "release-112-windows-x64-msi",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-windows-x64.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.2",
+      "size": 10485760,
+      "sha256": "84a33a290af074c7d2c96d8b54b741d1c9b0ada82be028c9364960d3168f271f"
+    },
+    {
+      "id": "release-112-windows-x64-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-windows-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 11984747,
+      "sha256": "5cd28db818b9d90dee42cea2b569ad75a6cbcf7024df65f876732d6499e05ba0"
+    },
+    {
+      "id": "release-112-windows-x86-msi",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-windows-x86.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.2",
+      "size": 9940992,
+      "sha256": "62150220335bd5925070563b1a71f85afa5a006dcd6ca446df869eb1d337ab74"
+    },
+    {
+      "id": "release-112-windows-x86-zip",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.2-windows-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/Craft-Apps-Manager-1.1.2-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 11324847,
+      "sha256": "eba9e9c1bd6a0da4e2aa6aafc7cca0804cd72be5eb351266ec4d02d8ae1ddfee"
+    },
+    {
+      "id": "release-112-linux-x64-deb",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.2_amd64.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/craft-apps-manager_1.1.2_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.2",
+      "size": 9670384,
+      "sha256": "c5270c87857005cdd2bd876a52280eaa41ec7169b9b24d9d6b3f47bbae8e04b1"
+    },
+    {
+      "id": "release-112-linux-x86-deb",
+      "release": "release-112",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.2_i386.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.2/craft-apps-manager_1.1.2_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.2",
+      "size": 10389416,
+      "sha256": "56980ca6691a10f92bf06e16ef5425e6735310cf48f8c5c2ee6e610c295d66c8"
+    },
+    {
+      "id": "release-113-linux-x86-rpm",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.3-0.2.i686.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/craft-apps-manager-1.1.3-0.2.i686.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.3-0.2",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x64-rpm",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "handler": "native.rpm.v1",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.3-0.2.x86_64.rpm",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/craft-apps-manager-1.1.3-0.2.x86_64.rpm",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.3-0.2",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x64-arch",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "handler": "native.arch.v1",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager-1.1.3-1-x86_64.pkg.tar.zst",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/craft-apps-manager-1.1.3-1-x86_64.pkg.tar.zst",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.3-1",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x64-tar-gz",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-linux-x64.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-linux-x64.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x64-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-linux-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-linux-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x86-tar-gz",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.tar-gzip.v1",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-linux-x86.tar.gz",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-linux-x86.tar.gz",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x86-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-linux-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-linux-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager Linux",
+        "entrypoint": "craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-macos-x64-dmg",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-macos-arm64-dmg",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "disk-image.dmg.v1",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-macos-universal.dmg",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-macos-universal.dmg",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-macos-x64-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-macos-arm64-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-macos-universal.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-macos-universal.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager.app",
+        "entrypoint": "Contents/MacOS/craft-apps-manager"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-windows-x64-msi",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-windows-x64.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-windows-x64.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.3",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-windows-x64-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-windows-x64.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-windows-x64.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-windows-x86-msi",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "handler": "native.msi.v1",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-windows-x86.msi",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-windows-x86.msi",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "native_version": "1.1.3",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-windows-x86-zip",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "handler": "archive.zip.v1",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "Craft-Apps-Manager-1.1.3-windows-x86.zip",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/Craft-Apps-Manager-1.1.3-windows-x86.zip",
+      "layout": {
+        "schema": 1,
+        "root": "Craft Apps Manager",
+        "entrypoint": "CraftApps-Manager.exe"
+      },
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x64-deb",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.3_amd64.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/craft-apps-manager_1.1.3_amd64.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.3",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "id": "release-113-linux-x86-deb",
+      "release": "release-113",
+      "revision": 1,
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "handler": "native.deb.v1",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "asset": "craft-apps-manager_1.1.3_i386.deb",
+      "url": "https://github.com/CryptoKey98/craft-apps-manager/releases/download/v1.1.3/craft-apps-manager_1.1.3_i386.deb",
+      "layout": {
+        "schema": 1,
+        "root": "usr/bin",
+        "entrypoint": "craft-apps-manager"
+      },
+      "native_version": "1.1.3",
+      "size": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "routes": [
+    {
+      "id": "direct-release-100-linux-x86-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x86-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x64-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x64-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x64-arch",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x64-arch",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x64-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x64-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x86-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x86-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-macos-x64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-macos-x64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-macos-arm64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-macos-arm64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-macos-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-macos-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-macos-arm64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-macos-arm64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-windows-x64-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-windows-x64-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-windows-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-windows-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-windows-x86-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-windows-x86-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-windows-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-windows-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x64-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x64-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "direct-release-100-linux-x86-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-100-linux-x86-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x86-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x86-rpm-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x64-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x64-rpm-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x64-arch",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x64-arch-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x64-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x64-tar-gz-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x64-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x86-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x86-tar-gz-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x86-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-macos-x64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-macos-x64-dmg-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-macos-arm64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-macos-arm64-dmg-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-macos-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-macos-x64-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-macos-arm64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-macos-arm64-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-windows-x64-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-windows-x64-msi-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-windows-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-windows-x64-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-windows-x86-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-windows-x86-msi-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-windows-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-windows-x86-zip-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x64-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x64-deb-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-110-direct-release-100-linux-x86-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-110-linux-x86-deb-rev2",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x86-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x86-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x64-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x64-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x64-arch",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x64-arch",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x64-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x64-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x86-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x86-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-macos-x64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-macos-x64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-macos-arm64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-macos-arm64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-macos-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-macos-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-macos-arm64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-macos-arm64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-windows-x64-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-windows-x64-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-windows-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-windows-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-windows-x86-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-windows-x86-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-windows-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-windows-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x64-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x64-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-111-direct-release-100-linux-x86-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-111-linux-x86-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x86-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x86-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x64-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x64-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x64-arch",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x64-arch",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x64-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x64-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x86-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x86-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-macos-x64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-macos-x64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-macos-arm64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-macos-arm64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-macos-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-macos-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-macos-arm64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-macos-arm64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-windows-x64-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-windows-x64-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-windows-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-windows-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-windows-x86-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-windows-x86-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-windows-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-windows-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x64-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x64-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-112-direct-release-100-linux-x86-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-112-linux-x86-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x86-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x86-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x64-rpm",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "rpm",
+      "required_capabilities": [
+        "native.rpm.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x64-rpm",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x64-arch",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "arch",
+      "required_capabilities": [
+        "native.arch.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x64-arch",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x64-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x64-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x86-tar-gz",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.tar-gzip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x86-tar-gz",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-macos-x64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-macos-x64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-macos-arm64-dmg",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "disk-image.dmg.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-macos-arm64-dmg",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-macos-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "x64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-macos-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-macos-arm64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "macos",
+      "architecture": "arm64",
+      "installation": "bundle",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-macos-arm64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-windows-x64-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-windows-x64-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-windows-x64-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x64",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-windows-x64-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-windows-x86-msi",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "msi",
+      "required_capabilities": [
+        "native.msi.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-windows-x86-msi",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-windows-x86-zip",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "windows",
+      "architecture": "x86",
+      "installation": "portable",
+      "required_capabilities": [
+        "archive.zip.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-windows-x86-zip",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x64-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x64",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x64-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    },
+    {
+      "id": "release-113-direct-release-100-linux-x86-deb",
+      "min_source": {
+        "version": "0.9.0",
+        "revision": 1
+      },
+      "platform": "linux",
+      "architecture": "x86",
+      "installation": "deb",
+      "required_capabilities": [
+        "native.deb.v1",
+        "layout.manager.v1"
+      ],
+      "target": "release-113-linux-x86-deb",
+      "bridge": false,
+      "destination_capabilities": []
+    }
+  ],
+  "withdrawn": [],
+  "metadata_origins": []
+}

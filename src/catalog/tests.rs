@@ -1047,6 +1047,27 @@ fn supported_external_repository_resolves_to_its_verified_owner() {
 }
 
 #[test]
+fn mailcraft_discovery_is_only_disabled_on_macos() {
+    let mailcraft = craft("mailcraft", "MailCraft", "Email", "");
+    let mut explicit = mailcraft.clone();
+    explicit.repository = "ucs-care-group/mailcraft".into();
+    for os in ["macos", "windows", "linux"] {
+        let entries = merge_for_platform(vec![mailcraft.clone()], &BTreeMap::new(), &[], os);
+        assert_eq!(
+            entries.iter().any(|entry| entry.key == "mailcraft"),
+            os != "macos"
+        );
+    }
+    let entries = merge_for_platform(
+        vec![mailcraft],
+        &BTreeMap::new(),
+        std::slice::from_ref(&explicit),
+        "macos",
+    );
+    assert!(entries.contains(&explicit));
+}
+
+#[test]
 fn custom_external_registration_wins_over_supported_discovery() {
     let discovered = craft("solidcraft", "SolidCraft", "Parametric 3D CAD", "");
     let mut custom = discovered.clone();

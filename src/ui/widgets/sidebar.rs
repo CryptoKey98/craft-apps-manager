@@ -934,7 +934,7 @@ impl App {
                 } else {
                     10.0
                 },
-            |chip| chip.left() - 12.0,
+            |chip| chip.left() - if status.checking { 26.0 } else { 12.0 },
         );
         let max_text = (text_right - text_left).max(1.0);
         let new_opacity = self.new_app_opacity(name);
@@ -955,12 +955,9 @@ impl App {
         title_job.wrap.max_width = (max_text - if show_new { 38.0 } else { 0.0 }).max(1.0);
         title_job.wrap.max_rows = 1;
         let title = ui.painter().layout_job(title_job);
-        let (detail, detail_color) = if installing {
+        let (detail, detail_color) = if let Some(operation) = operation {
             (
-                match operation.and_then(|operation| operation.progress) {
-                    Some(progress) => format!("Installing… {:.0}%", progress * 100.0),
-                    None => "Installing…".into(),
-                },
+                package_stage_label(&operation.stage, operation.progress),
                 theme::palette().link,
             )
         } else if let Some(installed) = &status.installed {
@@ -1004,6 +1001,7 @@ impl App {
         } else {
             (model::category(name).to_owned(), theme::palette().muted)
         };
+        let stage_tooltip = operation.map(|_| detail.clone());
         let mut detail_job = egui::text::LayoutJob::simple_singleline(
             detail,
             FontId::proportional(12.0),
@@ -1011,12 +1009,12 @@ impl App {
         );
         detail_job.wrap.max_width = max_text;
         detail_job.wrap.max_rows = 1;
-        let detail = ui.painter().layout_job(detail_job);
+        let detail_galley = ui.painter().layout_job(detail_job);
         // Two CSS lines 1 point apart, centred in the row, each glyph run centred in its line.
         let (title_line, detail_line) = (14.0 * LINE, 12.0 * LINE);
         let top = rect.center().y - (title_line + 1.0 + detail_line) / 2.0;
         let title_top = top + (title_line - title.size().y) / 2.0;
-        let detail_top = top + title_line + 1.0 + (detail_line - detail.size().y) / 2.0;
+        let detail_top = top + title_line + 1.0 + (detail_line - detail_galley.size().y) / 2.0;
         if show_new {
             theme::new_app_badge(
                 ui,
@@ -1035,8 +1033,11 @@ impl App {
             title,
             theme::palette().text,
         );
-        ui.painter()
-            .galley(egui::pos2(text_left, detail_top), detail, detail_color);
+        ui.painter().galley(
+            egui::pos2(text_left, detail_top),
+            detail_galley,
+            detail_color,
+        );
         let mut chip_clicked = false;
         if let (Some(chip), Some(chip_rect), Some(galley)) = (chip, chip_rect, chip_galley) {
             let label = format!(
@@ -1100,16 +1101,20 @@ impl App {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
             }
             chip_clicked = chip_response.clicked();
-        } else if installing || status.checking {
+        }
+        if installing || status.checking {
             let spinner = Rect::from_center_size(
-                egui::pos2(rect.right() - 20.0, rect.center().y),
+                egui::pos2(
+                    chip_rect.map_or(rect.right() - 20.0, |chip| chip.left() - 12.0),
+                    rect.center().y,
+                ),
                 egui::vec2(14.0, 14.0),
             );
             // Not `ui.put`: allocating the spinner would move the next row up to its bottom.
             ui.new_child(egui::UiBuilder::new().max_rect(spinner))
                 .add(egui::Spinner::new().size(12.0))
                 .on_hover_text(if installing {
-                    "Installing update…"
+                    stage_tooltip.as_deref().unwrap_or_default()
                 } else {
                     "Checking for updates…"
                 });
@@ -1124,6 +1129,26 @@ impl App {
             response.request_focus();
             self.select(name);
         }
+    }
+}
+
+pub(in crate::ui) fn package_stage_label(stage: &str, progress: Option<f32>) -> String {
+    match stage {
+        "Downloading" => match progress {
+            Some(progress) => format!("Downloading… {:.0}%", progress * 100.0),
+            None => "Downloading…".into(),
+        },
+        "Verifying" | "Verifying checksum" | "Preparing previous installer" => "Verifying…".into(),
+        "Queued" | "Preparing" | "Waiting to install" | "Awaiting administrator approval" => {
+            "Waiting to install…".into()
+        }
+        "Uninstalling" => "Uninstalling…".into(),
+        "Restoring previous version" | "Recovering installation" => {
+            "Restoring previous version…".into()
+        }
+        "Cancel requested" => "Cancelling…".into(),
+        "Download failed" => "Download failed".into(),
+        _ => "Installing…".into(),
     }
 }
 

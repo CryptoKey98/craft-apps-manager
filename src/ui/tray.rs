@@ -375,13 +375,7 @@ impl super::App {
             && self.periodic_receiver.is_none()
             && self.checking_apps.is_empty()
             && self.display_config.as_ref().is_some_and(|config| {
-                config.apps.iter().any(|app| {
-                    self.preferences.selected_apps.contains(&app.name)
-                        && craft_apps_manager::updates::installed_for_updates(
-                            app,
-                            &self.preferences,
-                        )
-                })
+                !craft_apps_manager::updates::installed_check_targets(config).is_empty()
             });
         let actions = if let Some(tray) = &self.tray {
             tray.set_theme(ctx.style().visuals.dark_mode);
@@ -393,22 +387,7 @@ impl super::App {
         for action in actions {
             match action {
                 Action::Open => self.show_from_tray(ctx),
-                Action::Check if can_check => {
-                    let (tx, rx) = mpsc::channel();
-                    self.periodic_receiver = Some(rx);
-                    let paths = self.paths.clone();
-                    let ctx = ctx.clone();
-                    std::thread::spawn(move || {
-                        let job = craft_apps_manager::jobs::Job::new(
-                            paths.at("runtime/tray-app-check.log"),
-                            &Default::default(),
-                        );
-                        let result = craft_apps_manager::hourly::run(&paths, &job)
-                            .and_then(|_| craft_apps_manager::hourly::read(&paths));
-                        let _ = tx.send(result.map_err(|error| format!("{error:#}")));
-                        ctx.request_repaint();
-                    });
-                }
+                Action::Check if can_check => self.start_background_app_checks(ctx, false),
                 Action::Exit => {
                     self.closing = true;
                     self.release_plan = None;

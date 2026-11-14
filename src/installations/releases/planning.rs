@@ -17,6 +17,8 @@ pub struct ReleasePlan {
     pub(crate) native_rollback: Option<String>,
     #[serde(default)]
     pub additional_installation: bool,
+    #[serde(default)]
+    pub(super) single_app: bool,
     pub entries: Vec<ReleaseEntry>,
     pub preferences: Preferences,
     pub requested_tag: Option<String>,
@@ -76,6 +78,7 @@ pub(crate) fn plan_native_rollback(
     Ok(ReleasePlan {
         native_rollback: Some(id.into()),
         additional_installation: false,
+        single_app: false,
         entries: vec![ReleaseEntry {
             app: installed.name.clone(),
             action: "Update".into(),
@@ -119,12 +122,25 @@ pub(super) fn state_snapshot(
                     crate::platform::executable_version(path),
                 )
             });
+            let ownership = (a.install_kind == "portable" && !a.path.is_empty())
+                .then(|| {
+                    fs::symlink_metadata(target.join(crate::installations::portable::MARKER)).ok()
+                })
+                .flatten()
+                .map(|metadata| {
+                    (
+                        metadata.len(),
+                        metadata.modified().ok(),
+                        metadata.file_type().is_symlink(),
+                    )
+                });
             (
                 target,
                 executable_state,
                 metadata
                     .as_ref()
                     .map(|m| (m.len(), m.modified().ok(), m.file_type().is_symlink())),
+                ownership,
             )
         })
         .collect();
@@ -153,7 +169,7 @@ pub fn plan_app(paths: &Paths, job: &Job, app: &str) -> Result<ReleasePlan> {
 }
 
 /// Interactive previews may reuse the window's observed inventory. Execution
-/// still reloads inventory and compares the complete snapshot under its lock.
+/// still reloads inventory and validates the selected installation under its lock.
 pub fn plan_install_preview(
     paths: &Paths,
     job: &Job,
@@ -517,11 +533,19 @@ pub(super) fn plan_from_config(
 ) -> Result<ReleasePlan> {
     let snapshot = state_snapshot(paths, &prefs, &config)?;
     let mut entries = Vec::new();
-    for app in config.apps.iter().filter(|a| {
-        selected.map(|name| a.name == name).unwrap_or_else(|| {
-            prefs.selected_apps.contains(&a.name) && installed_for_updates(a, &prefs)
+    let mut targets: Vec<_> = config
+        .apps
+        .iter()
+        .filter(|a| {
+            selected.map(|name| a.name == name).unwrap_or_else(|| {
+                prefs.selected_apps.contains(&a.name) && installed_for_updates(a, &prefs)
+            })
         })
-    }) {
+        .collect();
+    if selected.is_none() {
+        super::selection::sort_update_targets(&mut targets, &prefs.app_order, &prefs.hidden_apps);
+    }
+    for app in targets {
         if let Err(error) = job.check() {
             let previous: Vec<_> = entries
                 .iter()
@@ -690,6 +714,7 @@ pub(super) fn plan_from_config(
     Ok(ReleasePlan {
         native_rollback: None,
         additional_installation: false,
+        single_app: selected.is_some(),
         requested_tag: None,
         desktop_shortcut: false,
         installer_destination: None,

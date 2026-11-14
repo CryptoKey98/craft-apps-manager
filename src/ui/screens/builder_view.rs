@@ -121,11 +121,7 @@ impl App {
                     .get(&self.app)
                     .map(|(folder, _)| folder.clone())
                     .or_else(|| self.job.snapshot().output);
-                let has_build = completed.as_ref().is_some_and(|folder| {
-                    folder
-                        .join(model::build_executable_name(&self.app))
-                        .is_file()
-                });
+                let has_build = completed.is_some();
                 if btn(if has_build {
                     "Rebuild executable"
                 } else {
@@ -210,57 +206,59 @@ impl App {
                     .inner_margin(egui::Margin::symmetric(28, 24)),
             )
             .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    if state.busy {
-                        ui.spinner();
-                    }
-                    theme::heading(
-                        ui,
-                        if state.stage.is_empty() {
-                            if state.output.is_some() {
-                                "Previous build available"
+                let spinner_visible = ui
+                    .horizontal(|ui| {
+                        let spinner_visible = state.busy && theme::build_spinner(ui);
+                        theme::heading(
+                            ui,
+                            if state.stage.is_empty() {
+                                if state.output.is_some() {
+                                    "Previous build available"
+                                } else {
+                                    "Ready"
+                                }
                             } else {
-                                "Ready"
-                            }
-                        } else {
-                            &state.stage
-                        },
-                        17.0,
-                    );
-                });
+                                &state.stage
+                            },
+                            17.0,
+                        );
+                        spinner_visible
+                    })
+                    .inner;
                 if !state.detail.is_empty() {
                     theme::text(ui, &state.detail, 13.0, theme::palette().text_3);
                 }
                 if state.busy {
-                    theme::progress(ui, state.progress, 6.0);
+                    theme::build_progress(ui, state.progress, 6.0, spinner_visible);
                 }
                 ui.add_space(10.0);
                 ui.horizontal(|ui| {
                     theme::section_label(ui, "Build log");
+                    let log_path =
+                        Job::latest_builder_operation(&self.operation_records, &self.app)
+                            .filter(|operation| operation.owner != std::process::id())
+                            .and_then(|operation| self.build_log_for(&operation.id))
+                            .map_or_else(|| self.job.log_path.clone(), |tail| tail.path.clone());
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        let exists = self.job.log_path.is_file();
+                        let exists = !state.log.is_empty();
                         if btn("Open log")
                             .enabled(exists)
                             .show(ui)
-                            .on_hover_text(self.job.log_path.display().to_string())
+                            .on_hover_text(log_path.display().to_string())
                             .on_disabled_hover_text(
                                 "No log file yet. Run an operation to create one.",
                             )
                             .clicked()
                         {
-                            let result = platform::open(&self.job.log_path);
+                            let result = platform::open(&log_path);
                             self.result(result);
                         }
                     });
                 });
-                theme::log_view(
+                theme::build_log_view(
                     ui,
-                    if state.log.is_empty() {
-                        "Ready. Craft app checks run only when requested or scheduled."
-                    } else {
-                        &state.log
-                    },
-                    false,
+                    &state.log,
+                    "Ready. Craft app checks run only when requested or scheduled.",
                 );
             });
     }

@@ -13,7 +13,7 @@ A DMG is a disk image, not an installer wizard. Do not run the manager from the 
 
 ## First launch
 
-The manager has an ad-hoc signature and is not Apple-notarized. If macOS blocks the downloaded app, dismiss the warning, open **System Settings â†’ Privacy & Security**, and use **Open Anyway** when available for that app. Follow macOS's confirmation prompts. Do not disable system-wide security checks.
+The manager has an ad-hoc signature and is not Apple-notarized. If macOS blocks the downloaded app, dismiss the warning, open **System Settings → Privacy & Security**, and use **Open Anyway** when available for that app. Follow macOS's confirmation prompts. Do not disable system-wide security checks.
 
 Rust and 7-Zip are not required to run the manager. Compilation prerequisites are in [Building and testing](../development/building.md#macos).
 
@@ -40,7 +40,7 @@ Staging and rollback stay beside the installed bundle even if the library is on 
 
 ### Older updater failures
 
-Managers 0.8.1â€“0.8.3 could fail when another app in the same directory contained symbolic links, with `Archive contains a linked path`. The saved failure could also reappear on launch. These issues were fixed in 0.9.0.
+Managers 0.8.1–0.8.3 could fail when another app in the same directory contained symbolic links, with `Archive contains a linked path`. The saved failure could also reappear on launch. These issues were fixed in 0.9.0.
 
 If an affected updater still fails, manually download a current macOS package and replace the manager app, preserving your library and portable files. The saved error may appear once on the first fixed launch; dismiss it. Users already on 0.9.0 have the corrected updater.
 
@@ -58,4 +58,4 @@ During uninstall, **Also delete settings and caches** is available for Craft app
 
 Open app bundles directly in Finder.
 
-[Using the manager](using-the-manager.md) Â· [Documentation index](../README.md)
+[Using the manager](using-the-manager.md) · [Documentation index](../README.md)

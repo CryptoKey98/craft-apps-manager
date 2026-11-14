@@ -48,16 +48,40 @@ pub(super) fn execute_plan_owned(paths: &Paths, plan: &ReleasePlan, job: &Job) -
             &entry.preferences.architecture,
         );
     }
+    let entries: Vec<_> = plan
+        .entries
+        .iter()
+        .filter(|entry| {
+            entry.error.is_none() && matches!(entry.action.as_str(), "Install" | "Update")
+        })
+        .collect();
     #[cfg(any(target_os = "windows", target_os = "linux"))]
-    if crate::batch_admin::eligible(plan) {
-        return crate::batch_admin::execute(paths, plan, job);
+    let use_elevation = crate::batch_admin::eligible(plan);
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    let use_elevation = false;
+    if entries.len() > 1 || use_elevation {
+        let _lock = platform::Lock::take(r"Local\CraftAppsManagerInstallerStaging")?;
+        #[allow(unused_mut)]
+        let mut staged = super::staging::stage_packages(paths, plan, &entries, job)?;
+        let mut plan = plan.clone();
+        staged.apply_failures(&mut plan);
+        #[cfg(any(target_os = "windows", target_os = "linux"))]
+        if crate::batch_admin::eligible(&plan) {
+            return crate::batch_admin::execute(paths, &plan, job, &mut staged);
+        }
+        return execute_plan_direct(paths, &plan, job, Some(&staged));
     }
-    execute_plan_direct(paths, plan, job)
+    execute_plan_direct(paths, plan, job, None)
 }
 
-pub(crate) fn execute_plan_direct(paths: &Paths, plan: &ReleasePlan, job: &Job) -> Result<()> {
+pub(crate) fn execute_plan_direct(
+    paths: &Paths,
+    plan: &ReleasePlan,
+    job: &Job,
+    staged: Option<&StagedPackages<'_>>,
+) -> Result<()> {
     execute_validated(paths, plan, |config| {
-        execute_entries(paths, plan, config, job, None, None)
+        execute_entries(paths, plan, config, job, None, None, staged)
     })
 }
 
@@ -77,6 +101,7 @@ pub(crate) fn execute_approved_downgrade(
             job,
             Some(recovery),
             Some(release_packages),
+            None,
         )
     })
 }
@@ -98,7 +123,8 @@ pub(super) fn execute_validated(
     }
     let prefs = paths.read_preferences_locked()?;
     let mut config = paths.config()?;
-    if state_snapshot(paths, &prefs, &config)? != plan.snapshot {
+    let current = state_snapshot(paths, &prefs, &config)?;
+    if current != plan.snapshot && !super::validation::single_app_state_matches(plan, &current)? {
         bail!("Release preferences, installations, or destinations changed. Review a new plan before installing.");
     }
     if plan.additional_installation {
@@ -172,10 +198,12 @@ pub(super) fn execute_entries(
     job: &Job,
     _approved_recovery: Option<&std::collections::BTreeMap<String, Asset>>,
     mut release_packages: Option<&mut dyn FnMut(&str)>,
+    staged: Option<&StagedPackages<'_>>,
 ) -> Result<()> {
     let network = Network::new(&paths.root)?;
     crate::installations::rollbacks::cleanup_empty(paths, job);
     execute_with(plan, job, |entry, job| {
+        let prefetched = staged.and_then(|staged| staged.portable_archive(&entry.app));
         let prefs = &entry.preferences;
         let i = config
             .apps
@@ -198,6 +226,10 @@ pub(super) fn execute_entries(
                     );
                     crate::network::verify_asset(&dest, asset)?;
                 } else {
+                    anyhow::ensure!(
+                        staged.is_none(),
+                        "Verified installer disappeared before installation"
+                    );
                     network.asset(asset, &dest, job)?;
                 }
                 #[cfg(target_os = "windows")]
@@ -256,14 +288,14 @@ pub(super) fn execute_entries(
                     None
                 };
                 job.stage(
-                    "Installing",
-                    None,
-                    if cfg!(target_os = "windows") {
-                        "Complete the Windows installation; Windows may ask for administrator permission."
-                    } else {
-                        "Installing the app."
-                    },
-                );
+                "Installing",
+                None,
+                if cfg!(target_os = "windows") {
+                    "Complete the Windows installation; Windows may ask for administrator permission."
+                } else {
+                    "Installing the app."
+                },
+            );
                 #[cfg(target_os = "windows")]
                 let mut recovery_download = None;
                 let installation_result = (|| -> Result<crate::model::Installed> {
@@ -304,7 +336,7 @@ pub(super) fn execute_entries(
                         replace_installer_transaction(
                             || {
                                 job.stage(
-                                    "Downgrading",
+                                    "Uninstalling",
                                     None,
                                     "Removing the current installation; user data is kept",
                                 );
@@ -350,22 +382,22 @@ pub(super) fn execute_entries(
                                     &prefs.architecture,
                                 );
                                 restore_step.tracked("Restore installation", &app.name, |step| {
-                            step.stage("Restoring previous version", None, "Restoring the verified previous installer");
-                            job.stage("Restoring previous version", None, "The downgrade did not complete; restoring the verified previous installer");
-                            if let Some(partial) = crate::installers::detect_rollback_copy(&app)? {
-                                if version(&partial.version)? == version(&app.version)? {
-                                    return Ok(());
-                                }
-                                crate::installers::uninstall(&partial)?;
+                        step.stage("Restoring previous version", None, "Restoring the verified previous installer");
+                        job.stage("Restoring previous version", None, "The downgrade did not complete; restoring the verified previous installer");
+                        if let Some(partial) = crate::installers::detect_rollback_copy(&app)? {
+                            if version(&partial.version)? == version(&app.version)? {
+                                return Ok(());
                             }
-                            let restored =
-                                crate::installers::run_replacement(&recovery, &app, None)?;
-                            anyhow::ensure!(
-                                version(&restored.version)? == version(&app.version)?,
-                                "Recovery installer did not restore the previous version"
-                            );
-                            Ok(())
-                            })
+                            crate::installers::uninstall(&partial)?;
+                        }
+                        let restored =
+                            crate::installers::run_replacement(&recovery, &app, None)?;
+                        anyhow::ensure!(
+                            version(&restored.version)? == version(&app.version)?,
+                            "Recovery installer did not restore the previous version"
+                        );
+                        Ok(())
+                        })
                             },
                         )?
                     } else {
@@ -402,9 +434,9 @@ pub(super) fn execute_entries(
                     Err(error) => {
                         if let Some(recovery) = &previous_installer {
                             return match crate::installations::rollbacks::native::recover(paths, &app, recovery, job) {
-                                Ok(()) => Err(error.context("Previous installation restored")),
-                                Err(recovery) => Err(anyhow::anyhow!("Installation failed: {error:#}. Recovery also failed: {recovery:#}")),
-                            };
+                            Ok(()) => Err(error.context("Previous installation restored")),
+                            Err(recovery) => Err(anyhow::anyhow!("Installation failed: {error:#}. Recovery also failed: {recovery:#}")),
+                        };
                         }
                         return Err(error);
                     }
@@ -419,9 +451,9 @@ pub(super) fn execute_entries(
                     config.apps[i] = app.clone();
                     if let Some(recovery) = &previous_installer {
                         return match crate::installations::rollbacks::native::recover(paths, &app, recovery, job) {
-                            Ok(()) => Err(error.context("Installation record could not be saved; previous installation restored")),
-                            Err(recovery) => Err(anyhow::anyhow!("Installation record failed: {error:#}. Recovery also failed: {recovery:#}")),
-                        };
+                        Ok(()) => Err(error.context("Installation record could not be saved; previous installation restored")),
+                        Err(recovery) => Err(anyhow::anyhow!("Installation record failed: {error:#}. Recovery also failed: {recovery:#}")),
+                    };
                     }
                     return Err(error);
                 }
@@ -516,10 +548,16 @@ pub(super) fn execute_entries(
                 return Ok(false);
             }
             let cache = paths.at("runtime/downloads");
-            let archive = cache.join(&asset.name);
+            let archive = prefetched.map_or_else(|| cache.join(&asset.name), Path::to_path_buf);
             let stage = cache.join(uuid::Uuid::new_v4().simple().to_string());
             let attempt = (|| -> Result<()> {
-                network.asset(asset, &archive, job)?;
+                if prefetched.is_none() {
+                    anyhow::ensure!(staged.is_none(), "Missing verified portable package");
+                    network.asset(asset, &archive, job)?;
+                } else {
+                    job.stage("Verifying checksum", None, "Checking the staged package");
+                    crate::network::verify_asset(&archive, asset)?;
+                }
                 if cfg!(target_os = "macos") {
                     #[cfg(target_os = "macos")]
                     crate::installers::extract_app(&archive, &stage, &app.name, job)?;
@@ -613,6 +651,7 @@ pub(super) fn execute_entries(
                 if platform::running_app(&app.name)? {
                     bail!("App opened during download; update deferred")
                 }
+                job.stage("Installing", None, "Replacing the portable application");
                 let backup = if target.exists() {
                     version(&app.version)?;
                     Some(crate::installations::rollbacks::staging_path(paths))
@@ -720,7 +759,7 @@ pub(super) fn execute_entries(
                 job.log(&format!("{}: updated to {v}", app.name));
                 Ok(())
             })();
-            for p in [&stage, &archive] {
+            for p in std::iter::once(&stage).chain(prefetched.is_none().then_some(&archive)) {
                 if p.exists() {
                     let _ = files::remove_managed(p, &cache);
                 }
@@ -830,7 +869,7 @@ pub(super) fn execute_with(
     }
     let mut cancelled = false;
     let mut handled = 0;
-    for entry in &executable {
+    for &entry in &executable {
         if job.check().is_err() {
             cancelled = true;
             break;
@@ -910,7 +949,7 @@ pub(super) fn releases_for(paths: &Paths, job: &Job, selected: Option<&str>) -> 
         job.log(error);
     }
     let mut config = paths.config()?;
-    let result = execute_entries(paths, &plan, &mut config, job, None, None);
+    let result = execute_entries(paths, &plan, &mut config, job, None, None, None);
     if !errors.is_empty() {
         bail!("{} release planning error(s); see the log", errors.len());
     }

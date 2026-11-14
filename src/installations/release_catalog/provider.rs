@@ -79,18 +79,7 @@ pub(crate) fn value(
     repo: &str,
     query: &Query,
 ) -> Option<serde_json::Value> {
-    let checked = snapshot
-        .query_checked
-        .get(&(repo.to_owned(), query.clone()))
-        .or_else(|| snapshot.checked.get(repo))
-        .copied()?;
-    if snapshot.blocked.contains(&(repo.to_owned(), query.clone())) {
-        return None;
-    }
-    if !resolution::eligible(checked, chrono::Utc::now().timestamp()) {
-        return None;
-    }
-    let app = snapshot.apps.get(repo)?;
+    let app = eligible_app(snapshot, repo, query)?;
     match query {
         Query::History => serde_json::to_value(&app.releases).ok(),
         Query::Latest => serde_json::to_value(
@@ -103,6 +92,25 @@ pub(crate) fn value(
             serde_json::to_value(app.releases.iter().find(|r| r.tag_name == *tag)?).ok()
         }
     }
+}
+
+fn eligible_app<'a>(
+    snapshot: &'a store::Snapshot,
+    repo: &str,
+    query: &Query,
+) -> Option<&'a AppCatalog> {
+    let checked = snapshot
+        .query_checked
+        .get(&(repo.to_owned(), query.clone()))
+        .or_else(|| snapshot.checked.get(repo))
+        .copied()?;
+    if snapshot.blocked.contains(&(repo.to_owned(), query.clone())) {
+        return None;
+    }
+    if !resolution::eligible(checked, chrono::Utc::now().timestamp()) {
+        return None;
+    }
+    snapshot.apps.get(repo).map(Arc::as_ref)
 }
 pub fn resolve<T: DeserializeOwned>(
     root: &Path,
@@ -206,6 +214,35 @@ pub fn resolve_with<T: DeserializeOwned>(
         }
     }
     fallback()
+}
+
+/// Refresh once for the whole set of automatic update lookups.
+pub(crate) fn refresh_latest_batch(
+    root: &Path,
+    repositories: &[&str],
+) -> Option<Arc<store::Snapshot>> {
+    if !source().enabled || repositories.is_empty() {
+        return None;
+    }
+    let transport = client::Http::new().ok()?;
+    client::refresh_batch(root, source(), repositories, &transport).ok()
+}
+
+pub(crate) fn batch_repository(repository: &str) -> Option<String> {
+    let repo = verification::canonical_repo(repository).ok()?;
+    catalog_repository(&repo).then_some(repo)
+}
+
+pub(crate) fn latest_from_snapshot(
+    snapshot: &store::Snapshot,
+    repo: &str,
+) -> Option<crate::model::Release> {
+    let app = eligible_app(snapshot, repo, &Query::Latest)?;
+    let tag = app.latest_tag.as_ref()?;
+    app.releases
+        .iter()
+        .find(|release| &release.tag_name == tag)
+        .cloned()
 }
 
 pub(crate) fn decode_tag(tag: &str) -> Option<String> {

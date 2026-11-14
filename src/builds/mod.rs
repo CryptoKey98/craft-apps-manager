@@ -80,15 +80,7 @@ fn build_owned(
     }
     let project = work.join("src");
     if !work.join(".extracted").exists() {
-        files::extract_zip(&archive, &work, job)?;
-        let folder = crate::model::repository_name(app);
-        let renamed_root = work.join(format!("{}-{}", folder, commit.sha));
-        let source_root = if renamed_root.exists() {
-            renamed_root
-        } else {
-            work.join(format!("{app}-{}", commit.sha))
-        };
-        fs::rename(source_root, &project)?;
+        files::extract_source_zip(&archive, &project, job)?;
         fs::write(work.join(".extracted"), &commit.sha)?;
     } else {
         if fs::read_to_string(work.join(".extracted"))?.trim() != commit.sha {
@@ -334,13 +326,15 @@ pub struct BuildLaunchOptions {
 }
 pub fn build_options(paths: &Paths, app: &str) -> Result<BuildLaunchOptions> {
     crate::model::valid_app(app)?;
-    let all: BTreeMap<String, BuildLaunchOptions> = crate::storage::config::document::section(
-        &crate::storage::config::ConfigStore::new(paths.root.clone())
-            .load()?
-            .document,
-        "build_launch",
-    )?;
+    let config = crate::storage::config::ConfigStore::new(paths.root.clone()).load()?;
+    let all = saved_build_options(&config)?;
     Ok(all.get(app).cloned().unwrap_or_default())
+}
+
+fn saved_build_options(
+    config: &crate::storage::config::ConfigSnapshot,
+) -> Result<BTreeMap<String, BuildLaunchOptions>> {
+    crate::storage::config::document::section(&config.document, "build_launch")
 }
 pub fn launch_options(paths: &Paths, app: &str) -> Result<crate::apps::LaunchSettings> {
     Ok(build_options(paths, app)?.launch)
@@ -380,11 +374,36 @@ pub fn save_launch_options(
 /// A removed selected build falls back to the newest valid completed build.
 pub fn selected_build(paths: &Paths, app: &str) -> Result<Option<PathBuf>> {
     let options = build_options(paths, app)?;
+    Ok(selected_build_info(paths, app, Some(&options)).map(|(path, _)| path))
+}
+
+/// Read build choices once and reuse the metadata already loaded while finding each build.
+pub fn selected_builds(
+    paths: &Paths,
+    config: &crate::storage::config::ConfigSnapshot,
+    names: &[String],
+) -> Result<BTreeMap<String, (PathBuf, BuildInfo)>> {
+    let all = saved_build_options(config)?;
+    Ok(names
+        .iter()
+        .filter(|name| crate::model::valid_app(name).is_ok())
+        .filter_map(|name| {
+            selected_build_info(paths, name, all.get(name)).map(|build| (name.clone(), build))
+        })
+        .collect())
+}
+
+fn selected_build_info(
+    paths: &Paths,
+    app: &str,
+    options: Option<&BuildLaunchOptions>,
+) -> Option<(PathBuf, BuildInfo)> {
     let builds = completed_builds(paths, app);
-    Ok(options
-        .selected_build
-        .filter(|selected| builds.iter().any(|(path, _)| path == selected))
-        .or_else(|| builds.first().map(|(path, _)| path.clone())))
+    let selected = options
+        .and_then(|options| options.selected_build.as_ref())
+        .and_then(|selected| builds.iter().position(|(path, _)| path == selected))
+        .unwrap_or_default();
+    builds.into_iter().nth(selected)
 }
 /// Launch the chosen completed build independently of installed releases.
 pub fn launch_local(paths: &Paths, app: &str) -> Result<()> {

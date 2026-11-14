@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.3
+
+- Check installed apps together at startup and during scheduled checks. Use the signed catalog first for supported apps and fall back to GitHub where needed, including for custom apps.
+- Show installed apps sooner while the Manager loads build and rollback details in the background.
+- Download and verify every Update All package before installing. Downloads run up to two at a time, and installations follow your sidebar order.
+- Show downloading, verifying, waiting to install, uninstalling, and installing in the sidebar during single-app and bulk operations.
+- Keep the Manager responsive during Windows MSI installs, updates, and removals by checking installation folders in the background.
+- Fix source downloads blocked by documentation links in MailCraft and SolidCraft, and shorten paths when extracting source for builds.
+- Align the installation location with the other app details.
+- Show build output sooner in Manager and Builder while reducing work during log redraws.
+- Keep the Builder’s progress and log updating while dragging or resizing its window on Windows.
+- Fix installs and downgrades being blocked when unrelated apps or preferences changed after you reviewed the plan.
+- Remember whether each installed copy has a desktop shortcut when you reopen its install dialog. New copies start with the option unchecked.
+
 ## 1.1.2
 
 - Reduce CPU use when scrolling Home and the sidebar by reusing app lists and update status between frames.
@@ -119,7 +133,7 @@
 
 ## 0.8.1
 
-- Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings Ã¢â€ â€™ Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
+- Portable ZIP builds automatically use portable storage. Remove the Enable/Disable setting; Settings → Folders shows a read-only Portable storage description. Managed paths follow the folder when it moves, and metadata migration is backed up. Installer and system-package storage stays unchanged.
 - Preserve existing library and tools locations when updating older portable copies, including updates launched by old helpers. Windows elevated batches decode portable settings without running migration as administrator.
 - Clean up downloaded setup files as the final installation stage after verification. Preserve packages needed for repair, uninstallation or recovery, and retain files when installation fails or is cancelled.
 - Synchronize builder progress, cancellation, logs, activity notifications and theme between manager and builder windows.
@@ -138,8 +152,8 @@
 - Improve reused-job cancellation, preserve build results during tool setup, retain bounded Unicode activity records and avoid pruning unconfirmed workers.
 - Avoid a redundant installation scan when opening apps and preserve sidebar search focus as the clear button appears.
 - Add subtle button press feedback, smoother installation details, one-way progress animation, softer light-theme disabled controls and muted sidebar scrollbars in both themes.
-- Configure release format and architecture independently for built-in and custom apps, using the selected releaseÃ¢â‚¬â„¢s compatible assets.
-- Preserve installed package facts separately from preferences; updates and bulk checks respect each installed appÃ¢â‚¬â„¢s format and architecture.
+- Configure release format and architecture independently for built-in and custom apps, using the selected release’s compatible assets.
+- Preserve installed package facts separately from preferences; updates and bulk checks respect each installed app’s format and architecture.
 - Expand custom GitHub download matching, add setup review and an ambiguous-download chooser, and improve native installer detection and uninstall support.
 - Add centralized operation records, lifecycle validation, cooperative cancellation, parent/child batch results and cross-process builder synchronization.
 - Add a compact Activity panel with progress, expandable results, unread notifications, outside-click dismissal and matching light/dark detail surfaces.
@@ -153,14 +167,14 @@
 - Add a version picker for published releases, including explicit downgrade confirmation and installer downgrade recovery.
 - Update only installed apps in Update All and automatically include newly installed apps in its selection.
 - Add optional close-to-tray behavior with Open, Check for updates and Exit actions; show the tray icon only while the manager is hidden.
-- Hide apps from the sidebar and Home through a right-click menu and restore them in Settings Ã¢â€ â€™ Apps Ã¢â€ â€™ App visibility Ã¢â€ â€™ ChooseÃ¢â‚¬Â¦.
+- Hide apps from the sidebar and Home through a right-click menu and restore them in Settings → Apps → App visibility → Choose….
 - Redesign install and uninstall dialogs with app icons, folder previews, folder opening, download sizes and verification stages.
 - Support custom Windows MSI destinations where the installer provides a supported directory property, and manager-created desktop shortcuts.
 - Add installation relocation for portable apps and supported Windows MSI apps, with running-app checks, verified transfers and recovery copies.
 - Improve Windows installer cancellation, installation detection and restoration into protected folders.
 - Redesign build confirmation with source and build locations, source download status, folder browsing and matching progress feedback.
 - Add per-app source removal, compiled build deletion and build cache deletion controls.
-- Clarify startup, periodic and background update checks; allow a 10Ã¢â‚¬â€œ60 minute interval while the manager is open.
+- Clarify startup, periodic and background update checks; allow a 10–60 minute interval while the manager is open.
 - Use the system theme on first launch, refine dark checkbox styling and enlarge the default manager window.
 - Default app and source backups to off while preserving existing saved preferences.
 - Fix version-preview completion indicators, long path display and duplicate folder tooltips.
@@ -171,9 +185,9 @@ App discovery and ArtCraft support contributed by [carpaaaaa](https://github.com
 
 - Read the app list from the Storytold repositories on GitHub, so Craft apps published after this version appear without a manager update. A built-in list is used offline.
 - Offer new apps without changing bulk update selections by default. Automatic inclusion is opt-in.
-- Add Settings Ã¢â€ â€™ App list Ã¢â€ â€™ Refresh to look for new apps at any time.
-- Add ChooseÃ¢â‚¬Â¦ to the Update all review so the app selection can be changed before running operations.
-- Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_Ã¢â‚¬Â¦`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
+- Add Settings → App list → Refresh to look for new apps at any time.
+- Add Choose… to the Update all review so the app selection can be changed before running operations.
+- Support ArtCraft: Windows installers and macOS disk images named `ArtCraft_<version>_…`, release tags such as `artcraft-v0.41.0` and its `ai.artcraft.app` bundle identifier.
 - Accept a release whose files switched to a single new name and remember that name, so renamed apps keep installing and updating.
 - Download icons for apps without a bundled one, with a neutral tile when a repository has none.
 - Accept an optional `GITHUB_TOKEN` (or `CRAFT_GITHUB_TOKEN`) to raise GitHub's API limit.
