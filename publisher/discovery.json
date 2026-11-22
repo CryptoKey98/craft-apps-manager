@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1795373483,
+      "checked_at": 1795376512,
       "latest_tag": "v0.2.1",
       "releases": [
         {
@@ -951,7 +951,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1795373484,
+      "checked_at": 1795376513,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -2036,7 +2036,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1795373485,
+      "checked_at": 1795376514,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -6091,7 +6091,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1795373486,
+      "checked_at": 1795376515,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -9964,7 +9964,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1795373487,
+      "checked_at": 1795376516,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -14525,7 +14525,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1795373488,
+      "checked_at": 1795376517,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -19578,7 +19578,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1795373489,
+      "checked_at": 1795376518,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -23927,7 +23927,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1795373490,
+      "checked_at": 1795376519,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -28276,7 +28276,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1795373490,
+      "checked_at": 1795376520,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -32337,7 +32337,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1795373491,
+      "checked_at": 1795376521,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -36838,7 +36838,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1795373492,
+      "checked_at": 1795376522,
       "latest_tag": "v0.4.1",
       "releases": [
         {
@@ -38911,7 +38911,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1795373493,
+      "checked_at": 1795376523,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -43942,7 +43942,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1795373494,
+      "checked_at": 1795376524,
       "latest_tag": "v0.23.1",
       "releases": [
         {
@@ -49049,7 +49049,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1795373495,
+      "checked_at": 1795376525,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -52988,7 +52988,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1795373496,
+      "checked_at": 1795376526,
       "latest_tag": "v0.6.1",
       "releases": [
         {
@@ -55263,7 +55263,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1795373497,
+      "checked_at": 1795376527,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -60246,7 +60246,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1795373497,
+      "checked_at": 1795376528,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -64325,9 +64325,167 @@
       "error": "Oversized upstream page"
     },
     "ucs-care-group/mailcraft": {
-      "checked_at": 1795373501,
-      "latest_tag": "v0.14.0",
+      "checked_at": 1795376533,
+      "latest_tag": "v0.15.0",
       "releases": [
+        {
+          "tag_name": "v0.15.0",
+          "name": "MailCraft v0.15.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+              "size": 41106651,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:ca8cf49b9e9a36ec3f6780492be4b441b184552d836eeec15be4e239f121e115"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.AppImage",
+              "size": 36309512,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage",
+              "digest": "sha256:97fef1cc8aa18207a52fabf78b99499a946631b3c1fce0688c7b14ed1f5fb6c6"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+              "size": 124359,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:d18a94b8f936f5315bbf9298dec31ca8cee2444fcc41568a55b100cb032a0efe"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.deb",
+              "size": 40418216,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.deb",
+              "digest": "sha256:74c5cdfef7f24426caed065ae0edefc377c6ae3ee7c8828208389bc54a638ff3"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.flatpak",
+              "size": 24028344,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.flatpak",
+              "digest": "sha256:7a356c9e993df093d58be84fc638ce5b2a190fa3338f4bdf3edad1d7f116c9d6"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.rpm",
+              "size": 40003897,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.rpm",
+              "digest": "sha256:f7dece6dcb9e53bc4150f3c179e6c8868c69d6168386f202a0f3a9d2482470bc"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-aarch64.tar.gz",
+              "size": 38825803,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.tar.gz",
+              "digest": "sha256:1b0bf8d9aef8e92460b83e46e5dbd39ff8aedb4d18a2ccd583f0bd99e6079413"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.AppImage",
+              "size": 38500856,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage",
+              "digest": "sha256:07b85f9a10a55989c05a9391e185d698dd7e37797378fc036fff966bfd845bce"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+              "size": 131847,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:9d791a0439132951bf7bc22fcf0935df205aa77c85e50e65869a085417a8f402"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.deb",
+              "size": 42048578,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.deb",
+              "digest": "sha256:18cd6d3fe9ad6906e69bac91547c6515049e626d331f6e0cf9a9a7266ab1ee79"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.flatpak",
+              "size": 26826848,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.flatpak",
+              "digest": "sha256:02854ed6bd518fad0b270515f863aeae6d3a3afff9d305a82fa846e023213224"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.rpm",
+              "size": 41760012,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.rpm",
+              "digest": "sha256:f9107854f07e8806dadebc1e0a537813fee7f20ee61cd3e1c8148e5855114261"
+            },
+            {
+              "name": "mailcraft-0.15.0-linux-x86_64.tar.gz",
+              "size": 41232293,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.tar.gz",
+              "digest": "sha256:d9f9321d6dfe636fb7ad0758517311a416e8906d370d4fbbdefb0cd268fd5081"
+            },
+            {
+              "name": "mailcraft-0.15.0-macos-universal.dmg",
+              "size": 53272173,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-macos-universal.dmg",
+              "digest": "sha256:602dcd5d39d0e817a0f527521b5b6333d021d1878b83886f5f31d351a534ebdf"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-arm64-portable.zip",
+              "size": 37559370,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64-portable.zip",
+              "digest": "sha256:6ae37a30c349fbd1718629859c8d268948ffcbf1fac43bd2f3cccdfa5d239d5b"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-arm64.msi",
+              "size": 27430912,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64.msi",
+              "digest": "sha256:992613d8e88cd9862a514763cc0d6ed4393bf594e77a899a8c7cd6dd2789be3f"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-x64-portable.zip",
+              "size": 39591250,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64-portable.zip",
+              "digest": "sha256:ec35033ade6ecb139c443b3740618a4f5fb055ca6b1aeb009085d21721bff820"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-x64.msi",
+              "size": 29908992,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64.msi",
+              "digest": "sha256:3f083ef357c02056b445f1459bd83b6fc2e02327e72d9e670508d2af6759f72c"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-x86-portable.zip",
+              "size": 37507675,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86-portable.zip",
+              "digest": "sha256:6da205e2bb2d11a9f770699511ce8082d07dc04c552e62d2813073071084d6df"
+            },
+            {
+              "name": "mailcraft-0.15.0-windows-x86.msi",
+              "size": 28971008,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86.msi",
+              "digest": "sha256:a728ea5b326f299e07354ef582b60c305284f68a2c4860c71caf0acd04d2e7c1"
+            },
+            {
+              "name": "mailcraft-0.15.0.intoto.jsonl",
+              "size": 14967,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0.intoto.jsonl",
+              "digest": "sha256:fd0c71e9711e2e67bf09e5cfafd049d0983cadab66360e3ecbf19ece36dfce39"
+            },
+            {
+              "name": "mailcraft-cli-0.15.0-macos-universal.zip",
+              "size": 24449316,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-cli-0.15.0-macos-universal.zip",
+              "digest": "sha256:8a3c98ce3fc7ef44c7e479b45729011c168714c5eecd85eeeeea3da71c383a12"
+            },
+            {
+              "name": "mailcraft-web-0.15.0.zip",
+              "size": 14579305,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-web-0.15.0.zip",
+              "digest": "sha256:9c9cf9940700af68183d69ea148b5c2e56279d53d2bdb82608271dcb73f80f84"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 2283,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt",
+              "digest": "sha256:4672d647c6e9981a54c14466017fa22ea3a902db075ebca1290bce2889bc1441"
+            },
+            {
+              "name": "SHA256SUMS.txt.sig",
+              "size": 89,
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt.sig",
+              "digest": "sha256:a4400bf8f721350aa5fa0d84dfe602686a1102e4ff0ba48dbf6337559dad895f"
+            }
+          ]
+        },
         {
           "tag_name": "v0.14.0",
           "name": "MailCraft v0.14.0",
@@ -67854,7 +68012,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"80089337322568fde444f966f362dd1db88d5ef418b10c916f92d2f2ad1b5eef\"",
+      "etag": "\"5ad7c0ff38b01a325c48dbd349713f8297e9bf4716b25a48b8b0d589f7dff00e\"",
       "body": {
         "assets": [
           {
@@ -68171,7 +68329,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"50b6f175d1d00cd6daff415a202d5de42c549e7a7e0a00423c8a73e576f3097b\"",
+      "etag": "\"e1dfe1e4f9006957b872e24a70c733d6c74cc55d2a05f4881cce8db5c2981529\"",
       "body": [
         {
           "assets": [
@@ -69118,7 +69276,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"1256eb8022e2d67142385490247a555714bfc311257a3edd8545ac3562ce4b2c\"",
+      "etag": "\"4fae76930a29275e3158790a52ec81eb5bb6cae1c586e3c33737b80890d8cd49\"",
       "body": {
         "assets": [
           {
@@ -69399,7 +69557,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"5a9ac010b87680bf15adb995d061d3ff23a3e784c579cc634a75a1d376dae693\"",
+      "etag": "\"21f6780f5d540ad94c916c2f8be3e92ba495a45b75dac843f99152484f653ac8\"",
       "body": [
         {
           "assets": [
@@ -70482,7 +70640,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"17ab7c71d357f3c7250c181c4f6da1e9a21d8da657e7c311e945a48ab5217ed8\"",
+      "etag": "\"735644674b33a93add28a57c250f4eecb40047bc125a29b332bcf860a47868b7\"",
       "body": {
         "assets": [
           {
@@ -70793,7 +70951,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"9ff92d4cd6225e10e5b1fbdc0f6e52c0eee1dac8ae2dd4681557b5e07dc8df5d\"",
+      "etag": "\"dd8edde4ea0bd8d63aff3547842fd45acd0e558bbf2b06243cfedebc444f32a2\"",
       "body": [
         {
           "assets": [
@@ -74846,7 +75004,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"3254ed17f1d34dac1daf75bdc526fbc17315ac710434018a27e39c487df3516b\"",
+      "etag": "\"078fc154ba5bee84c902996892a3838f52b3065018de806fc75f0918d6477a0a\"",
       "body": {
         "assets": [
           {
@@ -75157,7 +75315,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"ab19ab60790e67c74a651ef3159f1373e0069a8f743f66a8b4fd68fe72cad1a4\"",
+      "etag": "\"10409373bcc993c299f48c3f278c27e83a74e4e30c8537f799a0e2ce8f3e88ab\"",
       "body": [
         {
           "assets": [
@@ -79028,7 +79186,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"1ae46c8bbb16b46f2aa7bcbc667810a78740e8a97dea2780d02195e4bdfd3fb5\"",
+      "etag": "\"c12bf5f7b7de0558d65dc05b44c1c0f7c3c6ea006e98a8f953290a550b0524fc\"",
       "body": {
         "assets": [
           {
@@ -79339,7 +79497,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"cc2d872cd831b8aac7dee060c270794f9536ad437aaee595fe9e0469470ad96f\"",
+      "etag": "\"0f69e24038f166a7fb496a8ce9cfda4657b26d0e0d7cff84e6380e762f76983c\"",
       "body": [
         {
           "assets": [
@@ -83898,7 +84056,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"7af2e9ad0014d93663c044c00b40ba509865c775b85d95f8b2013e233a665261\"",
+      "etag": "\"44f3f5aaf0e0f5fa342a5b884bf3af16dd47c25fe864a9e51643cbe94d69a1fe\"",
       "body": {
         "assets": [
           {
@@ -84209,7 +84367,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"a6c2253a69a1e080785e3be4243ab6fd3c32e94e223102ec6def87fd2e5f7ff5\"",
+      "etag": "\"1465db369093e3aac247e50abfd9eb7a3cf2eae60d82f1ffd11b6f1463daf8c1\"",
       "body": [
         {
           "assets": [
@@ -89260,7 +89418,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"066964a431981789def342ad717b74a5d06fbe9ea6d961b133067259188b5c21\"",
+      "etag": "\"b625bcaa48f1dac31934ff5c2fa440d6f19182c2525609a1754c82e6ac7e7b79\"",
       "body": {
         "assets": [
           {
@@ -89595,7 +89753,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"309941295e67b2a094a0e1f474d908726844e09f401346ada4f50d015a884da7\"",
+      "etag": "\"22be194d1282795fef450e42173d32ef259a3d2ec9550e8340610403541e398f\"",
       "body": [
         {
           "assets": [
@@ -93942,7 +94100,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"d7a5ab44d8c30a532f81a7fdb0b66b8dac608cdd6545f51de6493414e5295aee\"",
+      "etag": "\"b02dce5897e5f417d02dfbf0f490c95274a835a5049d5a75eff7a0b92963c9d6\"",
       "body": {
         "assets": [
           {
@@ -94253,7 +94411,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"d18fecf5f56999a4693de0fea0bc7fa670cd49790bbc1e0e0c30ea48d39128b3\"",
+      "etag": "\"5ed33ee02386a8f87f0728c65c8b7c3902c60f5bcc2e000d2b2b06c8330eda43\"",
       "body": [
         {
           "assets": [
@@ -98600,7 +98758,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"a0e9ecefb2e3b1fb8302fe1b3e5473cfbc65a90590b29187de143cd53a5ed244\"",
+      "etag": "\"dedc39cea8b6448813017f7cb67ff071d55c83d1a8d16d0072c514860aff9c81\"",
       "body": {
         "assets": [
           {
@@ -98911,7 +99069,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"6cb1a8082a52c2636e7b7708ad10ee1c5096a0f80b87cd7a20c0203f870d89c4\"",
+      "etag": "\"914baf670de9089c10fcefc7157fd79d3bde7931e1b4d717be81043c6057bfb6\"",
       "body": [
         {
           "assets": [
@@ -102970,7 +103128,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"80d2a732084e9e60153003dc1ddd767ddd4b044ecb58470c2ef6fb27f5898d9c\"",
+      "etag": "\"14390f0d2dfa74026ae4ef19e6af1e7291e3bbbf7e8a7bd760f90510c198a1fc\"",
       "body": {
         "assets": [
           {
@@ -103281,7 +103439,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"b1bbed02d87d9e1464eeff51f58ceb7b66262f6e399a3bce8dd9890ce448906b\"",
+      "etag": "\"e28661a2194f485a66da5bc91890f79c0cd70cd9e4434be9e8a30ccf2db5357d\"",
       "body": [
         {
           "assets": [
@@ -107780,7 +107938,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"265fc015647a720d0c2bf54aad5202aed51644d67631758a6253176cc92137b4\"",
+      "etag": "\"339ab5f0ca420609832e4384c16ab1701eb031e82d11c68f1697e259365c7536\"",
       "body": {
         "assets": [
           {
@@ -108091,7 +108249,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"0d91b429666da358b4e2b3210116f4f86dab9fbd12f8ea594a2e13702813bca6\"",
+      "etag": "\"cce4a753dea178cbc2b49f911ccea1ac8d0bc5ad5e8818e8bac745fa5ae8eda6\"",
       "body": [
         {
           "assets": [
@@ -110162,7 +110320,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"30ea6c0de6b14a2b3c31de13fc258686e4f0a49d3625a0bdea841a18585464ae\"",
+      "etag": "\"9aace2a9f472d616f31156e7121470b58a005b3ed07d9416122ec72ad2ba2541\"",
       "body": {
         "assets": [
           {
@@ -110497,7 +110655,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"60352cf8e389eaa33c6443f167038e5688c735901e264ea1b7730fd52f4f287d\"",
+      "etag": "\"c7b126ad79baf3aae68b19f574a107f01f111fbcae8a4b4bd40a262e35cc57a9\"",
       "body": [
         {
           "assets": [
@@ -115526,7 +115684,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"af739fd54800cab463f57f7fde822d7f827c6f51d60336527d39387929aeed06\"",
+      "etag": "\"b7da38be42fa694e4fd83a0b6db568213307484f7fe62ee4ed721459cb10f2fd\"",
       "body": {
         "assets": [
           {
@@ -115849,7 +116007,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"f00e8392c82966ae6d502bed2f0019b5f1ed6845d5c7f0ff6caa1f3c75f5622a\"",
+      "etag": "\"5e9418e6a15823124c943c12da1687ed48adc187947778078f4fa69a9d573898\"",
       "body": [
         {
           "assets": [
@@ -120954,7 +121112,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"2ff0af2d2e167ac516461ea1efee0e83bd58a91195bfb66fdb47a4c80c87c769\"",
+      "etag": "\"aff038d3820be920885c538672d511399befa15776bf297ed2e68104d3ec0657\"",
       "body": {
         "assets": [
           {
@@ -121265,7 +121423,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"69b9641eefc3c0f3446f132ca749e899079cb2518715eca57cf754ec24fe5893\"",
+      "etag": "\"b689701ffe21fb6277aebd115b877ff110a3b95d27f3bc7ca51f64e5529d2809\"",
       "body": [
         {
           "assets": [
@@ -125202,7 +125360,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"89fae05df59862667089ec95376589b7165ab246ed954ed078cd8446b098d77b\"",
+      "etag": "\"4842eec8a3d4c802046805e1d5695d5a6e7a22c550590b4c337a5b37a1f16ead\"",
       "body": {
         "assets": [
           {
@@ -125513,7 +125671,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"508f7011e73e8b2480b5c1103f18ca7070ced60f8b4065ca1872a81b035eac17\"",
+      "etag": "\"7bf717adfdcf82af3adc21826841bf482c67d699f42b828f6dc1996658f7d31c\"",
       "body": [
         {
           "assets": [
@@ -127786,7 +127944,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"3585c1bd5a173df7d5645b926866b1eb8214b7f0825e968d05a6bdce8ddfec53\"",
+      "etag": "\"97e7c8964d332224c50d9deee8211b0a136a3a72e7f60a67567d3e1188542541\"",
       "body": {
         "assets": [
           {
@@ -128097,7 +128255,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"eb16ae3cbbac5138557125aa5e353ad0f370cb6d2a3e3beb29e698a6bb57a9d5\"",
+      "etag": "\"40b6907d2664a281424728a26730d4df9f91cd1a1f7863ad618ccea015f486df\"",
       "body": [
         {
           "assets": [
@@ -133078,7 +133236,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"54165e69e3b0783ee195145e121b40ba091227d6fbfff1a583ce8fe66f1ff9dd\"",
+      "etag": "\"044f3ff915c58eac0969162fd5cccdca1f3d5d4547b9335932257f8a6aec9a12\"",
       "body": {
         "assets": [
           {
@@ -133389,7 +133547,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"e9e39f4d5df4565572e743646bf93c10e33a659aaf9ec2ce10892f6e17dee72e\"",
+      "etag": "\"ffec71059610bd1cb31aacafd9dee604011714000f19fc65a8bf676265288ad0\"",
       "body": [
         {
           "assets": [
@@ -137460,169 +137618,327 @@
       ]
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest": {
-      "etag": "\"5c67c6a4a265f3deb8d00d881d50192c239e3aaea2d8836f78c40b248b43838d\"",
+      "etag": "\"b93243fc3901de848b6942f4255be1ebbf74e020a48e55770179df8f0c2613f2\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-freebsd-x86_64.tar.gz",
-            "digest": "sha256:c35c18ba1a8dbcb56252056bfe319fe386db4cda0242ef825664ff2285a3de74",
-            "name": "mailcraft-0.14.0-freebsd-x86_64.tar.gz",
-            "size": 40002658
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:ca8cf49b9e9a36ec3f6780492be4b441b184552d836eeec15be4e239f121e115",
+            "name": "mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+            "size": 41106651
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.AppImage",
-            "digest": "sha256:0bbbdf1c1db344f4e87d88b4d95573c89d9ae5bfcc47f9c45e00faf23db0cb7b",
-            "name": "mailcraft-0.14.0-linux-aarch64.AppImage",
-            "size": 35342856
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage",
+            "digest": "sha256:97fef1cc8aa18207a52fabf78b99499a946631b3c1fce0688c7b14ed1f5fb6c6",
+            "name": "mailcraft-0.15.0-linux-aarch64.AppImage",
+            "size": 36309512
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:6914620d10e0d95a6b11b27edba15c3029b89f55770ed80b882e9c85b1644a9f",
-            "name": "mailcraft-0.14.0-linux-aarch64.AppImage.zsync",
-            "size": 121055
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:d18a94b8f936f5315bbf9298dec31ca8cee2444fcc41568a55b100cb032a0efe",
+            "name": "mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+            "size": 124359
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.deb",
-            "digest": "sha256:bff34ed413855c71e296445d7e6d06372347070c6661bbcb70cc386f13d10831",
-            "name": "mailcraft-0.14.0-linux-aarch64.deb",
-            "size": 39278914
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.deb",
+            "digest": "sha256:74c5cdfef7f24426caed065ae0edefc377c6ae3ee7c8828208389bc54a638ff3",
+            "name": "mailcraft-0.15.0-linux-aarch64.deb",
+            "size": 40418216
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.flatpak",
-            "digest": "sha256:321b17b2085a9d8416e75a45de5b96da65786808e44b705e85d907cc7ef2495f",
-            "name": "mailcraft-0.14.0-linux-aarch64.flatpak",
-            "size": 23363720
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.flatpak",
+            "digest": "sha256:7a356c9e993df093d58be84fc638ce5b2a190fa3338f4bdf3edad1d7f116c9d6",
+            "name": "mailcraft-0.15.0-linux-aarch64.flatpak",
+            "size": 24028344
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.rpm",
-            "digest": "sha256:6cdaaf2eda10ba56731b0ba6f6e11e9581e8528c348a90819d0fe4e24831be8a",
-            "name": "mailcraft-0.14.0-linux-aarch64.rpm",
-            "size": 38877190
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.rpm",
+            "digest": "sha256:f7dece6dcb9e53bc4150f3c179e6c8868c69d6168386f202a0f3a9d2482470bc",
+            "name": "mailcraft-0.15.0-linux-aarch64.rpm",
+            "size": 40003897
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-aarch64.tar.gz",
-            "digest": "sha256:47f74f7bf98958fb657fbca6f695db7781b33bd750cbc09ccfa369c8c4815b74",
-            "name": "mailcraft-0.14.0-linux-aarch64.tar.gz",
-            "size": 37731851
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.tar.gz",
+            "digest": "sha256:1b0bf8d9aef8e92460b83e46e5dbd39ff8aedb4d18a2ccd583f0bd99e6079413",
+            "name": "mailcraft-0.15.0-linux-aarch64.tar.gz",
+            "size": 38825803
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.AppImage",
-            "digest": "sha256:8543b249b69bd484e1fb203a3590c0c21026601380f80b02b0e51bd1f73fc4a6",
-            "name": "mailcraft-0.14.0-linux-x86_64.AppImage",
-            "size": 37480952
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage",
+            "digest": "sha256:07b85f9a10a55989c05a9391e185d698dd7e37797378fc036fff966bfd845bce",
+            "name": "mailcraft-0.15.0-linux-x86_64.AppImage",
+            "size": 38500856
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:4288ef5e5c04119d05d41615c0d7e39354450f600cbbd874f7ea483cca804a33",
-            "name": "mailcraft-0.14.0-linux-x86_64.AppImage.zsync",
-            "size": 128361
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:9d791a0439132951bf7bc22fcf0935df205aa77c85e50e65869a085417a8f402",
+            "name": "mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+            "size": 131847
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.deb",
-            "digest": "sha256:eb0850b9bdbeecada06412fd2c8ac12cff0723c14369d3186a873232f4bd5430",
-            "name": "mailcraft-0.14.0-linux-x86_64.deb",
-            "size": 40951756
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.deb",
+            "digest": "sha256:18cd6d3fe9ad6906e69bac91547c6515049e626d331f6e0cf9a9a7266ab1ee79",
+            "name": "mailcraft-0.15.0-linux-x86_64.deb",
+            "size": 42048578
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.flatpak",
-            "digest": "sha256:343234c8cb521959c79d639dacf47cf907cdf25b8665e002536c94dc897dd3cc",
-            "name": "mailcraft-0.14.0-linux-x86_64.flatpak",
-            "size": 26156224
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.flatpak",
+            "digest": "sha256:02854ed6bd518fad0b270515f863aeae6d3a3afff9d305a82fa846e023213224",
+            "name": "mailcraft-0.15.0-linux-x86_64.flatpak",
+            "size": 26826848
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.rpm",
-            "digest": "sha256:a4d27cf39b1f0b5155523294395010d9ad35c77697c4fccaf1b3fd52b10b7d57",
-            "name": "mailcraft-0.14.0-linux-x86_64.rpm",
-            "size": 40661917
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.rpm",
+            "digest": "sha256:f9107854f07e8806dadebc1e0a537813fee7f20ee61cd3e1c8148e5855114261",
+            "name": "mailcraft-0.15.0-linux-x86_64.rpm",
+            "size": 41760012
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-linux-x86_64.tar.gz",
-            "digest": "sha256:d67a5beeedc24cfe07c8f8184735810c5e2d3e565118121448aec61e40012f10",
-            "name": "mailcraft-0.14.0-linux-x86_64.tar.gz",
-            "size": 40147692
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.tar.gz",
+            "digest": "sha256:d9f9321d6dfe636fb7ad0758517311a416e8906d370d4fbbdefb0cd268fd5081",
+            "name": "mailcraft-0.15.0-linux-x86_64.tar.gz",
+            "size": 41232293
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-macos-universal.dmg",
-            "digest": "sha256:9a597dbfffdf2f8a3089949c82a1fac970068adac02048c552210464fd442ec8",
-            "name": "mailcraft-0.14.0-macos-universal.dmg",
-            "size": 51754422
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-macos-universal.dmg",
+            "digest": "sha256:602dcd5d39d0e817a0f527521b5b6333d021d1878b83886f5f31d351a534ebdf",
+            "name": "mailcraft-0.15.0-macos-universal.dmg",
+            "size": 53272173
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-arm64-portable.zip",
-            "digest": "sha256:cfa7cb7bb8b9a066095f6596206d0c7ce20a2fc60be96d6850199310df7fc3e0",
-            "name": "mailcraft-0.14.0-windows-arm64-portable.zip",
-            "size": 36267791
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64-portable.zip",
+            "digest": "sha256:6ae37a30c349fbd1718629859c8d268948ffcbf1fac43bd2f3cccdfa5d239d5b",
+            "name": "mailcraft-0.15.0-windows-arm64-portable.zip",
+            "size": 37559370
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-arm64.msi",
-            "digest": "sha256:c94a5809955c42e204ecae5cda810881b26aa53d8b8fb068686b77790dcb0052",
-            "name": "mailcraft-0.14.0-windows-arm64.msi",
-            "size": 26558464
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64.msi",
+            "digest": "sha256:992613d8e88cd9862a514763cc0d6ed4393bf594e77a899a8c7cd6dd2789be3f",
+            "name": "mailcraft-0.15.0-windows-arm64.msi",
+            "size": 27430912
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-x64-portable.zip",
-            "digest": "sha256:d6cb8c8753b8de41980c53d2d182fca69808f9eaf2202d25c8f18d42469bf771",
-            "name": "mailcraft-0.14.0-windows-x64-portable.zip",
-            "size": 38440541
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64-portable.zip",
+            "digest": "sha256:ec35033ade6ecb139c443b3740618a4f5fb055ca6b1aeb009085d21721bff820",
+            "name": "mailcraft-0.15.0-windows-x64-portable.zip",
+            "size": 39591250
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-x64.msi",
-            "digest": "sha256:a1724dc15b0f009e265c71c4b0a15b350f40064d0ac6b908142a957d0a730f47",
-            "name": "mailcraft-0.14.0-windows-x64.msi",
-            "size": 29052928
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64.msi",
+            "digest": "sha256:3f083ef357c02056b445f1459bd83b6fc2e02327e72d9e670508d2af6759f72c",
+            "name": "mailcraft-0.15.0-windows-x64.msi",
+            "size": 29908992
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-x86-portable.zip",
-            "digest": "sha256:ae6997d4daa0e89612bebe0219e1aee162f6b22ef74befbb3a2093fe604c826a",
-            "name": "mailcraft-0.14.0-windows-x86-portable.zip",
-            "size": 36174822
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86-portable.zip",
+            "digest": "sha256:6da205e2bb2d11a9f770699511ce8082d07dc04c552e62d2813073071084d6df",
+            "name": "mailcraft-0.15.0-windows-x86-portable.zip",
+            "size": 37507675
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0-windows-x86.msi",
-            "digest": "sha256:9c89138c3df2bff43d823b1117fb60fe9156b0418447e9bd39dc6292dddc03dc",
-            "name": "mailcraft-0.14.0-windows-x86.msi",
-            "size": 28004352
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86.msi",
+            "digest": "sha256:a728ea5b326f299e07354ef582b60c305284f68a2c4860c71caf0acd04d2e7c1",
+            "name": "mailcraft-0.15.0-windows-x86.msi",
+            "size": 28971008
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-0.14.0.intoto.jsonl",
-            "digest": "sha256:a9b8d36917961b682164b5b1b1a3e0f53fcf4a56c2eec0b840b497ca31e5cad9",
-            "name": "mailcraft-0.14.0.intoto.jsonl",
-            "size": 15233
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0.intoto.jsonl",
+            "digest": "sha256:fd0c71e9711e2e67bf09e5cfafd049d0983cadab66360e3ecbf19ece36dfce39",
+            "name": "mailcraft-0.15.0.intoto.jsonl",
+            "size": 14967
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-cli-0.14.0-macos-universal.zip",
-            "digest": "sha256:1756c74b418be2b1923f855e5b45a93bbc55b18a2bebf7ff3004402c3bdf964b",
-            "name": "mailcraft-cli-0.14.0-macos-universal.zip",
-            "size": 23531601
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-cli-0.15.0-macos-universal.zip",
+            "digest": "sha256:8a3c98ce3fc7ef44c7e479b45729011c168714c5eecd85eeeeea3da71c383a12",
+            "name": "mailcraft-cli-0.15.0-macos-universal.zip",
+            "size": 24449316
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/mailcraft-web-0.14.0.zip",
-            "digest": "sha256:b441f29d33db928b313a8233f7d4e83c06d9cd8cf233fb9119002ecea8fa887a",
-            "name": "mailcraft-web-0.14.0.zip",
-            "size": 13992339
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-web-0.15.0.zip",
+            "digest": "sha256:9c9cf9940700af68183d69ea148b5c2e56279d53d2bdb82608271dcb73f80f84",
+            "name": "mailcraft-web-0.15.0.zip",
+            "size": 14579305
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/SHA256SUMS.txt",
-            "digest": "sha256:7346bf5bba8829e73802137053ecc7db39ab727f3fa315697dcec0a9798a4e8c",
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt",
+            "digest": "sha256:4672d647c6e9981a54c14466017fa22ea3a902db075ebca1290bce2889bc1441",
             "name": "SHA256SUMS.txt",
             "size": 2283
           },
           {
-            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.14.0/SHA256SUMS.txt.sig",
-            "digest": "sha256:4176619628ed18dd2bb0cfc6ec354cbf7dd87bd920994b62f53acc1b0ef501dd",
+            "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt.sig",
+            "digest": "sha256:a4400bf8f721350aa5fa0d84dfe602686a1102e4ff0ba48dbf6337559dad895f",
             "name": "SHA256SUMS.txt.sig",
             "size": 89
           }
         ],
         "draft": false,
-        "name": "MailCraft v0.14.0",
+        "name": "MailCraft v0.15.0",
         "prerelease": false,
-        "tag_name": "v0.14.0"
+        "tag_name": "v0.15.0"
       }
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases?per_page=100&page=1": {
-      "etag": "\"72354c9d2151f3d1b49c581a9c702b1faf3de7c74a3c3ad5f21f1902aaa29d62\"",
+      "etag": "\"12a9974f9374075f8914db01b54af305e1ca10c326432c3fe1c5ef1fb5d4b6a9\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:ca8cf49b9e9a36ec3f6780492be4b441b184552d836eeec15be4e239f121e115",
+              "name": "mailcraft-0.15.0-freebsd-x86_64.tar.gz",
+              "size": 41106651
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage",
+              "digest": "sha256:97fef1cc8aa18207a52fabf78b99499a946631b3c1fce0688c7b14ed1f5fb6c6",
+              "name": "mailcraft-0.15.0-linux-aarch64.AppImage",
+              "size": 36309512
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:d18a94b8f936f5315bbf9298dec31ca8cee2444fcc41568a55b100cb032a0efe",
+              "name": "mailcraft-0.15.0-linux-aarch64.AppImage.zsync",
+              "size": 124359
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.deb",
+              "digest": "sha256:74c5cdfef7f24426caed065ae0edefc377c6ae3ee7c8828208389bc54a638ff3",
+              "name": "mailcraft-0.15.0-linux-aarch64.deb",
+              "size": 40418216
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.flatpak",
+              "digest": "sha256:7a356c9e993df093d58be84fc638ce5b2a190fa3338f4bdf3edad1d7f116c9d6",
+              "name": "mailcraft-0.15.0-linux-aarch64.flatpak",
+              "size": 24028344
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.rpm",
+              "digest": "sha256:f7dece6dcb9e53bc4150f3c179e6c8868c69d6168386f202a0f3a9d2482470bc",
+              "name": "mailcraft-0.15.0-linux-aarch64.rpm",
+              "size": 40003897
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-aarch64.tar.gz",
+              "digest": "sha256:1b0bf8d9aef8e92460b83e46e5dbd39ff8aedb4d18a2ccd583f0bd99e6079413",
+              "name": "mailcraft-0.15.0-linux-aarch64.tar.gz",
+              "size": 38825803
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage",
+              "digest": "sha256:07b85f9a10a55989c05a9391e185d698dd7e37797378fc036fff966bfd845bce",
+              "name": "mailcraft-0.15.0-linux-x86_64.AppImage",
+              "size": 38500856
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:9d791a0439132951bf7bc22fcf0935df205aa77c85e50e65869a085417a8f402",
+              "name": "mailcraft-0.15.0-linux-x86_64.AppImage.zsync",
+              "size": 131847
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.deb",
+              "digest": "sha256:18cd6d3fe9ad6906e69bac91547c6515049e626d331f6e0cf9a9a7266ab1ee79",
+              "name": "mailcraft-0.15.0-linux-x86_64.deb",
+              "size": 42048578
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.flatpak",
+              "digest": "sha256:02854ed6bd518fad0b270515f863aeae6d3a3afff9d305a82fa846e023213224",
+              "name": "mailcraft-0.15.0-linux-x86_64.flatpak",
+              "size": 26826848
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.rpm",
+              "digest": "sha256:f9107854f07e8806dadebc1e0a537813fee7f20ee61cd3e1c8148e5855114261",
+              "name": "mailcraft-0.15.0-linux-x86_64.rpm",
+              "size": 41760012
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-linux-x86_64.tar.gz",
+              "digest": "sha256:d9f9321d6dfe636fb7ad0758517311a416e8906d370d4fbbdefb0cd268fd5081",
+              "name": "mailcraft-0.15.0-linux-x86_64.tar.gz",
+              "size": 41232293
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-macos-universal.dmg",
+              "digest": "sha256:602dcd5d39d0e817a0f527521b5b6333d021d1878b83886f5f31d351a534ebdf",
+              "name": "mailcraft-0.15.0-macos-universal.dmg",
+              "size": 53272173
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64-portable.zip",
+              "digest": "sha256:6ae37a30c349fbd1718629859c8d268948ffcbf1fac43bd2f3cccdfa5d239d5b",
+              "name": "mailcraft-0.15.0-windows-arm64-portable.zip",
+              "size": 37559370
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-arm64.msi",
+              "digest": "sha256:992613d8e88cd9862a514763cc0d6ed4393bf594e77a899a8c7cd6dd2789be3f",
+              "name": "mailcraft-0.15.0-windows-arm64.msi",
+              "size": 27430912
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64-portable.zip",
+              "digest": "sha256:ec35033ade6ecb139c443b3740618a4f5fb055ca6b1aeb009085d21721bff820",
+              "name": "mailcraft-0.15.0-windows-x64-portable.zip",
+              "size": 39591250
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x64.msi",
+              "digest": "sha256:3f083ef357c02056b445f1459bd83b6fc2e02327e72d9e670508d2af6759f72c",
+              "name": "mailcraft-0.15.0-windows-x64.msi",
+              "size": 29908992
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86-portable.zip",
+              "digest": "sha256:6da205e2bb2d11a9f770699511ce8082d07dc04c552e62d2813073071084d6df",
+              "name": "mailcraft-0.15.0-windows-x86-portable.zip",
+              "size": 37507675
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0-windows-x86.msi",
+              "digest": "sha256:a728ea5b326f299e07354ef582b60c305284f68a2c4860c71caf0acd04d2e7c1",
+              "name": "mailcraft-0.15.0-windows-x86.msi",
+              "size": 28971008
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-0.15.0.intoto.jsonl",
+              "digest": "sha256:fd0c71e9711e2e67bf09e5cfafd049d0983cadab66360e3ecbf19ece36dfce39",
+              "name": "mailcraft-0.15.0.intoto.jsonl",
+              "size": 14967
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-cli-0.15.0-macos-universal.zip",
+              "digest": "sha256:8a3c98ce3fc7ef44c7e479b45729011c168714c5eecd85eeeeea3da71c383a12",
+              "name": "mailcraft-cli-0.15.0-macos-universal.zip",
+              "size": 24449316
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/mailcraft-web-0.15.0.zip",
+              "digest": "sha256:9c9cf9940700af68183d69ea148b5c2e56279d53d2bdb82608271dcb73f80f84",
+              "name": "mailcraft-web-0.15.0.zip",
+              "size": 14579305
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt",
+              "digest": "sha256:4672d647c6e9981a54c14466017fa22ea3a902db075ebca1290bce2889bc1441",
+              "name": "SHA256SUMS.txt",
+              "size": 2283
+            },
+            {
+              "browser_download_url": "https://github.com/UCS-Care-Group/mailcraft/releases/download/v0.15.0/SHA256SUMS.txt.sig",
+              "digest": "sha256:a4400bf8f721350aa5fa0d84dfe602686a1102e4ff0ba48dbf6337559dad895f",
+              "name": "SHA256SUMS.txt.sig",
+              "size": 89
+            }
+          ],
+          "draft": false,
+          "name": "MailCraft v0.15.0",
+          "prerelease": false,
+          "tag_name": "v0.15.0"
+        },
         {
           "assets": [
             {
