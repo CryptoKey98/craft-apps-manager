@@ -17850,6 +17850,34 @@
         "inspector_version": 1
       },
       "used": 1795406310
+    },
+    {
+      "repository": "storytold/designcraft",
+      "evidence": {
+        "tag": "v0.21.1",
+        "asset_name": "designcraft-0.21.1-windows-arm64.msi",
+        "digest": "sha256:1eabf4ccee3e811fab391594cf45486e8cd22da16135348835f8ac22bf13ce9a",
+        "size": 102875136,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795465858
+    },
+    {
+      "repository": "storytold/designcraft",
+      "evidence": {
+        "tag": "v0.21.1",
+        "asset_name": "designcraft-0.21.1-windows-x64.msi",
+        "digest": "sha256:204c0fdc89fcd101f550b2bbd4bcf22b775939fffb255e0c0be0dbff76a45676",
+        "size": 108253184,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795465858
     }
   ],
   "attempts": {
@@ -18041,6 +18069,8 @@
     "storytold/designcraft:v0.20.0:designcraft-0.20.0-windows-x64.msi:sha256:acbbdfe92cebb96edd85282929d20aabf2ffadcb3495286d50570af6b24039f8": 1794416317,
     "storytold/designcraft:v0.20.1:designcraft-0.20.1-windows-arm64.msi:sha256:da2b0b8aa57e51c6219efe68be0f7dcd14f93988884dbe15888a64941c2d343d": 1794444849,
     "storytold/designcraft:v0.20.1:designcraft-0.20.1-windows-x64.msi:sha256:358fcfb94311dec9a3fabe5c437ca732de8c46ba7b6fd27a7be3e5dfe017175a": 1794444852,
+    "storytold/designcraft:v0.21.1:designcraft-0.21.1-windows-arm64.msi:sha256:1eabf4ccee3e811fab391594cf45486e8cd22da16135348835f8ac22bf13ce9a": 1795465856,
+    "storytold/designcraft:v0.21.1:designcraft-0.21.1-windows-x64.msi:sha256:204c0fdc89fcd101f550b2bbd4bcf22b775939fffb255e0c0be0dbff76a45676": 1795465858,
     "storytold/designcraft:v0.4.0:designcraft-0.4.0-windows-arm64.msi:sha256:107cc4a32159d95c259f272725c93282e143f1719d9cb56289a75e09d6811928": 1793539885,
     "storytold/designcraft:v0.4.0:designcraft-0.4.0-windows-x64.msi:sha256:83863d97c3ade9245087952d8a7a9a9240f5652f645a13c6a9e84626b7560f5c": 1793536183,
     "storytold/designcraft:v0.4.0:designcraft-0.4.0-windows-x86.msi:sha256:b8fb1d4abd6f64b97cb41def2c177ed557e230fcb5bab8ecbcb4c8499e5846e3": 1793536184,
