@@ -17878,6 +17878,34 @@
         "inspector_version": 1
       },
       "used": 1795465858
+    },
+    {
+      "repository": "storytold/effectcraft",
+      "evidence": {
+        "tag": "v0.25.1",
+        "asset_name": "effectcraft-0.25.1-windows-arm64.msi",
+        "digest": "sha256:337502d399b6a11c871398a1a78c357a4850856959c0dea0462e5080df55c635",
+        "size": 62664704,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795469502
+    },
+    {
+      "repository": "storytold/effectcraft",
+      "evidence": {
+        "tag": "v0.25.1",
+        "asset_name": "effectcraft-0.25.1-windows-x64.msi",
+        "digest": "sha256:6dc25ea09779707783c64d74c17234f4f937970ccc5193383ba90c39907becf2",
+        "size": 70451200,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795469503
     }
   ],
   "attempts": {
@@ -18142,6 +18170,8 @@
     "storytold/effectcraft:v0.24.0:effectcraft-0.24.0-windows-x64.msi:sha256:6556f19dff15142b432852301b39c698bd2f0e619177cb60a360caf8b9f40314": 1794419347,
     "storytold/effectcraft:v0.24.1:effectcraft-0.24.1-windows-arm64.msi:sha256:5e05fba4c194c0060e593276de8e468a21808fbd69099f3a6e29506fd1d90ef8": 1794444853,
     "storytold/effectcraft:v0.24.1:effectcraft-0.24.1-windows-x64.msi:sha256:4bda68bafb4325f96e794b81819a1e6c4b2a42c012c3c82aa2ce8a668b70b295": 1794444855,
+    "storytold/effectcraft:v0.25.1:effectcraft-0.25.1-windows-arm64.msi:sha256:337502d399b6a11c871398a1a78c357a4850856959c0dea0462e5080df55c635": 1795469502,
+    "storytold/effectcraft:v0.25.1:effectcraft-0.25.1-windows-x64.msi:sha256:6dc25ea09779707783c64d74c17234f4f937970ccc5193383ba90c39907becf2": 1795469502,
     "storytold/effectcraft:v0.3.0:effectcraft-0.3.0-windows-x64.msi:sha256:15542568ddfb8882a1eeda86da164171da04eb75f1095de0cc5b1ff1799f8fcb": 1793536245,
     "storytold/effectcraft:v0.3.0:effectcraft-0.3.0-windows-x86.msi:sha256:917b030c87828deb2232371bd4517f92b45fff2fecce20be252ab608e92c0074": 1793536247,
     "storytold/effectcraft:v0.3.1:effectcraft-0.3.1-windows-x64.msi:sha256:81005165a5f6143f5e655a7554d6f0de565c06025ffebab7953d04bf54b1b99b": 1793536243,
