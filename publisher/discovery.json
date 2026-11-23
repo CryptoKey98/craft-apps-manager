@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1795400199,
+      "checked_at": 1795406289,
       "latest_tag": "v0.2.1",
       "releases": [
         {
@@ -951,7 +951,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1795400199,
+      "checked_at": 1795406290,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -2036,7 +2036,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1795400201,
+      "checked_at": 1795406291,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -6091,7 +6091,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1795400202,
+      "checked_at": 1795406291,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -9964,7 +9964,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1795400203,
+      "checked_at": 1795406292,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -14525,7 +14525,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1795400204,
+      "checked_at": 1795406293,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -19578,7 +19578,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1795400205,
+      "checked_at": 1795406294,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -23927,7 +23927,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1795400205,
+      "checked_at": 1795406295,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -28276,7 +28276,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1795400206,
+      "checked_at": 1795406296,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -32337,7 +32337,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1795400207,
+      "checked_at": 1795406297,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -36838,7 +36838,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1795400208,
+      "checked_at": 1795406298,
       "latest_tag": "v0.4.1",
       "releases": [
         {
@@ -38911,9 +38911,341 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1795400209,
-      "latest_tag": "v0.21.1",
+      "checked_at": 1795406299,
+      "latest_tag": "v0.22.0",
       "releases": [
+        {
+          "tag_name": "v0.22.0",
+          "name": "PdfCraft v0.22.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+              "size": 124520223,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:c8627c85a54cf2840e2fc51fe55b4734c6f925e1e300e72ee405acb01b7de145"
+            },
+            {
+              "name": "pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+              "size": 130651151,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:db9cb5da8fd40d38419a31f0a44ea6ec682e793a8d650d1a5985e45a36b151d2"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage",
+              "size": 119233032,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage",
+              "digest": "sha256:7ede1c280a5b27e9ae32523fe79de4aeb7d8f42f15fbc8b8569719ddbef9fa9d"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:e1d87668aca87b316ce2ba28e55fa6e7bbb0a3bc18be806f8dc212746d6f18d3"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+              "size": 204018,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:cfaaa8f5aa2a85195352f29e1ece4ee8b2ace21b373b0251ceb7ff01edccdda9"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:8b438c9cf131d5a0d0de8eb17b709b4fdbdac954e75a155f276a34326fcc972a"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.deb",
+              "size": 128958024,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb",
+              "digest": "sha256:7a1cc758e88e1d36320687493500cc91f24a4802db1fd936b349e98fdd10ac9a"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb.asc",
+              "digest": "sha256:b95d74d447d76f682330b7457efae0c4da976de6e28edca752bc76640d6e073c"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.flatpak",
+              "size": 90533688,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak",
+              "digest": "sha256:470d372e2f820ceea2b913c3fb6699b0866aaa10c75fe86c4224ec911d9b90fb"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:8709ac317d480d9405b9b136531271e4af354ddcc5d1edb23eab70e058ed63e4"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:e2bd0d2054121d949cb8869f9daa0fe2920a699dac4faa8246348ff971445b20"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.oci.sig",
+              "size": 386,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci.sig",
+              "digest": "sha256:2f9b70e1bd3ecdc5e8ebfb1d3ad5560de92d47020349fbe71580ac248a197d85"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+              "size": 97326038,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:c412c02d49e1c9b22016ff3918ddc06c1aa8eb01cb424e3912bf50a7919b3613"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:3fc0cb528ea0706c06d0355867dba58c42784d121d0b2e92d14e0d78f4517271"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.rpm",
+              "size": 128106760,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm",
+              "digest": "sha256:0f7e06b10ac99cf772600b19d080eb88e49351623944a5e5843ecff89f5cd88d"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:8bb765014eb9ac2e9a50a0216870c091fd664d4959c51b8d901fad6eccf9e210"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz",
+              "size": 126226862,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz",
+              "digest": "sha256:ce137726550158e22c887cb8f71001e3b29d1741aea7492e0f0ff49054e2fe03"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:7c2d5be02a7ab2091efd4ada4d84f8f9977905f395505c654215f7a12075c96b"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.deb",
+              "size": 129387054,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb",
+              "digest": "sha256:88d3160a1b9d30512298df62cbc3342c41033e50ce73083f42809965d7d93451"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb.asc",
+              "digest": "sha256:4ed3ddf2cfc96b748b3c09f22af8caeee628575122fd32bd521ec9a2e8a97d25"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.rpm",
+              "size": 128988911,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm",
+              "digest": "sha256:f2c1db529504295c791a566de1d31b4aac73bf881b68578da45e05c4c4b00b31"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:d23a2849c828811eb5f5d65fc4e9cd1074be50502b4dc6fb16f294046c59aaea"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz",
+              "size": 128181118,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz",
+              "digest": "sha256:e6715ee7595c2e2ace73213ccae64aa5dcc3393451c1322589aab0429e2a10f2"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:7908c967ced68287d973d1b61954f1a5db295f0c0251b4e92be7d3ea1434aa3f"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage",
+              "size": 123992568,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage",
+              "digest": "sha256:771f61b07aaf8cc17e73cb1f93fbe88526f27b0aa82ff32d0710e2c375f49248"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:c50724f0bb00130189d3040a4c31c952f0b181bd9e97cd6f4edd9de7d26eac61"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+              "size": 212150,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:07b071717a784a4632b94077bc96f2ed0ed8e18fb32817e20a55d8b75d8ca47d"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:386c183622c394633bff3704cbc114984dc2bfb978acbd78a4f7e65913cb5a93"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.deb",
+              "size": 132710802,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb",
+              "digest": "sha256:a7e0e781e55adc633b68b417ec9860115ccaa2cc636588f183ae03e66a5edcdb"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb.asc",
+              "digest": "sha256:cf34414c980635774bd340cbdc0353524cf6219df15af321ce95c1f419373ff4"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.flatpak",
+              "size": 96395096,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak",
+              "digest": "sha256:f3e9db7df08be27778a97ef417dcfa4feb8235e8dc52a1d3664f954cc1f9c37a"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:323b103814a75de92a91fd32a671aa14d994abafe68901565e2737e7cde5a6b8"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:fd0c003b0b2ad9084f60fbbd5bd8e4488d3a396fec702df57fc874843e4caf2b"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.oci.sig",
+              "size": 382,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci.sig",
+              "digest": "sha256:b9259c2c5bc9ce75c8c057df9eaa4159868ebf7a91b1e184bf9516976aea9db4"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+              "size": 100596756,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:865a70e73cbcc8d36b199ac466a625400ff58bba95e88879e3ed28f5e4e4c428"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:b91f1710b47a4a8c8b24e5365fcfc1512169d7eca790be519c7edb32e896ce7d"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.rpm",
+              "size": 132041933,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm",
+              "digest": "sha256:fb66ac5af034c5d9a3367baefd030ed8127c036884f5b48de56d70570498125c"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:e4d476af8f4ada33c7b3baca304ebba03e371c6ee6eb8a70623e10ea7f730015"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz",
+              "size": 131269998,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz",
+              "digest": "sha256:a8993f9ee96e87accecf90af4226ff60a84b9e1787ae9fd8fa48ffe1396bc35e"
+            },
+            {
+              "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:e516497903126e15ec46da758faa187d88f9da3f6570e44fe29be4f509a6b05f"
+            },
+            {
+              "name": "pdfcraft-0.22.0-macos-universal.dmg",
+              "size": 145835486,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-macos-universal.dmg",
+              "digest": "sha256:ad45ca52a793c7cda1bae1acb6757b5ee12f07bfaec22ce4344e5e5460340634"
+            },
+            {
+              "name": "pdfcraft-0.22.0-windows-arm64-portable.zip",
+              "size": 127544410,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64-portable.zip",
+              "digest": "sha256:bf5ac8b3994e9916cd2490bdeb5d107080cdc6afd32a6a41ee90eab34ebe5f32"
+            },
+            {
+              "name": "pdfcraft-0.22.0-windows-arm64.msi",
+              "size": 102109184,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64.msi",
+              "digest": "sha256:e40302eac758fecc761be8895858064bf9e0797c01084c9314155441d6bebbcc"
+            },
+            {
+              "name": "pdfcraft-0.22.0-windows-x64-portable.zip",
+              "size": 133565158,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64-portable.zip",
+              "digest": "sha256:193394d15b923510e917912c0142b38119a8d4369b30693d97ef086444e9e314"
+            },
+            {
+              "name": "pdfcraft-0.22.0-windows-x64.msi",
+              "size": 107872256,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64.msi",
+              "digest": "sha256:52303376a76c8031c7c23a2f70bbdba65285bdb115c404b2e8d7bc7003879151"
+            },
+            {
+              "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+              "size": 48535482,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+              "digest": "sha256:88bb4d5a08d112a54fb01713c0fafd2f746afd8c5ec92c30bc4d35bad63bfaa4"
+            },
+            {
+              "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:c6f70da7590040b907bc3898ab87d60f09e26a83c4b6adb4eabb58c7c5bffc2d"
+            },
+            {
+              "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+              "size": 50684127,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+              "digest": "sha256:c9420654f839b9fb7a84923bf0fcf2fb13d2aa847dba39c305d9138c6961fcfb"
+            },
+            {
+              "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:29886b1655d7491f7f5ddec81130e778aad16cc720a266e395ce2f0078be9ef2"
+            },
+            {
+              "name": "pdfcraft-cli-0.22.0-macos-universal.zip",
+              "size": 101977216,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-macos-universal.zip",
+              "digest": "sha256:d9b8a88070895e6d5ccf3cc53d1de353622b60bd8af993e1c3959b4be1caf0da"
+            },
+            {
+              "name": "pdfcraft-web-0.22.0.zip",
+              "size": 37379269,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-web-0.22.0.zip",
+              "digest": "sha256:5da6db0d6d0d5ae517e9bb62c39eb57285f8befd81ef6555e9a807ccf5da5954"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5463,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt",
+              "digest": "sha256:f7f8088ba3e121c01fa809be202665ecb4c003f189c5cd3d4a553f8af98c7d67"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:b52596dc88cd115cf9688aad338e25fa5af032a471abab5b2a9626dc16915b69"
+            }
+          ]
+        },
         {
           "tag_name": "v0.21.1",
           "name": "PdfCraft v0.21.1",
@@ -43942,7 +44274,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1795400210,
+      "checked_at": 1795406300,
       "latest_tag": "v0.23.1",
       "releases": [
         {
@@ -49049,7 +49381,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1795400211,
+      "checked_at": 1795406301,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -52988,7 +53320,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1795400211,
+      "checked_at": 1795406302,
       "latest_tag": "v0.6.1",
       "releases": [
         {
@@ -55263,7 +55595,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1795400212,
+      "checked_at": 1795406303,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -60246,7 +60578,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1795400213,
+      "checked_at": 1795406304,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -64325,7 +64657,7 @@
       "error": "Oversized upstream page"
     },
     "ucs-care-group/mailcraft": {
-      "checked_at": 1795400217,
+      "checked_at": 1795406308,
       "latest_tag": "v0.15.0",
       "releases": [
         {
@@ -68012,7 +68344,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"bb28bdcb88828395cda8a221e53a799baafa8edf5bb3913f1654216012add50a\"",
+      "etag": "\"3095a92d35ef26b4f309a97f0b650eeb18c10013fe29d476ab126eed6687f789\"",
       "body": {
         "assets": [
           {
@@ -68329,7 +68661,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"117cf79c70e493122bc0a8c8e88c7562222459d26008b52fd455746bf2416e1e\"",
+      "etag": "\"eb5e325fc73d023020d84ff5a5265cdaf63fd53019a70baad71d401982fcd2ae\"",
       "body": [
         {
           "assets": [
@@ -69276,7 +69608,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"b8b119e6433f2662aed67948b6a44bf7417a1e0ff14d4b2a2f871ce76e96f023\"",
+      "etag": "\"d67230017e77d6935675ad20bab7dc27b8dde2212ff7fb152c4a8eba648cda4a\"",
       "body": {
         "assets": [
           {
@@ -69557,7 +69889,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"82560408e6b1f37527be36aee36223bdf7392b921e571d6dd6b78ca052818340\"",
+      "etag": "\"29458bb9cf1b4c4917c6aeaf4a7606377b650fc3940f819298f66ff8dbfb49f7\"",
       "body": [
         {
           "assets": [
@@ -70640,7 +70972,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"938ca3f1a23b765b4ee9f73daed6263266449f75078a4e129a577256cb21c6e4\"",
+      "etag": "\"3624e9f30262f0897e40565d77e551477fec6882fd2df74191d887cf77ccf14e\"",
       "body": {
         "assets": [
           {
@@ -70951,7 +71283,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"b4b0b9fda1260b13dc5f5bb078bdc6022b3d52714433ce813453304121e2e496\"",
+      "etag": "\"191aa9f5e41951012722474e8ffe4c25ae035ff9f0454e26135d3f9c0837c730\"",
       "body": [
         {
           "assets": [
@@ -75004,7 +75336,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"b7288de98617af09e4dd9d542679a11e3d7b2eae1fee7fc3b135caab4d554d3b\"",
+      "etag": "\"b7c01b35705bf43f22254c9d4b87a9b8a38643a2ead773e28a420e39c9f64816\"",
       "body": {
         "assets": [
           {
@@ -75315,7 +75647,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"763748a4fac058e7c715791541a05bfbb6b54209bf10b562f722bb54fa0c27dc\"",
+      "etag": "\"592f125689d190b434ca886a828779093fade21e538b32234c5f3a2575498771\"",
       "body": [
         {
           "assets": [
@@ -79186,7 +79518,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"53d45942e1b21e322313bce89dd5abdee874dafec177cec28e91ee2b5a539f69\"",
+      "etag": "\"351e5a6a8552921fc39f7cbc05224e1590fa7224309a885caae13617941752ee\"",
       "body": {
         "assets": [
           {
@@ -79497,7 +79829,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"f4d79e81c874640c24391c677b26a011bee0dbf8b23eba8d21578b23af87a09e\"",
+      "etag": "\"e5f1734baf1b5835938f2ce8117502d3085840229e3a33829c43fe810649fe95\"",
       "body": [
         {
           "assets": [
@@ -84056,7 +84388,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"0ee16635e8c055f4031aee09f7d75d215ad0164ab4349061b27d2a9f2294a7cb\"",
+      "etag": "\"0c74c941cbccc2c29e4b0f76cd21dd19e0e698068aef5bcd1711068df9d7ca7f\"",
       "body": {
         "assets": [
           {
@@ -84367,7 +84699,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"1422d3a41269d9b4d45914c098555b5e36d3bcac524f8291c65733b47c22d0a6\"",
+      "etag": "\"b9edf2bd6013a5573cfbd5d4aa795cf9e2b006a6656bfb73312f994c0a8d143b\"",
       "body": [
         {
           "assets": [
@@ -89418,7 +89750,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"5766894797a586bbbfa4dd9f4adf461964cdacef16192e83fa721117f34f8efb\"",
+      "etag": "\"ed41edc7477041ef95151fac1bf254a738d5eb0ff63d16743e7a1ef9567ff683\"",
       "body": {
         "assets": [
           {
@@ -89753,7 +90085,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"8dc4f99d22eba95f43c2159fa8b8507c594e96d98b44861903d2d6101c27f003\"",
+      "etag": "\"7278eda89545196c4e25e1dd06aeca2d80e7ac44d2edbe46293eed5a2a7d9a12\"",
       "body": [
         {
           "assets": [
@@ -94100,7 +94432,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"0be9aba1982e028f4b29360dcb7a7b840991be4e60673a1f306a186fc087f8f3\"",
+      "etag": "\"6b1108d5f8dacc9d1084cc3c6cefbf3acd9665e81b13039d6ceeae6c67b5e075\"",
       "body": {
         "assets": [
           {
@@ -94411,7 +94743,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"f309940d5192275231aaa572dda92e75f76f6cb60363e6ef94cc523372fc877e\"",
+      "etag": "\"43d3b57d20df196508701b3f53e5af39d307a790728e52491be2f69ee9ac2bc1\"",
       "body": [
         {
           "assets": [
@@ -98758,7 +99090,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"2c057865f9178abe82d4bf5265583c370367f4ee4ba86d97b058c15219ca4a58\"",
+      "etag": "\"380f2a6835b82c42251c9ef825162565dc05de18c535a214b27ef02b0187f4f0\"",
       "body": {
         "assets": [
           {
@@ -99069,7 +99401,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"b90eb36bb9ce0bd5ef82aae3b79992c83b673188e799dc7cec6cd272b18bdf33\"",
+      "etag": "\"422523ffa2d815a3b0ce2b36808dc20260e5bd0bd51ceea4bceb06874c42f241\"",
       "body": [
         {
           "assets": [
@@ -103128,7 +103460,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"24c4cde7c1eb707c40f69d9206ea6526105c87d7f1dbb08e0f495fc37b7b2393\"",
+      "etag": "\"c076ed5132d7d28d9bdea6c97e85d9753a51b17067a8456650c4f899b55828f3\"",
       "body": {
         "assets": [
           {
@@ -103439,7 +103771,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"cadfbc3bc852044a53b298e1ce3339e43a9aaa9711fc724931546677e4891b5c\"",
+      "etag": "\"901bde5b40c065034fb916a1a730d75ab98dbd0ee52b25a39d114a6e8a62a165\"",
       "body": [
         {
           "assets": [
@@ -107938,7 +108270,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"9c721d3a229733be5d5535efe3eea3743a912e87de47db55ca08d076595468b5\"",
+      "etag": "\"8fe24826ded59259ffca94326dba53cb506976796d70c2cc2d81a371678fbc0a\"",
       "body": {
         "assets": [
           {
@@ -108249,7 +108581,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"f416cfc1c5cb001365f7038b97916b25820ebfbf4c62b09e711359128c11009a\"",
+      "etag": "\"4621ac2fc211713f15f8d06a63d04c5f05fa5737943832c067f0510c2f79de59\"",
       "body": [
         {
           "assets": [
@@ -110320,343 +110652,675 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"1f8c0fde8a6181c59d113e830bad102fb516f2ae907bbc203b0e8117f032f684\"",
+      "etag": "\"ffa3e78818ae11e0810e29c0a3c395c96ba747150c41f427b99af8e923b835c7\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-freebsd-aarch64.tar.gz",
-            "digest": "sha256:c0c367aa338543df178f39cc6665c7fa1bae878f61238e1c6b4db3f18df38fae",
-            "name": "pdfcraft-0.21.1-freebsd-aarch64.tar.gz",
-            "size": 115293279
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+            "digest": "sha256:c8627c85a54cf2840e2fc51fe55b4734c6f925e1e300e72ee405acb01b7de145",
+            "name": "pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+            "size": 124520223
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-freebsd-x86_64.tar.gz",
-            "digest": "sha256:f1c7b10adf2ca20369a5d7800f69b4196e94526a63cbdfe8d0f529c0153979cb",
-            "name": "pdfcraft-0.21.1-freebsd-x86_64.tar.gz",
-            "size": 120608596
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:db9cb5da8fd40d38419a31f0a44ea6ec682e793a8d650d1a5985e45a36b151d2",
+            "name": "pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+            "size": 130651151
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.AppImage",
-            "digest": "sha256:e34a136f1f9a3feabdb5a4ea8f8fba1bb3e5ac54f3962490e7e041fdcf58df5f",
-            "name": "pdfcraft-0.21.1-linux-aarch64.AppImage",
-            "size": 110869000
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage",
+            "digest": "sha256:7ede1c280a5b27e9ae32523fe79de4aeb7d8f42f15fbc8b8569719ddbef9fa9d",
+            "name": "pdfcraft-0.22.0-linux-aarch64.AppImage",
+            "size": 119233032
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.AppImage.asc",
-            "digest": "sha256:3b5482c734eda4edc9a2a43f3467f16a221ec81db3c0380b9348dcde5bfa3889",
-            "name": "pdfcraft-0.21.1-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
+            "digest": "sha256:e1d87668aca87b316ce2ba28e55fa6e7bbb0a3bc18be806f8dc212746d6f18d3",
+            "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:7f1696282fc7a01d250e07224d3fdb3f16f7415691ad327951d31b2c578e03fd",
-            "name": "pdfcraft-0.21.1-linux-aarch64.AppImage.zsync",
-            "size": 189724
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:cfaaa8f5aa2a85195352f29e1ece4ee8b2ace21b373b0251ceb7ff01edccdda9",
+            "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+            "size": 204018
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:4e1bca37a9c86fb196fa66f26ec6e3767a271173bb365c36f0bb97ed6e15d261",
-            "name": "pdfcraft-0.21.1-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:8b438c9cf131d5a0d0de8eb17b709b4fdbdac954e75a155f276a34326fcc972a",
+            "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.deb",
-            "digest": "sha256:2e1816b167a3678a7da984c3bd7cb7e43227ef35e1ba0f93c5234ac3e8edda86",
-            "name": "pdfcraft-0.21.1-linux-aarch64.deb",
-            "size": 119129158
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb",
+            "digest": "sha256:7a1cc758e88e1d36320687493500cc91f24a4802db1fd936b349e98fdd10ac9a",
+            "name": "pdfcraft-0.22.0-linux-aarch64.deb",
+            "size": 128958024
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.deb.asc",
-            "digest": "sha256:71d8f706761a568ce1e8ab849433db6e4f47be636710a287c056ec3309720447",
-            "name": "pdfcraft-0.21.1-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb.asc",
+            "digest": "sha256:b95d74d447d76f682330b7457efae0c4da976de6e28edca752bc76640d6e073c",
+            "name": "pdfcraft-0.22.0-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.flatpak",
-            "digest": "sha256:a8e8908e28229461661814375d4b48c0692c336c69a91d1de9d01d4668b70c42",
-            "name": "pdfcraft-0.21.1-linux-aarch64.flatpak",
-            "size": 85045248
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak",
+            "digest": "sha256:470d372e2f820ceea2b913c3fb6699b0866aaa10c75fe86c4224ec911d9b90fb",
+            "name": "pdfcraft-0.22.0-linux-aarch64.flatpak",
+            "size": 90533688
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.flatpak.asc",
-            "digest": "sha256:d22990fbf1ecb24c3df834b669964cac06cc21e53304aab5419a89a103395a2e",
-            "name": "pdfcraft-0.21.1-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
+            "digest": "sha256:8709ac317d480d9405b9b136531271e4af354ddcc5d1edb23eab70e058ed63e4",
+            "name": "pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:6e77d10bf48503c8addacb7c2c53cf45a8bc1f6a910bcb97dc2e031d0f51c08e",
-            "name": "pdfcraft-0.21.1-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:e2bd0d2054121d949cb8869f9daa0fe2920a699dac4faa8246348ff971445b20",
+            "name": "pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.oci.sig",
-            "digest": "sha256:a1ca69bbeb367cf85ccc51c4d6778b57ac08f04b163e6596ddfb223b4a9bbd7e",
-            "name": "pdfcraft-0.21.1-linux-aarch64.oci.sig",
-            "size": 384
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci.sig",
+            "digest": "sha256:2f9b70e1bd3ecdc5e8ebfb1d3ad5560de92d47020349fbe71580ac248a197d85",
+            "name": "pdfcraft-0.22.0-linux-aarch64.oci.sig",
+            "size": 386
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:abb5aa13f3640f6a9c1046776032afda868bdfa9a7395fecf8ef9e3551b4c18c",
-            "name": "pdfcraft-0.21.1-linux-aarch64.pkg.tar.zst",
-            "size": 90941492
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:c412c02d49e1c9b22016ff3918ddc06c1aa8eb01cb424e3912bf50a7919b3613",
+            "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+            "size": 97326038
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:5bdb499a5ee97f41189f9fb562f4200beb206540b6cce2e48e2efa20faf2df27",
-            "name": "pdfcraft-0.21.1-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:3fc0cb528ea0706c06d0355867dba58c42784d121d0b2e92d14e0d78f4517271",
+            "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.rpm",
-            "digest": "sha256:a781e04e4cf3d94390e0721603fa836960271d745521af643559b15f3c973bea",
-            "name": "pdfcraft-0.21.1-linux-aarch64.rpm",
-            "size": 118341236
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm",
+            "digest": "sha256:0f7e06b10ac99cf772600b19d080eb88e49351623944a5e5843ecff89f5cd88d",
+            "name": "pdfcraft-0.22.0-linux-aarch64.rpm",
+            "size": 128106760
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.rpm.asc",
-            "digest": "sha256:00a902df6a5491fbe3c59641cbad9958d63b7de8855a4f04c1ecc6f5cdb63116",
-            "name": "pdfcraft-0.21.1-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm.asc",
+            "digest": "sha256:8bb765014eb9ac2e9a50a0216870c091fd664d4959c51b8d901fad6eccf9e210",
+            "name": "pdfcraft-0.22.0-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.tar.gz",
-            "digest": "sha256:b08efe416c1da450b04b3e4ec5f0389d71d7580f4398f9eda06d33d04713c770",
-            "name": "pdfcraft-0.21.1-linux-aarch64.tar.gz",
-            "size": 116826393
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz",
+            "digest": "sha256:ce137726550158e22c887cb8f71001e3b29d1741aea7492e0f0ff49054e2fe03",
+            "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz",
+            "size": 126226862
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:16927a6f2c30dce38bfef566bca70597d1cd536a3a074ce364e053fa497e9fef",
-            "name": "pdfcraft-0.21.1-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:7c2d5be02a7ab2091efd4ada4d84f8f9977905f395505c654215f7a12075c96b",
+            "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.deb",
-            "digest": "sha256:330a0c4b43841070f8808c7fa6c1b2968d9476a5b43bee78ee92f060c243962c",
-            "name": "pdfcraft-0.21.1-linux-riscv64.deb",
-            "size": 119532074
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb",
+            "digest": "sha256:88d3160a1b9d30512298df62cbc3342c41033e50ce73083f42809965d7d93451",
+            "name": "pdfcraft-0.22.0-linux-riscv64.deb",
+            "size": 129387054
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.deb.asc",
-            "digest": "sha256:1ff6320b722188abaa8284615feed344a57d206376c93de0ecd8b466964243d7",
-            "name": "pdfcraft-0.21.1-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb.asc",
+            "digest": "sha256:4ed3ddf2cfc96b748b3c09f22af8caeee628575122fd32bd521ec9a2e8a97d25",
+            "name": "pdfcraft-0.22.0-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.rpm",
-            "digest": "sha256:9ad500ada67ea5cc00715c262ed3e3bca62df205b59e8751d2b20c5155f1e659",
-            "name": "pdfcraft-0.21.1-linux-riscv64.rpm",
-            "size": 119146325
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm",
+            "digest": "sha256:f2c1db529504295c791a566de1d31b4aac73bf881b68578da45e05c4c4b00b31",
+            "name": "pdfcraft-0.22.0-linux-riscv64.rpm",
+            "size": 128988911
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.rpm.asc",
-            "digest": "sha256:51b878450d3de9f24d03403031099dc1477d25d29ed2440fc112e8b54a92c6e5",
-            "name": "pdfcraft-0.21.1-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm.asc",
+            "digest": "sha256:d23a2849c828811eb5f5d65fc4e9cd1074be50502b4dc6fb16f294046c59aaea",
+            "name": "pdfcraft-0.22.0-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.tar.gz",
-            "digest": "sha256:bb4f2a7cacb469013c7b3cb25e4d6690aa8d400832966d35ba5790702f254f15",
-            "name": "pdfcraft-0.21.1-linux-riscv64.tar.gz",
-            "size": 118506737
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz",
+            "digest": "sha256:e6715ee7595c2e2ace73213ccae64aa5dcc3393451c1322589aab0429e2a10f2",
+            "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz",
+            "size": 128181118
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:3395e76f446319f1bf9cbe054a2c7046de4a1d271f8faf070a49dcf4bea1efc9",
-            "name": "pdfcraft-0.21.1-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:7908c967ced68287d973d1b61954f1a5db295f0c0251b4e92be7d3ea1434aa3f",
+            "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.AppImage",
-            "digest": "sha256:730276cda9addb3d48f26c602686d18fc5bc0ebe360a60a2f522d70cfd428d21",
-            "name": "pdfcraft-0.21.1-linux-x86_64.AppImage",
-            "size": 115087864
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage",
+            "digest": "sha256:771f61b07aaf8cc17e73cb1f93fbe88526f27b0aa82ff32d0710e2c375f49248",
+            "name": "pdfcraft-0.22.0-linux-x86_64.AppImage",
+            "size": 123992568
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.AppImage.asc",
-            "digest": "sha256:d46dee38e7e581b3354f3221970510678c521fc80028f3b2b6f26b1a064523f2",
-            "name": "pdfcraft-0.21.1-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
+            "digest": "sha256:c50724f0bb00130189d3040a4c31c952f0b181bd9e97cd6f4edd9de7d26eac61",
+            "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:b8fc3c7a45ee074d5367502b289f8f549b81fdc5de4a758791664b7d6f314e82",
-            "name": "pdfcraft-0.21.1-linux-x86_64.AppImage.zsync",
-            "size": 196932
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:07b071717a784a4632b94077bc96f2ed0ed8e18fb32817e20a55d8b75d8ca47d",
+            "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+            "size": 212150
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:b338e61b36aebe7fa30ee64d145518b16674938f97cd3fa7c44d0458c15c6b6b",
-            "name": "pdfcraft-0.21.1-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:386c183622c394633bff3704cbc114984dc2bfb978acbd78a4f7e65913cb5a93",
+            "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.deb",
-            "digest": "sha256:e87baa0ef638be6ea97b521883e912318012028a80dbe1359f93cd21437be253",
-            "name": "pdfcraft-0.21.1-linux-x86_64.deb",
-            "size": 122486546
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb",
+            "digest": "sha256:a7e0e781e55adc633b68b417ec9860115ccaa2cc636588f183ae03e66a5edcdb",
+            "name": "pdfcraft-0.22.0-linux-x86_64.deb",
+            "size": 132710802
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.deb.asc",
-            "digest": "sha256:978d0c9f881c8b763ca7812bc54a0ec4afaa3c0e2dd664d02c8e9bd2f8cb3536",
-            "name": "pdfcraft-0.21.1-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb.asc",
+            "digest": "sha256:cf34414c980635774bd340cbdc0353524cf6219df15af321ce95c1f419373ff4",
+            "name": "pdfcraft-0.22.0-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.flatpak",
-            "digest": "sha256:4f126ff718e851ba54ee0207c4b6ce9eebddfdd72d1124531d215cc0f8937daf",
-            "name": "pdfcraft-0.21.1-linux-x86_64.flatpak",
-            "size": 90284152
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak",
+            "digest": "sha256:f3e9db7df08be27778a97ef417dcfa4feb8235e8dc52a1d3664f954cc1f9c37a",
+            "name": "pdfcraft-0.22.0-linux-x86_64.flatpak",
+            "size": 96395096
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.flatpak.asc",
-            "digest": "sha256:51c06b89cfe26a0b16929c93c126844dd1f1387c3913b70003f924f63dc0ef0c",
-            "name": "pdfcraft-0.21.1-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
+            "digest": "sha256:323b103814a75de92a91fd32a671aa14d994abafe68901565e2737e7cde5a6b8",
+            "name": "pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:0289852f09b56ebfa58bdf26671a798be40e60f5d799674a8496261827bb2675",
-            "name": "pdfcraft-0.21.1-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:fd0c003b0b2ad9084f60fbbd5bd8e4488d3a396fec702df57fc874843e4caf2b",
+            "name": "pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.oci.sig",
-            "digest": "sha256:2e81db5806bbc15ce715bd027b72258b3d52b3aa521435a4386164e258515bb1",
-            "name": "pdfcraft-0.21.1-linux-x86_64.oci.sig",
-            "size": 387
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci.sig",
+            "digest": "sha256:b9259c2c5bc9ce75c8c057df9eaa4159868ebf7a91b1e184bf9516976aea9db4",
+            "name": "pdfcraft-0.22.0-linux-x86_64.oci.sig",
+            "size": 382
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:1fb565339968cb12947544ec3b74472ef4ea196c308ea3c0efdaf1ca566046e5",
-            "name": "pdfcraft-0.21.1-linux-x86_64.pkg.tar.zst",
-            "size": 93893317
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:865a70e73cbcc8d36b199ac466a625400ff58bba95e88879e3ed28f5e4e4c428",
+            "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+            "size": 100596756
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:5dd22b465c1b002df3203fce2daf0bd6987dde856844d6ca9a4936dbe0a60dd9",
-            "name": "pdfcraft-0.21.1-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:b91f1710b47a4a8c8b24e5365fcfc1512169d7eca790be519c7edb32e896ce7d",
+            "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.rpm",
-            "digest": "sha256:74a954087e53f234c0c5b160c156d52e0f0b7bf23529c6e41d4b879eee351c55",
-            "name": "pdfcraft-0.21.1-linux-x86_64.rpm",
-            "size": 121887045
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm",
+            "digest": "sha256:fb66ac5af034c5d9a3367baefd030ed8127c036884f5b48de56d70570498125c",
+            "name": "pdfcraft-0.22.0-linux-x86_64.rpm",
+            "size": 132041933
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.rpm.asc",
-            "digest": "sha256:9c39c5bec30509b1a66922772ed7ba753c48fb8acddff627ea911302ecfc0d0f",
-            "name": "pdfcraft-0.21.1-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm.asc",
+            "digest": "sha256:e4d476af8f4ada33c7b3baca304ebba03e371c6ee6eb8a70623e10ea7f730015",
+            "name": "pdfcraft-0.22.0-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.tar.gz",
-            "digest": "sha256:c2919e9044effde318e66807ad2a21bbb74a9555b3c0b99f9ad0c40cf61ce25e",
-            "name": "pdfcraft-0.21.1-linux-x86_64.tar.gz",
-            "size": 121246319
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz",
+            "digest": "sha256:a8993f9ee96e87accecf90af4226ff60a84b9e1787ae9fd8fa48ffe1396bc35e",
+            "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz",
+            "size": 131269998
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:ea601f89ca67af859bef08f59abde78745cfc9106684cdc22c7351d75b5596f5",
-            "name": "pdfcraft-0.21.1-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:e516497903126e15ec46da758faa187d88f9da3f6570e44fe29be4f509a6b05f",
+            "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-macos-universal.dmg",
-            "digest": "sha256:1adc9bf3d319e707e9247004db05a32a059634e3710fe79bc14f92f689ca4d4a",
-            "name": "pdfcraft-0.21.1-macos-universal.dmg",
-            "size": 135468910
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-macos-universal.dmg",
+            "digest": "sha256:ad45ca52a793c7cda1bae1acb6757b5ee12f07bfaec22ce4344e5e5460340634",
+            "name": "pdfcraft-0.22.0-macos-universal.dmg",
+            "size": 145835486
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-windows-arm64-portable.zip",
-            "digest": "sha256:fca99edb0b3c0e12b057c0487dbff9585141d478ca3f60e22a50e553f3b2e42a",
-            "name": "pdfcraft-0.21.1-windows-arm64-portable.zip",
-            "size": 117779362
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64-portable.zip",
+            "digest": "sha256:bf5ac8b3994e9916cd2490bdeb5d107080cdc6afd32a6a41ee90eab34ebe5f32",
+            "name": "pdfcraft-0.22.0-windows-arm64-portable.zip",
+            "size": 127544410
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-windows-arm64.msi",
-            "digest": "sha256:030614d549bbb2c23dfde5e6f42b7a8f963b8c3500b55b06022a6a484f1cebbc",
-            "name": "pdfcraft-0.21.1-windows-arm64.msi",
-            "size": 95019008
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64.msi",
+            "digest": "sha256:e40302eac758fecc761be8895858064bf9e0797c01084c9314155441d6bebbcc",
+            "name": "pdfcraft-0.22.0-windows-arm64.msi",
+            "size": 102109184
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-windows-x64-portable.zip",
-            "digest": "sha256:dcbcc2ddc019d85cca90a8242d5e4dc380f1ff6bfb6b951a89152d1dbae14cb4",
-            "name": "pdfcraft-0.21.1-windows-x64-portable.zip",
-            "size": 123073914
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64-portable.zip",
+            "digest": "sha256:193394d15b923510e917912c0142b38119a8d4369b30693d97ef086444e9e314",
+            "name": "pdfcraft-0.22.0-windows-x64-portable.zip",
+            "size": 133565158
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-0.21.1-windows-x64.msi",
-            "digest": "sha256:b28c4c8aa88910293f7a09a82e893db74759b9afc7860fc114c0cba56cf0830a",
-            "name": "pdfcraft-0.21.1-windows-x64.msi",
-            "size": 99958784
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64.msi",
+            "digest": "sha256:52303376a76c8031c7c23a2f70bbdba65285bdb115c404b2e8d7bc7003879151",
+            "name": "pdfcraft-0.22.0-windows-x64.msi",
+            "size": 107872256
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-cli-0.21.1-linux-aarch64.tar.gz",
-            "digest": "sha256:e41fc6d757eb6e0b4b6f6d9115a3efa530785c092fc9a5be914893416da6c9f3",
-            "name": "pdfcraft-cli-0.21.1-linux-aarch64.tar.gz",
-            "size": 44065328
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+            "digest": "sha256:88bb4d5a08d112a54fb01713c0fafd2f746afd8c5ec92c30bc4d35bad63bfaa4",
+            "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+            "size": 48535482
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-cli-0.21.1-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:4fee677b23d114b8e5ec890803aebe76fc9314364d0626644f9637f6466f8f0a",
-            "name": "pdfcraft-cli-0.21.1-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:c6f70da7590040b907bc3898ab87d60f09e26a83c4b6adb4eabb58c7c5bffc2d",
+            "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-cli-0.21.1-linux-x86_64.tar.gz",
-            "digest": "sha256:a97b2e789d214360424f19814bc66f3eaf6d04ef5e42e472b46f7b9ddceea5c8",
-            "name": "pdfcraft-cli-0.21.1-linux-x86_64.tar.gz",
-            "size": 45892085
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+            "digest": "sha256:c9420654f839b9fb7a84923bf0fcf2fb13d2aa847dba39c305d9138c6961fcfb",
+            "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+            "size": 50684127
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-cli-0.21.1-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:e1773ee4a8538a8515247e13a7864ec4c7859ae83639721cced6fdafc633b274",
-            "name": "pdfcraft-cli-0.21.1-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:29886b1655d7491f7f5ddec81130e778aad16cc720a266e395ce2f0078be9ef2",
+            "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-cli-0.21.1-macos-universal.zip",
-            "digest": "sha256:337a9f644744b57e10de41c57366e53c5ccf8840a4d5dc7322b17b9b83fdc2fa",
-            "name": "pdfcraft-cli-0.21.1-macos-universal.zip",
-            "size": 92333447
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-macos-universal.zip",
+            "digest": "sha256:d9b8a88070895e6d5ccf3cc53d1de353622b60bd8af993e1c3959b4be1caf0da",
+            "name": "pdfcraft-cli-0.22.0-macos-universal.zip",
+            "size": 101977216
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/pdfcraft-web-0.21.1.zip",
-            "digest": "sha256:fe9708d46af191aebb56f70eb32cf8b112b0b9452d17ae6ba3a8c4a8665fe748",
-            "name": "pdfcraft-web-0.21.1.zip",
-            "size": 34367297
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-web-0.22.0.zip",
+            "digest": "sha256:5da6db0d6d0d5ae517e9bb62c39eb57285f8befd81ef6555e9a807ccf5da5954",
+            "name": "pdfcraft-web-0.22.0.zip",
+            "size": 37379269
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/SHA256SUMS.txt",
-            "digest": "sha256:1d698e33bdb3b1443979e984e7a3728b0d09b11790427fcc291cb2305edca5ea",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt",
+            "digest": "sha256:f7f8088ba3e121c01fa809be202665ecb4c003f189c5cd3d4a553f8af98c7d67",
             "name": "SHA256SUMS.txt",
             "size": 5463
           },
           {
-            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.21.1/SHA256SUMS.txt.asc",
-            "digest": "sha256:f32ec392bcc5f59c8db4c6efc1c3f68c9cac5cd425d611cfe6b0c00b9e8b5152",
+            "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt.asc",
+            "digest": "sha256:b52596dc88cd115cf9688aad338e25fa5af032a471abab5b2a9626dc16915b69",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "PdfCraft v0.21.1",
+        "name": "PdfCraft v0.22.0",
         "prerelease": false,
-        "tag_name": "v0.21.1"
+        "tag_name": "v0.22.0"
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"1db9c138a2585494b293000d8d186030591946174fbca9694b157a073dcd0025\"",
+      "etag": "\"9f8560a887416ecf59292ba888895ed17c9e530499372ab758f3b52c9f05bb24\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:c8627c85a54cf2840e2fc51fe55b4734c6f925e1e300e72ee405acb01b7de145",
+              "name": "pdfcraft-0.22.0-freebsd-aarch64.tar.gz",
+              "size": 124520223
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:db9cb5da8fd40d38419a31f0a44ea6ec682e793a8d650d1a5985e45a36b151d2",
+              "name": "pdfcraft-0.22.0-freebsd-x86_64.tar.gz",
+              "size": 130651151
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage",
+              "digest": "sha256:7ede1c280a5b27e9ae32523fe79de4aeb7d8f42f15fbc8b8569719ddbef9fa9d",
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage",
+              "size": 119233032
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:e1d87668aca87b316ce2ba28e55fa6e7bbb0a3bc18be806f8dc212746d6f18d3",
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:cfaaa8f5aa2a85195352f29e1ece4ee8b2ace21b373b0251ceb7ff01edccdda9",
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync",
+              "size": 204018
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:8b438c9cf131d5a0d0de8eb17b709b4fdbdac954e75a155f276a34326fcc972a",
+              "name": "pdfcraft-0.22.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb",
+              "digest": "sha256:7a1cc758e88e1d36320687493500cc91f24a4802db1fd936b349e98fdd10ac9a",
+              "name": "pdfcraft-0.22.0-linux-aarch64.deb",
+              "size": 128958024
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.deb.asc",
+              "digest": "sha256:b95d74d447d76f682330b7457efae0c4da976de6e28edca752bc76640d6e073c",
+              "name": "pdfcraft-0.22.0-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak",
+              "digest": "sha256:470d372e2f820ceea2b913c3fb6699b0866aaa10c75fe86c4224ec911d9b90fb",
+              "name": "pdfcraft-0.22.0-linux-aarch64.flatpak",
+              "size": 90533688
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:8709ac317d480d9405b9b136531271e4af354ddcc5d1edb23eab70e058ed63e4",
+              "name": "pdfcraft-0.22.0-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:e2bd0d2054121d949cb8869f9daa0fe2920a699dac4faa8246348ff971445b20",
+              "name": "pdfcraft-0.22.0-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.oci.sig",
+              "digest": "sha256:2f9b70e1bd3ecdc5e8ebfb1d3ad5560de92d47020349fbe71580ac248a197d85",
+              "name": "pdfcraft-0.22.0-linux-aarch64.oci.sig",
+              "size": 386
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:c412c02d49e1c9b22016ff3918ddc06c1aa8eb01cb424e3912bf50a7919b3613",
+              "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst",
+              "size": 97326038
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:3fc0cb528ea0706c06d0355867dba58c42784d121d0b2e92d14e0d78f4517271",
+              "name": "pdfcraft-0.22.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm",
+              "digest": "sha256:0f7e06b10ac99cf772600b19d080eb88e49351623944a5e5843ecff89f5cd88d",
+              "name": "pdfcraft-0.22.0-linux-aarch64.rpm",
+              "size": 128106760
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:8bb765014eb9ac2e9a50a0216870c091fd664d4959c51b8d901fad6eccf9e210",
+              "name": "pdfcraft-0.22.0-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz",
+              "digest": "sha256:ce137726550158e22c887cb8f71001e3b29d1741aea7492e0f0ff49054e2fe03",
+              "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz",
+              "size": 126226862
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:7c2d5be02a7ab2091efd4ada4d84f8f9977905f395505c654215f7a12075c96b",
+              "name": "pdfcraft-0.22.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb",
+              "digest": "sha256:88d3160a1b9d30512298df62cbc3342c41033e50ce73083f42809965d7d93451",
+              "name": "pdfcraft-0.22.0-linux-riscv64.deb",
+              "size": 129387054
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.deb.asc",
+              "digest": "sha256:4ed3ddf2cfc96b748b3c09f22af8caeee628575122fd32bd521ec9a2e8a97d25",
+              "name": "pdfcraft-0.22.0-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm",
+              "digest": "sha256:f2c1db529504295c791a566de1d31b4aac73bf881b68578da45e05c4c4b00b31",
+              "name": "pdfcraft-0.22.0-linux-riscv64.rpm",
+              "size": 128988911
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:d23a2849c828811eb5f5d65fc4e9cd1074be50502b4dc6fb16f294046c59aaea",
+              "name": "pdfcraft-0.22.0-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz",
+              "digest": "sha256:e6715ee7595c2e2ace73213ccae64aa5dcc3393451c1322589aab0429e2a10f2",
+              "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz",
+              "size": 128181118
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:7908c967ced68287d973d1b61954f1a5db295f0c0251b4e92be7d3ea1434aa3f",
+              "name": "pdfcraft-0.22.0-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage",
+              "digest": "sha256:771f61b07aaf8cc17e73cb1f93fbe88526f27b0aa82ff32d0710e2c375f49248",
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage",
+              "size": 123992568
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:c50724f0bb00130189d3040a4c31c952f0b181bd9e97cd6f4edd9de7d26eac61",
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:07b071717a784a4632b94077bc96f2ed0ed8e18fb32817e20a55d8b75d8ca47d",
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync",
+              "size": 212150
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:386c183622c394633bff3704cbc114984dc2bfb978acbd78a4f7e65913cb5a93",
+              "name": "pdfcraft-0.22.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb",
+              "digest": "sha256:a7e0e781e55adc633b68b417ec9860115ccaa2cc636588f183ae03e66a5edcdb",
+              "name": "pdfcraft-0.22.0-linux-x86_64.deb",
+              "size": 132710802
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.deb.asc",
+              "digest": "sha256:cf34414c980635774bd340cbdc0353524cf6219df15af321ce95c1f419373ff4",
+              "name": "pdfcraft-0.22.0-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak",
+              "digest": "sha256:f3e9db7df08be27778a97ef417dcfa4feb8235e8dc52a1d3664f954cc1f9c37a",
+              "name": "pdfcraft-0.22.0-linux-x86_64.flatpak",
+              "size": 96395096
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:323b103814a75de92a91fd32a671aa14d994abafe68901565e2737e7cde5a6b8",
+              "name": "pdfcraft-0.22.0-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:fd0c003b0b2ad9084f60fbbd5bd8e4488d3a396fec702df57fc874843e4caf2b",
+              "name": "pdfcraft-0.22.0-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.oci.sig",
+              "digest": "sha256:b9259c2c5bc9ce75c8c057df9eaa4159868ebf7a91b1e184bf9516976aea9db4",
+              "name": "pdfcraft-0.22.0-linux-x86_64.oci.sig",
+              "size": 382
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:865a70e73cbcc8d36b199ac466a625400ff58bba95e88879e3ed28f5e4e4c428",
+              "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst",
+              "size": 100596756
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:b91f1710b47a4a8c8b24e5365fcfc1512169d7eca790be519c7edb32e896ce7d",
+              "name": "pdfcraft-0.22.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm",
+              "digest": "sha256:fb66ac5af034c5d9a3367baefd030ed8127c036884f5b48de56d70570498125c",
+              "name": "pdfcraft-0.22.0-linux-x86_64.rpm",
+              "size": 132041933
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:e4d476af8f4ada33c7b3baca304ebba03e371c6ee6eb8a70623e10ea7f730015",
+              "name": "pdfcraft-0.22.0-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz",
+              "digest": "sha256:a8993f9ee96e87accecf90af4226ff60a84b9e1787ae9fd8fa48ffe1396bc35e",
+              "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz",
+              "size": 131269998
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:e516497903126e15ec46da758faa187d88f9da3f6570e44fe29be4f509a6b05f",
+              "name": "pdfcraft-0.22.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-macos-universal.dmg",
+              "digest": "sha256:ad45ca52a793c7cda1bae1acb6757b5ee12f07bfaec22ce4344e5e5460340634",
+              "name": "pdfcraft-0.22.0-macos-universal.dmg",
+              "size": 145835486
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64-portable.zip",
+              "digest": "sha256:bf5ac8b3994e9916cd2490bdeb5d107080cdc6afd32a6a41ee90eab34ebe5f32",
+              "name": "pdfcraft-0.22.0-windows-arm64-portable.zip",
+              "size": 127544410
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-arm64.msi",
+              "digest": "sha256:e40302eac758fecc761be8895858064bf9e0797c01084c9314155441d6bebbcc",
+              "name": "pdfcraft-0.22.0-windows-arm64.msi",
+              "size": 102109184
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64-portable.zip",
+              "digest": "sha256:193394d15b923510e917912c0142b38119a8d4369b30693d97ef086444e9e314",
+              "name": "pdfcraft-0.22.0-windows-x64-portable.zip",
+              "size": 133565158
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-0.22.0-windows-x64.msi",
+              "digest": "sha256:52303376a76c8031c7c23a2f70bbdba65285bdb115c404b2e8d7bc7003879151",
+              "name": "pdfcraft-0.22.0-windows-x64.msi",
+              "size": 107872256
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+              "digest": "sha256:88bb4d5a08d112a54fb01713c0fafd2f746afd8c5ec92c30bc4d35bad63bfaa4",
+              "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz",
+              "size": 48535482
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:c6f70da7590040b907bc3898ab87d60f09e26a83c4b6adb4eabb58c7c5bffc2d",
+              "name": "pdfcraft-cli-0.22.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+              "digest": "sha256:c9420654f839b9fb7a84923bf0fcf2fb13d2aa847dba39c305d9138c6961fcfb",
+              "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz",
+              "size": 50684127
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:29886b1655d7491f7f5ddec81130e778aad16cc720a266e395ce2f0078be9ef2",
+              "name": "pdfcraft-cli-0.22.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-cli-0.22.0-macos-universal.zip",
+              "digest": "sha256:d9b8a88070895e6d5ccf3cc53d1de353622b60bd8af993e1c3959b4be1caf0da",
+              "name": "pdfcraft-cli-0.22.0-macos-universal.zip",
+              "size": 101977216
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/pdfcraft-web-0.22.0.zip",
+              "digest": "sha256:5da6db0d6d0d5ae517e9bb62c39eb57285f8befd81ef6555e9a807ccf5da5954",
+              "name": "pdfcraft-web-0.22.0.zip",
+              "size": 37379269
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt",
+              "digest": "sha256:f7f8088ba3e121c01fa809be202665ecb4c003f189c5cd3d4a553f8af98c7d67",
+              "name": "SHA256SUMS.txt",
+              "size": 5463
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/pdfcraft/releases/download/v0.22.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:b52596dc88cd115cf9688aad338e25fa5af032a471abab5b2a9626dc16915b69",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "PdfCraft v0.22.0",
+          "prerelease": false,
+          "tag_name": "v0.22.0"
+        },
         {
           "assets": [
             {
@@ -115684,7 +116348,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"db5a131d95b8e871bc7bfd90a0abde3cc0c911ecce2b4a7f4ce15a08076f46bb\"",
+      "etag": "\"a3e653f9157e253e65e6cc23c4d593602a72e3be2afea5df9c78ca2764e1ff8d\"",
       "body": {
         "assets": [
           {
@@ -116007,7 +116671,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"2ec0c17057513c3a41901c4353b43f807a4d06e1ae9cac5381b98e6d1e91013d\"",
+      "etag": "\"5bc30ef0bad700010a55808f063282dbc03411d4dfe7e92e0f7f43e722755b22\"",
       "body": [
         {
           "assets": [
@@ -121112,7 +121776,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"8dbbe37657dc180937706286d571b98aad10c197cfaa83aae930e7d86b96eec5\"",
+      "etag": "\"aa08e1f50938573c7c57f3af7caffd968ffaaf8b09f5e9975cff45dd8e51cfb7\"",
       "body": {
         "assets": [
           {
@@ -121423,7 +122087,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"8543168c0a66e652a0fdb54999410a0ad80047e4ae4acf0bd83550fbd32ca8c3\"",
+      "etag": "\"f696396d940ec1eca36fe68c8d124076636e707e611b71f3923eaad9c96a07fd\"",
       "body": [
         {
           "assets": [
@@ -125360,7 +126024,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"7100bf24d63a5eb3fd9b0e8711e4eab7651b52bbffa3cf9ac149860b43d06989\"",
+      "etag": "\"ac7d76eab6b10ef3e0a74b1433c4099c741f532f64bf73e2a13510011db59364\"",
       "body": {
         "assets": [
           {
@@ -125671,7 +126335,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"eb366b418ae33a8a371a96cd6481ce164591cd999f988dcd6b83c41e6e5d2246\"",
+      "etag": "\"fc11f18fea1bcec0f20324a609618f3ec3f231488df6b3bbe025ad9977e9b327\"",
       "body": [
         {
           "assets": [
@@ -127944,7 +128608,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"e72827c0825f6d9fb2302ff37c918a5ed00d9f6878f151010cb0ceca3a8a5e53\"",
+      "etag": "\"b331a657bf8636daeb286fd1e7fe5e27fcc0d5378f3b20e0000e848166f51dd6\"",
       "body": {
         "assets": [
           {
@@ -128255,7 +128919,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"d56ec0e40e629e2f04c423525edfc3950a54c0db12c3af1669aaa699180e2709\"",
+      "etag": "\"7a4bb02701ac33e40becc2b01eeca719a71d7d3c674d7093d3fb2cf938d6a239\"",
       "body": [
         {
           "assets": [
@@ -133236,7 +133900,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"609e9c17081c78ccd74ad94999bdedd700a6dff31a82b8e398e97af76a8be216\"",
+      "etag": "\"45a36e1a96887ef421d5ca5311869251f9d5b9ccbc10cb5d1c3533516d161da5\"",
       "body": {
         "assets": [
           {
@@ -133547,7 +134211,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"94113de40faf3bf75779e2c5e6f71bd6f1fa21aec10707b2f607172dc26d143f\"",
+      "etag": "\"5b3907afcafe798e5f50f9c1a30bdbedeb999aca9f7371de4fe6a83e2ba0a853\"",
       "body": [
         {
           "assets": [
@@ -137618,7 +138282,7 @@
       ]
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases/latest": {
-      "etag": "\"119157a902371a825e74d6dc6d376bc3f8fdb260e174b56b5833d48687e36a23\"",
+      "etag": "\"a5eadd98b31313fc7766823054b9c51f471f566f6e9c8e05e916ad66080e798f\"",
       "body": {
         "assets": [
           {
@@ -137779,7 +138443,7 @@
       }
     },
     "https://api.github.com/repos/ucs-care-group/mailcraft/releases?per_page=100&page=1": {
-      "etag": "\"56ef8710394893f429c72f1b885ea6d33683dd9150b2bbae8785b1fbb8e1b6e2\"",
+      "etag": "\"707e4afc849bc0fe9eda2e341e4c73b18bd16b283790bc156ee4627a979c3e34\"",
       "body": [
         {
           "assets": [
