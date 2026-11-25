@@ -2,7 +2,7 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1795631559,
+      "checked_at": 1795635202,
       "latest_tag": "v0.2.1",
       "releases": [
         {
@@ -951,7 +951,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1795631560,
+      "checked_at": 1795635202,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -2036,7 +2036,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1795631561,
+      "checked_at": 1795635203,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -6091,9 +6091,317 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1795631562,
-      "latest_tag": "v0.18.1",
+      "checked_at": 1795635204,
+      "latest_tag": "v0.19.1",
       "releases": [
+        {
+          "tag_name": "v0.19.1",
+          "name": "DeckCraft v0.19.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "size": 103189584,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:0e12e72bb2307b573322bd8ca1eafd6fe2e8389340f135f7791e9cbd00fd8190"
+            },
+            {
+              "name": "deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "size": 106629502,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:c78a7a9df113015b161960721c3e4d4c432e15aefd4dca28813a2e67db4ba21a"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage",
+              "size": 97880584,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage",
+              "digest": "sha256:548200b8b1adf79c72860a40abe1c6f2d7f4189a4a9475668873b5732d8c4f00"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:4b293e418485ae766aad44168d30f5d4ed2fce76568ccca31a2fca438c5cefa6"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "size": 334807,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:4dd49fce8ec3cc441a4f5e6f78fa626c68f7d6a0dcfc47a06a484048d16bbc30"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:3c006939d587b48f0a66550eae0e12d28bb0379b321263476b952b0aa0a23221"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.deb",
+              "size": 105834494,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb",
+              "digest": "sha256:15636f9fa5e122fdc1aa6fcf41a09324f85de7e0ffdc07f49626f185f8495427"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb.asc",
+              "digest": "sha256:372541e9463f2fd6c0c91020cdc2bfea76b21682504c0dbf3ae6ac3dac5cd1a5"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.flatpak",
+              "size": 70979224,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak",
+              "digest": "sha256:c67b95c951f64d9313d2301cb669c695f3f00aaf995746ff765cd3e272ab7f2f"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:f4b4783c13dccea8625b7da64a643e8add2c3ea3a10d8a0ad0b450972b32fd99"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:711c739aab547a7ffddfee737061f06abd96e679ac47846ff204283ccdf79d55"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.oci.sig",
+              "size": 385,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci.sig",
+              "digest": "sha256:bf2abc120df183efe7f74c8463ec77581a8c73fa824bf4ad423fc60a2020d47c"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "size": 77431421,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:6a2646db251dd1ef808b4fcb9e0c34907ca38621386576d72e5a0edc3688e3fd"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 118,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:cfa91a81b5be94d7f3428133dd911b9aa3f3461446143b199d375f0ab40692f2"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.rpm",
+              "size": 105268879,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm",
+              "digest": "sha256:b7b5b00dd39f115691d99aea7298cee77a67aded9477162f2ba4f6197fed2fb3"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:d9cd385b0abeb9fb59908c68dba972628805f117b23607b3ce5f726d7bfe9f53"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.tar.gz",
+              "size": 103832610,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz",
+              "digest": "sha256:20eb8d82847e1a89cfc26eb5b804c8406e66e0c64e2bfc601236f4ad046f6b21"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:161dc6d53e1ab1bfd034636d15b13cdf29c327a03b1ad56cd8a89ac5a3bbe105"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.deb",
+              "size": 107097668,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb",
+              "digest": "sha256:143e462546a7b7988bed5e67a07ddb5943c1b0c0abb3c181e156adc85362d4f2"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb.asc",
+              "digest": "sha256:7a589ba0c653d0bff0f5dc395431a50f8ce2868adadfa30c0cfa5423b86b2255"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.rpm",
+              "size": 106830527,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm",
+              "digest": "sha256:19b4c1f77c2939cadfef440f926eb22ebea72a8a7787feb3fff2819efbf5f5bc"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:01b8f3afbde79bab16b3380f6398feaae0fae02d6e02ea836f8af15ed4304b35"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.tar.gz",
+              "size": 106019736,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz",
+              "digest": "sha256:a8264b04be654f43099560edee55e34f7d8e2501120de368e12d1e53b45e688f"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:cafce7d90553847ce51150c4b550c08b350c403d23fe383b227494632753987a"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage",
+              "size": 100628984,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage",
+              "digest": "sha256:8295d0fb795bbd0c7ab8ae97cdf0993e1e6cf14d90aac35aab78b816dcdaa2fe"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:82a181b248ce9e8219e0a430a63ecd9f49b839452f7eaf40ce3cf306de12e1a4"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "size": 172224,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:93f5b05e12269c2371fff018e2ff06a94cc0658eda18264783e02bc5d08cb41f"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:ca1dfc33a92702507e8831ae734a8d5cc02873a9a612b67f97d62cf9ce3ff14c"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.deb",
+              "size": 108054612,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb",
+              "digest": "sha256:a6ebfb4a230e569c8ae8848611bb9813378b351557bc07b6964d8a348d264459"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb.asc",
+              "digest": "sha256:cd8bce42570bccb7c939390dc1b1a1d980a89ae3242e780b5be0907a375df4f3"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.flatpak",
+              "size": 73978056,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak",
+              "digest": "sha256:815ae6932f47c9af9b8ac5d45a412ffee2f06acff49194549cda34b7980ec302"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:86e87481a4eff15e1a42f83580ff114dd752ccc1d33781a671bbaa20bc0c58be"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:67af55e0c78cad3e69a663cedd561d321b19c753113c07d5446a07bce088f676"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.oci.sig",
+              "size": 384,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci.sig",
+              "digest": "sha256:f768ab0ce70f39cc555430958efb38d8a5a427fb3c727116a2bb0ea33af23840"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "size": 79231732,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:081072ab8ba83c0eef63980b692f99b545d44581933c53934ec2a53d5cbe9d77"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:161621c3cdfaeafb4045efb1e6f6ec442a380c657579f8d1714f2fd01b24a20b"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.rpm",
+              "size": 107601620,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm",
+              "digest": "sha256:013c8a3f56958a0462a9135aee353719d7d1b3a51954da6075a8ab56f8068694"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:da3a7f75ba68587980afa6a0b4435d46ad3a61b51af3963d2ee258277b7ffc2b"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.tar.gz",
+              "size": 106863031,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz",
+              "digest": "sha256:ec75aaaef10a6dc4813f7ebf0f7fd8f980520c5b3d051ba3d76204c9e5d76fea"
+            },
+            {
+              "name": "deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:48a526d8c86d525ecd4f70b5afd57dfb9d338e2a709daebf79524607846f2f7a"
+            },
+            {
+              "name": "deckcraft-0.19.1-macos-universal.dmg",
+              "size": 114480941,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-macos-universal.dmg",
+              "digest": "sha256:a5233f28b031b74edc4a07df2a0068d43b82ccadfdac865f145765d28b2ce746"
+            },
+            {
+              "name": "deckcraft-0.19.1-windows-arm64-portable.zip",
+              "size": 102847168,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64-portable.zip",
+              "digest": "sha256:75384a7c32e6f50e07adac2135d01868687aa1b24cf9a3009a0540680e8277e9"
+            },
+            {
+              "name": "deckcraft-0.19.1-windows-arm64.msi",
+              "size": 81108992,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64.msi",
+              "digest": "sha256:b47bef415b2abeb50b4b0294fb823df87b444e85b5096d1e0a194221a856fbf6"
+            },
+            {
+              "name": "deckcraft-0.19.1-windows-x64-portable.zip",
+              "size": 106499796,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64-portable.zip",
+              "digest": "sha256:f2b46bf227b389c3e5443080b5c5380d70351706cc5137c1be7014e71152d52d"
+            },
+            {
+              "name": "deckcraft-0.19.1-windows-x64.msi",
+              "size": 84463616,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64.msi",
+              "digest": "sha256:fdaa2672dab8f9bfa7ef31b60d0f28997f8e3c22f779b16aa2ad123ca75b6b40"
+            },
+            {
+              "name": "deckcraft-cli-0.19.1-macos-universal.zip",
+              "size": 96186280,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-cli-0.19.1-macos-universal.zip",
+              "digest": "sha256:1285b14823cd413ee2a666b501f8ba5076ce2ba043938143bc04bf26ec5bf0e8"
+            },
+            {
+              "name": "deckcraft-web-0.19.1.zip",
+              "size": 12463655,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-web-0.19.1.zip",
+              "digest": "sha256:28fcde83be9e5b3020c05af980c252c8ef4d21b4717baaf04efde20f7dc5bf86"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5076,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+              "digest": "sha256:1ab6f1b81dea297f40031533d2314b314c425b1b98d334083ebb6d3cf993cd2b"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:e4ef2df8650feef04b9ebcc42fc13d5a23dbc30e8881f64922a5ea1e05aef859"
+            }
+          ]
+        },
         {
           "tag_name": "v0.18.1",
           "name": "DeckCraft v0.18.1",
@@ -9964,7 +10272,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1795631564,
+      "checked_at": 1795635205,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -14833,7 +15141,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1795631565,
+      "checked_at": 1795635206,
       "latest_tag": "v0.25.1",
       "releases": [
         {
@@ -20194,7 +20502,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1795631566,
+      "checked_at": 1795635208,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -24543,7 +24851,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1795631567,
+      "checked_at": 1795635209,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -28892,7 +29200,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1795631568,
+      "checked_at": 1795635210,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -32953,7 +33261,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1795631570,
+      "checked_at": 1795635211,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -37454,7 +37762,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1795631570,
+      "checked_at": 1795635212,
       "latest_tag": "v0.4.1",
       "releases": [
         {
@@ -39527,7 +39835,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1795631572,
+      "checked_at": 1795635213,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -44890,7 +45198,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1795631573,
+      "checked_at": 1795635214,
       "latest_tag": "v0.23.1",
       "releases": [
         {
@@ -49997,7 +50305,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1795631574,
+      "checked_at": 1795635215,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -53936,7 +54244,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1795631575,
+      "checked_at": 1795635215,
       "latest_tag": "v0.6.1",
       "releases": [
         {
@@ -56211,7 +56519,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1795631577,
+      "checked_at": 1795635217,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -61194,9 +61502,317 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1795631578,
-      "latest_tag": "v0.18.1",
+      "checked_at": 1795635218,
+      "latest_tag": "v0.19.1",
       "releases": [
+        {
+          "tag_name": "v0.19.1",
+          "name": "WordCraft v0.19.1",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5076,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+              "digest": "sha256:58b040ad4fe67b36f573036b3b69bbe51eb14b9c248651d0e7cfe3f6da7dcf84"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:dd192b7fe91a592c9347c331b298522bdc3b4edf3699d5090380975a4f969947"
+            },
+            {
+              "name": "wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "size": 124097309,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:81807b55f49ebe3f7a480ee22c1ea1691691bc55a67d9ac23d2f294132f28039"
+            },
+            {
+              "name": "wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "size": 129679660,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4e93aa11d880d75c8a941a869dfb072c080fb1f4362a489a7074c27c4c98fb8c"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage",
+              "size": 118135304,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage",
+              "digest": "sha256:ef5e893a9394d03136fe887c0563e795a1384289c75f3bf50095b2a0048d208c"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:66c8f34ccef5e1bc424c0dc4d8e3049e56104504bc13a70e8ecd12512fa12042"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "size": 202144,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:6656f1a009591c29e48522db51534e801ea3c09d7fd8b022437a668c2635f742"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:e5f2825a0dacd369c75e227cf693d5ba8ca7a212ae8c3004a5dd06818d675849"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.deb",
+              "size": 128693840,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb",
+              "digest": "sha256:b4db4eef71135cb2c516fdfa69c10b1af277384b1b023651b6e2bfbc23c59314"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb.asc",
+              "digest": "sha256:eead803a00361d6825050efe50554bd7fb32364067d405d7427bc2dc42ea2064"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.flatpak",
+              "size": 85230520,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak",
+              "digest": "sha256:161b74647f5cb9550e0ebec377faf0d94f00fd5f74cc2d7976652563ecfeb5d2"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:64ef89e21c6c0668427c54d5db7339962c7a0cc075121e37881706b598233cbb"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:2ebd4ad4d86d44292e40606b40e919f27a01cf17aafd8b435e2706b2004a38e4"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.oci.sig",
+              "size": 382,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci.sig",
+              "digest": "sha256:4b8427e041c5a7fec1cd49c8d45062b21c487b27c315a529e93d61466d2e5a10"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "size": 93194932,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:285be80d284f1a38b10fa1e0fc196de2df16569988612a672eb40ee49873153e"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:52c0517c78e1cf9c25feba9be2d3051aa6c8577adbd7ba13528bf75112510d00"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.rpm",
+              "size": 127770000,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm",
+              "digest": "sha256:74b046fbd182ead3a8703dcaf04808dd74b2122d7d898b45f11c8da6642fc316"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:e5ab330108b26db591336becc8fd1944b588285bd7229e7be7e977c5cc28d8a3"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.tar.gz",
+              "size": 125563455,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz",
+              "digest": "sha256:63d8b2e020d241000b565b386cd05bba22d0b97c484b5f11c09cc631e51749ca"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:ccc7dd934b6f5db2852a0d9f985f8cf557bd98d5dd15e9eac77c591d9f7c6574"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.deb",
+              "size": 130181794,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb",
+              "digest": "sha256:e0469aaef4821eb2fe1ff3d9d80b2133e8e2e2f4b6a76a0b5fb9909dcbee79fd"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb.asc",
+              "digest": "sha256:4648314b6078c168c942ac7243122ce6fa6e6cdc64afa2bb68f4f6f071b9d304"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.rpm",
+              "size": 129724529,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm",
+              "digest": "sha256:c5f95d44067fe8b349a8b8a01a98a45a712eb89183231462392c6434ec79be6b"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:dd658abf1416a930f3b33712ac25bac2898abb2f06a362e4977da6bd10daf92f"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.tar.gz",
+              "size": 128395584,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz",
+              "digest": "sha256:cd9841daaa930c03f7e2853fadc2fb01f243716aa2c3b6a5b40922260d5e7cba"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:8bc9eea854eb193aa72b48f3d7c7c12750b52d19ae88c1376e26d6725201b41a"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage",
+              "size": 122628600,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage",
+              "digest": "sha256:10176ffa8b8b4e0d298516c656b201959bb8280444f059d7b8838b6a691590de"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:58328fc015165710bc15306a1079b10196cfae15aef2e50f22afb4e5698804ea"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "size": 209821,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:75a6f5ef39d15f56351af9159019a3fc7db64204843105fdfd61359479617c7f"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:f5e8f6ca6f6d3ff470b08331d4bb9f88dcd6fb79ecab7aa2d2e19ef28e4e1873"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.deb",
+              "size": 132278240,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb",
+              "digest": "sha256:9ba913f053ab9cb9160d080f0c8db08c1c9eb94b3bdc7f2c0a0d784e034a5bd5"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb.asc",
+              "digest": "sha256:f0ae83078b0c0810195913bfe754f05760bc204563e13f0b1ca1e42ff7fef4a3"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.flatpak",
+              "size": 89536912,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak",
+              "digest": "sha256:79ce3ca22c5a7cf01af29f876992532bfc556494ace990d5a424a32332c46e6c"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:92caff265bdb9caf818730456a9d395eb8e194e7501165263319031e4cd19d66"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "size": 494,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:c80cc6f0c73420263c1dd572e19ba1c35f4b3b70dedd3031d6ed625953fbc07a"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.oci.sig",
+              "size": 387,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci.sig",
+              "digest": "sha256:da9a5c4ba6d5b294f3450f44b620ecf39ab69605873f97a3b6e349098510f0e0"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "size": 95522398,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:6af586975f52a6621ac4e0a96bd2e335629c152f21a535af311a829b56261ba9"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:deabc1b36962027dd8d2064b7ab8b11902384ea9f3a81cd8f85dce5a754d4b05"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.rpm",
+              "size": 131529311,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm",
+              "digest": "sha256:502328408b1df65fa1fda981c1207cd2f52f577e5fa10e51972826734c05838d"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:c1f6fe0eeeb1f709437befbbb507309984583d9fc739e61ff23b93553e2709fd"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.tar.gz",
+              "size": 130256682,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz",
+              "digest": "sha256:ec8d8cc2b9204ac03d1380cec910defdf2e8850d93e9b87d6184eafef61968b4"
+            },
+            {
+              "name": "wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:7d650c36cfb2b5bf13df0a2727af5166765cc40a558f9aba1f86ea1582683d6e"
+            },
+            {
+              "name": "wordcraft-0.19.1-macos-universal.dmg",
+              "size": 144499906,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-macos-universal.dmg",
+              "digest": "sha256:df13cabf63bb2591045ebf6782c17440e7ecee9556550d6dd2affecd983825b2"
+            },
+            {
+              "name": "wordcraft-0.19.1-windows-arm64-portable.zip",
+              "size": 125310406,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64-portable.zip",
+              "digest": "sha256:279e1707f1ffdef26cde0dfd601e3566c618be012f551bc4075a417b4f55078d"
+            },
+            {
+              "name": "wordcraft-0.19.1-windows-arm64.msi",
+              "size": 98803712,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64.msi",
+              "digest": "sha256:1884db862730ae46fe4799cf90d593e2a5d47f13798a98905fbbae1c37f7ced9"
+            },
+            {
+              "name": "wordcraft-0.19.1-windows-x64-portable.zip",
+              "size": 129929601,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64-portable.zip",
+              "digest": "sha256:15156fb90ad8d1fee5ba154ff87a76e9c85ebe0d013ffadb6e5ff776ec1ae8f2"
+            },
+            {
+              "name": "wordcraft-0.19.1-windows-x64.msi",
+              "size": 103383040,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64.msi",
+              "digest": "sha256:526abab4619d19ee432a834673044dc19f6ee2eac8f0f0bec6e9f6bf06cb7661"
+            },
+            {
+              "name": "wordcraft-cli-0.19.1-macos-universal.zip",
+              "size": 114810446,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-cli-0.19.1-macos-universal.zip",
+              "digest": "sha256:f008db7e1dd3f81a4f9ba65d34358ed4da8e30ebf9191258bef3f7be2cc32c53"
+            },
+            {
+              "name": "wordcraft-web-0.19.1.zip",
+              "size": 24860696,
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-web-0.19.1.zip",
+              "digest": "sha256:4124c4979e85619f00c12129b87164c841befeffafd752ab07cfe6ddc02a051a"
+            }
+          ]
+        },
         {
           "tag_name": "v0.18.1",
           "name": "WordCraft v0.18.1",
@@ -65281,7 +65897,7 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"1e4effe0764f56a927cb25bdf8400426bf7dadc85e0b8f9b8ea22ff5ea35346d\"",
+      "etag": "\"a4f729ef69d8f0208c877b8b4083c0eb74a97cf717d57ae95f07ae37c0769930\"",
       "body": {
         "assets": [
           {
@@ -65598,7 +66214,7 @@
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"330d70f40db5b52f4e7450cd6536f08f359b71303f1ea9fa93a74d4e150b29b8\"",
+      "etag": "\"47e886f102952768cbecb8631d1d861948315a7a22e5a87a5e4e4e2a59f1831a\"",
       "body": [
         {
           "assets": [
@@ -66545,7 +67161,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"57eadbe77e622efe531687fa2ac708c400e2e151765d2aefa907d18aa5e53b3e\"",
+      "etag": "\"a687675f49ecb7cb076f9bc43fe5620b2f32ef7fb19f99f18aeb1513e6db4000\"",
       "body": {
         "assets": [
           {
@@ -66826,7 +67442,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"0efb855cf8e77804cc014cdb3a33241fcf8528d9bd4a3ecd72d7c3def09de11f\"",
+      "etag": "\"cac92d9b6e482f2d201854118462e44fd5e2202c56711d8799f14a1ddf455f64\"",
       "body": [
         {
           "assets": [
@@ -67909,7 +68525,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"74737e7e1007d5fa509dc9f65ce0b0586f61d8dc90c93a056a92b3d7ae1b5baf\"",
+      "etag": "\"cd64449d0aec33331f1beba85fd00c794753ac3ef5e6bbcd5cadf060074c6b1c\"",
       "body": {
         "assets": [
           {
@@ -68220,7 +68836,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"345063a5f92a02a59e5ddbeb96c180d9697ed0b54a1ca9278af07701ae903ee8\"",
+      "etag": "\"24de73f900512838d496a973486e6c2458cf6ac0cb9f37ae118771420f519e55\"",
       "body": [
         {
           "assets": [
@@ -72273,319 +72889,627 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"b465171418332052627603a8d87718bc71ad3e7cf7584c08522809671f90d39f\"",
+      "etag": "\"0edf1cdf4cbb2627b0883ce5de2f2ccdb7f28b968d38d543fb1a6f2a7a48b907\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-freebsd-aarch64.tar.gz",
-            "digest": "sha256:cd2cea15b078e9a2c317f42a3e1c6f883abd815310ebba0ad15af44e7431adbc",
-            "name": "deckcraft-0.18.1-freebsd-aarch64.tar.gz",
-            "size": 101491870
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:0e12e72bb2307b573322bd8ca1eafd6fe2e8389340f135f7791e9cbd00fd8190",
+            "name": "deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+            "size": 103189584
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-freebsd-x86_64.tar.gz",
-            "digest": "sha256:a8920b3aadc574d30a0a6a750df09c2b06bab168848505573926610e078a95f5",
-            "name": "deckcraft-0.18.1-freebsd-x86_64.tar.gz",
-            "size": 104710263
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:c78a7a9df113015b161960721c3e4d4c432e15aefd4dca28813a2e67db4ba21a",
+            "name": "deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+            "size": 106629502
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.AppImage",
-            "digest": "sha256:894cb1dc7946918ffe6f0cdce32d9e2157d149faea6737638164083d5e562615",
-            "name": "deckcraft-0.18.1-linux-aarch64.AppImage",
-            "size": 96410120
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage",
+            "digest": "sha256:548200b8b1adf79c72860a40abe1c6f2d7f4189a4a9475668873b5732d8c4f00",
+            "name": "deckcraft-0.19.1-linux-aarch64.AppImage",
+            "size": 97880584
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.AppImage.asc",
-            "digest": "sha256:ddb4d8826ee4666b3cdc1c52a37840ab711035bde478dd04c371b99bb4084cbe",
-            "name": "deckcraft-0.18.1-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:4b293e418485ae766aad44168d30f5d4ed2fce76568ccca31a2fca438c5cefa6",
+            "name": "deckcraft-0.19.1-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:86c4dd62be6c4c974baa603b04320510c9fc283131fdfb3004f8108a47b2eda3",
-            "name": "deckcraft-0.18.1-linux-aarch64.AppImage.zsync",
-            "size": 329781
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:4dd49fce8ec3cc441a4f5e6f78fa626c68f7d6a0dcfc47a06a484048d16bbc30",
+            "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+            "size": 334807
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:adfde94423f88083414967ccbda8e6ffa02485bbf91e24bcbd6373c66539e225",
-            "name": "deckcraft-0.18.1-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:3c006939d587b48f0a66550eae0e12d28bb0379b321263476b952b0aa0a23221",
+            "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.deb",
-            "digest": "sha256:1c76f4f8c14ab61cc06e38be746f6bd7c69284dd47568455aad8c2b4103a8626",
-            "name": "deckcraft-0.18.1-linux-aarch64.deb",
-            "size": 104076250
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb",
+            "digest": "sha256:15636f9fa5e122fdc1aa6fcf41a09324f85de7e0ffdc07f49626f185f8495427",
+            "name": "deckcraft-0.19.1-linux-aarch64.deb",
+            "size": 105834494
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.deb.asc",
-            "digest": "sha256:5d7015922ad4f37a6036d2346aa01907591e39c321173bf34e498adb4f2ed239",
-            "name": "deckcraft-0.18.1-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb.asc",
+            "digest": "sha256:372541e9463f2fd6c0c91020cdc2bfea76b21682504c0dbf3ae6ac3dac5cd1a5",
+            "name": "deckcraft-0.19.1-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.flatpak",
-            "digest": "sha256:7edc3206b8e1606350438050635ba4dbcc9287cbe89049fdddb7c997f55e8c10",
-            "name": "deckcraft-0.18.1-linux-aarch64.flatpak",
-            "size": 69992736
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak",
+            "digest": "sha256:c67b95c951f64d9313d2301cb669c695f3f00aaf995746ff765cd3e272ab7f2f",
+            "name": "deckcraft-0.19.1-linux-aarch64.flatpak",
+            "size": 70979224
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.flatpak.asc",
-            "digest": "sha256:d7894867ce9f2175419b8d928b24bd7e70090393998c3fa03e41ab1d459e9826",
-            "name": "deckcraft-0.18.1-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:f4b4783c13dccea8625b7da64a643e8add2c3ea3a10d8a0ad0b450972b32fd99",
+            "name": "deckcraft-0.19.1-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:091459173fba222570dc1b6b62998f7cb0626fd5537e982e2af6ceab4e34ff25",
-            "name": "deckcraft-0.18.1-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:711c739aab547a7ffddfee737061f06abd96e679ac47846ff204283ccdf79d55",
+            "name": "deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.oci.sig",
-            "digest": "sha256:f1f1a16411b77fc810d8caa27013a3dcbb88a49b04aa5a0db5eab3fa6b617add",
-            "name": "deckcraft-0.18.1-linux-aarch64.oci.sig",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci.sig",
+            "digest": "sha256:bf2abc120df183efe7f74c8463ec77581a8c73fa824bf4ad423fc60a2020d47c",
+            "name": "deckcraft-0.19.1-linux-aarch64.oci.sig",
             "size": 385
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:535d6848fa09ce4d51fc501e93b8418b2266becad1d474c22d75fa9ca1535bca",
-            "name": "deckcraft-0.18.1-linux-aarch64.pkg.tar.zst",
-            "size": 76250144
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:6a2646db251dd1ef808b4fcb9e0c34907ca38621386576d72e5a0edc3688e3fd",
+            "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+            "size": 77431421
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:ee97efaffecadde35297356fb341e443d510bbcfa5050d68f5ada645c6232975",
-            "name": "deckcraft-0.18.1-linux-aarch64.pkg.tar.zst.sig",
-            "size": 119
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:cfa91a81b5be94d7f3428133dd911b9aa3f3461446143b199d375f0ab40692f2",
+            "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+            "size": 118
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.rpm",
-            "digest": "sha256:a5aef5ba0a8b7444fbc3af443b116285121deccddfd9c2887207485532605ea2",
-            "name": "deckcraft-0.18.1-linux-aarch64.rpm",
-            "size": 103533818
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm",
+            "digest": "sha256:b7b5b00dd39f115691d99aea7298cee77a67aded9477162f2ba4f6197fed2fb3",
+            "name": "deckcraft-0.19.1-linux-aarch64.rpm",
+            "size": 105268879
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.rpm.asc",
-            "digest": "sha256:b3c480ea8e3a3967210f463708877cad9953138767954a618e3b32c16127be04",
-            "name": "deckcraft-0.18.1-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:d9cd385b0abeb9fb59908c68dba972628805f117b23607b3ce5f726d7bfe9f53",
+            "name": "deckcraft-0.19.1-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.tar.gz",
-            "digest": "sha256:3fbd005ce382c853ad056dca7b937802fc0ef6b8564eca5a99a52b670c159e94",
-            "name": "deckcraft-0.18.1-linux-aarch64.tar.gz",
-            "size": 102184591
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz",
+            "digest": "sha256:20eb8d82847e1a89cfc26eb5b804c8406e66e0c64e2bfc601236f4ad046f6b21",
+            "name": "deckcraft-0.19.1-linux-aarch64.tar.gz",
+            "size": 103832610
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:4e1f476af7e31b0def7db0c3e475b8e756ab050c3f3a28c4b8343331621e19c2",
-            "name": "deckcraft-0.18.1-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:161dc6d53e1ab1bfd034636d15b13cdf29c327a03b1ad56cd8a89ac5a3bbe105",
+            "name": "deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.deb",
-            "digest": "sha256:82faf22da0c81775c8a8008c75d79476c0d360ef0b18d9923d4e72bb674afcf7",
-            "name": "deckcraft-0.18.1-linux-riscv64.deb",
-            "size": 105042354
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb",
+            "digest": "sha256:143e462546a7b7988bed5e67a07ddb5943c1b0c0abb3c181e156adc85362d4f2",
+            "name": "deckcraft-0.19.1-linux-riscv64.deb",
+            "size": 107097668
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.deb.asc",
-            "digest": "sha256:0dfc3d74cdff9e1a1a14a5cfd7b3e63f3e9b99c2871d4fed64e6571f4b8b2601",
-            "name": "deckcraft-0.18.1-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb.asc",
+            "digest": "sha256:7a589ba0c653d0bff0f5dc395431a50f8ce2868adadfa30c0cfa5423b86b2255",
+            "name": "deckcraft-0.19.1-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.rpm",
-            "digest": "sha256:0bf38d68a83a15ac336134f071ee79e6cbe3cb281b9f74cbf60148231cd8b877",
-            "name": "deckcraft-0.18.1-linux-riscv64.rpm",
-            "size": 104780760
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm",
+            "digest": "sha256:19b4c1f77c2939cadfef440f926eb22ebea72a8a7787feb3fff2819efbf5f5bc",
+            "name": "deckcraft-0.19.1-linux-riscv64.rpm",
+            "size": 106830527
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.rpm.asc",
-            "digest": "sha256:c3466a9effecd01011ceb0b7adfe9c7e03dd694f31f25894d45032b1d9b09b25",
-            "name": "deckcraft-0.18.1-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:01b8f3afbde79bab16b3380f6398feaae0fae02d6e02ea836f8af15ed4304b35",
+            "name": "deckcraft-0.19.1-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.tar.gz",
-            "digest": "sha256:1734f05511919d02c1fb78928931fb5b38079c1cda31305edafef3f7ba7c2c8f",
-            "name": "deckcraft-0.18.1-linux-riscv64.tar.gz",
-            "size": 104007901
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz",
+            "digest": "sha256:a8264b04be654f43099560edee55e34f7d8e2501120de368e12d1e53b45e688f",
+            "name": "deckcraft-0.19.1-linux-riscv64.tar.gz",
+            "size": 106019736
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:3a66fb21227fc6e57582603794d85098c6a34491596c610c4f579296298c4d81",
-            "name": "deckcraft-0.18.1-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:cafce7d90553847ce51150c4b550c08b350c403d23fe383b227494632753987a",
+            "name": "deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.AppImage",
-            "digest": "sha256:68df9f040d3f6c4ce4a904aadec633961fa199248f0a1aa366fa64597ae09867",
-            "name": "deckcraft-0.18.1-linux-x86_64.AppImage",
-            "size": 98990584
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage",
+            "digest": "sha256:8295d0fb795bbd0c7ab8ae97cdf0993e1e6cf14d90aac35aab78b816dcdaa2fe",
+            "name": "deckcraft-0.19.1-linux-x86_64.AppImage",
+            "size": 100628984
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.AppImage.asc",
-            "digest": "sha256:191b389018d69f059d9a85e4bef15b861a2e80d5bead97bd09e53d5cd7dd5524",
-            "name": "deckcraft-0.18.1-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:82a181b248ce9e8219e0a430a63ecd9f49b839452f7eaf40ce3cf306de12e1a4",
+            "name": "deckcraft-0.19.1-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:834d0fcab2c0318d65b8217ad1559140e6e157c2020584eff0d88b835d1ecf64",
-            "name": "deckcraft-0.18.1-linux-x86_64.AppImage.zsync",
-            "size": 338599
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:93f5b05e12269c2371fff018e2ff06a94cc0658eda18264783e02bc5d08cb41f",
+            "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+            "size": 172224
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:a574dbeaa5488866187a49d881f9b8e3332ad3917a69976c4253e4f803862e1c",
-            "name": "deckcraft-0.18.1-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:ca1dfc33a92702507e8831ae734a8d5cc02873a9a612b67f97d62cf9ce3ff14c",
+            "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.deb",
-            "digest": "sha256:59801c24ef5bdaf01a6a465f0e1d5f59aba36ad1e723cb833304b22d98c3f909",
-            "name": "deckcraft-0.18.1-linux-x86_64.deb",
-            "size": 106105064
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb",
+            "digest": "sha256:a6ebfb4a230e569c8ae8848611bb9813378b351557bc07b6964d8a348d264459",
+            "name": "deckcraft-0.19.1-linux-x86_64.deb",
+            "size": 108054612
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.deb.asc",
-            "digest": "sha256:ea12a9bbeed8b6a16a10dffbe350df5001e9ee9922ba6ed74ff49915bf8a4e2d",
-            "name": "deckcraft-0.18.1-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb.asc",
+            "digest": "sha256:cd8bce42570bccb7c939390dc1b1a1d980a89ae3242e780b5be0907a375df4f3",
+            "name": "deckcraft-0.19.1-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.flatpak",
-            "digest": "sha256:080cd8a4d2f74ca9ef554125476e6d2aa80eb8dc72eab5d41247a7b17f2d6c2d",
-            "name": "deckcraft-0.18.1-linux-x86_64.flatpak",
-            "size": 72863288
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak",
+            "digest": "sha256:815ae6932f47c9af9b8ac5d45a412ffee2f06acff49194549cda34b7980ec302",
+            "name": "deckcraft-0.19.1-linux-x86_64.flatpak",
+            "size": 73978056
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.flatpak.asc",
-            "digest": "sha256:6093d9492a5012f7a05221d9aaf61103b3086aedce52f6acd8b989bd66cf7866",
-            "name": "deckcraft-0.18.1-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:86e87481a4eff15e1a42f83580ff114dd752ccc1d33781a671bbaa20bc0c58be",
+            "name": "deckcraft-0.19.1-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:0d72c4c9d4be62efb939aa66ab54cd8bc0c23b96260904adf1f8b48b452287c8",
-            "name": "deckcraft-0.18.1-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:67af55e0c78cad3e69a663cedd561d321b19c753113c07d5446a07bce088f676",
+            "name": "deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.oci.sig",
-            "digest": "sha256:c3d0733c83708af1eac7b65250e1261b71fb7b643981a214340ff139d90e17c0",
-            "name": "deckcraft-0.18.1-linux-x86_64.oci.sig",
-            "size": 385
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci.sig",
+            "digest": "sha256:f768ab0ce70f39cc555430958efb38d8a5a427fb3c727116a2bb0ea33af23840",
+            "name": "deckcraft-0.19.1-linux-x86_64.oci.sig",
+            "size": 384
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:ecd7d10ac3792ea9e0949baab81c264b2fe615d5c1e2b5a85b9611ac9c7d4d1b",
-            "name": "deckcraft-0.18.1-linux-x86_64.pkg.tar.zst",
-            "size": 78004065
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:081072ab8ba83c0eef63980b692f99b545d44581933c53934ec2a53d5cbe9d77",
+            "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+            "size": 79231732
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:6bbca2684721dcd80805e578dae38f01f11bfe334856a03259533598f2e4a54e",
-            "name": "deckcraft-0.18.1-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:161621c3cdfaeafb4045efb1e6f6ec442a380c657579f8d1714f2fd01b24a20b",
+            "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.rpm",
-            "digest": "sha256:b2808c4bbaf33b9b21dccf89fea7b56dc976ae4f9609a176886b9691ca52ea1b",
-            "name": "deckcraft-0.18.1-linux-x86_64.rpm",
-            "size": 105656071
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm",
+            "digest": "sha256:013c8a3f56958a0462a9135aee353719d7d1b3a51954da6075a8ab56f8068694",
+            "name": "deckcraft-0.19.1-linux-x86_64.rpm",
+            "size": 107601620
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.rpm.asc",
-            "digest": "sha256:c31fe42ca2b5c7e279115c520018408f38e51a0743ed34974846aff1c6a28174",
-            "name": "deckcraft-0.18.1-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:da3a7f75ba68587980afa6a0b4435d46ad3a61b51af3963d2ee258277b7ffc2b",
+            "name": "deckcraft-0.19.1-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.tar.gz",
-            "digest": "sha256:5bae7d5566638624411ef968f2532ab3358dc280884144583e497c5631db8a26",
-            "name": "deckcraft-0.18.1-linux-x86_64.tar.gz",
-            "size": 104936063
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz",
+            "digest": "sha256:ec75aaaef10a6dc4813f7ebf0f7fd8f980520c5b3d051ba3d76204c9e5d76fea",
+            "name": "deckcraft-0.19.1-linux-x86_64.tar.gz",
+            "size": 106863031
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:6f13768c3797efc567818c80c36d0f356b626d334c39e9d9c52f44062704f26d",
-            "name": "deckcraft-0.18.1-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:48a526d8c86d525ecd4f70b5afd57dfb9d338e2a709daebf79524607846f2f7a",
+            "name": "deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-macos-universal.dmg",
-            "digest": "sha256:3321d11f6353b3ff9de328f21407d7527f1f9029c83dab4e3ab734f516d3a055",
-            "name": "deckcraft-0.18.1-macos-universal.dmg",
-            "size": 112719319
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-macos-universal.dmg",
+            "digest": "sha256:a5233f28b031b74edc4a07df2a0068d43b82ccadfdac865f145765d28b2ce746",
+            "name": "deckcraft-0.19.1-macos-universal.dmg",
+            "size": 114480941
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-windows-arm64-portable.zip",
-            "digest": "sha256:3ff8bbaf98568d3a5ab2fc932dacf410d0b2c0b0da5fd4d063ed0d42bc40789b",
-            "name": "deckcraft-0.18.1-windows-arm64-portable.zip",
-            "size": 101361385
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64-portable.zip",
+            "digest": "sha256:75384a7c32e6f50e07adac2135d01868687aa1b24cf9a3009a0540680e8277e9",
+            "name": "deckcraft-0.19.1-windows-arm64-portable.zip",
+            "size": 102847168
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-windows-arm64.msi",
-            "digest": "sha256:550d7ec20042e02e4afde64d1499f40decbbf010fd92463530f1c8fbdc70270f",
-            "name": "deckcraft-0.18.1-windows-arm64.msi",
-            "size": 80003072
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64.msi",
+            "digest": "sha256:b47bef415b2abeb50b4b0294fb823df87b444e85b5096d1e0a194221a856fbf6",
+            "name": "deckcraft-0.19.1-windows-arm64.msi",
+            "size": 81108992
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-windows-x64-portable.zip",
-            "digest": "sha256:6df6f60b2182065c427fe4c3fe1b5d74b92706b238c6f35f3f91e5f359042e99",
-            "name": "deckcraft-0.18.1-windows-x64-portable.zip",
-            "size": 104449748
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64-portable.zip",
+            "digest": "sha256:f2b46bf227b389c3e5443080b5c5380d70351706cc5137c1be7014e71152d52d",
+            "name": "deckcraft-0.19.1-windows-x64-portable.zip",
+            "size": 106499796
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-0.18.1-windows-x64.msi",
-            "digest": "sha256:a8553fc7400c8087d55ace4e17ad00148646ba970c7a4749e718ca2f77384e13",
-            "name": "deckcraft-0.18.1-windows-x64.msi",
-            "size": 82989056
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64.msi",
+            "digest": "sha256:fdaa2672dab8f9bfa7ef31b60d0f28997f8e3c22f779b16aa2ad123ca75b6b40",
+            "name": "deckcraft-0.19.1-windows-x64.msi",
+            "size": 84463616
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-cli-0.18.1-macos-universal.zip",
-            "digest": "sha256:10992f73c88a4c0361dd0fec3a4d7490731ffb3ea9658ee2274b396e3341af00",
-            "name": "deckcraft-cli-0.18.1-macos-universal.zip",
-            "size": 94288920
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-cli-0.19.1-macos-universal.zip",
+            "digest": "sha256:1285b14823cd413ee2a666b501f8ba5076ce2ba043938143bc04bf26ec5bf0e8",
+            "name": "deckcraft-cli-0.19.1-macos-universal.zip",
+            "size": 96186280
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-web-0.18.1.zip",
-            "digest": "sha256:3196e537fcfab538aaa2e88584bc74e29bb584459b916ab584ac22fbafe32db5",
-            "name": "deckcraft-web-0.18.1.zip",
-            "size": 11910503
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-web-0.19.1.zip",
+            "digest": "sha256:28fcde83be9e5b3020c05af980c252c8ef4d21b4717baaf04efde20f7dc5bf86",
+            "name": "deckcraft-web-0.19.1.zip",
+            "size": 12463655
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/SHA256SUMS.txt",
-            "digest": "sha256:07812846fc2a6446a032e4435e68576460bc5e14b6b8e55c69623e7dec0d3f5c",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+            "digest": "sha256:1ab6f1b81dea297f40031533d2314b314c425b1b98d334083ebb6d3cf993cd2b",
             "name": "SHA256SUMS.txt",
             "size": 5076
           },
           {
-            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.18.1/SHA256SUMS.txt.asc",
-            "digest": "sha256:2b5686f9202f424a4daafe42f7633264509a422fff37e90429349b1b27f8a15e",
+            "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:e4ef2df8650feef04b9ebcc42fc13d5a23dbc30e8881f64922a5ea1e05aef859",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "DeckCraft v0.18.1",
+        "name": "DeckCraft v0.19.1",
         "prerelease": false,
-        "tag_name": "v0.18.1"
+        "tag_name": "v0.19.1"
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"5733de8dafee6a605666d9358550f0377e93497a2f923c26670923f8bf3b3502\"",
+      "etag": "\"1367ab5960af38a2560b0f141ffb165c67aac153d6cfb3cf898d224a955c3daf\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:0e12e72bb2307b573322bd8ca1eafd6fe2e8389340f135f7791e9cbd00fd8190",
+              "name": "deckcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "size": 103189584
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:c78a7a9df113015b161960721c3e4d4c432e15aefd4dca28813a2e67db4ba21a",
+              "name": "deckcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "size": 106629502
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage",
+              "digest": "sha256:548200b8b1adf79c72860a40abe1c6f2d7f4189a4a9475668873b5732d8c4f00",
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage",
+              "size": 97880584
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:4b293e418485ae766aad44168d30f5d4ed2fce76568ccca31a2fca438c5cefa6",
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:4dd49fce8ec3cc441a4f5e6f78fa626c68f7d6a0dcfc47a06a484048d16bbc30",
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "size": 334807
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:3c006939d587b48f0a66550eae0e12d28bb0379b321263476b952b0aa0a23221",
+              "name": "deckcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb",
+              "digest": "sha256:15636f9fa5e122fdc1aa6fcf41a09324f85de7e0ffdc07f49626f185f8495427",
+              "name": "deckcraft-0.19.1-linux-aarch64.deb",
+              "size": 105834494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.deb.asc",
+              "digest": "sha256:372541e9463f2fd6c0c91020cdc2bfea76b21682504c0dbf3ae6ac3dac5cd1a5",
+              "name": "deckcraft-0.19.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak",
+              "digest": "sha256:c67b95c951f64d9313d2301cb669c695f3f00aaf995746ff765cd3e272ab7f2f",
+              "name": "deckcraft-0.19.1-linux-aarch64.flatpak",
+              "size": 70979224
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:f4b4783c13dccea8625b7da64a643e8add2c3ea3a10d8a0ad0b450972b32fd99",
+              "name": "deckcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:711c739aab547a7ffddfee737061f06abd96e679ac47846ff204283ccdf79d55",
+              "name": "deckcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.oci.sig",
+              "digest": "sha256:bf2abc120df183efe7f74c8463ec77581a8c73fa824bf4ad423fc60a2020d47c",
+              "name": "deckcraft-0.19.1-linux-aarch64.oci.sig",
+              "size": 385
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:6a2646db251dd1ef808b4fcb9e0c34907ca38621386576d72e5a0edc3688e3fd",
+              "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "size": 77431421
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:cfa91a81b5be94d7f3428133dd911b9aa3f3461446143b199d375f0ab40692f2",
+              "name": "deckcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 118
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm",
+              "digest": "sha256:b7b5b00dd39f115691d99aea7298cee77a67aded9477162f2ba4f6197fed2fb3",
+              "name": "deckcraft-0.19.1-linux-aarch64.rpm",
+              "size": 105268879
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:d9cd385b0abeb9fb59908c68dba972628805f117b23607b3ce5f726d7bfe9f53",
+              "name": "deckcraft-0.19.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz",
+              "digest": "sha256:20eb8d82847e1a89cfc26eb5b804c8406e66e0c64e2bfc601236f4ad046f6b21",
+              "name": "deckcraft-0.19.1-linux-aarch64.tar.gz",
+              "size": 103832610
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:161dc6d53e1ab1bfd034636d15b13cdf29c327a03b1ad56cd8a89ac5a3bbe105",
+              "name": "deckcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb",
+              "digest": "sha256:143e462546a7b7988bed5e67a07ddb5943c1b0c0abb3c181e156adc85362d4f2",
+              "name": "deckcraft-0.19.1-linux-riscv64.deb",
+              "size": 107097668
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.deb.asc",
+              "digest": "sha256:7a589ba0c653d0bff0f5dc395431a50f8ce2868adadfa30c0cfa5423b86b2255",
+              "name": "deckcraft-0.19.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm",
+              "digest": "sha256:19b4c1f77c2939cadfef440f926eb22ebea72a8a7787feb3fff2819efbf5f5bc",
+              "name": "deckcraft-0.19.1-linux-riscv64.rpm",
+              "size": 106830527
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:01b8f3afbde79bab16b3380f6398feaae0fae02d6e02ea836f8af15ed4304b35",
+              "name": "deckcraft-0.19.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz",
+              "digest": "sha256:a8264b04be654f43099560edee55e34f7d8e2501120de368e12d1e53b45e688f",
+              "name": "deckcraft-0.19.1-linux-riscv64.tar.gz",
+              "size": 106019736
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:cafce7d90553847ce51150c4b550c08b350c403d23fe383b227494632753987a",
+              "name": "deckcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage",
+              "digest": "sha256:8295d0fb795bbd0c7ab8ae97cdf0993e1e6cf14d90aac35aab78b816dcdaa2fe",
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage",
+              "size": 100628984
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:82a181b248ce9e8219e0a430a63ecd9f49b839452f7eaf40ce3cf306de12e1a4",
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:93f5b05e12269c2371fff018e2ff06a94cc0658eda18264783e02bc5d08cb41f",
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "size": 172224
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:ca1dfc33a92702507e8831ae734a8d5cc02873a9a612b67f97d62cf9ce3ff14c",
+              "name": "deckcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb",
+              "digest": "sha256:a6ebfb4a230e569c8ae8848611bb9813378b351557bc07b6964d8a348d264459",
+              "name": "deckcraft-0.19.1-linux-x86_64.deb",
+              "size": 108054612
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.deb.asc",
+              "digest": "sha256:cd8bce42570bccb7c939390dc1b1a1d980a89ae3242e780b5be0907a375df4f3",
+              "name": "deckcraft-0.19.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak",
+              "digest": "sha256:815ae6932f47c9af9b8ac5d45a412ffee2f06acff49194549cda34b7980ec302",
+              "name": "deckcraft-0.19.1-linux-x86_64.flatpak",
+              "size": 73978056
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:86e87481a4eff15e1a42f83580ff114dd752ccc1d33781a671bbaa20bc0c58be",
+              "name": "deckcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:67af55e0c78cad3e69a663cedd561d321b19c753113c07d5446a07bce088f676",
+              "name": "deckcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.oci.sig",
+              "digest": "sha256:f768ab0ce70f39cc555430958efb38d8a5a427fb3c727116a2bb0ea33af23840",
+              "name": "deckcraft-0.19.1-linux-x86_64.oci.sig",
+              "size": 384
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:081072ab8ba83c0eef63980b692f99b545d44581933c53934ec2a53d5cbe9d77",
+              "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "size": 79231732
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:161621c3cdfaeafb4045efb1e6f6ec442a380c657579f8d1714f2fd01b24a20b",
+              "name": "deckcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm",
+              "digest": "sha256:013c8a3f56958a0462a9135aee353719d7d1b3a51954da6075a8ab56f8068694",
+              "name": "deckcraft-0.19.1-linux-x86_64.rpm",
+              "size": 107601620
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:da3a7f75ba68587980afa6a0b4435d46ad3a61b51af3963d2ee258277b7ffc2b",
+              "name": "deckcraft-0.19.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz",
+              "digest": "sha256:ec75aaaef10a6dc4813f7ebf0f7fd8f980520c5b3d051ba3d76204c9e5d76fea",
+              "name": "deckcraft-0.19.1-linux-x86_64.tar.gz",
+              "size": 106863031
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:48a526d8c86d525ecd4f70b5afd57dfb9d338e2a709daebf79524607846f2f7a",
+              "name": "deckcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-macos-universal.dmg",
+              "digest": "sha256:a5233f28b031b74edc4a07df2a0068d43b82ccadfdac865f145765d28b2ce746",
+              "name": "deckcraft-0.19.1-macos-universal.dmg",
+              "size": 114480941
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64-portable.zip",
+              "digest": "sha256:75384a7c32e6f50e07adac2135d01868687aa1b24cf9a3009a0540680e8277e9",
+              "name": "deckcraft-0.19.1-windows-arm64-portable.zip",
+              "size": 102847168
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-arm64.msi",
+              "digest": "sha256:b47bef415b2abeb50b4b0294fb823df87b444e85b5096d1e0a194221a856fbf6",
+              "name": "deckcraft-0.19.1-windows-arm64.msi",
+              "size": 81108992
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64-portable.zip",
+              "digest": "sha256:f2b46bf227b389c3e5443080b5c5380d70351706cc5137c1be7014e71152d52d",
+              "name": "deckcraft-0.19.1-windows-x64-portable.zip",
+              "size": 106499796
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-0.19.1-windows-x64.msi",
+              "digest": "sha256:fdaa2672dab8f9bfa7ef31b60d0f28997f8e3c22f779b16aa2ad123ca75b6b40",
+              "name": "deckcraft-0.19.1-windows-x64.msi",
+              "size": 84463616
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-cli-0.19.1-macos-universal.zip",
+              "digest": "sha256:1285b14823cd413ee2a666b501f8ba5076ce2ba043938143bc04bf26ec5bf0e8",
+              "name": "deckcraft-cli-0.19.1-macos-universal.zip",
+              "size": 96186280
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/deckcraft-web-0.19.1.zip",
+              "digest": "sha256:28fcde83be9e5b3020c05af980c252c8ef4d21b4717baaf04efde20f7dc5bf86",
+              "name": "deckcraft-web-0.19.1.zip",
+              "size": 12463655
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+              "digest": "sha256:1ab6f1b81dea297f40031533d2314b314c425b1b98d334083ebb6d3cf993cd2b",
+              "name": "SHA256SUMS.txt",
+              "size": 5076
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/deckcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:e4ef2df8650feef04b9ebcc42fc13d5a23dbc30e8881f64922a5ea1e05aef859",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "DeckCraft v0.19.1",
+          "prerelease": false,
+          "tag_name": "v0.19.1"
+        },
         {
           "assets": [
             {
@@ -76455,7 +77379,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"a1e1b450eb00e63560894473caea21b1fb06652afe4e4bed4d1a488825840ca4\"",
+      "etag": "\"4e74baeba1327cc0c6134f6bfd38be7bed2a8c2800d0958e245a6e0fb508c5ef\"",
       "body": {
         "assets": [
           {
@@ -76766,7 +77690,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"5a2287b346e425a09b1a76846bbe4a6f6089aae72f9b1ba4ba31062772531274\"",
+      "etag": "\"3f1eda78df0bcef5737010e8b7c8b25be8c2412c8f7fd7d9f62dcc0d45d67bb5\"",
       "body": [
         {
           "assets": [
@@ -81633,7 +82557,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"e2ca369547c91fc8b9efe83c6b18e7e5972b8e9d1c247e50bbbe639da6949e44\"",
+      "etag": "\"cb0fe8d5d9ea70a6481dfe002d1ba5f2cf22c01248436eff1adeddebeae48c30\"",
       "body": {
         "assets": [
           {
@@ -81944,7 +82868,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"41264d5ba13ebaa9ce017c5cf7119bce7ea8ffc6fb1d7ee8ea26055b75418a3c\"",
+      "etag": "\"3dff06dff08fd78f5b4ac87411b9aa09c8d15f32c0fe12c4f9e20f822b24889d\"",
       "body": [
         {
           "assets": [
@@ -87303,7 +88227,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"ba80ee5649570b12a5060d6b3eae0e98d5bd50044991e7669e4c6925d868a900\"",
+      "etag": "\"19742a99548d92e7af152edd9a4ef3fbdf88892c178d12eaa2b5338e9cab5e43\"",
       "body": {
         "assets": [
           {
@@ -87638,7 +88562,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"a199c4f584c48ca176297dfb8c4b38ccaa3b58a2ef991108b0045c0c3e262279\"",
+      "etag": "\"0450f4419fa588bc094b95a0a6ba45c0c66d77419982e036ee3f60f95f027aa0\"",
       "body": [
         {
           "assets": [
@@ -91985,7 +92909,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"3cfd27dbc1b20ab26e81dcb67119b23817da7e7b6d1ef372755a6662f1bb9de4\"",
+      "etag": "\"2e5873eb50344184761e325bda3104db9e43507a578a10f2a414f74c5c09e249\"",
       "body": {
         "assets": [
           {
@@ -92296,7 +93220,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"5910bbf5863a8dba590939ec4363d5dfc9c8aed2a29f298da208ff788a4c37ce\"",
+      "etag": "\"7620471897599686afee3dbb9c2a0aba9714ec7a48551f35f072c3684a238352\"",
       "body": [
         {
           "assets": [
@@ -96643,7 +97567,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"3cd46caac489293811be5fcd605d59435936914575ec2ebfcfeb34ce4fb4fff8\"",
+      "etag": "\"c3d71564004fa3c71880932d129130761d6ca716019e1b89ee240277d53abd0e\"",
       "body": {
         "assets": [
           {
@@ -96954,7 +97878,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"ca22ad99e5aeecfc2e2a1715da2b5c2b4fcfe2a58ee055eb5f3c427381988a2e\"",
+      "etag": "\"5e1a081d44f0c54e0a468471bfad1ddd50f728c256074f517cd694dae0da972a\"",
       "body": [
         {
           "assets": [
@@ -101013,7 +101937,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"57823ba586c8ddf4632a657ded2a7da4b3479895add0745094cbd42a157d20f5\"",
+      "etag": "\"310b3b7b9dfab0b35f9239ee79d62ebf328b33f7398052bdbbb86e23d57fd1c4\"",
       "body": {
         "assets": [
           {
@@ -101324,7 +102248,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"872570cf3154566b878ddaf21a6ec0072043adcfb7c59a5119266c6b76e73dab\"",
+      "etag": "\"fee4e295c0bd86b5af1bbe91aa4bf16459ba73b63d0c7a620f1c8dbf3aed460b\"",
       "body": [
         {
           "assets": [
@@ -105823,7 +106747,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"76b1d239357bca06be8df2dfbc8508f081830cae22cd1267a33ad89cf91a24a7\"",
+      "etag": "\"0a849aa46d95ce2f760b7ae604d6702cb041d81132952ef1c20022e1deede7a1\"",
       "body": {
         "assets": [
           {
@@ -106134,7 +107058,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"0c7a5a65b6855c9173f3f2b4536f0d72d7a063f02abbec0bb2f18401ef81cb0a\"",
+      "etag": "\"4e37db5697c3277c43952e0cf99e4149af8aa8053a2bdc98cc6ee55385e78f68\"",
       "body": [
         {
           "assets": [
@@ -108205,7 +109129,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"43bc28dfab4e025016d872bf8bd9a5343c9db849fceb9876cae3616a6dfae50e\"",
+      "etag": "\"0da9bbed94a0f34bd7f5693eaaa9b0043085d7e74998ca235f4f2e49848c8d2b\"",
       "body": {
         "assets": [
           {
@@ -108540,7 +109464,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"fe3e1a1a2f5886eac9f82893424336101030b1b4f070e7f464dfe6571e638662\"",
+      "etag": "\"76b80ac6a68c2f9991d48c049231fbe1cc8912a676058329c031cc333032be82\"",
       "body": [
         {
           "assets": [
@@ -113901,7 +114825,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"9f9df8170b1772d5850e29caf5086b7a4d4cb556f21dbeed966cbf6e513c7b65\"",
+      "etag": "\"d6749375f265a1e3f43422a39b08716a988178af6faa4c05208d3c27cde1ac48\"",
       "body": {
         "assets": [
           {
@@ -114224,8 +115148,328 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"25982b43089e23b0b2876f28be999a4402dc52d7f6eac18fc7ea65043eba0a4b\"",
+      "etag": "\"7a9c0575d0d29972130ca00a1e28b6f31bc3aa7328bf03d022e26ab4de1a8780\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-freebsd-aarch64.tar.gz",
+              "digest": "sha256:177759793cce4d534f8fcef0193f2af987b59eb5328f9f9a0c6b94adf2b051df",
+              "name": "photocraft-0.24.0-rc.2-freebsd-aarch64.tar.gz",
+              "size": 192594777
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-freebsd-x86_64.tar.gz",
+              "digest": "sha256:bab4b5bda72c79cdc6431049facbb0483c93c7a742211665056ea2e3f554efc8",
+              "name": "photocraft-0.24.0-rc.2-freebsd-x86_64.tar.gz",
+              "size": 204793111
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.AppImage",
+              "digest": "sha256:ee8b345152c135df6af54f32d2144b22911b11ab1cf1d472c05099189f6cc3be",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.AppImage",
+              "size": 176331272
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.AppImage.asc",
+              "digest": "sha256:8baa67eca0286845686354a89d0ee19b847f32f18399e672b5465609e7511501",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:ac939c483cf273625b6164bf1806124113163112362f34a5087c6cd023471ec0",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.AppImage.zsync",
+              "size": 301612
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:c4812525704ca4b644cf13028c5c39752c52e4d4a358ff351c1e48711293f6e3",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.deb",
+              "digest": "sha256:9e8e99847ccc7f30d4b41f982efb7aa3bf787d05ac69aa1ddb71138ae5e09149",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.deb",
+              "size": 196297318
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.deb.asc",
+              "digest": "sha256:b15549fad86f55dcf1d801b31dee43bf6b17125c4baf6b9a5283104cbcd299da",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.flatpak",
+              "digest": "sha256:ba02d52c23db91f5221561be84f9b5fdbdbcca62c7fca8144cc114a9ee79e6c5",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.flatpak",
+              "size": 123958048
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.flatpak.asc",
+              "digest": "sha256:de6aca36e6fb6c7409c6edb8d98117869a67ef9c85ad4d5b4bdee659a2613b57",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:7e990fb1544dd0e8bcb04ae0d1f2619c5026dc95764eddf22b0a9ae46f295d21",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.oci.sig",
+              "digest": "sha256:552df5c1b791d3bdb5596d321694d5ce937095c506901eb294d1dc3e7888f91f",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.oci.sig",
+              "size": 390
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:216f6a5964027be14f1529e1509377c40843bea64cb2f16242b318168b806ef4",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.pkg.tar.zst",
+              "size": 138010942
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:e1b2aeb9cef0f43ef87970e3e9904ea8945baeb9494458bc6d544293f4d492e6",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.rpm",
+              "digest": "sha256:1abc38fa232d16c81f296a5f35de39d9054e2225ea424dd457d9b91cab8ab653",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.rpm",
+              "size": 194399986
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.rpm.asc",
+              "digest": "sha256:24e02dc874e4497f77c46cbd6543455435a9657c4a915030484384f2ed568185",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.tar.gz",
+              "digest": "sha256:4cb85dc34f5db4b028f9959fafa762365e55920521fba4eb36d5ba1753852eab",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.tar.gz",
+              "size": 189987260
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:44fd71dac0a2c3c6953c6d871b852d668097876faf97820a91222eb8a9daff05",
+              "name": "photocraft-0.24.0-rc.2-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.deb",
+              "digest": "sha256:12cca3c2b175c3e08c12e03f7663c07de207e6d01b3ff6f05623e99b2940ce37",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.deb",
+              "size": 201659002
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.deb.asc",
+              "digest": "sha256:3b28f5d087acbe4c7e65290231a48d5b4d6e3007dab2f655f342fb920b5a292c",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.rpm",
+              "digest": "sha256:d96ef5d17d2143e40019c7a3d6a782e6366a6698bbd5bb15215cac24fa9d1d63",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.rpm",
+              "size": 200611637
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.rpm.asc",
+              "digest": "sha256:646958ae1501bb66321b26496ab55197660a440ad83b152211e98869f6cc3a1f",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.tar.gz",
+              "digest": "sha256:283c02cb7993e9968b239b597b4ebf0602202ea46159f42bf8e0146c46b77802",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.tar.gz",
+              "size": 198048122
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:0623f02ef43fccdac974efb3c1cf2a09d7fc65bf2d73f2109190395b4c48575c",
+              "name": "photocraft-0.24.0-rc.2-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.AppImage",
+              "digest": "sha256:582d9ab6a55c68d5ecf859417c333e6f80a5d96fefc2ffa8e063aa718c3d23bf",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.AppImage",
+              "size": 184642040
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.AppImage.asc",
+              "digest": "sha256:0ea9be2d7643f81b9b80751ca6d79a99a4dfab681792ff5a2350080c346b5882",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:386ea78813e1f430fac34fd2fa567da2bac2d9a357e40a501f477c4df4e18f12",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.AppImage.zsync",
+              "size": 315813
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:60d0842af2b9e7c45cc8803277bbc155b3234eea4860f2a6baac8417f83d148f",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.deb",
+              "digest": "sha256:6b5434280430585f64558d68428be96c09c61be639feb36c404938c76c819f72",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.deb",
+              "size": 203026146
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.deb.asc",
+              "digest": "sha256:b4f8d243c2ff2903adc79dfa555738c22521bb1f286d17d61653789350cabf58",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.flatpak",
+              "digest": "sha256:4c45601ec7d93bba0d5e64b9ae17059ee65bd59446dde4b06d0ef48374853eb4",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.flatpak",
+              "size": 133581784
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.flatpak.asc",
+              "digest": "sha256:116bf94676d63ba46830d5bad8908bfd6912157a5ac54fbdcf99d20f8343481c",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:b368dc084206bc9e1991fb6bf5e5fb0527feda6a655bd1fc95d68e42f108300b",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.oci.sig",
+              "digest": "sha256:decd1cad1479f3efbaac337a4551a121a31cbf5b5d959a49b454c6416fd3f11f",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.oci.sig",
+              "size": 386
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:9583074c514f11dbb3b0a40d263adcd42a5a35178e9d62fa3b6411f8189beadd",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.pkg.tar.zst",
+              "size": 143254653
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:b16c2297016e017d6d104d767890186b3a76f5ea545c1ec18e7278e668e89acb",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.rpm",
+              "digest": "sha256:edbced03fe39cd1a67c9d1c82865c56e7c076bb1946bb8fc3279749bdd4dd73c",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.rpm",
+              "size": 201628569
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.rpm.asc",
+              "digest": "sha256:21f400cdcdf3d3baed435900c7d7315e9aecc6320041d5665992eb229b6866c8",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.tar.gz",
+              "digest": "sha256:ca57b70d8e79ba4ce39b12dc4b7f659a7f873bfc0d5afe9cbcc3d202e655bbcd",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.tar.gz",
+              "size": 199494011
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:b2c7a1304b1d62d2552c251bcce032ad74871cc15375f94b312146f52f16d7fa",
+              "name": "photocraft-0.24.0-rc.2-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-macos-universal.dmg",
+              "digest": "sha256:de1a3acfb7567572f72cfa10385c37fa2f75b0d0847f0234c63d2728655a2ec8",
+              "name": "photocraft-0.24.0-rc.2-macos-universal.dmg",
+              "size": 394482892
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-arm64-portable.zip",
+              "digest": "sha256:dc686b72a214065176d92ff7719cb4abd298f70c0f134a2263166c441063a01d",
+              "name": "photocraft-0.24.0-rc.2-windows-arm64-portable.zip",
+              "size": 195113063
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-arm64-symbols.zip",
+              "digest": "sha256:02ecf1904727f32b878e40d9e87d11277e8d4235a96b7b7c341c4e0b5df28197",
+              "name": "photocraft-0.24.0-rc.2-windows-arm64-symbols.zip",
+              "size": 9092371
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-arm64.msi",
+              "digest": "sha256:c0ebb65c4d1a5365f33f37af06fd15036f275ab8c1d9d966b1e9c6340775d6e4",
+              "name": "photocraft-0.24.0-rc.2-windows-arm64.msi",
+              "size": 148975616
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-x64-portable.zip",
+              "digest": "sha256:54581c919d31a85b9217a14d9f6000db2bba6fdc585d7d569f9504997dbd0269",
+              "name": "photocraft-0.24.0-rc.2-windows-x64-portable.zip",
+              "size": 207315358
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-x64-symbols.zip",
+              "digest": "sha256:f2b27a140c13b9b740252c9b6b94d4ca7a7eb0db5ab6593175b9384dedee5643",
+              "name": "photocraft-0.24.0-rc.2-windows-x64-symbols.zip",
+              "size": 9758237
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-0.24.0-rc.2-windows-x64.msi",
+              "digest": "sha256:00a1824aa36cd22f300b87786832c5837a3ee2608dd6a985427f8bf6cff64773",
+              "name": "photocraft-0.24.0-rc.2-windows-x64.msi",
+              "size": 160071680
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-cli-0.24.0-rc.2-macos-universal.zip",
+              "digest": "sha256:a88808513c91eaec95fa4375d80ae37ef630f4e77d99af37e5e11ffd01cd8a91",
+              "name": "photocraft-cli-0.24.0-rc.2-macos-universal.zip",
+              "size": 134265177
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/photocraft-web-0.24.0-rc.2.zip",
+              "digest": "sha256:522576b372874ff29d562f84d49fd8d827d306cb9ae5374dc2db8ec1ef411b76",
+              "name": "photocraft-web-0.24.0-rc.2.zip",
+              "size": 29805293
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/SHA256SUMS.txt",
+              "digest": "sha256:adde628d1107f82856b08af0a4cafffe201d445b873f4e30523afc97d66051ab",
+              "name": "SHA256SUMS.txt",
+              "size": 5586
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/photocraft/releases/download/v0.24.0-rc.2/SHA256SUMS.txt.asc",
+              "digest": "sha256:c09d8820c08e45002ac6cbe125c5648a13dea8f58f271f599cc4d5567f547090",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "PhotoCraft v0.24.0-rc.2",
+          "prerelease": true,
+          "tag_name": "v0.24.0-rc.2"
+        },
         {
           "assets": [
             {
@@ -119517,7 +120761,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"48362b38e1af0ece15ba04dec6c66e55244966fbda8df1a50f1d48f83d28cdc6\"",
+      "etag": "\"b6a499870fa7cddae1b692fadab7b75a943d0e52a927c6d08aff3997ddf9e511\"",
       "body": {
         "assets": [
           {
@@ -119828,7 +121072,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"f7149e34c24d3fd44fae6bcc9b6f73f77e1577b2d92434fd59812e59a260984a\"",
+      "etag": "\"55a87b50b705eea857b75f39274be7f522b061a50e3fe7bce131d9ae493ad3fc\"",
       "body": [
         {
           "assets": [
@@ -123765,7 +125009,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"afb6695221fdfbd9c27aad18d1bebb9302de9d6abfd0bb575e5e3f7485f99fbd\"",
+      "etag": "\"0aa47e2edfc3e44868e67dc7ee9d9df2f25eedb2303e22a659ce66c0e7dbff79\"",
       "body": {
         "assets": [
           {
@@ -124076,7 +125320,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"1a531093df4730f431166e4780ff54db9834cce29f0b4ad71880cf68c61e3976\"",
+      "etag": "\"bc8bc658e319be6f3c6b4c786e1e9e5a30b39a27b7e695d4ccd68968caa294b1\"",
       "body": [
         {
           "assets": [
@@ -126349,7 +127593,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"20735347b01351b3519d76fe41531c1dbb80b2ae33e7e4e3261cbaf273b47e0f\"",
+      "etag": "\"0682f20e1387b7b1d917c8d4c4d7848bcec61d8ed6907302d3b53c7d390771e1\"",
       "body": {
         "assets": [
           {
@@ -126660,7 +127904,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"43ca6088342f53b23d68ec02ed18d7d0a38fbfd17bb415697922763a77c7d21b\"",
+      "etag": "\"350803cb11a240b375c0b328a48bc55644a6252f3fa590587afd75b5e02e2fc1\"",
       "body": [
         {
           "assets": [
@@ -131641,319 +132885,627 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"a2f06f2484d4ca848d774d8c4ffcc86f3194a6bb894f06cd1f16c8019e041098\"",
+      "etag": "\"e5eb716af1c1735e49a2819eb48e5e11d0968d60067f5f801f532bd4cfef80df\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/SHA256SUMS.txt",
-            "digest": "sha256:bbdb44ebba29f7c98d7d83cdca9c942a01b9730beae80bcfa79d5ccf1b81f99f",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+            "digest": "sha256:58b040ad4fe67b36f573036b3b69bbe51eb14b9c248651d0e7cfe3f6da7dcf84",
             "name": "SHA256SUMS.txt",
             "size": 5076
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/SHA256SUMS.txt.asc",
-            "digest": "sha256:3fffbf61e1097c113dcda5947b85166432e3f50856e2becf4be34d3d01b0306f",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+            "digest": "sha256:dd192b7fe91a592c9347c331b298522bdc3b4edf3699d5090380975a4f969947",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-freebsd-aarch64.tar.gz",
-            "digest": "sha256:2f4012fcbe62377e16ea0f0f7cfed7801be83e671882535a7a889e19dfbeefa3",
-            "name": "wordcraft-0.18.1-freebsd-aarch64.tar.gz",
-            "size": 113802851
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+            "digest": "sha256:81807b55f49ebe3f7a480ee22c1ea1691691bc55a67d9ac23d2f294132f28039",
+            "name": "wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+            "size": 124097309
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-freebsd-x86_64.tar.gz",
-            "digest": "sha256:0dd10240807c054aa4802789032916fb07c0f810831381ba8a0054c1b1e88854",
-            "name": "wordcraft-0.18.1-freebsd-x86_64.tar.gz",
-            "size": 118040351
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+            "digest": "sha256:4e93aa11d880d75c8a941a869dfb072c080fb1f4362a489a7074c27c4c98fb8c",
+            "name": "wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+            "size": 129679660
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.AppImage",
-            "digest": "sha256:11e9a11c0dc924c2a261207d8cf45ee232930bf0692533a2e984237f681e073c",
-            "name": "wordcraft-0.18.1-linux-aarch64.AppImage",
-            "size": 108714504
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage",
+            "digest": "sha256:ef5e893a9394d03136fe887c0563e795a1384289c75f3bf50095b2a0048d208c",
+            "name": "wordcraft-0.19.1-linux-aarch64.AppImage",
+            "size": 118135304
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.AppImage.asc",
-            "digest": "sha256:7059049912428899766e6483f2345c734d7bf2c1a272dc6bc901ae4b3cfaaee8",
-            "name": "wordcraft-0.18.1-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.asc",
+            "digest": "sha256:66c8f34ccef5e1bc424c0dc4d8e3049e56104504bc13a70e8ecd12512fa12042",
+            "name": "wordcraft-0.19.1-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:ab691ac0457b1bd000545b25f0b12b580ddb46d42ac05886353f2507e9a9ea79",
-            "name": "wordcraft-0.18.1-linux-aarch64.AppImage.zsync",
-            "size": 186044
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:6656f1a009591c29e48522db51534e801ea3c09d7fd8b022437a668c2635f742",
+            "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+            "size": 202144
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:63e16d9d2a8a12130039a6954ea691e0e431273bfe93a352dacf300e165a5ed4",
-            "name": "wordcraft-0.18.1-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:e5f2825a0dacd369c75e227cf693d5ba8ca7a212ae8c3004a5dd06818d675849",
+            "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.deb",
-            "digest": "sha256:a6e7558d9b9c436c9b71df746af2bb36d8e498452af65115d17fddeeb28a9522",
-            "name": "wordcraft-0.18.1-linux-aarch64.deb",
-            "size": 117324704
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb",
+            "digest": "sha256:b4db4eef71135cb2c516fdfa69c10b1af277384b1b023651b6e2bfbc23c59314",
+            "name": "wordcraft-0.19.1-linux-aarch64.deb",
+            "size": 128693840
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.deb.asc",
-            "digest": "sha256:48c278dbff4c5f2099b076094eafac55ab09285393d76a6348942867979a8fff",
-            "name": "wordcraft-0.18.1-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb.asc",
+            "digest": "sha256:eead803a00361d6825050efe50554bd7fb32364067d405d7427bc2dc42ea2064",
+            "name": "wordcraft-0.19.1-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.flatpak",
-            "digest": "sha256:ac4522536fbc1ed6a79f897f47e3b2c89db1fb851e29e5004e815d286769f721",
-            "name": "wordcraft-0.18.1-linux-aarch64.flatpak",
-            "size": 80783104
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak",
+            "digest": "sha256:161b74647f5cb9550e0ebec377faf0d94f00fd5f74cc2d7976652563ecfeb5d2",
+            "name": "wordcraft-0.19.1-linux-aarch64.flatpak",
+            "size": 85230520
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.flatpak.asc",
-            "digest": "sha256:db72b4b3f61494afcf50d0f4457a001219a70db6863bbae31a5f02a11ec62cef",
-            "name": "wordcraft-0.18.1-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak.asc",
+            "digest": "sha256:64ef89e21c6c0668427c54d5db7339962c7a0cc075121e37881706b598233cbb",
+            "name": "wordcraft-0.19.1-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:efab886a645c2cef0f37391ac5c0ac2eaddc6dee3f4e8c1f42f82d097cb92b01",
-            "name": "wordcraft-0.18.1-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:2ebd4ad4d86d44292e40606b40e919f27a01cf17aafd8b435e2706b2004a38e4",
+            "name": "wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.oci.sig",
-            "digest": "sha256:e1790ce0fc665990151c7f3e46bafe37b32acf55d2e009137eb093817b418c09",
-            "name": "wordcraft-0.18.1-linux-aarch64.oci.sig",
-            "size": 388
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci.sig",
+            "digest": "sha256:4b8427e041c5a7fec1cd49c8d45062b21c487b27c315a529e93d61466d2e5a10",
+            "name": "wordcraft-0.19.1-linux-aarch64.oci.sig",
+            "size": 382
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:ced3196fec6f7185a6ed8b4431100be0607c9ee1d324a3c260bf884895b9428c",
-            "name": "wordcraft-0.18.1-linux-aarch64.pkg.tar.zst",
-            "size": 87930667
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:285be80d284f1a38b10fa1e0fc196de2df16569988612a672eb40ee49873153e",
+            "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+            "size": 93194932
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:3ffb60cf31060ebf0a26af76ba250d5d69c9b8d84bedb14a0e8a7aabd0f670e5",
-            "name": "wordcraft-0.18.1-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:52c0517c78e1cf9c25feba9be2d3051aa6c8577adbd7ba13528bf75112510d00",
+            "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.rpm",
-            "digest": "sha256:e1d79d2e6661eb6796636717b9d9db4a309802cddcdf31be3539b612550d78b4",
-            "name": "wordcraft-0.18.1-linux-aarch64.rpm",
-            "size": 116530983
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm",
+            "digest": "sha256:74b046fbd182ead3a8703dcaf04808dd74b2122d7d898b45f11c8da6642fc316",
+            "name": "wordcraft-0.19.1-linux-aarch64.rpm",
+            "size": 127770000
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.rpm.asc",
-            "digest": "sha256:eb76a095b268beff2cebdb4fb44d89c7600cbaa8f6b0d42efa6d500dddfc4df4",
-            "name": "wordcraft-0.18.1-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm.asc",
+            "digest": "sha256:e5ab330108b26db591336becc8fd1944b588285bd7229e7be7e977c5cc28d8a3",
+            "name": "wordcraft-0.19.1-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.tar.gz",
-            "digest": "sha256:3f4afc0598357378ad8af9b2e37a2c171f6dd474c9206c9cf0cf56ea686259ed",
-            "name": "wordcraft-0.18.1-linux-aarch64.tar.gz",
-            "size": 114732959
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz",
+            "digest": "sha256:63d8b2e020d241000b565b386cd05bba22d0b97c484b5f11c09cc631e51749ca",
+            "name": "wordcraft-0.19.1-linux-aarch64.tar.gz",
+            "size": 125563455
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:ed172f47ee9b1aa0e867059fff455f20a2336bb3c7582331298d2deb921ccbaf",
-            "name": "wordcraft-0.18.1-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:ccc7dd934b6f5db2852a0d9f985f8cf557bd98d5dd15e9eac77c591d9f7c6574",
+            "name": "wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.deb",
-            "digest": "sha256:e0500511c9a3d0d13718649aa4180fae193520da57759c7219926cfc54340576",
-            "name": "wordcraft-0.18.1-linux-riscv64.deb",
-            "size": 118409216
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb",
+            "digest": "sha256:e0469aaef4821eb2fe1ff3d9d80b2133e8e2e2f4b6a76a0b5fb9909dcbee79fd",
+            "name": "wordcraft-0.19.1-linux-riscv64.deb",
+            "size": 130181794
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.deb.asc",
-            "digest": "sha256:95ffc4ef9719ee94efa3315c8a0a8f89273b5077f8bddeb97c2658a03f653a41",
-            "name": "wordcraft-0.18.1-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb.asc",
+            "digest": "sha256:4648314b6078c168c942ac7243122ce6fa6e6cdc64afa2bb68f4f6f071b9d304",
+            "name": "wordcraft-0.19.1-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.rpm",
-            "digest": "sha256:b71cc2794114f1ded0bb3b5caa82b0bb571c0ec73a9028fa42da2ef66d3727a3",
-            "name": "wordcraft-0.18.1-linux-riscv64.rpm",
-            "size": 117953472
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm",
+            "digest": "sha256:c5f95d44067fe8b349a8b8a01a98a45a712eb89183231462392c6434ec79be6b",
+            "name": "wordcraft-0.19.1-linux-riscv64.rpm",
+            "size": 129724529
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.rpm.asc",
-            "digest": "sha256:977237833468465bc854c213a99132d6fd0c1d8c26ab2cbec339ae291163f3d0",
-            "name": "wordcraft-0.18.1-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm.asc",
+            "digest": "sha256:dd658abf1416a930f3b33712ac25bac2898abb2f06a362e4977da6bd10daf92f",
+            "name": "wordcraft-0.19.1-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.tar.gz",
-            "digest": "sha256:58e3d352b951bcc33f36e8ac8bd44ce43f62670af29a95d3a56b91eb68a0a7eb",
-            "name": "wordcraft-0.18.1-linux-riscv64.tar.gz",
-            "size": 116922523
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz",
+            "digest": "sha256:cd9841daaa930c03f7e2853fadc2fb01f243716aa2c3b6a5b40922260d5e7cba",
+            "name": "wordcraft-0.19.1-linux-riscv64.tar.gz",
+            "size": 128395584
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:256b2fc329b5ff3202bbf0042bbb2116c1175868241ccc0a118eb922ee8baa6f",
-            "name": "wordcraft-0.18.1-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:8bc9eea854eb193aa72b48f3d7c7c12750b52d19ae88c1376e26d6725201b41a",
+            "name": "wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.AppImage",
-            "digest": "sha256:bbc5c15b06d4403cfd5a59475bdf9264a49c2bcf1f92d123311b50a9dce3c888",
-            "name": "wordcraft-0.18.1-linux-x86_64.AppImage",
-            "size": 112032248
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage",
+            "digest": "sha256:10176ffa8b8b4e0d298516c656b201959bb8280444f059d7b8838b6a691590de",
+            "name": "wordcraft-0.19.1-linux-x86_64.AppImage",
+            "size": 122628600
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.AppImage.asc",
-            "digest": "sha256:eaa0b248abe40dd15d0ac9abfcefb97fabb8a2d633df17551d9126144fd685c6",
-            "name": "wordcraft-0.18.1-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.asc",
+            "digest": "sha256:58328fc015165710bc15306a1079b10196cfae15aef2e50f22afb4e5698804ea",
+            "name": "wordcraft-0.19.1-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:9a9ee25d2ccd7adcc277faa9b898ba97386767a59eeb8e499fcf8f8ed1351253",
-            "name": "wordcraft-0.18.1-linux-x86_64.AppImage.zsync",
-            "size": 191712
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:75a6f5ef39d15f56351af9159019a3fc7db64204843105fdfd61359479617c7f",
+            "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+            "size": 209821
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:e018bc52665362d6a02f95c270cf53b8cd4d8c3d8e3b79a8144d33b7d4fb7850",
-            "name": "wordcraft-0.18.1-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:f5e8f6ca6f6d3ff470b08331d4bb9f88dcd6fb79ecab7aa2d2e19ef28e4e1873",
+            "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.deb",
-            "digest": "sha256:9b557161ded7b5973112c8c21f600fe0b0110c1a4d3151184485733c96f87e19",
-            "name": "wordcraft-0.18.1-linux-x86_64.deb",
-            "size": 120018580
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb",
+            "digest": "sha256:9ba913f053ab9cb9160d080f0c8db08c1c9eb94b3bdc7f2c0a0d784e034a5bd5",
+            "name": "wordcraft-0.19.1-linux-x86_64.deb",
+            "size": 132278240
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.deb.asc",
-            "digest": "sha256:405de9755b6485ca50c74b4f858543682219db00f0f3d006e3708e7b80f200f6",
-            "name": "wordcraft-0.18.1-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb.asc",
+            "digest": "sha256:f0ae83078b0c0810195913bfe754f05760bc204563e13f0b1ca1e42ff7fef4a3",
+            "name": "wordcraft-0.19.1-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.flatpak",
-            "digest": "sha256:7f3923f3537c020521318307428211d80848cd9ccb055265b23d6139216616a9",
-            "name": "wordcraft-0.18.1-linux-x86_64.flatpak",
-            "size": 84781416
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak",
+            "digest": "sha256:79ce3ca22c5a7cf01af29f876992532bfc556494ace990d5a424a32332c46e6c",
+            "name": "wordcraft-0.19.1-linux-x86_64.flatpak",
+            "size": 89536912
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.flatpak.asc",
-            "digest": "sha256:e681994869127e234bd1cfcd0862f4008a5f9bf548dcb50cac516dc7592797b8",
-            "name": "wordcraft-0.18.1-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak.asc",
+            "digest": "sha256:92caff265bdb9caf818730456a9d395eb8e194e7501165263319031e4cd19d66",
+            "name": "wordcraft-0.19.1-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:d4daa2057dcc8ddbb6caf8d54cfc5742b16345284c7d0d00a648bd9b7514e873",
-            "name": "wordcraft-0.18.1-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:c80cc6f0c73420263c1dd572e19ba1c35f4b3b70dedd3031d6ed625953fbc07a",
+            "name": "wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
             "size": 494
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.oci.sig",
-            "digest": "sha256:3ec5373ff192e1cd9ae66a6648ea69b8c2ae32c9a6856de033561ea8fc34dd46",
-            "name": "wordcraft-0.18.1-linux-x86_64.oci.sig",
-            "size": 385
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci.sig",
+            "digest": "sha256:da9a5c4ba6d5b294f3450f44b620ecf39ab69605873f97a3b6e349098510f0e0",
+            "name": "wordcraft-0.19.1-linux-x86_64.oci.sig",
+            "size": 387
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:5b1b2851bdebf75a23f2ce2efdbda2b2b542749b9fe653f9b7b16dc209dcbb64",
-            "name": "wordcraft-0.18.1-linux-x86_64.pkg.tar.zst",
-            "size": 90209902
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:6af586975f52a6621ac4e0a96bd2e335629c152f21a535af311a829b56261ba9",
+            "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+            "size": 95522398
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:3608540b6d9d309bb7fd22e9802d138813f0538d9308b08d6b9f3d0239d3a02c",
-            "name": "wordcraft-0.18.1-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:deabc1b36962027dd8d2064b7ab8b11902384ea9f3a81cd8f85dce5a754d4b05",
+            "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.rpm",
-            "digest": "sha256:08a03edfcf2285536ee6492d9ed7887d23a8c258aaf8533fe69388bb63abcc11",
-            "name": "wordcraft-0.18.1-linux-x86_64.rpm",
-            "size": 119344442
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm",
+            "digest": "sha256:502328408b1df65fa1fda981c1207cd2f52f577e5fa10e51972826734c05838d",
+            "name": "wordcraft-0.19.1-linux-x86_64.rpm",
+            "size": 131529311
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.rpm.asc",
-            "digest": "sha256:18d8a56f497458250f16967bb3e0d82ac1a8fc8d8726df9850a91334aff2b1c9",
-            "name": "wordcraft-0.18.1-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm.asc",
+            "digest": "sha256:c1f6fe0eeeb1f709437befbbb507309984583d9fc739e61ff23b93553e2709fd",
+            "name": "wordcraft-0.19.1-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.tar.gz",
-            "digest": "sha256:312a057d46dd80597c12dccfd1097ce25edea40baaaeb50bcb6f01ac1aebadb5",
-            "name": "wordcraft-0.18.1-linux-x86_64.tar.gz",
-            "size": 118327756
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz",
+            "digest": "sha256:ec8d8cc2b9204ac03d1380cec910defdf2e8850d93e9b87d6184eafef61968b4",
+            "name": "wordcraft-0.19.1-linux-x86_64.tar.gz",
+            "size": 130256682
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:5fe0f8a25eeacbc4257d200b1fd40fdd78fb902d1a835d646ca7684afd847396",
-            "name": "wordcraft-0.18.1-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:7d650c36cfb2b5bf13df0a2727af5166765cc40a558f9aba1f86ea1582683d6e",
+            "name": "wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-macos-universal.dmg",
-            "digest": "sha256:89f6e0a910f8ad5a815d8024c79324d205b56fcd2e05deed010e9016f5813dec",
-            "name": "wordcraft-0.18.1-macos-universal.dmg",
-            "size": 132189627
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-macos-universal.dmg",
+            "digest": "sha256:df13cabf63bb2591045ebf6782c17440e7ecee9556550d6dd2affecd983825b2",
+            "name": "wordcraft-0.19.1-macos-universal.dmg",
+            "size": 144499906
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-windows-arm64-portable.zip",
-            "digest": "sha256:168971a0e44227674fce4ca8c6543d0fd72740864f067a1301d5f962f1c0633a",
-            "name": "wordcraft-0.18.1-windows-arm64-portable.zip",
-            "size": 114464794
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64-portable.zip",
+            "digest": "sha256:279e1707f1ffdef26cde0dfd601e3566c618be012f551bc4075a417b4f55078d",
+            "name": "wordcraft-0.19.1-windows-arm64-portable.zip",
+            "size": 125310406
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-windows-arm64.msi",
-            "digest": "sha256:ee3f5788c62102a58f223065deb4b194d6aaee187160ff1117a71d66b29484b3",
-            "name": "wordcraft-0.18.1-windows-arm64.msi",
-            "size": 91426816
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64.msi",
+            "digest": "sha256:1884db862730ae46fe4799cf90d593e2a5d47f13798a98905fbbae1c37f7ced9",
+            "name": "wordcraft-0.19.1-windows-arm64.msi",
+            "size": 98803712
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-windows-x64-portable.zip",
-            "digest": "sha256:257f670514057cb14967b88c85ac82d165da43ee7671e185acead61420af0389",
-            "name": "wordcraft-0.18.1-windows-x64-portable.zip",
-            "size": 117973734
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64-portable.zip",
+            "digest": "sha256:15156fb90ad8d1fee5ba154ff87a76e9c85ebe0d013ffadb6e5ff776ec1ae8f2",
+            "name": "wordcraft-0.19.1-windows-x64-portable.zip",
+            "size": 129929601
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-0.18.1-windows-x64.msi",
-            "digest": "sha256:c766eaa9e4d20fab3dc9772d0b90119abd61b0a0586289090dd32a91cb0d5e2c",
-            "name": "wordcraft-0.18.1-windows-x64.msi",
-            "size": 95039488
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64.msi",
+            "digest": "sha256:526abab4619d19ee432a834673044dc19f6ee2eac8f0f0bec6e9f6bf06cb7661",
+            "name": "wordcraft-0.19.1-windows-x64.msi",
+            "size": 103383040
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-cli-0.18.1-macos-universal.zip",
-            "digest": "sha256:34397cf6fcf73ee8ae8d53cab08fbdfc213262dbb6753c2965ebb7cde37b8616",
-            "name": "wordcraft-cli-0.18.1-macos-universal.zip",
-            "size": 103018289
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-cli-0.19.1-macos-universal.zip",
+            "digest": "sha256:f008db7e1dd3f81a4f9ba65d34358ed4da8e30ebf9191258bef3f7be2cc32c53",
+            "name": "wordcraft-cli-0.19.1-macos-universal.zip",
+            "size": 114810446
           },
           {
-            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.18.1/wordcraft-web-0.18.1.zip",
-            "digest": "sha256:3daa7c2d1f209a7eeb2527fcefa3fe31e875848fb1970d68f54edae55fe0bc9f",
-            "name": "wordcraft-web-0.18.1.zip",
-            "size": 22536015
+            "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-web-0.19.1.zip",
+            "digest": "sha256:4124c4979e85619f00c12129b87164c841befeffafd752ab07cfe6ddc02a051a",
+            "name": "wordcraft-web-0.19.1.zip",
+            "size": 24860696
           }
         ],
         "draft": false,
-        "name": "WordCraft v0.18.1",
+        "name": "WordCraft v0.19.1",
         "prerelease": false,
-        "tag_name": "v0.18.1"
+        "tag_name": "v0.19.1"
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"d531b4560e29fa173d4ac8900d3c29c25843d7735e9c5b83015944f0cf79c6f5\"",
+      "etag": "\"d3a5fda79d95aec5babe8d0d47c0df016dc86cfdc986995f8379825e8315b7c9\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt",
+              "digest": "sha256:58b040ad4fe67b36f573036b3b69bbe51eb14b9c248651d0e7cfe3f6da7dcf84",
+              "name": "SHA256SUMS.txt",
+              "size": 5076
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/SHA256SUMS.txt.asc",
+              "digest": "sha256:dd192b7fe91a592c9347c331b298522bdc3b4edf3699d5090380975a4f969947",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "digest": "sha256:81807b55f49ebe3f7a480ee22c1ea1691691bc55a67d9ac23d2f294132f28039",
+              "name": "wordcraft-0.19.1-freebsd-aarch64.tar.gz",
+              "size": 124097309
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "digest": "sha256:4e93aa11d880d75c8a941a869dfb072c080fb1f4362a489a7074c27c4c98fb8c",
+              "name": "wordcraft-0.19.1-freebsd-x86_64.tar.gz",
+              "size": 129679660
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage",
+              "digest": "sha256:ef5e893a9394d03136fe887c0563e795a1384289c75f3bf50095b2a0048d208c",
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage",
+              "size": 118135304
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "digest": "sha256:66c8f34ccef5e1bc424c0dc4d8e3049e56104504bc13a70e8ecd12512fa12042",
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:6656f1a009591c29e48522db51534e801ea3c09d7fd8b022437a668c2635f742",
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync",
+              "size": 202144
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:e5f2825a0dacd369c75e227cf693d5ba8ca7a212ae8c3004a5dd06818d675849",
+              "name": "wordcraft-0.19.1-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb",
+              "digest": "sha256:b4db4eef71135cb2c516fdfa69c10b1af277384b1b023651b6e2bfbc23c59314",
+              "name": "wordcraft-0.19.1-linux-aarch64.deb",
+              "size": 128693840
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.deb.asc",
+              "digest": "sha256:eead803a00361d6825050efe50554bd7fb32364067d405d7427bc2dc42ea2064",
+              "name": "wordcraft-0.19.1-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak",
+              "digest": "sha256:161b74647f5cb9550e0ebec377faf0d94f00fd5f74cc2d7976652563ecfeb5d2",
+              "name": "wordcraft-0.19.1-linux-aarch64.flatpak",
+              "size": 85230520
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "digest": "sha256:64ef89e21c6c0668427c54d5db7339962c7a0cc075121e37881706b598233cbb",
+              "name": "wordcraft-0.19.1-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:2ebd4ad4d86d44292e40606b40e919f27a01cf17aafd8b435e2706b2004a38e4",
+              "name": "wordcraft-0.19.1-linux-aarch64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.oci.sig",
+              "digest": "sha256:4b8427e041c5a7fec1cd49c8d45062b21c487b27c315a529e93d61466d2e5a10",
+              "name": "wordcraft-0.19.1-linux-aarch64.oci.sig",
+              "size": 382
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:285be80d284f1a38b10fa1e0fc196de2df16569988612a672eb40ee49873153e",
+              "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst",
+              "size": 93194932
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:52c0517c78e1cf9c25feba9be2d3051aa6c8577adbd7ba13528bf75112510d00",
+              "name": "wordcraft-0.19.1-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm",
+              "digest": "sha256:74b046fbd182ead3a8703dcaf04808dd74b2122d7d898b45f11c8da6642fc316",
+              "name": "wordcraft-0.19.1-linux-aarch64.rpm",
+              "size": 127770000
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.rpm.asc",
+              "digest": "sha256:e5ab330108b26db591336becc8fd1944b588285bd7229e7be7e977c5cc28d8a3",
+              "name": "wordcraft-0.19.1-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz",
+              "digest": "sha256:63d8b2e020d241000b565b386cd05bba22d0b97c484b5f11c09cc631e51749ca",
+              "name": "wordcraft-0.19.1-linux-aarch64.tar.gz",
+              "size": 125563455
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:ccc7dd934b6f5db2852a0d9f985f8cf557bd98d5dd15e9eac77c591d9f7c6574",
+              "name": "wordcraft-0.19.1-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb",
+              "digest": "sha256:e0469aaef4821eb2fe1ff3d9d80b2133e8e2e2f4b6a76a0b5fb9909dcbee79fd",
+              "name": "wordcraft-0.19.1-linux-riscv64.deb",
+              "size": 130181794
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.deb.asc",
+              "digest": "sha256:4648314b6078c168c942ac7243122ce6fa6e6cdc64afa2bb68f4f6f071b9d304",
+              "name": "wordcraft-0.19.1-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm",
+              "digest": "sha256:c5f95d44067fe8b349a8b8a01a98a45a712eb89183231462392c6434ec79be6b",
+              "name": "wordcraft-0.19.1-linux-riscv64.rpm",
+              "size": 129724529
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.rpm.asc",
+              "digest": "sha256:dd658abf1416a930f3b33712ac25bac2898abb2f06a362e4977da6bd10daf92f",
+              "name": "wordcraft-0.19.1-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz",
+              "digest": "sha256:cd9841daaa930c03f7e2853fadc2fb01f243716aa2c3b6a5b40922260d5e7cba",
+              "name": "wordcraft-0.19.1-linux-riscv64.tar.gz",
+              "size": 128395584
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:8bc9eea854eb193aa72b48f3d7c7c12750b52d19ae88c1376e26d6725201b41a",
+              "name": "wordcraft-0.19.1-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage",
+              "digest": "sha256:10176ffa8b8b4e0d298516c656b201959bb8280444f059d7b8838b6a691590de",
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage",
+              "size": 122628600
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "digest": "sha256:58328fc015165710bc15306a1079b10196cfae15aef2e50f22afb4e5698804ea",
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:75a6f5ef39d15f56351af9159019a3fc7db64204843105fdfd61359479617c7f",
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync",
+              "size": 209821
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:f5e8f6ca6f6d3ff470b08331d4bb9f88dcd6fb79ecab7aa2d2e19ef28e4e1873",
+              "name": "wordcraft-0.19.1-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb",
+              "digest": "sha256:9ba913f053ab9cb9160d080f0c8db08c1c9eb94b3bdc7f2c0a0d784e034a5bd5",
+              "name": "wordcraft-0.19.1-linux-x86_64.deb",
+              "size": 132278240
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.deb.asc",
+              "digest": "sha256:f0ae83078b0c0810195913bfe754f05760bc204563e13f0b1ca1e42ff7fef4a3",
+              "name": "wordcraft-0.19.1-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak",
+              "digest": "sha256:79ce3ca22c5a7cf01af29f876992532bfc556494ace990d5a424a32332c46e6c",
+              "name": "wordcraft-0.19.1-linux-x86_64.flatpak",
+              "size": 89536912
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "digest": "sha256:92caff265bdb9caf818730456a9d395eb8e194e7501165263319031e4cd19d66",
+              "name": "wordcraft-0.19.1-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:c80cc6f0c73420263c1dd572e19ba1c35f4b3b70dedd3031d6ed625953fbc07a",
+              "name": "wordcraft-0.19.1-linux-x86_64.oci-manifest.json",
+              "size": 494
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.oci.sig",
+              "digest": "sha256:da9a5c4ba6d5b294f3450f44b620ecf39ab69605873f97a3b6e349098510f0e0",
+              "name": "wordcraft-0.19.1-linux-x86_64.oci.sig",
+              "size": 387
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:6af586975f52a6621ac4e0a96bd2e335629c152f21a535af311a829b56261ba9",
+              "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst",
+              "size": 95522398
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:deabc1b36962027dd8d2064b7ab8b11902384ea9f3a81cd8f85dce5a754d4b05",
+              "name": "wordcraft-0.19.1-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm",
+              "digest": "sha256:502328408b1df65fa1fda981c1207cd2f52f577e5fa10e51972826734c05838d",
+              "name": "wordcraft-0.19.1-linux-x86_64.rpm",
+              "size": 131529311
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.rpm.asc",
+              "digest": "sha256:c1f6fe0eeeb1f709437befbbb507309984583d9fc739e61ff23b93553e2709fd",
+              "name": "wordcraft-0.19.1-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz",
+              "digest": "sha256:ec8d8cc2b9204ac03d1380cec910defdf2e8850d93e9b87d6184eafef61968b4",
+              "name": "wordcraft-0.19.1-linux-x86_64.tar.gz",
+              "size": 130256682
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:7d650c36cfb2b5bf13df0a2727af5166765cc40a558f9aba1f86ea1582683d6e",
+              "name": "wordcraft-0.19.1-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-macos-universal.dmg",
+              "digest": "sha256:df13cabf63bb2591045ebf6782c17440e7ecee9556550d6dd2affecd983825b2",
+              "name": "wordcraft-0.19.1-macos-universal.dmg",
+              "size": 144499906
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64-portable.zip",
+              "digest": "sha256:279e1707f1ffdef26cde0dfd601e3566c618be012f551bc4075a417b4f55078d",
+              "name": "wordcraft-0.19.1-windows-arm64-portable.zip",
+              "size": 125310406
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-arm64.msi",
+              "digest": "sha256:1884db862730ae46fe4799cf90d593e2a5d47f13798a98905fbbae1c37f7ced9",
+              "name": "wordcraft-0.19.1-windows-arm64.msi",
+              "size": 98803712
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64-portable.zip",
+              "digest": "sha256:15156fb90ad8d1fee5ba154ff87a76e9c85ebe0d013ffadb6e5ff776ec1ae8f2",
+              "name": "wordcraft-0.19.1-windows-x64-portable.zip",
+              "size": 129929601
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-0.19.1-windows-x64.msi",
+              "digest": "sha256:526abab4619d19ee432a834673044dc19f6ee2eac8f0f0bec6e9f6bf06cb7661",
+              "name": "wordcraft-0.19.1-windows-x64.msi",
+              "size": 103383040
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-cli-0.19.1-macos-universal.zip",
+              "digest": "sha256:f008db7e1dd3f81a4f9ba65d34358ed4da8e30ebf9191258bef3f7be2cc32c53",
+              "name": "wordcraft-cli-0.19.1-macos-universal.zip",
+              "size": 114810446
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/wordcraft/releases/download/v0.19.1/wordcraft-web-0.19.1.zip",
+              "digest": "sha256:4124c4979e85619f00c12129b87164c841befeffafd752ab07cfe6ddc02a051a",
+              "name": "wordcraft-web-0.19.1.zip",
+              "size": 24860696
+            }
+          ],
+          "draft": false,
+          "name": "WordCraft v0.19.1",
+          "prerelease": false,
+          "tag_name": "v0.19.1"
+        },
         {
           "assets": [
             {
