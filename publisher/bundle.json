@@ -2,96 +2,96 @@
   "index": {
     "schema": 1,
     "purpose": "app-release-catalog",
-    "sequence": 674,
-    "generated_at": 1795768153,
+    "sequence": 675,
+    "generated_at": 1795771779,
     "repositories": {
       "storytold/anicraft": {
         "sha256": "63fcacc4fc01871fe174b3e3db779c2c938b7c0dff20b6c2896670e72deb09cf",
         "size": 43129,
-        "checked_at": 1795768131,
+        "checked_at": 1795771760,
         "discovery_added_at": 1794361626
       },
       "storytold/artcraft": {
         "sha256": "ae3af62923cf938fb709497e8003f160d95da70baea3b0114757d2962d03933b",
         "size": 48040,
-        "checked_at": 1795768132
+        "checked_at": 1795771761
       },
       "storytold/cadcraft": {
         "sha256": "084e484e7b2c27f3c4130d41d3c58a27f06804a2df8a7ff35108fd61a4b7dad2",
         "size": 191104,
-        "checked_at": 1795768133
+        "checked_at": 1795771762
       },
       "storytold/deckcraft": {
         "sha256": "ef2468f8dca59ed44cec8a661aa0c9fd5e7221629cd05a24bb6d1de5b961837f",
         "size": 198437,
-        "checked_at": 1795768134
+        "checked_at": 1795771763
       },
       "storytold/designcraft": {
         "sha256": "82eb6bb414dc4adb96aa95adc9671ca5ac310815d9b932b7a99f2d882c2b4280",
         "size": 236018,
-        "checked_at": 1795768135
+        "checked_at": 1795771764
       },
       "storytold/effectcraft": {
         "sha256": "62de333f22d8098e8e9964a8cc043a95a8a5b3621da9ba28453affa0aaad0e79",
         "size": 259587,
-        "checked_at": 1795768136
+        "checked_at": 1795771765
       },
       "storytold/figcraft": {
         "sha256": "bf6e91996fe94863962af8ef5a1a486ac737a2297e0a3eca38a6029225f830fb",
         "size": 204982,
-        "checked_at": 1795768137
+        "checked_at": 1795771766
       },
       "storytold/filmcraft": {
         "sha256": "2b3a50d155ff0f234dbfc28526aec4e4d4b985d2e04f21dc6327a558dc7b4f2f",
         "size": 206709,
-        "checked_at": 1795768138
+        "checked_at": 1795771767
       },
       "storytold/gridcraft": {
         "sha256": "58abe8596b74bfbbbaeb24f65664280a9239ea9b7a96f05571e0ed3575b5029e",
         "size": 193224,
-        "checked_at": 1795768140
+        "checked_at": 1795771768
       },
       "storytold/lightcraft": {
         "sha256": "19c7f156c2aed4661f217308320da201d2ec58d19da5e9191387233fd77a3a5f",
         "size": 216460,
-        "checked_at": 1795768141
+        "checked_at": 1795771769
       },
       "storytold/materialcraft": {
         "sha256": "3373abfba4bb3587adc63937c792280315c4d4fea91ab9cf175d38f94015f932",
         "size": 100317,
-        "checked_at": 1795768142,
+        "checked_at": 1795771769,
         "discovery_added_at": 1793675300
       },
       "storytold/pdfcraft": {
         "sha256": "44b5db062af160265edfa49b862f5b541beadded9e96b4462c69388b8d58aac5",
         "size": 252462,
-        "checked_at": 1795768144
+        "checked_at": 1795771771
       },
       "storytold/photocraft": {
         "sha256": "d21791374a65983a420b364139fbc3efc59a9ed225447e3a7324cf862ed53773",
         "size": 246076,
-        "checked_at": 1795768145
+        "checked_at": 1795771772
       },
       "storytold/soundcraft": {
         "sha256": "ba995f16219ed53ff69122232154e55eaa1e781a3974d2644fb89424996e4b63",
         "size": 189243,
-        "checked_at": 1795768146
+        "checked_at": 1795771773
       },
       "storytold/texturecraft": {
         "sha256": "89e7b911ab944c3447372c208c1429099676033c611f874f936cb4330ad64e57",
         "size": 109673,
-        "checked_at": 1795768147,
+        "checked_at": 1795771774,
         "discovery_added_at": 1793516400
       },
       "storytold/vectorcraft": {
         "sha256": "806f06ea2437a686de4cbe212fc604579d206df6331b8e2dc2c3d8f24c69593b",
         "size": 242624,
-        "checked_at": 1795768149
+        "checked_at": 1795771775
       },
       "storytold/wordcraft": {
         "sha256": "57055438ae8c55bcc88a96cb3fedcde0b1eff3eb19af835ad5dce737ceabd388",
         "size": 208400,
-        "checked_at": 1795768150
+        "checked_at": 1795771776
       },
       "tangency-labs/solidcraft": {
         "sha256": "2c977e0151e85e74c70a365d9c43322749e60dea0e56a6ed23326aef2f8bd897",
