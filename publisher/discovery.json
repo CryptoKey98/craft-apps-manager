@@ -2,9 +2,323 @@
   "schema": 1,
   "repositories": {
     "storytold/anicraft": {
-      "checked_at": 1795855585,
-      "latest_tag": "v0.2.1",
+      "checked_at": 1795857399,
+      "latest_tag": "v0.3.0",
       "releases": [
+        {
+          "tag_name": "v0.3.0",
+          "name": "AniCraft v0.3.0",
+          "draft": false,
+          "prerelease": false,
+          "assets": [
+            {
+              "name": "anicraft-0.3.0-freebsd-aarch64.tar.gz",
+              "size": 38916002,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:55581d018f077b5d3ec4acb763ca83a78ca0974e3189c27182f7c3df242c769e"
+            },
+            {
+              "name": "anicraft-0.3.0-freebsd-x86_64.tar.gz",
+              "size": 40689636,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:56ea3362ab5dc7d9a4424e4a8245777e60dcbee6bf4a4f573c4ec974b1c29cb9"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage",
+              "size": 31947272,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage",
+              "digest": "sha256:d682ef5eb46651c2d9aa6c3416e4b6f78a23090d6732c5e26a1a1c38e6de46c3"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:92d1c7c6dbb71ef0a2f5a2748b4cd50559a6ba3e3943d52df4d94fe5817c31bb"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+              "size": 109445,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:e24df9cff5d78c92c871b4df994748150c23691c6a31cef9798599bcc44ce97e"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:3796f8441aaf1ae31f4f11ccadba2ea4e35ad4718452c138c959e4c881378102"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.deb",
+              "size": 35191256,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb",
+              "digest": "sha256:13d621cac4cf37fcf96159d3f27f0e77314fba208e6e80c2ee398d0c9f53f842"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb.asc",
+              "digest": "sha256:3116dac9b4ffee288c4c7f7904f6c95967b573f23913a4fa58a8a773780b6093"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.flatpak",
+              "size": 23157184,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak",
+              "digest": "sha256:18bb4a515cf443d171a0df02578f71a152ecae744224b1971988ddea38d32c82"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:d82df572d5dee21163bd9c138fdf876a3d7a71b812a28cccf383e97ffc72af63"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:dd6dd6ce6c11eed2710ebfd5a82c9373084f9a009df7211a48fcec0ea7d21e53"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.oci.sig",
+              "size": 384,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci.sig",
+              "digest": "sha256:03f176d6079cbb38291e1e0128feba2ecc6858b9f716ac6b64ccf4bd7d86d864"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+              "size": 23462828,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9655cf8f619a6c6ff44b85266ef4e261450ffe149301717b82fc8364feb60bd2"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:8dcb0c8d1da73b2a3a2d8676c66b9e57694414e14169ad30459c61d90f8df643"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.rpm",
+              "size": 34818368,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm",
+              "digest": "sha256:993f78727649769ff9570b18b467c46c64bcae92a4be404d01d15c7c1913c1de"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:80e2cdf334045b2ab56b00fa0690bab6e4a92c7a5caaca57a8f025fac9eb2bb1"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.tar.gz",
+              "size": 33669950,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz",
+              "digest": "sha256:3244bd8b26ffd96602559524a9f3a068777a0f421ce870d5c57dd578a6d30e82"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-aarch64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:c153b71e47e34c0e14db8fdabaa0626ea37b37633f26f4da101176af17d06480"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.deb",
+              "size": 35779236,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb",
+              "digest": "sha256:043ba91f8498093994052220f0e1b572e87de134074408514d8f27c8300bc8f7"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb.asc",
+              "digest": "sha256:85318c21c1f0dd848c4c6f3f0389c455fd6d0069195bf450995ecbe74333d733"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.rpm",
+              "size": 35676045,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm",
+              "digest": "sha256:b264694ecb601de92107b74f94ecdec8485a7d67b370e7accde8565a52c1ebea"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:5a363384f0a7d634f8584433b3d18995bdbb3cb06fe99a91e10442c4220ac05f"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.tar.gz",
+              "size": 35083956,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz",
+              "digest": "sha256:bab07767901f7f01765783367ac57a74d064bbd27858fd9297f1a126710c6f3a"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-riscv64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:eff2771210ebfe486bd7261087ede3869bbc0bf258fa2ddb8ec8452773067497"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage",
+              "size": 33978872,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage",
+              "digest": "sha256:2f6ed01e0e4ffa17c5d771227836113e0323a806ee0a7d8be3530a000322c911"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:ab6f8ca5fd026fef6e917cfe96c709325ccee8f7ff0390904b52940200fcc382"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+              "size": 116387,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:96ba43cf9a0fb3d86dd15122e0d6b08ad6583161c16e4fbf35893974397f018d"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:7a88d8844d78060249dcb7afbdeb3c0c27b5204b34482eb998ea6b6f998d4d8a"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.deb",
+              "size": 36592790,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb",
+              "digest": "sha256:764c5950435a77f84322456edebbba76dd93e274bfce1e05e90a9ce247a28d08"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.deb.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb.asc",
+              "digest": "sha256:4a021fa85f2ce2a4b9a28608e2dfc9baccaf22d0a52618bdf793edc989cca15c"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.flatpak",
+              "size": 25843560,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak",
+              "digest": "sha256:0666ac13a2f147163065abff2b73dcbc590b8b22d70152d72f7d83fd3d0060ba"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.flatpak.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:b76b24193779a4f949c3cfbf817f80ef94bd0da6319c33f32b6f18a4fe554c16"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.oci-manifest.json",
+              "size": 493,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:2e0fea53112271234c8cc7b40d19d63746b611e587bc0877463376df8d1e4958"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.oci.sig",
+              "size": 384,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci.sig",
+              "digest": "sha256:edb91d35a3a9ece4082a4d50de5955c85253fa50de86aee8ec753e84627e3ef2"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+              "size": 27033632,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:98dfe153c41ab69d6605722c19c2eca17e754480a74642e59dde816ff33b0c0d"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:8e7975ab46f471d9ba8b2c75d258183e72fdd64f8220f044f09a3f4a2b534d9d"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.rpm",
+              "size": 36345513,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm",
+              "digest": "sha256:39fe2631876baabf0ddf9bdbf659c734f2483d1ad445dd5ef1e3cebf6535dafd"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.rpm.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:8ec168ce181293736a53e38250da841c2b7329e97d5fb65ec434ee6935fbfb4b"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.tar.gz",
+              "size": 35773176,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz",
+              "digest": "sha256:c83b78c1293bf37920aefe8bdca4443cf1d53fec450499872fc7fe5243eb114d"
+            },
+            {
+              "name": "anicraft-0.3.0-linux-x86_64.tar.gz.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:4473d2e0a101e05cac41e3eb64ec2cb3a620da7d8b3a43cfc88ec51b5e41d9e9"
+            },
+            {
+              "name": "anicraft-0.3.0-macos-universal.dmg",
+              "size": 68429994,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-macos-universal.dmg",
+              "digest": "sha256:4f49f9a2a19d7ef870c6d18f3043fee90801322207e199094deb91d74825824e"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-arm64-portable.zip",
+              "size": 33644175,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-portable.zip",
+              "digest": "sha256:f9c511eea4843f8cf02f4d65b59181d5bb4df925477d75f94fb4b6409550ae1e"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-arm64-symbols.zip",
+              "size": 4729073,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-symbols.zip",
+              "digest": "sha256:70e2f6ef5a5a5813ab8c1c2c52ac347608bbbf9137564d6652120118bd5f3538"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-arm64.msi",
+              "size": 26714112,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64.msi",
+              "digest": "sha256:358f2dbaae34f4ef8abff5638eb426f91b4365ac07dae92f9b22aa0fea80c1d3"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-x64-portable.zip",
+              "size": 35927992,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-portable.zip",
+              "digest": "sha256:0517bb09cd3ba8a053b7f8d44d3c34b5cda834f27501fcb8279b1ae2b6828514"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-x64-symbols.zip",
+              "size": 5017371,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-symbols.zip",
+              "digest": "sha256:5a0f8539ef1675afc978fec28dc37fb0232b7b93c919eb28f153b11259b67433"
+            },
+            {
+              "name": "anicraft-0.3.0-windows-x64.msi",
+              "size": 29470720,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64.msi",
+              "digest": "sha256:b5aeef74c989811159bef331faac80fb4508307c56b74a139573bb03b1e4cbcb"
+            },
+            {
+              "name": "anicraft-cli-0.3.0-macos-universal.zip",
+              "size": 24326370,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-cli-0.3.0-macos-universal.zip",
+              "digest": "sha256:98cad0029ea455448c737bcefa0abac257dd8728fb25147d349a2af52e688607"
+            },
+            {
+              "name": "release-signing-key.asc",
+              "size": 803,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 5105,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt",
+              "digest": "sha256:a878cc7e039e5c23c185ab1321ea89eb05105fcf34015c21e79eed3a64563d5d"
+            },
+            {
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228,
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:ec40abefcee22044755ef197f1dee0cc4a8623cdd06b6e5c4ab054599ab3c8e1"
+            }
+          ]
+        },
         {
           "tag_name": "v0.2.1",
           "name": "AniCraft v0.2.1",
@@ -951,7 +1265,7 @@
       "error": null
     },
     "storytold/artcraft": {
-      "checked_at": 1795855585,
+      "checked_at": 1795857399,
       "latest_tag": "artcraft-v0.41.1",
       "releases": [
         {
@@ -2036,7 +2350,7 @@
       "error": null
     },
     "storytold/cadcraft": {
-      "checked_at": 1795855586,
+      "checked_at": 1795857400,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -6091,7 +6405,7 @@
       "error": null
     },
     "storytold/deckcraft": {
-      "checked_at": 1795855587,
+      "checked_at": 1795857401,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -10272,7 +10586,7 @@
       "error": null
     },
     "storytold/designcraft": {
-      "checked_at": 1795855588,
+      "checked_at": 1795857402,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -15141,7 +15455,7 @@
       "error": null
     },
     "storytold/effectcraft": {
-      "checked_at": 1795855589,
+      "checked_at": 1795857403,
       "latest_tag": "v0.25.1",
       "releases": [
         {
@@ -20502,7 +20816,7 @@
       "error": null
     },
     "storytold/figcraft": {
-      "checked_at": 1795855590,
+      "checked_at": 1795857404,
       "latest_tag": "v0.18.1",
       "releases": [
         {
@@ -24851,7 +25165,7 @@
       "error": null
     },
     "storytold/filmcraft": {
-      "checked_at": 1795855591,
+      "checked_at": 1795857405,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -29200,7 +29514,7 @@
       "error": null
     },
     "storytold/gridcraft": {
-      "checked_at": 1795855592,
+      "checked_at": 1795857405,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -33261,7 +33575,7 @@
       "error": null
     },
     "storytold/lightcraft": {
-      "checked_at": 1795855593,
+      "checked_at": 1795857406,
       "latest_tag": "v0.21.1",
       "releases": [
         {
@@ -37762,7 +38076,7 @@
       "error": null
     },
     "storytold/materialcraft": {
-      "checked_at": 1795855594,
+      "checked_at": 1795857407,
       "latest_tag": "v0.4.1",
       "releases": [
         {
@@ -39835,7 +40149,7 @@
       "error": null
     },
     "storytold/pdfcraft": {
-      "checked_at": 1795855595,
+      "checked_at": 1795857408,
       "latest_tag": "v0.22.0",
       "releases": [
         {
@@ -45198,7 +45512,7 @@
       "error": null
     },
     "storytold/photocraft": {
-      "checked_at": 1795855596,
+      "checked_at": 1795857409,
       "latest_tag": "v0.23.1",
       "releases": [
         {
@@ -50305,7 +50619,7 @@
       "error": null
     },
     "storytold/soundcraft": {
-      "checked_at": 1795855597,
+      "checked_at": 1795857410,
       "latest_tag": "v0.20.1",
       "releases": [
         {
@@ -54244,7 +54558,7 @@
       "error": null
     },
     "storytold/texturecraft": {
-      "checked_at": 1795855597,
+      "checked_at": 1795857410,
       "latest_tag": "v0.6.1",
       "releases": [
         {
@@ -56519,7 +56833,7 @@
       "error": null
     },
     "storytold/vectorcraft": {
-      "checked_at": 1795855599,
+      "checked_at": 1795857412,
       "latest_tag": "v0.24.1",
       "releases": [
         {
@@ -61502,7 +61816,7 @@
       "error": null
     },
     "storytold/wordcraft": {
-      "checked_at": 1795855600,
+      "checked_at": 1795857413,
       "latest_tag": "v0.19.1",
       "releases": [
         {
@@ -65897,325 +66211,639 @@
   },
   "pages": {
     "https://api.github.com/repos/storytold/anicraft/releases/latest": {
-      "etag": "\"68a254b480a1b1afb16bebff666a35d69206fd58d9d4ba11f95a7cb015e44fb8\"",
+      "etag": "\"4c17b4893530bd30742d9da7daae9786b7fde974fbcc4309d42db4fded462b8a\"",
       "body": {
         "assets": [
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-freebsd-aarch64.tar.gz",
-            "digest": "sha256:220b41d78d5a4259b6010e5c0c5d745d3b21fc96e66f09d6587a815f569f1d5e",
-            "name": "anicraft-0.2.1-freebsd-aarch64.tar.gz",
-            "size": 19766940
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-aarch64.tar.gz",
+            "digest": "sha256:55581d018f077b5d3ec4acb763ca83a78ca0974e3189c27182f7c3df242c769e",
+            "name": "anicraft-0.3.0-freebsd-aarch64.tar.gz",
+            "size": 38916002
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-freebsd-x86_64.tar.gz",
-            "digest": "sha256:e26d7f670ec5eb681f4b105520230871518e89dd9d0743b8e867a98f5d6bb4aa",
-            "name": "anicraft-0.2.1-freebsd-x86_64.tar.gz",
-            "size": 20849876
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-x86_64.tar.gz",
+            "digest": "sha256:56ea3362ab5dc7d9a4424e4a8245777e60dcbee6bf4a4f573c4ec974b1c29cb9",
+            "name": "anicraft-0.3.0-freebsd-x86_64.tar.gz",
+            "size": 40689636
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.AppImage",
-            "digest": "sha256:218ec549d301a23524163858dc60bb1584562374e75af55e79f548f147289dff",
-            "name": "anicraft-0.2.1-linux-aarch64.AppImage",
-            "size": 17816072
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage",
+            "digest": "sha256:d682ef5eb46651c2d9aa6c3416e4b6f78a23090d6732c5e26a1a1c38e6de46c3",
+            "name": "anicraft-0.3.0-linux-aarch64.AppImage",
+            "size": 31947272
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.AppImage.asc",
-            "digest": "sha256:9386de7e06b5d6c7570c9994e509300336d706893e003c2cd0218e48bb71c813",
-            "name": "anicraft-0.2.1-linux-aarch64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.asc",
+            "digest": "sha256:92d1c7c6dbb71ef0a2f5a2748b4cd50559a6ba3e3943d52df4d94fe5817c31bb",
+            "name": "anicraft-0.3.0-linux-aarch64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.AppImage.zsync",
-            "digest": "sha256:6f46ec611c234a018ff98e832e6a2c2cef147a233a39a03de143f5743f2c617f",
-            "name": "anicraft-0.2.1-linux-aarch64.AppImage.zsync",
-            "size": 61145
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+            "digest": "sha256:e24df9cff5d78c92c871b4df994748150c23691c6a31cef9798599bcc44ce97e",
+            "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+            "size": 109445
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.AppImage.zsync.asc",
-            "digest": "sha256:a559cd72017f8656381f6483e80c45983e8d1ff1f3fee96aa499ced373fc1fef",
-            "name": "anicraft-0.2.1-linux-aarch64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
+            "digest": "sha256:3796f8441aaf1ae31f4f11ccadba2ea4e35ad4718452c138c959e4c881378102",
+            "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.deb",
-            "digest": "sha256:e6f434250596bc1677617c895d2f4719e9bccc7fd60b371b442dd48ad435d5ca",
-            "name": "anicraft-0.2.1-linux-aarch64.deb",
-            "size": 19279928
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb",
+            "digest": "sha256:13d621cac4cf37fcf96159d3f27f0e77314fba208e6e80c2ee398d0c9f53f842",
+            "name": "anicraft-0.3.0-linux-aarch64.deb",
+            "size": 35191256
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.deb.asc",
-            "digest": "sha256:c3082152a435f1f5c020d4059a319dc475ed7e48370143948cfef542b9bc6eea",
-            "name": "anicraft-0.2.1-linux-aarch64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb.asc",
+            "digest": "sha256:3116dac9b4ffee288c4c7f7904f6c95967b573f23913a4fa58a8a773780b6093",
+            "name": "anicraft-0.3.0-linux-aarch64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.flatpak",
-            "digest": "sha256:dc759e5adc10123ff731f90e21087f0fa82b5b57826c62cb6805953b200c243a",
-            "name": "anicraft-0.2.1-linux-aarch64.flatpak",
-            "size": 12676544
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak",
+            "digest": "sha256:18bb4a515cf443d171a0df02578f71a152ecae744224b1971988ddea38d32c82",
+            "name": "anicraft-0.3.0-linux-aarch64.flatpak",
+            "size": 23157184
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.flatpak.asc",
-            "digest": "sha256:5bf648300847f4a94cf0c7f411cf706f7a717244d036734c14d500553e511da0",
-            "name": "anicraft-0.2.1-linux-aarch64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak.asc",
+            "digest": "sha256:d82df572d5dee21163bd9c138fdf876a3d7a71b812a28cccf383e97ffc72af63",
+            "name": "anicraft-0.3.0-linux-aarch64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.oci-manifest.json",
-            "digest": "sha256:73207503a7af7a247d9c614df264c1e184164621d97130ffdb9801136f6a52e2",
-            "name": "anicraft-0.2.1-linux-aarch64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci-manifest.json",
+            "digest": "sha256:dd6dd6ce6c11eed2710ebfd5a82c9373084f9a009df7211a48fcec0ea7d21e53",
+            "name": "anicraft-0.3.0-linux-aarch64.oci-manifest.json",
             "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.oci.sig",
-            "digest": "sha256:d90211eb7d0b463a32a40d220e6e528b411a4980e239de6880ef93c51252c3ac",
-            "name": "anicraft-0.2.1-linux-aarch64.oci.sig",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci.sig",
+            "digest": "sha256:03f176d6079cbb38291e1e0128feba2ecc6858b9f716ac6b64ccf4bd7d86d864",
+            "name": "anicraft-0.3.0-linux-aarch64.oci.sig",
             "size": 384
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.pkg.tar.zst",
-            "digest": "sha256:8d96dcd2428080513f340dbb83de75c252ee0ad8cb3b6dbca5b8d6a9b9ac3984",
-            "name": "anicraft-0.2.1-linux-aarch64.pkg.tar.zst",
-            "size": 11657432
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+            "digest": "sha256:9655cf8f619a6c6ff44b85266ef4e261450ffe149301717b82fc8364feb60bd2",
+            "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+            "size": 23462828
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.pkg.tar.zst.sig",
-            "digest": "sha256:05c10882d8f3574d853174649ec3d571338e0d245a4289e4c10d76a8e7a63e2e",
-            "name": "anicraft-0.2.1-linux-aarch64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
+            "digest": "sha256:8dcb0c8d1da73b2a3a2d8676c66b9e57694414e14169ad30459c61d90f8df643",
+            "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.rpm",
-            "digest": "sha256:0892e1596e6f643d30cdb9abbe6dedf4034d1d585f27553a53f9b9b66b9fbbe2",
-            "name": "anicraft-0.2.1-linux-aarch64.rpm",
-            "size": 19076650
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm",
+            "digest": "sha256:993f78727649769ff9570b18b467c46c64bcae92a4be404d01d15c7c1913c1de",
+            "name": "anicraft-0.3.0-linux-aarch64.rpm",
+            "size": 34818368
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.rpm.asc",
-            "digest": "sha256:67daf99b1c423ef77ad72fad8038702228f7eb24c42a76503bb7024b607da5b6",
-            "name": "anicraft-0.2.1-linux-aarch64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm.asc",
+            "digest": "sha256:80e2cdf334045b2ab56b00fa0690bab6e4a92c7a5caaca57a8f025fac9eb2bb1",
+            "name": "anicraft-0.3.0-linux-aarch64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.tar.gz",
-            "digest": "sha256:aba2a43b3d96b61905386d738af9d636809de23ddbae1e6cabb473ee79db28ad",
-            "name": "anicraft-0.2.1-linux-aarch64.tar.gz",
-            "size": 18392152
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz",
+            "digest": "sha256:3244bd8b26ffd96602559524a9f3a068777a0f421ce870d5c57dd578a6d30e82",
+            "name": "anicraft-0.3.0-linux-aarch64.tar.gz",
+            "size": 33669950
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-aarch64.tar.gz.asc",
-            "digest": "sha256:c0ba9f16a8777b2fb5d7c0166b0a21ea063c3e4c9e243f9ac62e9cb297d45e9f",
-            "name": "anicraft-0.2.1-linux-aarch64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz.asc",
+            "digest": "sha256:c153b71e47e34c0e14db8fdabaa0626ea37b37633f26f4da101176af17d06480",
+            "name": "anicraft-0.3.0-linux-aarch64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.deb",
-            "digest": "sha256:815b3be1da254d266abc2a810884529db4b2365ba9085fdc0042bdec8b7ee9aa",
-            "name": "anicraft-0.2.1-linux-riscv64.deb",
-            "size": 19688686
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb",
+            "digest": "sha256:043ba91f8498093994052220f0e1b572e87de134074408514d8f27c8300bc8f7",
+            "name": "anicraft-0.3.0-linux-riscv64.deb",
+            "size": 35779236
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.deb.asc",
-            "digest": "sha256:ed6d5dcc69223df3de9e0cd3d8ed7dc4551f68abbb054e7743c3a97d412947bf",
-            "name": "anicraft-0.2.1-linux-riscv64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb.asc",
+            "digest": "sha256:85318c21c1f0dd848c4c6f3f0389c455fd6d0069195bf450995ecbe74333d733",
+            "name": "anicraft-0.3.0-linux-riscv64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.rpm",
-            "digest": "sha256:a835fb175bfe4cccda49026063ef2943ce1677becb64568da2501ad2b5e98cf5",
-            "name": "anicraft-0.2.1-linux-riscv64.rpm",
-            "size": 19642284
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm",
+            "digest": "sha256:b264694ecb601de92107b74f94ecdec8485a7d67b370e7accde8565a52c1ebea",
+            "name": "anicraft-0.3.0-linux-riscv64.rpm",
+            "size": 35676045
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.rpm.asc",
-            "digest": "sha256:fb17c077f2ab8287f7bb345da0c71e6742972dde463810837eefc08ba29280b1",
-            "name": "anicraft-0.2.1-linux-riscv64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm.asc",
+            "digest": "sha256:5a363384f0a7d634f8584433b3d18995bdbb3cb06fe99a91e10442c4220ac05f",
+            "name": "anicraft-0.3.0-linux-riscv64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.tar.gz",
-            "digest": "sha256:6e6dbb2eee4d74a2a290278c2c46bcdd107bde5724a48586b81a9a68aa466156",
-            "name": "anicraft-0.2.1-linux-riscv64.tar.gz",
-            "size": 19270215
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz",
+            "digest": "sha256:bab07767901f7f01765783367ac57a74d064bbd27858fd9297f1a126710c6f3a",
+            "name": "anicraft-0.3.0-linux-riscv64.tar.gz",
+            "size": 35083956
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-riscv64.tar.gz.asc",
-            "digest": "sha256:16f65e3933eeb939a961fb24656fe849cdbdc2b4d1ac0260f8db7562fb9d1362",
-            "name": "anicraft-0.2.1-linux-riscv64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz.asc",
+            "digest": "sha256:eff2771210ebfe486bd7261087ede3869bbc0bf258fa2ddb8ec8452773067497",
+            "name": "anicraft-0.3.0-linux-riscv64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.AppImage",
-            "digest": "sha256:352456384d1e82f373d836dcbcd9f1473b1603c5c9c7b185d763218470091b31",
-            "name": "anicraft-0.2.1-linux-x86_64.AppImage",
-            "size": 19024376
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage",
+            "digest": "sha256:2f6ed01e0e4ffa17c5d771227836113e0323a806ee0a7d8be3530a000322c911",
+            "name": "anicraft-0.3.0-linux-x86_64.AppImage",
+            "size": 33978872
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.AppImage.asc",
-            "digest": "sha256:1a3a1eb5f3c2a15c6d401186da5c1594f7497e0fb1982b823150ec2aa9ce6830",
-            "name": "anicraft-0.2.1-linux-x86_64.AppImage.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.asc",
+            "digest": "sha256:ab6f8ca5fd026fef6e917cfe96c709325ccee8f7ff0390904b52940200fcc382",
+            "name": "anicraft-0.3.0-linux-x86_64.AppImage.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.AppImage.zsync",
-            "digest": "sha256:f6396fd9eb1971ea49861c1207924aabe64b99d05ea6d59926cae461e6aa1c91",
-            "name": "anicraft-0.2.1-linux-x86_64.AppImage.zsync",
-            "size": 65273
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+            "digest": "sha256:96ba43cf9a0fb3d86dd15122e0d6b08ad6583161c16e4fbf35893974397f018d",
+            "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+            "size": 116387
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.AppImage.zsync.asc",
-            "digest": "sha256:2ae5544fe809c1ce2e56256111e05beb0a32f7a753eda4fe82fad586de80fc68",
-            "name": "anicraft-0.2.1-linux-x86_64.AppImage.zsync.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
+            "digest": "sha256:7a88d8844d78060249dcb7afbdeb3c0c27b5204b34482eb998ea6b6f998d4d8a",
+            "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.deb",
-            "digest": "sha256:8e0321581daa591fd812b6cecccaf06a56688b2c5a6c624cbd3fee6553f403a4",
-            "name": "anicraft-0.2.1-linux-x86_64.deb",
-            "size": 20183444
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb",
+            "digest": "sha256:764c5950435a77f84322456edebbba76dd93e274bfce1e05e90a9ce247a28d08",
+            "name": "anicraft-0.3.0-linux-x86_64.deb",
+            "size": 36592790
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.deb.asc",
-            "digest": "sha256:d11aa7419e8cdb871f8a1b3fd85eee47aa59227c61b3e0417ba2e6537fa2f13c",
-            "name": "anicraft-0.2.1-linux-x86_64.deb.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb.asc",
+            "digest": "sha256:4a021fa85f2ce2a4b9a28608e2dfc9baccaf22d0a52618bdf793edc989cca15c",
+            "name": "anicraft-0.3.0-linux-x86_64.deb.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.flatpak",
-            "digest": "sha256:7e6ae66a666ab334bc45c2e5846ef2e0d112b8b5758bc5e695f4f59f2c6feb11",
-            "name": "anicraft-0.2.1-linux-x86_64.flatpak",
-            "size": 14372856
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak",
+            "digest": "sha256:0666ac13a2f147163065abff2b73dcbc590b8b22d70152d72f7d83fd3d0060ba",
+            "name": "anicraft-0.3.0-linux-x86_64.flatpak",
+            "size": 25843560
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.flatpak.asc",
-            "digest": "sha256:bd07dfcc6ce0552e0e588ea6729aacf3d77738908abc9aacd333fa5d661a6a31",
-            "name": "anicraft-0.2.1-linux-x86_64.flatpak.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak.asc",
+            "digest": "sha256:b76b24193779a4f949c3cfbf817f80ef94bd0da6319c33f32b6f18a4fe554c16",
+            "name": "anicraft-0.3.0-linux-x86_64.flatpak.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.oci-manifest.json",
-            "digest": "sha256:796ebff6647f18dd4d4838840a39fc91ea5080d79c3d281b59c28c73075d4d9d",
-            "name": "anicraft-0.2.1-linux-x86_64.oci-manifest.json",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci-manifest.json",
+            "digest": "sha256:2e0fea53112271234c8cc7b40d19d63746b611e587bc0877463376df8d1e4958",
+            "name": "anicraft-0.3.0-linux-x86_64.oci-manifest.json",
             "size": 493
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.oci.sig",
-            "digest": "sha256:1ddc793d3cce1919d2647c3e22d8a18214c524c5f97c08006f750f2ef719c2c6",
-            "name": "anicraft-0.2.1-linux-x86_64.oci.sig",
-            "size": 382
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci.sig",
+            "digest": "sha256:edb91d35a3a9ece4082a4d50de5955c85253fa50de86aee8ec753e84627e3ef2",
+            "name": "anicraft-0.3.0-linux-x86_64.oci.sig",
+            "size": 384
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.pkg.tar.zst",
-            "digest": "sha256:c81be3b2182b9e747feeeceeca878604600db2b6fb741bfa117029ecb9fc4aaf",
-            "name": "anicraft-0.2.1-linux-x86_64.pkg.tar.zst",
-            "size": 12380762
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+            "digest": "sha256:98dfe153c41ab69d6605722c19c2eca17e754480a74642e59dde816ff33b0c0d",
+            "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+            "size": 27033632
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.pkg.tar.zst.sig",
-            "digest": "sha256:1224f30cf6f993985d3d23847172afe549840aaf17ac0851d202cad8f6e8b409",
-            "name": "anicraft-0.2.1-linux-x86_64.pkg.tar.zst.sig",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
+            "digest": "sha256:8e7975ab46f471d9ba8b2c75d258183e72fdd64f8220f044f09a3f4a2b534d9d",
+            "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
             "size": 119
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.rpm",
-            "digest": "sha256:0b40dab61d28e17fb38cb71fda82c4f0f993eb839a15a396206bc8ef6c436b83",
-            "name": "anicraft-0.2.1-linux-x86_64.rpm",
-            "size": 20052261
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm",
+            "digest": "sha256:39fe2631876baabf0ddf9bdbf659c734f2483d1ad445dd5ef1e3cebf6535dafd",
+            "name": "anicraft-0.3.0-linux-x86_64.rpm",
+            "size": 36345513
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.rpm.asc",
-            "digest": "sha256:d366605f8a2418915c401da75a11fca8a8bfc53dff7138d4e38d9af82193647a",
-            "name": "anicraft-0.2.1-linux-x86_64.rpm.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm.asc",
+            "digest": "sha256:8ec168ce181293736a53e38250da841c2b7329e97d5fb65ec434ee6935fbfb4b",
+            "name": "anicraft-0.3.0-linux-x86_64.rpm.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.tar.gz",
-            "digest": "sha256:a3a8795bd6aea4b4bc5ca0f26c226a072330d38fe93f4edf5526360ebf7156fd",
-            "name": "anicraft-0.2.1-linux-x86_64.tar.gz",
-            "size": 19705850
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz",
+            "digest": "sha256:c83b78c1293bf37920aefe8bdca4443cf1d53fec450499872fc7fe5243eb114d",
+            "name": "anicraft-0.3.0-linux-x86_64.tar.gz",
+            "size": 35773176
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-linux-x86_64.tar.gz.asc",
-            "digest": "sha256:6e11766022f33be1f67901c33be9c434aeb3f10d93436ed0104bd469681c98f1",
-            "name": "anicraft-0.2.1-linux-x86_64.tar.gz.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz.asc",
+            "digest": "sha256:4473d2e0a101e05cac41e3eb64ec2cb3a620da7d8b3a43cfc88ec51b5e41d9e9",
+            "name": "anicraft-0.3.0-linux-x86_64.tar.gz.asc",
             "size": 228
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-macos-universal.dmg",
-            "digest": "sha256:e42c864afb704d1e302092f9a903935c2edada1161b336328255de653405b215",
-            "name": "anicraft-0.2.1-macos-universal.dmg",
-            "size": 35683097
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-macos-universal.dmg",
+            "digest": "sha256:4f49f9a2a19d7ef870c6d18f3043fee90801322207e199094deb91d74825824e",
+            "name": "anicraft-0.3.0-macos-universal.dmg",
+            "size": 68429994
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-arm64-portable.zip",
-            "digest": "sha256:74a92161ae6233c31ba5bbda2e23e4fc574608ba64a3b394fd693df531ccd601",
-            "name": "anicraft-0.2.1-windows-arm64-portable.zip",
-            "size": 17469173
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-portable.zip",
+            "digest": "sha256:f9c511eea4843f8cf02f4d65b59181d5bb4df925477d75f94fb4b6409550ae1e",
+            "name": "anicraft-0.3.0-windows-arm64-portable.zip",
+            "size": 33644175
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-arm64-symbols.zip",
-            "digest": "sha256:0bdbe3df29c1af6cffc391d2f56aecd691bc8796d4f01257d8a83dd1b41527a7",
-            "name": "anicraft-0.2.1-windows-arm64-symbols.zip",
-            "size": 3846498
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-symbols.zip",
+            "digest": "sha256:70e2f6ef5a5a5813ab8c1c2c52ac347608bbbf9137564d6652120118bd5f3538",
+            "name": "anicraft-0.3.0-windows-arm64-symbols.zip",
+            "size": 4729073
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-arm64.msi",
-            "digest": "sha256:752ff7b1ef62a594f2caa6e21dbe0ca04e1aca714144b6e375f8f5cbf82b173e",
-            "name": "anicraft-0.2.1-windows-arm64.msi",
-            "size": 14434304
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64.msi",
+            "digest": "sha256:358f2dbaae34f4ef8abff5638eb426f91b4365ac07dae92f9b22aa0fea80c1d3",
+            "name": "anicraft-0.3.0-windows-arm64.msi",
+            "size": 26714112
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-x64-portable.zip",
-            "digest": "sha256:cd51c7e2bc81957f7a162596eea564c78fc134acae27ea5c2163f5d617a53ce4",
-            "name": "anicraft-0.2.1-windows-x64-portable.zip",
-            "size": 18965079
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-portable.zip",
+            "digest": "sha256:0517bb09cd3ba8a053b7f8d44d3c34b5cda834f27501fcb8279b1ae2b6828514",
+            "name": "anicraft-0.3.0-windows-x64-portable.zip",
+            "size": 35927992
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-x64-symbols.zip",
-            "digest": "sha256:7c802223cb48e332a74e336bc60dde768d1897a5419ae8e29624edbd01ed5efa",
-            "name": "anicraft-0.2.1-windows-x64-symbols.zip",
-            "size": 4115226
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-symbols.zip",
+            "digest": "sha256:5a0f8539ef1675afc978fec28dc37fb0232b7b93c919eb28f153b11259b67433",
+            "name": "anicraft-0.3.0-windows-x64-symbols.zip",
+            "size": 5017371
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-0.2.1-windows-x64.msi",
-            "digest": "sha256:835ef10e964ae18169cc65bb5189953f5b4894d9725a31739cd16b2221fe8b92",
-            "name": "anicraft-0.2.1-windows-x64.msi",
-            "size": 15982592
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64.msi",
+            "digest": "sha256:b5aeef74c989811159bef331faac80fb4508307c56b74a139573bb03b1e4cbcb",
+            "name": "anicraft-0.3.0-windows-x64.msi",
+            "size": 29470720
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/anicraft-cli-0.2.1-macos-universal.zip",
-            "digest": "sha256:3fb12429aa306bdbb01ba1e1c5ddb69fb7c688f07d16c0e148bbe92c4c5ebb06",
-            "name": "anicraft-cli-0.2.1-macos-universal.zip",
-            "size": 9476078
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-cli-0.3.0-macos-universal.zip",
+            "digest": "sha256:98cad0029ea455448c737bcefa0abac257dd8728fb25147d349a2af52e688607",
+            "name": "anicraft-cli-0.3.0-macos-universal.zip",
+            "size": 24326370
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/release-signing-key.asc",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/release-signing-key.asc",
             "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
             "name": "release-signing-key.asc",
             "size": 803
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/SHA256SUMS.txt",
-            "digest": "sha256:3090858a6b9aafe25fca71f83b6e15e2e59fbc1bd05a88535ab713630161f28d",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt",
+            "digest": "sha256:a878cc7e039e5c23c185ab1321ea89eb05105fcf34015c21e79eed3a64563d5d",
             "name": "SHA256SUMS.txt",
             "size": 5105
           },
           {
-            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.2.1/SHA256SUMS.txt.asc",
-            "digest": "sha256:eb1ec4b8f63f7effc5e1af370f259613f81654473ebce9f0b02ce659223b32a4",
+            "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt.asc",
+            "digest": "sha256:ec40abefcee22044755ef197f1dee0cc4a8623cdd06b6e5c4ab054599ab3c8e1",
             "name": "SHA256SUMS.txt.asc",
             "size": 228
           }
         ],
         "draft": false,
-        "name": "AniCraft v0.2.1",
+        "name": "AniCraft v0.3.0",
         "prerelease": false,
-        "tag_name": "v0.2.1"
+        "tag_name": "v0.3.0"
       }
     },
     "https://api.github.com/repos/storytold/anicraft/releases?per_page=100&page=1": {
-      "etag": "\"0cfadab6030ca16bcf0ab2a7f6841af13f872eee6ddb3774511e5eef891ec7cc\"",
+      "etag": "\"fa05a5f8bd3e0ffefefb0cbe0575257e6036355f5376a5e9ba4b0f7c16bc34d8\"",
       "body": [
+        {
+          "assets": [
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-aarch64.tar.gz",
+              "digest": "sha256:55581d018f077b5d3ec4acb763ca83a78ca0974e3189c27182f7c3df242c769e",
+              "name": "anicraft-0.3.0-freebsd-aarch64.tar.gz",
+              "size": 38916002
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-freebsd-x86_64.tar.gz",
+              "digest": "sha256:56ea3362ab5dc7d9a4424e4a8245777e60dcbee6bf4a4f573c4ec974b1c29cb9",
+              "name": "anicraft-0.3.0-freebsd-x86_64.tar.gz",
+              "size": 40689636
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage",
+              "digest": "sha256:d682ef5eb46651c2d9aa6c3416e4b6f78a23090d6732c5e26a1a1c38e6de46c3",
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage",
+              "size": 31947272
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.asc",
+              "digest": "sha256:92d1c7c6dbb71ef0a2f5a2748b4cd50559a6ba3e3943d52df4d94fe5817c31bb",
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+              "digest": "sha256:e24df9cff5d78c92c871b4df994748150c23691c6a31cef9798599bcc44ce97e",
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync",
+              "size": 109445
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
+              "digest": "sha256:3796f8441aaf1ae31f4f11ccadba2ea4e35ad4718452c138c959e4c881378102",
+              "name": "anicraft-0.3.0-linux-aarch64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb",
+              "digest": "sha256:13d621cac4cf37fcf96159d3f27f0e77314fba208e6e80c2ee398d0c9f53f842",
+              "name": "anicraft-0.3.0-linux-aarch64.deb",
+              "size": 35191256
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.deb.asc",
+              "digest": "sha256:3116dac9b4ffee288c4c7f7904f6c95967b573f23913a4fa58a8a773780b6093",
+              "name": "anicraft-0.3.0-linux-aarch64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak",
+              "digest": "sha256:18bb4a515cf443d171a0df02578f71a152ecae744224b1971988ddea38d32c82",
+              "name": "anicraft-0.3.0-linux-aarch64.flatpak",
+              "size": 23157184
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.flatpak.asc",
+              "digest": "sha256:d82df572d5dee21163bd9c138fdf876a3d7a71b812a28cccf383e97ffc72af63",
+              "name": "anicraft-0.3.0-linux-aarch64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci-manifest.json",
+              "digest": "sha256:dd6dd6ce6c11eed2710ebfd5a82c9373084f9a009df7211a48fcec0ea7d21e53",
+              "name": "anicraft-0.3.0-linux-aarch64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.oci.sig",
+              "digest": "sha256:03f176d6079cbb38291e1e0128feba2ecc6858b9f716ac6b64ccf4bd7d86d864",
+              "name": "anicraft-0.3.0-linux-aarch64.oci.sig",
+              "size": 384
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+              "digest": "sha256:9655cf8f619a6c6ff44b85266ef4e261450ffe149301717b82fc8364feb60bd2",
+              "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst",
+              "size": 23462828
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
+              "digest": "sha256:8dcb0c8d1da73b2a3a2d8676c66b9e57694414e14169ad30459c61d90f8df643",
+              "name": "anicraft-0.3.0-linux-aarch64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm",
+              "digest": "sha256:993f78727649769ff9570b18b467c46c64bcae92a4be404d01d15c7c1913c1de",
+              "name": "anicraft-0.3.0-linux-aarch64.rpm",
+              "size": 34818368
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.rpm.asc",
+              "digest": "sha256:80e2cdf334045b2ab56b00fa0690bab6e4a92c7a5caaca57a8f025fac9eb2bb1",
+              "name": "anicraft-0.3.0-linux-aarch64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz",
+              "digest": "sha256:3244bd8b26ffd96602559524a9f3a068777a0f421ce870d5c57dd578a6d30e82",
+              "name": "anicraft-0.3.0-linux-aarch64.tar.gz",
+              "size": 33669950
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-aarch64.tar.gz.asc",
+              "digest": "sha256:c153b71e47e34c0e14db8fdabaa0626ea37b37633f26f4da101176af17d06480",
+              "name": "anicraft-0.3.0-linux-aarch64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb",
+              "digest": "sha256:043ba91f8498093994052220f0e1b572e87de134074408514d8f27c8300bc8f7",
+              "name": "anicraft-0.3.0-linux-riscv64.deb",
+              "size": 35779236
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.deb.asc",
+              "digest": "sha256:85318c21c1f0dd848c4c6f3f0389c455fd6d0069195bf450995ecbe74333d733",
+              "name": "anicraft-0.3.0-linux-riscv64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm",
+              "digest": "sha256:b264694ecb601de92107b74f94ecdec8485a7d67b370e7accde8565a52c1ebea",
+              "name": "anicraft-0.3.0-linux-riscv64.rpm",
+              "size": 35676045
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.rpm.asc",
+              "digest": "sha256:5a363384f0a7d634f8584433b3d18995bdbb3cb06fe99a91e10442c4220ac05f",
+              "name": "anicraft-0.3.0-linux-riscv64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz",
+              "digest": "sha256:bab07767901f7f01765783367ac57a74d064bbd27858fd9297f1a126710c6f3a",
+              "name": "anicraft-0.3.0-linux-riscv64.tar.gz",
+              "size": 35083956
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-riscv64.tar.gz.asc",
+              "digest": "sha256:eff2771210ebfe486bd7261087ede3869bbc0bf258fa2ddb8ec8452773067497",
+              "name": "anicraft-0.3.0-linux-riscv64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage",
+              "digest": "sha256:2f6ed01e0e4ffa17c5d771227836113e0323a806ee0a7d8be3530a000322c911",
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage",
+              "size": 33978872
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.asc",
+              "digest": "sha256:ab6f8ca5fd026fef6e917cfe96c709325ccee8f7ff0390904b52940200fcc382",
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+              "digest": "sha256:96ba43cf9a0fb3d86dd15122e0d6b08ad6583161c16e4fbf35893974397f018d",
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync",
+              "size": 116387
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
+              "digest": "sha256:7a88d8844d78060249dcb7afbdeb3c0c27b5204b34482eb998ea6b6f998d4d8a",
+              "name": "anicraft-0.3.0-linux-x86_64.AppImage.zsync.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb",
+              "digest": "sha256:764c5950435a77f84322456edebbba76dd93e274bfce1e05e90a9ce247a28d08",
+              "name": "anicraft-0.3.0-linux-x86_64.deb",
+              "size": 36592790
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.deb.asc",
+              "digest": "sha256:4a021fa85f2ce2a4b9a28608e2dfc9baccaf22d0a52618bdf793edc989cca15c",
+              "name": "anicraft-0.3.0-linux-x86_64.deb.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak",
+              "digest": "sha256:0666ac13a2f147163065abff2b73dcbc590b8b22d70152d72f7d83fd3d0060ba",
+              "name": "anicraft-0.3.0-linux-x86_64.flatpak",
+              "size": 25843560
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.flatpak.asc",
+              "digest": "sha256:b76b24193779a4f949c3cfbf817f80ef94bd0da6319c33f32b6f18a4fe554c16",
+              "name": "anicraft-0.3.0-linux-x86_64.flatpak.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci-manifest.json",
+              "digest": "sha256:2e0fea53112271234c8cc7b40d19d63746b611e587bc0877463376df8d1e4958",
+              "name": "anicraft-0.3.0-linux-x86_64.oci-manifest.json",
+              "size": 493
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.oci.sig",
+              "digest": "sha256:edb91d35a3a9ece4082a4d50de5955c85253fa50de86aee8ec753e84627e3ef2",
+              "name": "anicraft-0.3.0-linux-x86_64.oci.sig",
+              "size": 384
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+              "digest": "sha256:98dfe153c41ab69d6605722c19c2eca17e754480a74642e59dde816ff33b0c0d",
+              "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst",
+              "size": 27033632
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
+              "digest": "sha256:8e7975ab46f471d9ba8b2c75d258183e72fdd64f8220f044f09a3f4a2b534d9d",
+              "name": "anicraft-0.3.0-linux-x86_64.pkg.tar.zst.sig",
+              "size": 119
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm",
+              "digest": "sha256:39fe2631876baabf0ddf9bdbf659c734f2483d1ad445dd5ef1e3cebf6535dafd",
+              "name": "anicraft-0.3.0-linux-x86_64.rpm",
+              "size": 36345513
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.rpm.asc",
+              "digest": "sha256:8ec168ce181293736a53e38250da841c2b7329e97d5fb65ec434ee6935fbfb4b",
+              "name": "anicraft-0.3.0-linux-x86_64.rpm.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz",
+              "digest": "sha256:c83b78c1293bf37920aefe8bdca4443cf1d53fec450499872fc7fe5243eb114d",
+              "name": "anicraft-0.3.0-linux-x86_64.tar.gz",
+              "size": 35773176
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-linux-x86_64.tar.gz.asc",
+              "digest": "sha256:4473d2e0a101e05cac41e3eb64ec2cb3a620da7d8b3a43cfc88ec51b5e41d9e9",
+              "name": "anicraft-0.3.0-linux-x86_64.tar.gz.asc",
+              "size": 228
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-macos-universal.dmg",
+              "digest": "sha256:4f49f9a2a19d7ef870c6d18f3043fee90801322207e199094deb91d74825824e",
+              "name": "anicraft-0.3.0-macos-universal.dmg",
+              "size": 68429994
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-portable.zip",
+              "digest": "sha256:f9c511eea4843f8cf02f4d65b59181d5bb4df925477d75f94fb4b6409550ae1e",
+              "name": "anicraft-0.3.0-windows-arm64-portable.zip",
+              "size": 33644175
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64-symbols.zip",
+              "digest": "sha256:70e2f6ef5a5a5813ab8c1c2c52ac347608bbbf9137564d6652120118bd5f3538",
+              "name": "anicraft-0.3.0-windows-arm64-symbols.zip",
+              "size": 4729073
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-arm64.msi",
+              "digest": "sha256:358f2dbaae34f4ef8abff5638eb426f91b4365ac07dae92f9b22aa0fea80c1d3",
+              "name": "anicraft-0.3.0-windows-arm64.msi",
+              "size": 26714112
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-portable.zip",
+              "digest": "sha256:0517bb09cd3ba8a053b7f8d44d3c34b5cda834f27501fcb8279b1ae2b6828514",
+              "name": "anicraft-0.3.0-windows-x64-portable.zip",
+              "size": 35927992
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64-symbols.zip",
+              "digest": "sha256:5a0f8539ef1675afc978fec28dc37fb0232b7b93c919eb28f153b11259b67433",
+              "name": "anicraft-0.3.0-windows-x64-symbols.zip",
+              "size": 5017371
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-0.3.0-windows-x64.msi",
+              "digest": "sha256:b5aeef74c989811159bef331faac80fb4508307c56b74a139573bb03b1e4cbcb",
+              "name": "anicraft-0.3.0-windows-x64.msi",
+              "size": 29470720
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/anicraft-cli-0.3.0-macos-universal.zip",
+              "digest": "sha256:98cad0029ea455448c737bcefa0abac257dd8728fb25147d349a2af52e688607",
+              "name": "anicraft-cli-0.3.0-macos-universal.zip",
+              "size": 24326370
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/release-signing-key.asc",
+              "digest": "sha256:8e6925a173d6a7134118da099948de4d9eeec7c1c0770998aec33c9d3f484740",
+              "name": "release-signing-key.asc",
+              "size": 803
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt",
+              "digest": "sha256:a878cc7e039e5c23c185ab1321ea89eb05105fcf34015c21e79eed3a64563d5d",
+              "name": "SHA256SUMS.txt",
+              "size": 5105
+            },
+            {
+              "browser_download_url": "https://github.com/storytold/anicraft/releases/download/v0.3.0/SHA256SUMS.txt.asc",
+              "digest": "sha256:ec40abefcee22044755ef197f1dee0cc4a8623cdd06b6e5c4ab054599ab3c8e1",
+              "name": "SHA256SUMS.txt.asc",
+              "size": 228
+            }
+          ],
+          "draft": false,
+          "name": "AniCraft v0.3.0",
+          "prerelease": false,
+          "tag_name": "v0.3.0"
+        },
         {
           "assets": [
             {
@@ -67161,7 +67789,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/artcraft/releases/latest": {
-      "etag": "\"e91885cfea0bcc938950b04b110e03010494041137683f424fa5014a826d81aa\"",
+      "etag": "\"8ebba8bdbce1170af43f9e0558dfeb1840366598608e6d86c204d3bc5efdfd20\"",
       "body": {
         "assets": [
           {
@@ -67442,7 +68070,7 @@
       }
     },
     "https://api.github.com/repos/storytold/artcraft/releases?per_page=100&page=1": {
-      "etag": "\"b706d6c870c94fd2aa88776366f2750ab28bbf2287062256828b411627c3f77c\"",
+      "etag": "\"f9befcaa3fcd9cf64c1ac17358c772b4f13bd768b2d41ba97a5d23e91f1f78b9\"",
       "body": [
         {
           "assets": [
@@ -68525,7 +69153,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/cadcraft/releases/latest": {
-      "etag": "\"d6f441216533d99ed09fde6f17fa2e3adf550ee99f085a97fa10eb521ed3d109\"",
+      "etag": "\"87379e7b50e1fc293caffdcd9a297d1f11e6a55be070bbb867ceb635171e68c9\"",
       "body": {
         "assets": [
           {
@@ -68836,7 +69464,7 @@
       }
     },
     "https://api.github.com/repos/storytold/cadcraft/releases?per_page=100&page=1": {
-      "etag": "\"d494d180fc25158cc9bc93543fec66a93d91441bc363a6a26bddea24f94c9bf5\"",
+      "etag": "\"eeedb198f6b50ae7e42a72640990019f1cbd21fcf0bf824d4675764e4402f513\"",
       "body": [
         {
           "assets": [
@@ -72933,7 +73561,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/deckcraft/releases/latest": {
-      "etag": "\"111d2e3159edaf2520c629e49f98fa3eac7a557c527a4237858f707c75a02109\"",
+      "etag": "\"884c51dd8c5d1baddeefa8b36db6c47d71955f03f15cb9207762b7266c8d11a7\"",
       "body": {
         "assets": [
           {
@@ -73244,7 +73872,7 @@
       }
     },
     "https://api.github.com/repos/storytold/deckcraft/releases?per_page=100&page=1": {
-      "etag": "\"6bf0739a61e515dff1e4d53d625eb2d0391d454b8e21d329fc2be2f47b9544d5\"",
+      "etag": "\"9351347347405ec063a7ab8dc2a963a29924495114d09cadea803c3fa70a766d\"",
       "body": [
         {
           "assets": [
@@ -77423,7 +78051,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/designcraft/releases/latest": {
-      "etag": "\"421122e46206dc76487d6949dbfc959541e634c71053713163064fa6e3cefd78\"",
+      "etag": "\"4494f44b7ec899f181a7cb211e70cd3f1724af45e766b6cf9db359118a6c6cc5\"",
       "body": {
         "assets": [
           {
@@ -77734,7 +78362,7 @@
       }
     },
     "https://api.github.com/repos/storytold/designcraft/releases?per_page=100&page=1": {
-      "etag": "\"3853ce3cce441294e9e13eae64e9fe9a389708899ff833b19c74af2345c1732b\"",
+      "etag": "\"f77855e7287528301bc104465a5df1fe83fbe2136a55036b01ec8c263048a5d8\"",
       "body": [
         {
           "assets": [
@@ -82601,7 +83229,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/effectcraft/releases/latest": {
-      "etag": "\"83b233646b96367aeebea67ec76def6746e1f122c1d08308895a352312e9fa6e\"",
+      "etag": "\"995c9678b642c7a94710ab5bbd0062504b668d715a224f7134bbc16fbc5f17a3\"",
       "body": {
         "assets": [
           {
@@ -82912,7 +83540,7 @@
       }
     },
     "https://api.github.com/repos/storytold/effectcraft/releases?per_page=100&page=1": {
-      "etag": "\"8bedb9d72b0d10d140a9e12adc57ba9a82d71e2eb89cbd9729ae9d2f81509b10\"",
+      "etag": "\"761762bb852a8b61a2302470278966d987c919bd8f9b841be223ad4c3ced5b1d\"",
       "body": [
         {
           "assets": [
@@ -88271,7 +88899,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/figcraft/releases/latest": {
-      "etag": "\"176a9679b0698d4308edd68a81e9df1e2ff693b76ebdfc696c728f6e1227914c\"",
+      "etag": "\"0e57061c1b3ff19e85c6c27a4cc370dbc5fde2605ceaf13997724dccbbb13b81\"",
       "body": {
         "assets": [
           {
@@ -88606,7 +89234,7 @@
       }
     },
     "https://api.github.com/repos/storytold/figcraft/releases?per_page=100&page=1": {
-      "etag": "\"8fc2ba015502c67d9e7f4cc3fe5ebc365936a63e344a678c856635f5b09fd81a\"",
+      "etag": "\"3863aba20d1feeede68cd60b645630e0c8af01c339ac271b2a7584ebdffb3009\"",
       "body": [
         {
           "assets": [
@@ -92953,7 +93581,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/filmcraft/releases/latest": {
-      "etag": "\"8b5abb9f319e6f3990c8f88d20476ca2f2adce862856d89db368d6b43789a20b\"",
+      "etag": "\"cf6ea7b5bf277383b334835890982177e2711049135b9e3d8e81cba8e2e892a3\"",
       "body": {
         "assets": [
           {
@@ -93264,7 +93892,7 @@
       }
     },
     "https://api.github.com/repos/storytold/filmcraft/releases?per_page=100&page=1": {
-      "etag": "\"344f7fbb9bd9d442b4acaa4dd53ed18a12017b6038b16541458a7fe5fb8ee814\"",
+      "etag": "\"2ca00f9b9abbd27749dea79a29fb8544dd24e93bee5ae29c5c423ccf856cf8f1\"",
       "body": [
         {
           "assets": [
@@ -97611,7 +98239,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/gridcraft/releases/latest": {
-      "etag": "\"e109ba1feeed5ad52f14141570bd64e990095256178b2855cdf68619d1be629c\"",
+      "etag": "\"79a726f91fec00a537c163d5e9c041a91c061748e647cae3f0b01d4758b723fb\"",
       "body": {
         "assets": [
           {
@@ -97922,7 +98550,7 @@
       }
     },
     "https://api.github.com/repos/storytold/gridcraft/releases?per_page=100&page=1": {
-      "etag": "\"f5f7d90cdfe91e8a038f7c432b4d123b08cc3b26037a5bace0b4f5064b8af10f\"",
+      "etag": "\"40d7c883cec857cd5fc235aeddfccae995da7c34c42e3354a18e6667bb089c5e\"",
       "body": [
         {
           "assets": [
@@ -102069,7 +102697,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/lightcraft/releases/latest": {
-      "etag": "\"23a0aa966d9fcb450506ce3ce21de9d17fcb62a043d5ae4476758d753d91d57c\"",
+      "etag": "\"f7cc1f433a11c69f23c22a2b3d342ea3a5f0fbc4133e61ce408efcb037d42371\"",
       "body": {
         "assets": [
           {
@@ -102380,7 +103008,7 @@
       }
     },
     "https://api.github.com/repos/storytold/lightcraft/releases?per_page=100&page=1": {
-      "etag": "\"cdb1ce20f52f6f743f221f8f51ff658c76781b33df9c5cccf3c76b111d1dfd74\"",
+      "etag": "\"0534c515c0e9b7c592e130d204622e6c9d1a05dacfb920fed9fec117116ac59e\"",
       "body": [
         {
           "assets": [
@@ -106879,7 +107507,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/materialcraft/releases/latest": {
-      "etag": "\"9f4308d6669d0ee116eead72eed5ef883d63cfd3556f5c2cca6f06ce23581ca1\"",
+      "etag": "\"9bdd7e0490c7d2c2fe2cb9f563b2297de9bd2ab62ab5030c9b9840bdd55ebbf3\"",
       "body": {
         "assets": [
           {
@@ -107190,7 +107818,7 @@
       }
     },
     "https://api.github.com/repos/storytold/materialcraft/releases?per_page=100&page=1": {
-      "etag": "\"76ceabe989c391162bf74c1ed649c6ff514a5f316dacddfe4466649043812cd5\"",
+      "etag": "\"d0714f3190463f8a404d25a9e4b5780636f92fd30ec931e971d0e76feee85746\"",
       "body": [
         {
           "assets": [
@@ -109261,7 +109889,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases/latest": {
-      "etag": "\"f7f831b9ba82cb06e775ceeef33ffdf933d9ee93fc903f1b3cc2c4a982166aa4\"",
+      "etag": "\"2ecec2b52b1f19b6b07fc8d17823e3b02e6f201ddcf8adf9be2351179567f92b\"",
       "body": {
         "assets": [
           {
@@ -109596,7 +110224,7 @@
       }
     },
     "https://api.github.com/repos/storytold/pdfcraft/releases?per_page=100&page=1": {
-      "etag": "\"f073afa6d9b36987c0f4d33826da775299c3ca2a23c27c884854c0c1d757ff5e\"",
+      "etag": "\"ffcc0e9b1a4ef23e567ba1e5fd95d59b6b739a966e79187f7a6e76137cfe808d\"",
       "body": [
         {
           "assets": [
@@ -114957,7 +115585,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/photocraft/releases/latest": {
-      "etag": "\"c1a8c16689a217443f4231be0d0dfb771aa72b5a1e98b5d28d2dd6026aa1f32b\"",
+      "etag": "\"7bde5e12147319dea4f84ea9d07ee8074740a94e5f0c36f339eab48c0616c7a2\"",
       "body": {
         "assets": [
           {
@@ -115280,7 +115908,7 @@
       }
     },
     "https://api.github.com/repos/storytold/photocraft/releases?per_page=100&page=1": {
-      "etag": "\"b8ade9c59e89d0e693ad3e67d6eed7ff0591090d12564b73daef9b55c84d2024\"",
+      "etag": "\"2670c48ac16fcd0747847cf03a0508655fabdfd4aeb7773e06661f3ff9d1f89b\"",
       "body": [
         {
           "assets": [
@@ -120893,7 +121521,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/soundcraft/releases/latest": {
-      "etag": "\"1b81f7045ddcac4705a173b8032cfce5200c999bb802e9180630fe344ee1f34b\"",
+      "etag": "\"3d85a9c2f602920d8cd255b5bd480e1a7361145732b70552dfb2828648e8b34e\"",
       "body": {
         "assets": [
           {
@@ -121204,7 +121832,7 @@
       }
     },
     "https://api.github.com/repos/storytold/soundcraft/releases?per_page=100&page=1": {
-      "etag": "\"adabf94ead3bc16a1c2711e4df90476e5f34b13ffcdec7392bb6c984fb566f25\"",
+      "etag": "\"3485a8e9fb5ad089c985828a2cd84e47436871e861c63eb3de1e3bdcda3de79c\"",
       "body": [
         {
           "assets": [
@@ -125141,7 +125769,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/texturecraft/releases/latest": {
-      "etag": "\"494174ac1b84a9eaf1b3af0bf57bf770af5cc085f2734fd67b451abc0f87df68\"",
+      "etag": "\"36e0f9adb6af0dad68bcfc15c7ad9732d5e8c31a4b848bfab9c408596b27cc2d\"",
       "body": {
         "assets": [
           {
@@ -125452,7 +126080,7 @@
       }
     },
     "https://api.github.com/repos/storytold/texturecraft/releases?per_page=100&page=1": {
-      "etag": "\"c947bc2fb7c64ded8597a7ed15c8908cec19a33968962a48bd32187d9414ac96\"",
+      "etag": "\"704e9b8b8ce92cd3bbcf40f5035f0ee80932cc12ef96e6dd006ef9b0d3186700\"",
       "body": [
         {
           "assets": [
@@ -127725,7 +128353,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases/latest": {
-      "etag": "\"8ae881d1f4969f5c9b623f1a6dcd65807174a5a469362e2caf54c518f4d7dfab\"",
+      "etag": "\"b97f423c0db1b151fd9361b40ac0bb5bdf28babf423ae983688e30341f199783\"",
       "body": {
         "assets": [
           {
@@ -128036,7 +128664,7 @@
       }
     },
     "https://api.github.com/repos/storytold/vectorcraft/releases?per_page=100&page=1": {
-      "etag": "\"4b2a645811da889618bec7c0ac13d025f7f3be24e6c009f63f1738f8c1246ac0\"",
+      "etag": "\"5eb3c88322d63bfaeb673bb0cb3a00207dfbacdcd8eae3afe26af17f6b8365ac\"",
       "body": [
         {
           "assets": [
@@ -133017,7 +133645,7 @@
       ]
     },
     "https://api.github.com/repos/storytold/wordcraft/releases/latest": {
-      "etag": "\"e1177747a34c01d4c800be356bb7cf2a098b09b8d394d7b31812e49bd106a01e\"",
+      "etag": "\"b662ed0910f0b88694f7b62a94d93c162b713f1f03fa7ae445fb039575d53796\"",
       "body": {
         "assets": [
           {
@@ -133328,7 +133956,7 @@
       }
     },
     "https://api.github.com/repos/storytold/wordcraft/releases?per_page=100&page=1": {
-      "etag": "\"23fd709ba6527db78297260731cbfa07906e7fc7b2526402c961f88fb74a24f3\"",
+      "etag": "\"8b1a9d6bb9d6db8fe38ea37cda9e61dc44ab73c71955c13e833524abde829860\"",
       "body": [
         {
           "assets": [

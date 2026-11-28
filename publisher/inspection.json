@@ -17962,6 +17962,34 @@
         "inspector_version": 1
       },
       "used": 1795635226
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.3.0",
+        "asset_name": "anicraft-0.3.0-windows-arm64.msi",
+        "digest": "sha256:358f2dbaae34f4ef8abff5638eb426f91b4365ac07dae92f9b22aa0fea80c1d3",
+        "size": 26714112,
+        "os": "windows",
+        "architecture": "arm64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795857417
+    },
+    {
+      "repository": "storytold/anicraft",
+      "evidence": {
+        "tag": "v0.3.0",
+        "asset_name": "anicraft-0.3.0-windows-x64.msi",
+        "digest": "sha256:b5aeef74c989811159bef331faac80fb4508307c56b74a139573bb03b1e4cbcb",
+        "size": 29470720,
+        "os": "windows",
+        "architecture": "x64",
+        "policy": "dual",
+        "inspector_version": 1
+      },
+      "used": 1795857417
     }
   ],
   "attempts": {
@@ -17971,6 +17999,8 @@
     "storytold/anicraft:v0.2.0:anicraft-0.2.0-windows-x64.msi:sha256:2f9ff59004858e14cade205609f44928ddba8001a9c12ca21ed82d2492f8accb": 1794413874,
     "storytold/anicraft:v0.2.1:anicraft-0.2.1-windows-arm64.msi:sha256:752ff7b1ef62a594f2caa6e21dbe0ca04e1aca714144b6e375f8f5cbf82b173e": 1794447854,
     "storytold/anicraft:v0.2.1:anicraft-0.2.1-windows-x64.msi:sha256:835ef10e964ae18169cc65bb5189953f5b4894d9725a31739cd16b2221fe8b92": 1794447855,
+    "storytold/anicraft:v0.3.0:anicraft-0.3.0-windows-arm64.msi:sha256:358f2dbaae34f4ef8abff5638eb426f91b4365ac07dae92f9b22aa0fea80c1d3": 1795857416,
+    "storytold/anicraft:v0.3.0:anicraft-0.3.0-windows-x64.msi:sha256:b5aeef74c989811159bef331faac80fb4508307c56b74a139573bb03b1e4cbcb": 1795857417,
     "storytold/artcraft:artcraft-v0.10.0:ArtCraft_0.10.0_x64_en-US.msi:sha256:b3ea718f7f46fc55d579e3e00b4fa4857e05735da6f663b492e424bc30e0a1e0": 1793535983,
     "storytold/artcraft:artcraft-v0.11.0:ArtCraft_0.11.0_x64_en-US.msi:sha256:28ee19f575aa6e938fe0d3582d9f69b976d82f062610a5a7d8f93cd2f4788d7e": 1793535975,
     "storytold/artcraft:artcraft-v0.12.0:ArtCraft_0.12.0_x64_en-US.msi:sha256:87195b4a4d4f02956209ce9804fbdde972827271c8050058978a3e8e95ca1ad2": 1793535967,
